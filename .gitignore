@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+# Salidas de Vivado / Quartus
+*.jou
+*.log
+.Xil/
+db/
+incremental_db/
