@@ -1,10 +1,13 @@
 """
-Constantes del juego.
+Constantes del juego Mountain Crash.
 
-Los valores están elegidos pensando en la FPGA:
+Los valores están elegidos pensando en la Nexys A7 (Artix-7):
 - 640x480 es la resolución VGA estándar (reloj de píxel de 25 MHz).
+- La Nexys A7 tiene VGA de 4 bits por canal -> paleta RGB444.
+- El acelerómetro ADXL362 entrega en modo 8 bits (±2 g) unos 64 LSB por g,
+  así que inclinar la tarjeta 90° da aprox. ±64.
 - Los tamaños son potencias de 2 siempre que se puede, para que en hardware
-  las divisiones y módulos sean simples cortes de bits (x >> 5, x & 1023...).
+  las divisiones sean cortes de bits (x >> 5, fila & 15...).
 """
 
 # --- Pantalla (VGA 640x480 @ 60 Hz) ---
@@ -12,66 +15,63 @@ ANCHO = 640
 ALTO = 480
 FPS = 60
 
-# --- Cuadrícula ---
-TILE = 32                   # 2^5 píxeles -> tile = x >> 5
+# --- Terreno: cuadrícula de tiles ---
+TILE = 32                   # 2^5 píxeles -> columna = x >> 5
 TILE_BITS = 5
-COLS = ANCHO // TILE        # 20 columnas visibles
-FILAS = ALTO // TILE        # 15 carriles visibles
+COLS = ANCHO // TILE        # 20 columnas
+MASCARA_COLS = (1 << COLS) - 1
+# Con scroll suave se ven hasta 16 filas a la vez (15 completas + 1 partida),
+# así que el buffer circular tiene exactamente 16 filas.
+NUM_FILAS = 16
+MASCARA_FILA = NUM_FILAS - 1
 
-# Cada carril es un patrón de 32 tiles (1024 px) que "da la vuelta".
-# Solo se ven 20 tiles; usar 32 hace que el offset sea un contador de 10 bits
-# que se desborda solo, sin necesidad de calcular módulo 640.
-CARRIL_BITS = 32
-ANCHO_VIRTUAL = CARRIL_BITS * TILE   # 1024
-MASCARA_X = ANCHO_VIRTUAL - 1        # 0x3FF
+# --- Sprites: 16x16 dibujados al doble (cada píxel del sprite = 2x2 en pantalla) ---
+SPRITE = 16
+ESCALA = 2
 
-# Buffer circular de carriles (15 visibles + 1 que se está regenerando).
-NUM_CARRILES = 16
-MASCARA_CARRIL = NUM_CARRILES - 1
+# --- Punto fijo: posiciones y velocidades en 1/16 de píxel (Q4) ---
+FP_BITS = 4
 
-# --- Tipos de carril ---
-PASTO = 0
-CALLE = 1
-RIO = 2
+# --- Scroll (velocidad del avión hacia adelante) ---
+VEL_INICIAL = 2 << FP_BITS      # 2 px/frame
+VEL_MAXIMA = 6 << FP_BITS       # 6 px/frame
+FRAMES_ACELERAR = 64            # cada 64 frames la velocidad sube 1/16 px/frame
 
-# --- Entradas (en la FPGA serán los botones de la tarjeta) ---
-NADA = 0
-ARRIBA = 1
-ABAJO = 2
-IZQ = 3
-DER = 4
+# --- Avión ---
+AVION_Y = ALTO - 96             # fila de pantalla fija (esquina superior del sprite)
+AVION_TAM = SPRITE * ESCALA     # 32 px
+
+# --- Acelerómetro ---
+ACCEL_MAX = 64                  # ~1 g: se satura aquí
+ZONA_MUERTA = 6                 # |a| menor que esto -> el avión no se mueve
+UMBRAL_INCLINADO = 16           # a partir de aquí se dibuja el avión inclinado
+# velocidad lateral (Q4) = (a - zona_muerta) * 3 / 2  -> máx. ~5.4 px/frame
+
+# --- Generación del terreno ---
+FILAS_SEGURAS = 16              # la primera pantalla es valle libre (despegue)
+ANCHO_PASILLO_INICIAL = 9       # tiles libres garantizados
+ANCHO_PASILLO_MINIMO = 4
+FILAS_ANGOSTAR = 48             # cada 48 filas el pasillo pierde 1 tile
 
 # --- Estados de la máquina de estados principal ---
 INICIO = 0
 JUGANDO = 1
-MUERTO = 2
-
-# --- Reglas ---
-FILA_INICIAL = 1            # fila (absoluta) donde aparece la gallina
-FILAS_SEGURAS = 3           # primeras filas siempre son pasto sin árboles
-FILA_CAMARA = 5             # si la gallina sube más de esto en pantalla, la cámara avanza
-MARGEN_CHOQUE = 6           # píxeles de "perdón" a cada lado al chocar con autos
-FRAMES_AGUILA = 8 * FPS     # 8 s sin avanzar -> el águila se la lleva
-FRAMES_ESPERA_MUERTO = 45   # tiempo antes de aceptar tecla para reiniciar
+CHOQUE = 2
+FRAMES_ESPERA_CHOQUE = 60       # tiempo antes de aceptar el botón para reiniciar
 
 # --- Paleta en RGB444 (12 bits: 4 bits por canal) ---
-# Muchas tarjetas (Basys 3, DE10-Lite, Nexys A7) usan VGA de 4 bits por canal,
-# así que el prototipo solo usa colores que la tarjeta puede mostrar tal cual.
 PALETA = {
-    "pasto":        0x5B3,
-    "pasto_osc":    0x4A3,
-    "arbol":        0x262,
-    "tronco_arbol": 0x631,
-    "calle":        0x444,
-    "linea":        0xCCC,
-    "agua":         0x39E,
-    "tronco":       0x852,
-    "tronco_osc":   0x630,
-    "gallina":      0xFFF,
-    "cresta":       0xF22,
-    "pico":         0xF90,
-    "ojo":          0x000,
-    "texto":        0xFFF,
-    "sombra":       0x000,
+    "valle":      0x3A4,
+    "valle_osc":  0x394,
+    "roca":       0x864,
+    "roca_osc":   0x542,
+    "nieve":      0xEEF,
+    "avion":      0xEEE,
+    "avion_osc":  0x99A,
+    "franja":     0xD22,
+    "cabina":     0x237,
+    "fuego1":     0xF80,
+    "fuego2":     0xFE3,
+    "texto":      0xFFF,
+    "sombra":     0x000,
 }
-COLORES_AUTOS = [0xE33, 0x36E, 0xEC2, 0xA4D, 0x2CA, 0xF80]

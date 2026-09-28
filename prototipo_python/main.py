@@ -1,7 +1,11 @@
 """
-Prototipo tipo Crossy Road con pygame.
+Prototipo de Mountain Crash con pygame.
 
-Controles: flechas o WASD para saltar, Esc para salir.
+En la PC no hay acelerómetro, así que se simula:
+- Mouse: la posición horizontal es la inclinación (centro = plano).
+- Flechas izquierda/derecha: mantenerlas inclina la "tarjeta" poco a poco.
+Espacio / Enter / clic = botón central (BTNC). Esc para salir.
+
 Ejecutar:  python3 main.py
 """
 
@@ -10,14 +14,7 @@ import sys
 import pygame
 
 from config import *
-from juego import Juego
-
-TECLAS = {
-    pygame.K_UP: ARRIBA, pygame.K_w: ARRIBA,
-    pygame.K_DOWN: ABAJO, pygame.K_s: ABAJO,
-    pygame.K_LEFT: IZQ, pygame.K_a: IZQ,
-    pygame.K_RIGHT: DER, pygame.K_d: DER,
-}
+from juego import Juego, SPRITES_AVION, MONTANA, COLOR_SPRITE
 
 
 def rgb(c444):
@@ -26,99 +23,119 @@ def rgb(c444):
 
 
 C = {nombre: rgb(v) for nombre, v in PALETA.items()}
-C_AUTOS = [rgb(v) for v in COLORES_AUTOS]
 
 
-def dibujar_carril(pantalla, juego, fila, y):
-    c = juego.carril(fila)
-
-    if c.tipo == PASTO:
-        pygame.draw.rect(pantalla, C["pasto"] if fila & 1 else C["pasto_osc"], (0, y, ANCHO, TILE))
-        for k in range(COLS):
-            if (c.patron >> k) & 1:
-                x = k * TILE
-                pygame.draw.rect(pantalla, C["tronco_arbol"], (x + 12, y + 20, 8, 10))
-                pygame.draw.rect(pantalla, C["arbol"], (x + 4, y + 2, 24, 20))
-        return
-
-    if c.tipo == CALLE:
-        pygame.draw.rect(pantalla, C["calle"], (0, y, ANCHO, TILE))
-        if juego.carril(fila + 1).tipo == CALLE:
-            for x in range(0, ANCHO, 40):
-                pygame.draw.rect(pantalla, C["linea"], (x + 8, y - 1, 20, 2))
-        color = C_AUTOS[c.color]
-    else:
-        pygame.draw.rect(pantalla, C["agua"], (0, y, ANCHO, TILE))
-        color = C["tronco"]
-
-    # Obstáculos: cada bit encendido del patrón es un tile de auto/tronco.
-    for k in range(CARRIL_BITS):
-        if not (c.patron >> k) & 1:
-            continue
-        x = (k * TILE + c.offset) & MASCARA_X
-        for xx in (x, x - ANCHO_VIRTUAL):   # el tile puede estar partido en la orilla
-            if -TILE < xx < ANCHO:
-                if c.tipo == CALLE:
-                    pygame.draw.rect(pantalla, color, (xx, y + 5, TILE, TILE - 10))
-                    pygame.draw.rect(pantalla, C["sombra"], (xx, y + 3, TILE, 2))
-                else:
-                    pygame.draw.rect(pantalla, color, (xx, y + 4, TILE, TILE - 8))
-                    pygame.draw.rect(pantalla, C["tronco_osc"], (xx, y + 14, TILE, 3))
+def superficie_sprite(sprite):
+    """ROM de 16x16 -> superficie de 32x32 (cada píxel se dibuja 2x2)."""
+    s = pygame.Surface((SPRITE * ESCALA, SPRITE * ESCALA), pygame.SRCALPHA)
+    for sy, fila in enumerate(sprite):
+        for sx, ch in enumerate(fila):
+            if ch != ".":
+                s.fill(C[COLOR_SPRITE[ch]], (sx * ESCALA, sy * ESCALA, ESCALA, ESCALA))
+    return s
 
 
-def dibujar_gallina(pantalla, x, y):
-    pygame.draw.rect(pantalla, C["gallina"], (x + 6, y + 8, 20, 20))
-    pygame.draw.rect(pantalla, C["cresta"], (x + 12, y + 3, 8, 5))
-    pygame.draw.rect(pantalla, C["pico"], (x + 13, y + 16, 6, 4))
-    pygame.draw.rect(pantalla, C["ojo"], (x + 10, y + 12, 3, 3))
-    pygame.draw.rect(pantalla, C["ojo"], (x + 19, y + 12, 3, 3))
+class Simulador:
+    """Convierte mouse/teclado en una lectura "cruda" del acelerómetro."""
+
+    def __init__(self):
+        self.modo_mouse = True
+        self.valor_teclado = 0
+
+    def evento(self, ev):
+        if ev.type == pygame.MOUSEMOTION:
+            self.modo_mouse = True
+        elif ev.type == pygame.KEYDOWN and ev.key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d):
+            self.modo_mouse = False
+
+    def leer(self):
+        if self.modo_mouse:
+            mx = pygame.mouse.get_pos()[0]
+            return (mx - ANCHO // 2) * ACCEL_MAX // (ANCHO // 2 - 40)
+        teclas = pygame.key.get_pressed()
+        if teclas[pygame.K_LEFT] or teclas[pygame.K_a]:
+            self.valor_teclado = max(self.valor_teclado - 4, -ACCEL_MAX)
+        elif teclas[pygame.K_RIGHT] or teclas[pygame.K_d]:
+            self.valor_teclado = min(self.valor_teclado + 4, ACCEL_MAX)
+        else:
+            self.valor_teclado -= max(-8, min(8, self.valor_teclado))
+        return self.valor_teclado
 
 
-def texto(pantalla, fuente, msg, y, centrado=True):
-    for dx, dy, col in ((2, 2, C["sombra"]), (0, 0, C["texto"])):
+def texto(pantalla, fuente, msg, y, x=None):
+    for d, col in ((2, C["sombra"]), (0, C["texto"])):
         img = fuente.render(msg, False, col)
-        x = (ANCHO - img.get_width()) // 2 if centrado else 10
-        pantalla.blit(img, (x + dx, y + dy))
+        xx = (ANCHO - img.get_width()) // 2 if x is None else x
+        pantalla.blit(img, (xx + d, y + d))
 
 
-def dibujar(pantalla, juego, fuente, fuente_grande):
-    for i in range(FILAS):
-        dibujar_carril(pantalla, juego, juego.cam + i, ALTO - (i + 1) * TILE)
+def dibujar(pantalla, juego, recursos):
+    img_montana, imgs_avion, fuente, fuente_grande = recursos
 
-    y_jug = ALTO - (juego.jug_fila - juego.cam + 1) * TILE
-    dibujar_gallina(pantalla, juego.jug_x, y_jug)
+    # Terreno: fila n ocupa las y de pantalla [ALTO - 32(n+1) + dist, ... + 32).
+    abajo = juego.dist >> TILE_BITS
+    arriba = (juego.dist + ALTO - 1) >> TILE_BITS
+    for n in range(abajo, arriba + 1):
+        y = ALTO - TILE * (n + 1) + juego.dist
+        f = juego.fila(n)
+        pantalla.fill(C["valle"] if n & 1 else C["valle_osc"], (0, y, ANCHO, TILE))
+        for c in range(COLS):
+            if (f.montanas >> c) & 1:
+                pantalla.blit(img_montana, (c * TILE, y))
 
-    texto(pantalla, fuente, f"{juego.puntos}   récord {juego.record}", 8, centrado=False)
+    # Avión (o explosión).
+    x = juego.avion_x
+    if juego.estado == CHOQUE and juego.frames_choque < 40:
+        col = C["fuego1"] if (juego.frames_choque >> 2) & 1 else C["fuego2"]
+        r = 6 + juego.frames_choque // 2
+        pygame.draw.rect(pantalla, col, (x + 16 - r, AVION_Y + 16 - r, 2 * r, 2 * r))
+    elif juego.estado != CHOQUE:
+        pantalla.blit(imgs_avion[juego.pose], (x, AVION_Y))
+
+    # HUD: puntos y barra de inclinación (útil también para depurar en la tarjeta).
+    texto(pantalla, fuente, f"{juego.puntos}   récord {juego.record}", 8, x=10)
+    pygame.draw.rect(pantalla, C["sombra"], (ANCHO // 2 - 66, ALTO - 18, 132, 10))
+    pygame.draw.rect(pantalla, C["avion_osc"], (ANCHO // 2 - ZONA_MUERTA, ALTO - 16, 2 * ZONA_MUERTA, 6))
+    pygame.draw.rect(pantalla, C["franja"], (ANCHO // 2 + juego.accel - 2, ALTO - 20, 4, 14))
+
     if juego.estado == INICIO:
-        texto(pantalla, fuente_grande, "CROSSY FPGA", 160)
-        texto(pantalla, fuente, "Flechas / WASD para saltar", 230)
-    elif juego.estado == MUERTO:
-        texto(pantalla, fuente_grande, juego.causa, 160)
-        texto(pantalla, fuente, f"Puntos: {juego.puntos}", 230)
-        if juego.frames_muerto > FRAMES_ESPERA_MUERTO:
-            texto(pantalla, fuente, "Presiona una tecla", 270)
+        texto(pantalla, fuente_grande, "MOUNTAIN CRASH", 150)
+        texto(pantalla, fuente, "Inclina (mouse / flechas) para girar", 220)
+        texto(pantalla, fuente, "Espacio para despegar", 255)
+    elif juego.estado == CHOQUE:
+        texto(pantalla, fuente_grande, "¡CRASH!", 150)
+        texto(pantalla, fuente, f"Puntos: {juego.puntos}", 220)
+        if juego.frames_choque > FRAMES_ESPERA_CHOQUE:
+            texto(pantalla, fuente, "Espacio para reintentar", 255)
 
 
 def main():
     pygame.init()
     pantalla = pygame.display.set_mode((ANCHO, ALTO), pygame.SCALED | pygame.RESIZABLE)
-    pygame.display.set_caption("Crossy FPGA - prototipo")
+    pygame.display.set_caption("Mountain Crash - prototipo")
     reloj = pygame.time.Clock()
-    fuente = pygame.font.Font(None, 32)
-    fuente_grande = pygame.font.Font(None, 64)
+    recursos = (
+        superficie_sprite(MONTANA),
+        [superficie_sprite(s) for s in SPRITES_AVION],
+        pygame.font.Font(None, 32),
+        pygame.font.Font(None, 64),
+    )
     juego = Juego(semilla=pygame.time.get_ticks() | 1)
+    sim = Simulador()
 
-    pendientes = []   # teclas presionadas; se consume una por frame
     while True:
+        boton = False
         for ev in pygame.event.get():
             if ev.type == pygame.QUIT or (ev.type == pygame.KEYDOWN and ev.key == pygame.K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-            if ev.type == pygame.KEYDOWN and ev.key in TECLAS:
-                pendientes.append(TECLAS[ev.key])
+            sim.evento(ev)
+            if (ev.type == pygame.KEYDOWN and ev.key in (pygame.K_SPACE, pygame.K_RETURN)) \
+                    or ev.type == pygame.MOUSEBUTTONDOWN:
+                boton = True
 
-        juego.paso(pendientes.pop(0) if pendientes else NADA)
-        dibujar(pantalla, juego, fuente, fuente_grande)
+        juego.paso(sim.leer(), boton)
+        dibujar(pantalla, juego, recursos)
         pygame.display.flip()
         reloj.tick(FPS)
 

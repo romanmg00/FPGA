@@ -1,16 +1,22 @@
-# Crossy FPGA
+# Mountain Crash
 
-Nuestro primer proyecto de FPGA: un videojuego tipo **Crossy Road** (una gallina
-que cruza calles y ríos) que se mostrará por **VGA 640x480** y se controlará con
-los botones de la tarjeta.
+Nuestro primer proyecto de FPGA: un videojuego donde un avión vuela entre
+montañas (vista desde arriba). Se controla **inclinando la tarjeta**: el
+acelerómetro mide la inclinación y el avión gira a la izquierda o derecha, más
+rápido mientras más se incline. Se muestra por **VGA 640x480**.
+
+- **Tarjeta:** Digilent Nexys A7 (Artix-7)
+- **Herramienta:** Vivado, Verilog
+- **Entrada:** acelerómetro ADXL362 integrado (SPI) + botón central BTNC
+- **Salida:** VGA 4 bits por canal + display de 7 segmentos para el puntaje
 
 ## Estructura
 
 ```
 prototipo_python/   Prototipo jugable en Python (modelo de referencia)
   config.py         Constantes: resolución, tiles, paleta RGB444, reglas
-  juego.py          Lógica pura (sin pygame): LFSR, carriles, máquina de estados
-  main.py           Dibujo y teclado con pygame
+  juego.py          Lógica pura (sin pygame): LFSR, terreno, filtro, colisiones, FSM
+  main.py           Dibujo y simulación del acelerómetro con pygame
   test_juego.py     Pruebas de la lógica
 ```
 
@@ -19,40 +25,57 @@ prototipo_python/   Prototipo jugable en Python (modelo de referencia)
 ```bash
 cd prototipo_python
 pip3 install -r requirements.txt
-python3 main.py        # flechas o WASD para saltar, Esc para salir
+python3 main.py        # mouse o flechas para inclinar, Espacio = BTNC, Esc para salir
 python3 test_juego.py  # pruebas
 ```
 
+En la PC el acelerómetro se simula: la posición horizontal del mouse equivale a
+la inclinación (centro = tarjeta plana). Con las flechas la inclinación sube poco
+a poco mientras se mantienen presionadas.
+
 ## Reglas
 
-- Cada salto hacia adelante suma 1 punto.
-- **Calle:** si un auto te toca, pierdes.
-- **Río:** solo puedes pararte sobre troncos; te arrastran, y si te sacan de la pantalla pierdes.
-- **Pasto:** los árboles bloquean el paso.
-- Si pasas 8 s sin avanzar, se te lleva el águila.
+- El avión avanza solo y cada vez más rápido (de 2 a 6 px por frame).
+- La inclinación mueve el avión de lado, proporcional a cuánto se incline.
+  Cerca de plano hay una zona muerta donde no se mueve.
+- Si cualquier píxel del avión toca una montaña: **CRASH**.
+- Siempre existe un pasillo libre que serpentea y se va angostando.
+- Cada fila de montañas superada = 1 punto.
 
 ## Decisiones pensadas para la FPGA
 
-El prototipo está escrito para que traducirlo a Verilog/VHDL sea casi directo:
-
-| En Python | En hardware |
+| En Python | En Verilog |
 |---|---|
-| Pantalla 640x480 a 60 FPS | Controlador VGA estándar (reloj de píxel de 25 MHz) |
-| Tiles de 32 px | `tile = x[9:5]`: solo cortar bits, sin dividir |
-| Carril = patrón de 32 bits + `offset` de 10 bits | Un registro de 32 bits y un contador que se desborda solo |
-| `Carril.ocupado(x)` | Resta de 10 bits + multiplexor 32→1 |
-| Buffer circular de 16 carriles | 16 registros, índice `fila[3:0]` |
+| Pantalla 640x480 a 60 FPS | `vga_sync` con reloj de píxel de 25 MHz (Clocking Wizard) |
+| Tiles de 32 px | `columna = x[9:5]`: solo cortar bits, sin dividir |
+| Buffer circular de 16 filas de 20 bits | 16 registros de 20 bits, índice `fila[3:0]` |
+| `Juego.montana_en(x, y)` | Lo que calcula el módulo de render para cada píxel |
+| Sprites 16x16 dibujados al doble | ROM de sprite con dirección `(x - x0) >> 1` |
+| Posiciones en punto fijo Q4 | Registros con 4 bits fraccionarios |
+| `accel += (x - accel) >> 2` | Filtro pasa-bajas de un solo registro |
+| `velocidad_lateral(a)` = `(a + 2a) >> 1` | Comparador + restador + sumador, sin multiplicar |
+| Colisión píxel a píxel | Flag que se activa si sprite opaco **y** montaña en el mismo píxel |
 | `LFSR16` | Registro de desplazamiento con 3 XOR |
-| ROM de patrones (`ROM_CALLE`, `ROM_RIO`, `ROM_PASTO`) | ROM de 12 palabras de 32 bits |
 | `Juego.paso()` = un frame | Se ejecuta una vez por pulso de vsync |
-| Estados `INICIO / JUGANDO / MUERTO` | Máquina de estados finitos |
-| Paleta RGB444 | Salida VGA de 4 bits por canal (Basys 3, Nexys A7, DE10-Lite) |
-| Solo enteros | Sin punto flotante |
+| Estados `INICIO / JUGANDO / CHOQUE` | Máquina de estados finitos |
+| Paleta RGB444 | Salida VGA de la Nexys A7 (4 bits por canal) |
+
+## Módulos de hardware planeados
+
+1. `clk_wiz`: 100 MHz → 25 MHz
+2. `vga_sync`: hsync, vsync y contadores `(x, y)`
+3. `spi_master` + `adxl362`: configura el sensor y lee el eje X (registro `XDATA`, 8 bits)
+4. `filtro_entrada`: pasa-bajas, zona muerta, velocidad lateral
+5. `logica_juego`: avión, scroll, terreno, LFSR, FSM (actualiza en cada vsync)
+6. `render`: color de cada píxel (terreno, avión, HUD)
+7. `display_7seg`: puntaje
+8. `top.v` + `Nexys-A7.xdc`
 
 ## Siguientes pasos
 
-1. Elegir la tarjeta y probar un patrón de barras de color por VGA.
-2. Dibujar carriles estáticos (pasto / calle / río) en función de `(x, y)`.
-3. Mover los autos con el `offset` en cada vsync.
-4. Agregar la gallina controlada por los botones (con antirrebote).
-5. Colisiones, puntaje en el display de 7 segmentos y máquina de estados.
+1. Barras de color por VGA en la Nexys A7.
+2. Leer el ADXL362 y mostrar el valor en los LEDs / 7 segmentos.
+3. Terreno estático, luego con scroll.
+4. Avión controlado por la inclinación.
+5. Colisiones, puntaje y máquina de estados.
+6. Testbenches que comparen el Verilog contra vectores generados con el prototipo.
