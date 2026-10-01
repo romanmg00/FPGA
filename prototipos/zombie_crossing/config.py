@@ -1,8 +1,9 @@
 """
-Constantes del juego.
+Constantes de Zombie Crossing (tipo Crossy Road con tema de Plantas vs Zombies).
 
-Los valores están elegidos pensando en la FPGA:
+Los valores están elegidos pensando en la Nexys A7 (Artix-7):
 - 640x480 es la resolución VGA estándar (reloj de píxel de 25 MHz).
+- La Nexys A7 tiene VGA de 4 bits por canal -> paleta RGB444.
 - Los tamaños son potencias de 2 siempre que se puede, para que en hardware
   las divisiones y módulos sean simples cortes de bits (x >> 5, x & 1023...).
 """
@@ -29,10 +30,13 @@ MASCARA_X = ANCHO_VIRTUAL - 1        # 0x3FF
 NUM_CARRILES = 16
 MASCARA_CARRIL = NUM_CARRILES - 1
 
+# --- Sprites: dibujados al doble (cada píxel del sprite = 2x2 en pantalla) ---
+ESCALA = 2
+
 # --- Tipos de carril ---
-PASTO = 0
-CALLE = 1
-RIO = 2
+CESPED = 0      # pasto con nueces que bloquean el paso
+TIRO = 1        # una planta en la orilla dispara guisantes
+PISCINA = 2     # agua con nenúfares
 
 # --- Entradas (en la FPGA serán los botones de la tarjeta) ---
 NADA = 0
@@ -47,31 +51,26 @@ JUGANDO = 1
 MUERTO = 2
 
 # --- Reglas ---
-FILA_INICIAL = 1            # fila (absoluta) donde aparece la gallina
-FILAS_SEGURAS = 3           # primeras filas siempre son pasto sin árboles
-FILA_CAMARA = 5             # si la gallina sube más de esto en pantalla, la cámara avanza
-MARGEN_CHOQUE = 6           # píxeles de "perdón" a cada lado al chocar con autos
-FRAMES_AGUILA = 8 * FPS     # 8 s sin avanzar -> el águila se la lleva
+FILA_INICIAL = 1            # fila (absoluta) donde aparece el zombie
+FILAS_SEGURAS = 3           # primeras filas siempre son césped sin nueces
+FILA_CAMARA = 5             # si el zombie sube más de esto en pantalla, la cámara avanza
+# Un guisante ocupa solo el centro de su tile: píxeles 8..23 de los 32.
+GUISANTE_INI = 8
+GUISANTE_FIN = 24
+# Puntos del zombie que se revisan contra los guisantes (desde su borde izquierdo).
+PUNTOS_ZOMBIE = (8, 16, 23)
+FRAMES_PODADORA = 8 * FPS   # 8 s sin avanzar -> llega la podadora
+FRAMES_AVISO_PODADORA = 90  # 1.5 s antes se ve venir por la izquierda
 FRAMES_ESPERA_MUERTO = 45   # tiempo antes de aceptar tecla para reiniciar
 
 # --- Paleta en RGB444 (12 bits: 4 bits por canal) ---
-# Muchas tarjetas (Basys 3, DE10-Lite, Nexys A7) usan VGA de 4 bits por canal,
-# así que el prototipo solo usa colores que la tarjeta puede mostrar tal cual.
 PALETA = {
-    "pasto":        0x5B3,
-    "pasto_osc":    0x4A3,
-    "arbol":        0x262,
-    "tronco_arbol": 0x631,
-    "calle":        0x444,
-    "linea":        0xCCC,
-    "agua":         0x39E,
-    "tronco":       0x852,
-    "tronco_osc":   0x630,
-    "gallina":      0xFFF,
-    "cresta":       0xF22,
-    "pico":         0xF90,
-    "ojo":          0x000,
+    "cesped":       0x6C3,
+    "cesped_osc":   0x5B2,
+    "tierra":       0x974,
+    "tierra_osc":   0x863,
+    "agua":         0x3AE,
+    "agua_clara":   0x5CF,
     "texto":        0xFFF,
     "sombra":       0x000,
 }
-COLORES_AUTOS = [0xE33, 0x36E, 0xEC2, 0xA4D, 0x2CA, 0xF80]

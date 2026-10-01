@@ -8,3 +8,7 @@ __pycache__/
 .Xil/
 db/
 incremental_db/
+
+# Imágenes locales opcionales (pueden tener derechos de autor: no se suben)
+prototipos/*/assets/*
+!prototipos/*/assets/LEEME.md

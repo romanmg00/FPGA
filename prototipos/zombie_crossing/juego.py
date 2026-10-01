@@ -1,11 +1,15 @@
 """
-Lógica del juego tipo Crossy Road, separada del dibujo y del teclado.
+Lógica de Zombie Crossing, separada del dibujo y del teclado.
+
+Un zombie cruza el jardín: carriles de césped con nueces que estorban,
+carriles de tiro donde un lanzaguisantes dispara desde la orilla, y la
+piscina, donde solo se puede pisar sobre los nenúfares.
 
 Este módulo es el "modelo de referencia" para la versión en hardware:
 - Solo enteros, nada de floats.
 - Aleatoriedad con un LFSR de 16 bits (en Verilog son unas pocas compuertas XOR).
 - Cada carril es un registro de 32 bits + un offset de 10 bits.
-- Los patrones de autos/troncos/árboles salen de una ROM pequeña.
+- Los patrones de guisantes/nenúfares/nueces salen de una ROM pequeña.
 - Una máquina de estados sencilla: INICIO -> JUGANDO -> MUERTO -> INICIO.
 - `paso()` avanza exactamente un frame (en la FPGA: un pulso por cada vsync).
 """
@@ -37,20 +41,22 @@ def _patron(s):
 
 
 # --- ROM de patrones (4 por tipo -> se eligen con 2 bits aleatorios) ---
-ROM_CALLE = [_patron(s) for s in (
-    "##......##.......##.......##....",
-    "###.........###.........###.....",
-    "##....##..........##....##......",
-    "####..............####..........",
+# Guisantes: cada '#' es un guisante; el último patrón son disparos dobles (repetidora).
+ROM_TIRO = [_patron(s) for s in (
+    "#.......#.......#.......#.......",
+    "#.....#..........#.....#........",
+    "#...#...........#...#...........",
+    "##.........##.........##........",
 )]
-ROM_RIO = [_patron(s) for s in (
+# Nenúfares: cada '#' es un nenúfar donde el zombie puede pararse.
+ROM_PISCINA = [_patron(s) for s in (
     "####...###....#####...###...####",
     "#####....####....#####....####..",
     "###..###..###..###...###..###...",
     "######.....######.....######....",
 )]
-# En el pasto solo importan los primeros 20 bits (las columnas visibles).
-ROM_PASTO = [_patron(s) for s in (
+# Nueces: en el césped solo importan los primeros 20 bits (las columnas visibles).
+ROM_CESPED = [_patron(s) for s in (
     "#.......#.........#.............",
     "..#.........#.....#.............",
     "#....#.........#...#............",
@@ -59,20 +65,29 @@ ROM_PASTO = [_patron(s) for s in (
 
 
 class Carril:
-    __slots__ = ("tipo", "patron", "offset", "dir", "periodo", "paso_px", "contador", "color")
+    __slots__ = ("tipo", "patron", "offset", "dir", "periodo", "paso_px", "contador")
 
-    def __init__(self, tipo, patron, offset=0, dir=0, periodo=1, paso_px=1, color=0):
+    def __init__(self, tipo, patron, offset=0, dir=0, periodo=1, paso_px=1):
         self.tipo = tipo
-        self.patron = patron      # 32 bits: 1 = auto / tronco / árbol
+        self.patron = patron      # 32 bits: 1 = guisante / nenúfar / nuez
         self.offset = offset      # 10 bits: desplazamiento en píxeles
         self.dir = dir            # +1 derecha, -1 izquierda, 0 quieto
         self.periodo = periodo    # frames entre cada movimiento
         self.paso_px = paso_px    # píxeles por movimiento
         self.contador = 0
-        self.color = color        # índice en COLORES_AUTOS
+
+    @property
+    def hielo(self):
+        """Los carriles de tiro rápidos son de hielaguisantes."""
+        return self.tipo == TIRO and self.paso_px == 2
+
+    @property
+    def col_planta(self):
+        """Columna de la orilla donde está la planta que dispara."""
+        return 0 if self.dir > 0 else COLS - 1
 
     def ocupado(self, x):
-        """¿Hay algo (auto/tronco/árbol) en el píxel horizontal x de la pantalla?
+        """¿El tile bajo el píxel horizontal x tiene algo (guisante/nenúfar/nuez)?
 
         En hardware: resta de 10 bits, tomar los 5 bits altos, y usar eso como
         selector de un multiplexor de 32 a 1 sobre `patron`.
@@ -80,10 +95,18 @@ class Carril:
         tile = ((x - self.offset) & MASCARA_X) >> TILE_BITS
         return (self.patron >> tile) & 1 == 1
 
+    def golpe(self, x):
+        """¿El píxel x toca un guisante? Solo cuenta el centro del tile (8..23),
+        que es donde se dibuja el guisante. En hardware: los 5 bits bajos."""
+        rel = (x - self.offset) & MASCARA_X
+        dentro = GUISANTE_INI <= (rel & (TILE - 1)) < GUISANTE_FIN
+        return dentro and (self.patron >> (rel >> TILE_BITS)) & 1 == 1
+
 
 class Juego:
     def __init__(self, semilla=0xACE1):
         self.lfsr = LFSR16(semilla)
+        self.record = 0
         self.reiniciar()
 
     # ------------------------------------------------------------------
@@ -92,10 +115,9 @@ class Juego:
     def reiniciar(self):
         self.estado = INICIO
         self.cam = 0                          # fila absoluta del borde inferior
-        self.jug_fila = FILA_INICIAL          # fila absoluta de la gallina
+        self.jug_fila = FILA_INICIAL          # fila absoluta del zombie
         self.jug_x = (COLS // 2) * TILE       # posición horizontal en píxeles
         self.puntos = 0
-        self.record = getattr(self, "record", 0)
         self.frames_sin_avanzar = 0
         self.frames_muerto = 0
         self.causa = ""
@@ -116,23 +138,22 @@ class Juego:
     def _generar(self, fila):
         """Crea el carril de la fila absoluta `fila` en su lugar del buffer."""
         if fila < FILAS_SEGURAS:
-            c = Carril(PASTO, 0)
+            c = Carril(CESPED, 0)
         else:
             r = self._aleatorio()
-            t = r & 0x7                          # 3 bits: 3/8 pasto, 3/8 calle, 2/8 río
+            t = r & 0x7                          # 3 bits: 3/8 césped, 3/8 tiro, 2/8 piscina
             idx = (r >> 3) & 0x3                 # 2 bits: qué patrón de la ROM
             dir = 1 if (r >> 5) & 1 else -1      # 1 bit: dirección
             periodo = 1 + ((r >> 6) & 0x3)       # 2 bits: 1..4 frames por paso
             offset = (r >> 8) << 2               # 8 bits -> offset inicial
-            color = (r >> 12) % len(COLORES_AUTOS)
             if t < 3:
-                c = Carril(PASTO, ROM_PASTO[idx])
+                c = Carril(CESPED, ROM_CESPED[idx])
             elif t < 6:
-                # Autos rápidos: con periodo 1 a veces avanzan 2 px por frame.
+                # Hielaguisantes: con periodo 1 a veces avanzan 2 px por frame.
                 paso_px = 2 if periodo == 1 and (r >> 14) & 1 else 1
-                c = Carril(CALLE, ROM_CALLE[idx], offset, dir, periodo, paso_px, color)
+                c = Carril(TIRO, ROM_TIRO[idx], offset, dir, periodo, paso_px)
             else:
-                c = Carril(RIO, ROM_RIO[idx], offset, dir, min(periodo + 1, 4))
+                c = Carril(PISCINA, ROM_PISCINA[idx], offset, dir, min(periodo + 1, 4))
         self.carriles[fila & MASCARA_CARRIL] = c
 
     # ------------------------------------------------------------------
@@ -157,6 +178,14 @@ class Juego:
         self._mover_camara()
         self._revisar_muerte()
 
+    def _bloqueado(self, c, x):
+        """¿Hay una nuez o una planta en el tile del píxel x de este carril?"""
+        if c.tipo == CESPED:
+            return c.ocupado(x)
+        if c.tipo == TIRO:
+            return x >> TILE_BITS == c.col_planta
+        return False
+
     def _mover_jugador(self, entrada):
         if entrada == NADA:
             return
@@ -174,12 +203,12 @@ class Juego:
             return
 
         destino = self.carril(fila)
-        if destino.tipo != RIO:
-            # Al bajar de un tronco la gallina vuelve a alinearse con la cuadrícula.
+        if destino.tipo != PISCINA:
+            # Al bajar de un nenúfar el zombie vuelve a alinearse con la cuadrícula.
             x = ((x + TILE // 2) >> TILE_BITS) << TILE_BITS
             x = min(max(x, 0), ANCHO - TILE)
-        if destino.tipo == PASTO and destino.ocupado(x + TILE // 2):
-            return  # hay un árbol
+        if self._bloqueado(destino, x + TILE // 2):
+            return
 
         self.jug_fila, self.jug_x = fila, x
         avance = fila - FILA_INICIAL
@@ -191,15 +220,15 @@ class Juego:
     def _mover_carriles(self):
         for fila in range(self.cam, self.cam + FILAS):
             c = self.carril(fila)
-            if c.tipo == PASTO:
+            if c.tipo == CESPED:
                 continue
             c.contador += 1
             if c.contador >= c.periodo:
                 c.contador = 0
                 d = c.dir * c.paso_px
                 c.offset = (c.offset + d) & MASCARA_X
-                if c.tipo == RIO and fila == self.jug_fila:
-                    self.jug_x += d   # el tronco arrastra a la gallina
+                if c.tipo == PISCINA and fila == self.jug_fila:
+                    self.jug_x += d   # el nenúfar arrastra al zombie
 
     def _mover_camara(self):
         while self.jug_fila - self.cam > FILA_CAMARA:
@@ -210,18 +239,18 @@ class Juego:
     def _revisar_muerte(self):
         c = self.carril(self.jug_fila)
         x = self.jug_x
-        if c.tipo == CALLE:
-            if c.ocupado(x + MARGEN_CHOQUE) or c.ocupado(x + TILE - 1 - MARGEN_CHOQUE):
-                self._morir("¡Atropellada!")
-        elif c.tipo == RIO:
+        if c.tipo == TIRO:
+            if any(c.golpe(x + p) for p in PUNTOS_ZOMBIE):
+                self._morir("¡Te alcanzó un guisante!")
+        elif c.tipo == PISCINA:
             if x < -TILE // 2 or x > ANCHO - TILE // 2:
-                self._morir("El río se la llevó")
+                self._morir("La corriente te arrastró")
             elif not c.ocupado(x + TILE // 2):
-                self._morir("¡Al agua!")
+                self._morir("Te hundiste en la piscina")
 
         self.frames_sin_avanzar += 1
-        if self.estado == JUGANDO and self.frames_sin_avanzar > FRAMES_AGUILA:
-            self._morir("¡El águila!")
+        if self.estado == JUGANDO and self.frames_sin_avanzar > FRAMES_PODADORA:
+            self._morir("¡La podadora!")
 
     def _morir(self, causa):
         self.estado = MUERTO
