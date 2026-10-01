@@ -15,6 +15,23 @@ Python. Cada prototipo está escrito para que traducirlo a Verilog sea directo.
 | **Mountain Crash** | Un avión vuela entre montañas; se esquivan inclinando la tarjeta | Acelerómetro ADXL362 (SPI) + BTNC |
 | **Zombie Crossing** | Tipo Crossy Road con tema de Plantas vs Zombies: un zombie cruza el jardín | Botones BTNU, BTND, BTNL, BTNR |
 
+### Otras ideas (sin prototipo todavía)
+
+**Mano virtual con IMUs.** Varios sensores de movimiento (IMU: giroscopio +
+acelerómetro) en el dorso de la mano y en los dedos; la FPGA los lee todos al
+mismo tiempo y se reconstruye la pose de la mano en 3D.
+
+- **Qué se puede lograr:** la pose (cómo están doblados los dedos y hacia dónde
+  apunta la mano). La posición de la mano en el cuarto no se puede saber solo con
+  IMUs: integrar la aceleración acumula error en segundos.
+- **Reparto de trabajo:** la FPGA lee los sensores en paralelo por SPI (un CS por
+  sensor) y manda los datos por UART; la fusión de sensores (filtro complementario
+  o Madgwick) y el dibujo 3D se hacen en la PC con Python.
+- **Hardware extra:** hay que comprar IMUs; el ADXL362 de la Nexys A7 es solo
+  acelerómetro. Se conectarían por los puertos Pmod (32 pines libres).
+- **Etapas:** 1) un IMU mostrando su orientación en pantalla, 2) un dedo
+  (2-3 sensores encadenados), 3) la mano completa.
+
 ## Correr los prototipos
 
 ```bash
