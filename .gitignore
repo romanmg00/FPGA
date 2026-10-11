@@ -12,3 +12,9 @@ incremental_db/
 # Imágenes locales opcionales (pueden tener derechos de autor: no se suben)
 prototipos/*/assets/*
 !prototipos/*/assets/LEEME.md
+
+# Locales, no se suben
+hw/
+homework1/
+Images/
+*.bit
