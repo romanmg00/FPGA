@@ -19,7 +19,7 @@ Dos motos de luz avanzan solas por una arena y dejan una estela detrás. Cada ju
 
 Las motos y el rayo se dibujan encima, como sprites en posiciones guardadas en registros. La moto avanza de celda en celda, pero su sprite se desliza entre ellas para que el movimiento se vea suave.
 
-**Prototipo y modelo de referencia:** `prototipos/tron/` (se corre con `python3 main.py`). `juego.py` implementa exactamente las reglas de este contrato, y `test_juego.py` es la lista mínima de casos que deben cubrir los testbenches. La ventana del prototipo es la imagen VGA tal como la dibujará `drawcon`: colores RGB444, rectángulos, patrones que salen de bits de x/y, sprites de la ROM al doble y letras de la ROM de 8 × 8 (`fuente.py`) ampliadas por bloques. El display de 7 segmentos y los switches, que son de la placa, se ven en el título de la ventana.
+**Prototipo y modelo de referencia:** `prototipos/tron/` (se corre con `python3 main.py`). `juego.py` implementa exactamente las reglas de este contrato, y `test_juego.py` es la lista mínima de casos que deben cubrir los testbenches. La ventana del prototipo es la imagen VGA tal como la dibujarán `drawcon` y `texto_capa`: colores RGB444, rectángulos, patrones que salen de bits de x/y, sprites de la ROM al doble y letras de la ROM de 8 × 8 (`fuente.py`) ampliadas por bloques. El display de 7 segmentos y los switches, que son de la placa, se ven en el título de la ventana.
 
 ## 1. Convenciones generales
 
@@ -82,41 +82,50 @@ Los anchos de video salen de los contadores de la diapositiva 7: `hcnt` llega a 
 | `dir_p1`, `dir_p2` | `teclado` → `tron_engine` | 2 c/u | `DIR_*`; se quedan guardadas hasta que se presiona otra tecla |
 | `btn_pulse` | `btn_debounce` → `menu_ctrl`, `tron_engine` | 5 | Pulso de 1 ciclo al presionar cada botón (con antirrebote) |
 | `vel` | `game_top` → `tron_engine` | 2 | `sw[1:0]` sincronizado |
-| `tema`, `fondo` | `game_top` → `drawcon` | 2 c/u | `sw[3:2]` y `sw[5:4]` sincronizados: eligen una fila de las tablas de color |
+| `tema`, `fondo` | `game_top` → `drawcon` (y `tema` también a `texto_capa`) | 2 c/u | `sw[3:2]` y `sw[5:4]` sincronizados: eligen una fila de las tablas de color |
 | `rnd` | `lfsr` → `tron_engine` | 16 | Avanza **una vez por `tick_60hz`**, así el hardware puede compararse cuadro a cuadro con el modelo de Python |
 
 **Menús y configuración**
 
 | Señal | De → A | Ancho | Nota |
 | --- | --- | --- | --- |
-| `pantalla` | `menu_ctrl` → `drawcon` | 2 | `P_MENU`, `P_CONFIG`, `P_AYUDA` (solo cuenta si `partida_activa = 0`) |
-| `menu_sel` | `menu_ctrl` → `drawcon` | 2 | Opción resaltada del menú principal |
-| `cfg_sel` | `menu_ctrl` → `drawcon` | 3 | Opción resaltada de la configuración |
-| `cfg_vidas` | `menu_ctrl` → `tron_engine`, `drawcon` | 4 | 1–9 |
-| `cfg_meta` | `menu_ctrl` → `tron_engine`, `drawcon` | 7 | 5–95, de 5 en 5 |
-| `cfg_valor_rayo` | `menu_ctrl` → `tron_engine`, `drawcon` | 3 | 1–5 |
-| `cfg_espera_rayo` | `menu_ctrl` → `tron_engine`, `drawcon` | 3 | 0–5 s |
-| `cfg_largo` | `menu_ctrl` → `tron_engine`, `drawcon` | 7 | 0 (infinita), 64, 32 o 16 |
+| `pantalla` | `menu_ctrl` → `texto_capa` | 2 | `P_MENU`, `P_CONFIG`, `P_AYUDA` (solo cuenta si `partida_activa = 0`) |
+| `menu_sel` | `menu_ctrl` → `texto_capa` | 2 | Opción resaltada del menú principal |
+| `cfg_sel` | `menu_ctrl` → `texto_capa` | 3 | Opción resaltada de la configuración |
+| `cfg_vidas` | `menu_ctrl` → `tron_engine`, `texto_capa` | 4 | 1–9 |
+| `cfg_meta` | `menu_ctrl` → `tron_engine`, `texto_capa` | 7 | 5–95, de 5 en 5 |
+| `cfg_valor_rayo` | `menu_ctrl` → `tron_engine`, `texto_capa` | 3 | 1–5 |
+| `cfg_espera_rayo` | `menu_ctrl` → `tron_engine`, `texto_capa` | 3 | 0–5 s |
+| `cfg_largo` | `menu_ctrl` → `tron_engine`, `texto_capa` | 7 | 0 (infinita), 64, 32 o 16 |
 | `start_partida` | `menu_ctrl` → `tron_engine` | 1 | Pulso: se eligió "Jugar" |
-| `partida_activa` | `tron_engine` → `menu_ctrl`, `drawcon` | 1 | 1 desde `start_partida` hasta que se sale de la pantalla final con el botón central |
+| `partida_activa` | `tron_engine` → `menu_ctrl`, `drawcon`, `texto_capa` | 1 | 1 desde `start_partida` hasta que se sale de la pantalla final con el botón central |
 
 **Juego → video y display**
 
 | Señal | De → A | Ancho | Nota |
 | --- | --- | --- | --- |
-| `game_state` | `tron_engine` → `drawcon` | 3 | `G_IDLE`, `G_READY`, `G_PLAY`, `G_ROUND`, `G_MATCH` |
+| `game_state` | `tron_engine` → `drawcon`, `texto_capa` | 3 | `G_IDLE`, `G_READY`, `G_PLAY`, `G_ROUND`, `G_MATCH` |
 | `cab_p1`, `prev_p1`, `cab_p2`, `prev_p2` | `tron_engine` → `drawcon` | 13 c/u | Celda de la cabeza y celda anterior de cada moto |
 | `dir_m1`, `dir_m2` | `tron_engine` → `drawcon` | 2 c/u | Dirección en que va cada moto (orienta el sprite) |
 | `viva_p1`, `viva_p2` | `tron_engine` → `drawcon` | 1 c/u | Si es 0, no se dibuja su sprite |
 | `desliz` | `tron_engine` → `drawcon` | 4 | Píxeles (0–15) que el sprite ya avanzó de `prev` hacia `cab` |
 | `rayo_pos`, `rayo_activo` | `tron_engine` → `drawcon` | 13 / 1 | Esquina de arriba a la izquierda del rayo (2 × 2 celdas) |
-| `cuenta` | `tron_engine` → `drawcon` | 2 | Segundos que faltan en `G_READY` |
-| `perdio` | `tron_engine` → `drawcon` | 2 | Quién chocó en la última ronda (bit 0 = P1, bit 1 = P2) |
-| `ganador` | `tron_engine` → `drawcon` | 2 | 0 = empate, 1 = P1, 2 = P2 |
-| `vidas_p1`, `vidas_p2` | `tron_engine` → `seg7_driver`, `drawcon` | 4 c/u | 0–9 |
-| `puntos_p1`, `puntos_p2` | `tron_engine` → `seg7_driver`, `drawcon` | 7 c/u | 0–99 (se satura en 99) |
+| `cuenta` | `tron_engine` → `texto_capa` | 2 | Segundos que faltan en `G_READY` |
+| `perdio` | `tron_engine` → `texto_capa` | 2 | Quién chocó en la última ronda (bit 0 = P1, bit 1 = P2) |
+| `ganador` | `tron_engine` → `texto_capa` | 2 | 0 = empate, 1 = P1, 2 = P2 |
+| `vidas_p1`, `vidas_p2` | `tron_engine` → `seg7_driver`, `texto_capa` | 4 c/u | 0–9 |
+| `puntos_p1`, `puntos_p2` | `tron_engine` → `seg7_driver`, `texto_capa` | 7 c/u | 0–99 (se satura en 99) |
 
-**Regla de latencia:** `drawcon` tarda `DRAW_LATENCY` ciclos: uno para leer `arena_map` o la ROM de fuente y otro para leer la ROM de sprites. `vga_out` debe retrasar `hsync`, `vsync` y el blanking esos mismos ciclos, o la imagen se corre en pantalla. El valor vive en `game_pkg.sv` y los dos módulos lo usan desde ahí.
+**Capa de texto**
+
+| Señal | De → A | Ancho | Nota |
+| --- | --- | --- | --- |
+| `capa_on` | `texto_capa` → `drawcon` | 1 | 1 = este píxel es de texto, de la caja negra detrás de un mensaje o de la barra de la opción elegida |
+| `capa_color` | `texto_capa` → `drawcon` | 12 | Color RGB444 de ese píxel |
+
+Las dos llegan `DRAW_LATENCY` ciclos después de `curr_x`/`curr_y`, igual que las capas propias de `drawcon`, que solo las mezcla.
+
+**Regla de latencia:** `drawcon` tarda `DRAW_LATENCY` ciclos: uno para leer `arena_map` y otro para leer la ROM de sprites. `texto_capa` tiene la misma latencia con su ROM de letras. `vga_out` debe retrasar `hsync`, `vsync` y el blanking esos mismos ciclos, o la imagen se corre en pantalla. El valor vive en `game_pkg.sv` y los dos módulos lo usan desde ahí.
 
 ## 4. Interfaz módulo por módulo
 
@@ -125,19 +134,21 @@ Cada módulo tiene un responsable (A, B o C; ver sección 7) y los puertos de ab
 | Módulo | Resp. | Qué hace | En el prototipo |
 | --- | --- | --- | --- |
 | `vga_out` | A | Contadores, pulsos de sync, blanking, `curr_x`/`curr_y`, `tick_60hz` y el retraso de `DRAW_LATENCY` | — |
-| `drawcon` | A | Color de cada píxel en capas: arena, rayo, motos y textos (marcador, menús, mensajes) | `main.dibujar()` |
+| `drawcon` | A | Color de cada píxel en capas: fondo, arena, rayo y motos; encima mezcla la capa de texto | `main.dibujar()` (sin los textos) |
 | `sprite_rom` | A | Sprites de 16 × 16 (moto mirando hacia arriba y rayo) en índices de color | `MOTO`, `RAYO` en `main.py` |
-| `font_rom` | A | Letras de 8 × 8 (mayúsculas, dígitos, signos, acentos y Ñ) para los textos en pantalla | `fuente.py` |
 | `arena_map` | B | Memoria de doble puerto de 8192 × 4 bits | `Juego.arena` |
 | `tron_engine` | B | Rondas, motos, estelas, choques, rayo, vidas, puntos y fin de la partida | `Juego.paso()` en estados de juego, `Juego.mover()` |
+| `lfsr` | B | Generador pseudoaleatorio de 16 bits | `LFSR16` |
 | `ps2_rx` | C | Recibe tramas PS/2 de 11 bits (inicio, 8 datos, paridad impar, fin) | — |
 | `teclado` | C | Decodifica los prefijos `E0`/`F0` y guarda `dir_p1`/`dir_p2` | `TecladoPS2` |
 | `btn_debounce` | C | Sincroniza los 5 botones, quita rebotes y genera un pulso al presionar | — |
 | `menu_ctrl` | C | Menú principal, configuración y ayuda; registros de configuración | `Juego.paso()` en estados de menú, `Config` |
-| `lfsr` | C | Generador pseudoaleatorio de 16 bits | `LFSR16` |
+| `texto_capa` | C | Todos los textos: marcador, menús, cuenta regresiva y mensajes, con la barra de selección y las cajas negras | `texto()`, `dibujar_hud()`, `dibujar_menu()`, `dibujar_config()`, `dibujar_ayuda()` |
+| `font_rom` | C | Letras de 8 × 8 (mayúsculas, dígitos, signos, acentos y Ñ) | `fuente.py` |
 | `seg7_driver` | C | Vidas y puntos en el display (binario a BCD y multiplexado) | `digitos_display()` |
 | `game_top` | C | Instancia y conecta todo; reloj, reset, pines y XDC | — |
-| Testbenches de integración | C | Prueban cada módulo de A y B contra este contrato y contra el modelo de Python | `test_juego.py` |
+
+Los testbenches oficiales de cada módulo los escribe otra persona (sección 7).
 
 **`vga_out`** (A)
 
@@ -176,17 +187,11 @@ module drawcon (
     input  logic [3:0]  desliz,
     input  logic [12:0] rayo_pos,
     input  logic        rayo_activo,
-    input  logic [1:0]  cuenta, perdio, ganador,
-    input  logic [3:0]  vidas_p1, vidas_p2,
-    input  logic [6:0]  puntos_p1, puntos_p2,
-    // Menús
-    input  logic [1:0]  pantalla, menu_sel,
-    input  logic [2:0]  cfg_sel,
-    input  logic [3:0]  cfg_vidas,
-    input  logic [6:0]  cfg_meta, cfg_largo,
-    input  logic [2:0]  cfg_valor_rayo, cfg_espera_rayo,
     // Estética (switches)
     input  logic [1:0]  tema, fondo,
+    // Capa de texto (de texto_capa, ya con DRAW_LATENCY ciclos)
+    input  logic        capa_on,
+    input  logic [11:0] capa_color,
     output logic [3:0]  draw_r, draw_g, draw_b   // DRAW_LATENCY ciclos después de curr_x/curr_y
 );
 ```
@@ -197,11 +202,44 @@ Las capas, de abajo hacia arriba, son estas:
 2. Arena: color plano según el tipo de celda. Las estelas toman el color de su jugador en el tema `tema`. El choque es una X: `x[3:0] == y[3:0]` o `x[3:0] == ~y[3:0]`. `CELL_P*_HEAD` y `CELL_RAYO` no se pintan en esta capa.
 3. Rayo: sprite de 32 × 32 en `rayo_pos`.
 4. Motos: sprite de 32 × 32 centrado en su celda, en la posición `prev + dirección × desliz`. La ROM guarda índices de color (color, sombra, brillo, llanta) y el tema decide los colores reales.
-5. Textos con la ROM de 8 × 8, ampliados × 2, × 4, × 8 o × 16 (solo potencias de 2: ampliar es quitar bits a `curr_x`/`curr_y`): marcador en la franja de arriba ("P1 VIDAS 3 PUNTOS 07", la meta y P2), menús y mensajes. Los mensajes encima de la arena llevan un rectángulo negro detrás.
+5. Capa de texto: si `capa_on` vale 1, el píxel toma `capa_color`.
 
-Si `partida_activa = 0`, solo se dibujan el fondo y la pantalla de menú que indique `pantalla`.
+Si `partida_activa = 0`, solo se dibujan el fondo y la capa de texto (los menús).
 
 Los sprites se guardan en la ROM a 16 × 16 y se dibujan al doble: la dirección de la ROM es `(x - x0) >> 1`. La moto se guarda una sola vez, mirando hacia arriba. Para las otras 3 direcciones se intercambian e invierten los bits de la dirección (`15 - s = ~s` en 4 bits), como en `rotar_sprite()`. Al inicio basta con colores planos sin sprites: `DRAW_LATENCY` vale 1 y sube a 2 cuando entran las ROM.
+
+**`texto_capa`** (C)
+
+```systemverilog
+module texto_capa (
+    input  logic        clk_pix,
+    input  logic        rst,
+    input  logic [10:0] curr_x,
+    input  logic [9:0]  curr_y,
+    // Qué pantalla se muestra
+    input  logic        partida_activa,
+    input  logic [1:0]  pantalla, menu_sel,
+    input  logic [2:0]  cfg_sel,
+    input  logic [2:0]  game_state,
+    // Valores que se escriben
+    input  logic [3:0]  cfg_vidas,
+    input  logic [6:0]  cfg_meta, cfg_largo,
+    input  logic [2:0]  cfg_valor_rayo, cfg_espera_rayo,
+    input  logic [1:0]  vel, tema, fondo,
+    input  logic [1:0]  cuenta, perdio, ganador,
+    input  logic [3:0]  vidas_p1, vidas_p2,
+    input  logic [6:0]  puntos_p1, puntos_p2,
+    output logic        capa_on,
+    output logic [11:0] capa_color             // DRAW_LATENCY ciclos después de curr_x/curr_y
+);
+```
+
+Dibuja lo mismo que las funciones de texto de `main.py`, en las mismas posiciones:
+- **Marcador:** en la franja de arriba, siempre visible.
+- **Menús:** si `partida_activa = 0`, la pantalla que indique `pantalla`.
+- **Mensajes:** si `partida_activa = 1`, según `game_state`: cuenta regresiva, quién chocó o quién ganó.
+
+Cada texto es una cadena fija en una ROM pequeña, o se arma con dígitos. Las letras salen de `font_rom` (8 × 8) y se amplían × 2, × 4, × 8 o × 16: solo potencias de 2, porque ampliar es quitar bits a `curr_x`/`curr_y`. Los mensajes que van encima de la arena llevan un rectángulo negro detrás. Las opciones elegidas de los menús van sobre una barra de color. Los nombres P1 y P2 usan el color de su jugador en el tema `tema`.
 
 **`arena_map`** (B)
 
@@ -351,7 +389,7 @@ Solo responde a los botones mientras `partida_activa = 0`:
 
 Cada opción se guarda como un índice, y una tabla en `game_pkg.sv` lo convierte en el valor.
 
-**`lfsr`** (C)
+**`lfsr`** (B)
 
 ```systemverilog
 module lfsr (
@@ -450,7 +488,7 @@ Los valores de cada opción de configuración (vidas 1–9, meta 5–95 de 5 en 
 
 No compilé este paquete. Corre `iverilog -g2012` y una síntesis rápida en Vivado al agregarlo. El arreglo `MOVE_FRAMES` es lo que tiene más probabilidades de dar problemas en Icarus; si falla, cámbialo por un `case`.
 
-**Quién edita `game_pkg.sv`:** A fija los tiempos VGA y `DRAW_LATENCY`, B fija la cuadrícula, los códigos de celda y las reglas, y C los códigos de teclado. C revisa que cualquier cambio siga pasando los testbenches.
+**Quién edita `game_pkg.sv`:** A fija los tiempos VGA, `DRAW_LATENCY` y las tablas de color; B, la cuadrícula, los códigos de celda y las reglas; C, los códigos de teclado y las opciones de los menús. Un cambio no se da por bueno hasta que pasan los testbenches de los módulos que lo usan.
 
 ## 6. Reglas de integración y puntos de fricción
 
@@ -468,34 +506,43 @@ Estos son los errores que más suelen romper la integración entre módulos escr
 - **Restar sin signo en el borde:** `cx = 0` menos 1 da 127, no -1. Las paredes del borde impiden llegar ahí, pero el cálculo no debe depender de eso.
 - **Asignaciones:** `always_ff` usa `<=` (non-blocking) y `always_comb` usa `=`. En `always_comb` todas las ramas deben asignar todas las salidas; si no, Vivado infiere un latch.
 - **Un solo reloj:** nadie genera un reloj con lógica. `tick_60hz` y los pulsos de botón son habilitaciones dentro de `clk_pix`.
-- **Latencia de `drawcon`:** cuando `DRAW_LATENCY` pasa de 1 a 2, `vga_out` y `drawcon` cambian juntos. A es dueño de los dos, así que el ajuste queda en una sola persona.
+- **Latencia de `drawcon` y `texto_capa`:** cuando `DRAW_LATENCY` pasa de 1 a 2, `vga_out`, `drawcon` y `texto_capa` cambian juntos. A y C lo acuerdan el mismo día; si no, el texto queda corrido un píxel respecto al resto de la imagen.
 - **Blanking:** fuera del área visible los tres canales de color valen 0. Lo fuerza `vga_out`.
 - **Probar `vga_out` primero:** en simulación, `hsync` dura 136 ciclos, una línea completa dura 1680, un cuadro dura 828 líneas y el color es 0 fuera de los 1280 × 800 visibles. Sin esto, el resto del diseño no se puede depurar (diapositiva 25).
 - **Cambios al contrato:** cualquier cambio de nombre, ancho o significado de una señal se anota en este documento y se avisa antes de modificar el código.
 
 ## 7. Reparto entre 3 personas
 
-El equipo es de tres (confirmado). Hay **dos desarrolladores (A y B)** y **una persona de verificación e integración (C)**. C no es un tester puro: también es dueño de las entradas, los menús, el display y `game_top`, porque 30 de los 40 puntos son individuales (pre-demo y reporte) y cada quien necesita diseño propio que mostrar y explicar.
+El trabajo se divide **en partes iguales**: los tres diseñan módulos y los tres escriben testbenches. Además, 30 de los 40 puntos son individuales (pre-demo y reporte), así que cada quien tiene diseño propio que mostrar y explicar.
 
-| Persona | Módulos | Entregables | Rúbrica que cubre |
+Cada persona escribe los testbenches **oficiales** de los módulos de otra, partiendo de **este contrato** y no del código. Si dos personas entienden distinto una señal, el testbench lo detecta antes de llegar a la placa. La rotación es A → B → C → A.
+
+| Persona | Diseña | Escribe los testbenches de | Rúbrica que cubre |
 | --- | --- | --- | --- |
-| **A: Video** | Clocking Wizard (configuración), `vga_out`, `drawcon`, `sprite_rom`, `font_rom` | Imagen estable; arena, sprites deslizándose y textos de menús | Imagen estable (diapositiva 25), sprites (2), creatividad (1) |
-| **B: Lógica de juego** | `arena_map`, `tron_engine`, reglas en `game_pkg.sv` | Motos que se mueven y respetan las paredes; estelas, choques, rayo, vidas, puntos | Control con límites de pantalla (2.5), objetos e interacciones (2.5) |
-| **C: Verificación, integración y periféricos** | `game_top`, XDC, `ps2_rx`, `teclado`, `btn_debounce`, `menu_ctrl`, `lfsr`, `seg7_driver`, testbenches de integración | Teclado, botones y switches funcionando; menús; display; un testbench por módulo de A y B; simulación de `game_top` | E/S extra (2): teclado, display, switches; base de la integración |
+| **A: Video** | Clocking Wizard (configuración), `vga_out`, `drawcon` (fondos, arena, sprites, deslizamiento, temas de color), `sprite_rom` | `arena_map` y `tron_engine` (de B), comparando contra el modelo de Python | Imagen estable (diapositiva 25), sprites (2), creatividad (1) |
+| **B: Juego** | `arena_map`, `tron_engine`, `lfsr` | `ps2_rx`, `teclado`, `btn_debounce`, `menu_ctrl`, `seg7_driver` y `texto_capa` (de C); este último, contra capturas del prototipo | Control con límites de pantalla (2.5), objetos e interacciones (2.5) |
+| **C: Entradas, menús y textos** | `ps2_rx`, `teclado`, `btn_debounce`, `menu_ctrl`, `texto_capa`, `font_rom`, `seg7_driver`, `game_top` y XDC | `vga_out` y `drawcon` (de A), y la simulación de `game_top` completo | E/S extra (2): teclado, botones, switches y display |
 
-**Cómo se reparten las pruebas**
+Por qué queda parejo:
+
+- **A** tiene dos módulos grandes de video. Su testbench, el de `tron_engine`, es el más largo, pero las secuencias esperadas ya salen del modelo de Python.
+- **B** tiene el módulo de lógica más complejo. Sus testbenches cubren varios módulos pequeños de C.
+- **C** tiene más módulos, pero cada uno es corto y tiene una referencia clara en el prototipo.
+
+**Reglas de trabajo**
 
 - Cada dueño hace pruebas rápidas de su propio módulo mientras lo escribe.
-- C escribe el testbench **oficial** de cada módulo de A y B, partiendo de **este contrato**, no del código. Si C y el dueño leen distinto una señal, el testbench lo detecta antes de que llegue a la placa.
-- Un módulo se considera terminado cuando pasa el testbench de C. Si falla, se decide entre los dos si el error está en el módulo, en el testbench o en el contrato; si es el contrato, se corrige aquí primero.
-- Para `tron_engine`, el modelo de referencia es `prototipos/tron/juego.py`. C lo usa para generar las secuencias esperadas (`Juego.arena_hex()` saca la arena en formato `$readmemh`), y el testbench compara la arena después de cada paso. Los casos mínimos son los de `test_juego.py`.
+- Un módulo se considera terminado cuando pasa su testbench oficial. Si falla, el dueño y quien escribió el testbench deciden si el error está en el módulo, en el testbench o en el contrato; si es el contrato, se corrige aquí primero.
+- Para `tron_engine`, el modelo de referencia es `prototipos/tron/juego.py`. `Juego.arena_hex()` saca la arena en formato `$readmemh`, para comparar después de cada paso. Los casos mínimos son los de `test_juego.py`.
+- `game_top` es de C, pero **cada quien agrega la instancia de sus propios módulos**. C revisa que compile, genera el bitstream y mantiene la simulación completa.
+- Si uno se atrasa, los otros dos le ayudan en el orden de la rotación de testbenches: con su módulo, quien escribe su testbench ya conoce bien su interfaz.
 
-**Orden de trabajo** (diapositiva 25; las fechas están en la sección 8). C tiene trabajo desde el primer día porque los testbenches salen del contrato:
+**Orden de trabajo** (diapositiva 25; las fechas están en la sección 8):
 
-1. A escribe `vga_out`; B escribe `arena_map` y diseña la secuencia de `tron_engine`; C escribe el testbench de `vga_out`, `btn_debounce` y `ps2_rx`.
-2. C integra `vga_out` en `game_top` y lo baja a la placa: imagen estable. A dibuja la arena con colores planos. C comprueba el teclado en la placa.
-3. B mueve las dos motos sobre la arena; después agrega choques, vidas y el rayo.
-4. C agrega menús y display; A agrega sprites, el deslizamiento y los textos.
+1. A escribe `vga_out`, B escribe `arena_map` y diseña `tron_engine`, y C escribe `btn_debounce` y `ps2_rx`. Al mismo tiempo, cada quien escribe los primeros testbenches de la rotación.
+2. En la placa: imagen estable (A con C en `game_top`), el teclado funcionando (C) y las motos moviéndose (B).
+3. Juego completo con colores planos; display y marcador.
+4. Sprites, deslizamiento, temas, menús y textos.
 
 ## 8. Timeline semanal
 
@@ -513,10 +560,10 @@ El plan deja el juego completo una semana antes de la pre-demo y el código cong
 
 | Sem. | Fechas | Hito del equipo (vence el domingo) |
 | --- | --- | --- |
-| 1 | 12–18 oct | `vga_out` y `arena_map` pasan los testbenches de C; `ps2_rx` y `btn_debounce` en simulación; secuencia de `tron_engine` revisada por el equipo |
+| 1 | 12–18 oct | `vga_out`, `arena_map`, `ps2_rx` y `btn_debounce` pasan sus testbenches oficiales; secuencia de `tron_engine` revisada por el equipo |
 | 2 | 19–25 oct | En el monitor: arena con paredes y las dos estelas moviéndose con el teclado; choque y vidas |
-| 3 | 26 oct – 1 nov | Juego completo con colores planos: rayo, puntos, meta, fin de partida, largo de estela; vidas y puntos en el display |
-| 4 | 2–8 nov | Sprites de motos y rayo, deslizamiento, menú principal y configuración en pantalla, temas y fondos con los switches |
+| 3 | 26 oct – 1 nov | Juego completo: rayo, puntos, meta, fin de partida, largo de estela; sprites de motos y rayo; vidas y puntos en el display y en el marcador |
+| 4 | 2–8 nov | Deslizamiento, menú principal y configuración en pantalla, mensajes, temas y fondos con los switches |
 | 5 | 9–15 nov | Juego completo y pulido; versión `predemo` etiquetada en git |
 | 6 | 16–22 nov | **Pre-demo el jue 19**; correcciones a partir de los comentarios del TA |
 | 7 | 23–29 nov | Código congelado el jue 26 (tag `demo`); guion de la demo ensayado |
@@ -524,27 +571,27 @@ El plan deja el juego completo una semana antes de la pre-demo y el código cong
 | 9 | 7–10 dic | **Reporte el jue 10** |
 
 **Semana 1 (12–18 oct): VGA, arena y entradas en simulación**
-- Equipo: repartir A, B y C el **lunes 12**.
-- A: `vga_out` con `hcnt` 0–1679 y `vcnt` 0–827, pulsos de sync, blanking, `curr_x`/`curr_y` y `tick_60hz` al empezar el borrado vertical. Partir de `counters.sv`, cambiándolo a 11 bits y 1679.
-- B: `arena_map` (doble puerto, lectura síncrona). Dibujar el diagrama de estados de `tron_engine` (la secuencia de la sección 4) y revisarlo con el equipo el **miércoles 14**.
-- C: compilar `game_pkg.sv` en Icarus y en Vivado; testbench de `vga_out` (sección 6) y de `arena_map`; `btn_debounce` y `ps2_rx` en simulación, alimentando `ps2_rx` con los bytes de `bytes_ps2()`; confirmar el reloj y la polaridad en `/classproject/`.
+- Equipo: repartir A, B y C el **lunes 12**. B presenta el diagrama de estados de `tron_engine` (la secuencia de la sección 4) el **miércoles 14**.
+- A: `vga_out` con `hcnt` 0–1679 y `vcnt` 0–827, pulsos de sync, blanking, `curr_x`/`curr_y` y `tick_60hz` al empezar el borrado vertical. Partir de `counters.sv`, cambiándolo a 11 bits y 1679. Testbench de `arena_map`.
+- B: `arena_map` (doble puerto, lectura síncrona) y el diagrama de `tron_engine`. Testbenches de `btn_debounce` y de `ps2_rx`, alimentando `ps2_rx` con los bytes de `bytes_ps2()`.
+- C: `btn_debounce` y `ps2_rx`; compilar `game_pkg.sv` en Icarus y en Vivado. Testbench de `vga_out` (tiempos de la sección 6). Confirmar el reloj y la polaridad en `/classproject/`.
 
 **Semana 2 (19–25 oct): las motos en el monitor**
-- A: configurar el Clocking Wizard para `clk_pix`; `drawcon` lee `arena_map` y pinta un color plano por tipo de celda (`DRAW_LATENCY = 1`).
-- B: `tron_engine` limpia la arena, pone las paredes y mueve las dos motos con estela infinita; choques (pared, estela, frente a frente) y vidas, con valores fijos en lugar de los de configuración.
-- C: `game_top` y XDC; generar el bitstream y probarlo en la placa. **Probar el teclado USB en la placa** (mostrar `dir_p1`/`dir_p2` en los LEDs), incluido WASD con flechas a la vez. Escribir `teclado` y el testbench de `tron_engine`.
+- A: configurar el Clocking Wizard para `clk_pix`; `drawcon` con el fondo y la arena en colores planos (`DRAW_LATENCY = 1`). Empezar el testbench de `tron_engine`: movimiento, giro de 180°, choques.
+- B: `tron_engine` limpia la arena, pone las paredes y mueve las dos motos con estela infinita; choques (pared, estela, frente a frente) y vidas, con valores fijos en lugar de los de configuración. `lfsr`.
+- C: `game_top` y XDC; generar el bitstream y probarlo en la placa. **Probar el teclado USB en la placa** (mostrar `dir_p1`/`dir_p2` en los LEDs), incluido WASD con flechas a la vez. Módulo `teclado`. Testbench de `drawcon` (capa de arena).
 - Si la imagen no sale estable para el miércoles 21, los tres se enfocan en eso: sin VGA no hay nada que mostrar. Si el teclado no funciona, hay que avisar ese mismo día para ver alternativas.
 
-**Semana 3 (26 oct – 1 nov): juego completo con colores planos**
-- B: rayo (con `rnd`), puntos, meta, `G_ROUND`/`G_MATCH`, estela de largo fijo con búfer circular y velocidad con `vel`.
-- A: pantalla de cuenta regresiva y de fin con colores o bloques simples, y el marcador en la franja de arriba.
-- C: `lfsr`; `seg7_driver` con vidas y puntos; `menu_ctrl` (aún sin texto, con valores visibles en los LEDs); ampliar el testbench comparando contra `juego.py`.
+**Semana 3 (26 oct – 1 nov): juego completo**
+- A: `sprite_rom` con la moto y el rayo, con orientación por bits; `DRAW_LATENCY = 2`, junto con `vga_out` y `texto_capa`. Testbench de `tron_engine` comparando contra `juego.py`.
+- B: rayo (con `rnd`), puntos, meta, `G_ROUND`/`G_MATCH`, estela de largo fijo con búfer circular y velocidad con `vel`. Testbenches de `teclado` y `seg7_driver`.
+- C: `seg7_driver` con vidas y puntos; `menu_ctrl`; `font_rom` (copiar `fuente.py`) y `texto_capa` con el marcador y la cuenta regresiva.
 - Con este hito ya quedan cubiertos los dos criterios de 2.5 puntos de la rúbrica (diapositiva 26).
 
-**Semana 4 (2–8 nov): sprites y menús**
-- A: `sprite_rom` con la moto y el rayo, orientación por bits, `desliz`; `font_rom` (copiar `fuente.py`) y textos de menú principal, configuración, cómo jugar y mensajes; temas de color y fondos con `tema`/`fondo`; `DRAW_LATENCY = 2`.
-- B: `desliz` y los registros que necesita `drawcon` (`prev`, `cab`, `dir`); recorte de `mov` al cambiar la velocidad.
-- C: integrar los menús de punta a punta; simulación completa de `game_top`.
+**Semana 4 (2–8 nov): deslizamiento, menús y estética**
+- A: deslizamiento de los sprites con `desliz`; temas de color y fondos con `tema` y `fondo`. Terminar el testbench de `tron_engine` con los casos de rayo y largo fijo.
+- B: `desliz` y los registros que necesita `drawcon` (`prev`, `cab`, `dir`); recorte de `mov` al cambiar la velocidad. Testbenches de `menu_ctrl` y `texto_capa`.
+- C: `texto_capa` con menú principal, configuración, cómo jugar y mensajes; integrar los menús de punta a punta. Simulación completa de `game_top`.
 
 **Semana 5 (9–15 nov): juego completo**
 - Extensiones, solo si hay tiempo: rival de la computadora (`BotTron` en el prototipo), sonido por la salida de audio de la placa, efectos al tomar el rayo.
@@ -558,7 +605,7 @@ El plan deja el juego completo una semana antes de la pre-demo y el código cong
 
 **Semana 7 (23–29 nov): preparar la demo**
 - Pulir y, si se puede, probar en un monitor como el del salón y con el teclado de la demo.
-- **Jueves 26:** código congelado con tag `demo`. Después de eso solo se aceptan arreglos de errores graves, y pasan por C.
+- **Jueves 26:** código congelado con tag `demo`. Después de eso solo se aceptan arreglos de errores graves, revisados por quien escribió el testbench del módulo.
 - Escribir y ensayar el guion de la demo: qué se muestra, quién lo presenta y cuánto dura.
 
 **Semana 8 (30 nov – 6 dic): demo y reportes**
