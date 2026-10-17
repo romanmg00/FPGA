@@ -1,9 +1,9 @@
 """Step controller (hardware block G1/G2): read, check, then write.
 
 Both Bikes' next Cells are read and checked before either Trail is written,
-so the two Bikes move at the same time and neither has priority.
-A Step with any Crash writes nothing: the Round ends on the Bikes' positions
-before the move.
+so the two Bikes move at the same time and neither has priority. A Bike
+that Crashes stays where it was; the other Bike still completes its move
+(and any Reward it drives into) in the same Step.
 """
 
 from dataclasses import dataclass
@@ -39,12 +39,12 @@ def run_step(bikes: list, grid: ArenaGrid) -> StepResult:
     head_on = same_cell or swap
     crashed = tuple(head_on or is_blocking(code) for code in seen)
 
-    if any(crashed):
-        return StepResult(crashed, head_on, (None, None))
-
     collected = []
     for i, b in enumerate(bikes):
+        if crashed[i]:
+            collected.append(None)
+            continue
         collected.append(seen[i] - REWARD_SLOT0 if is_reward(seen[i]) else None)
         grid.write(nxt[i][0], nxt[i][1], TRAIL_CODE[i])
         b.head = nxt[i]
-    return StepResult(crashed, False, tuple(collected))
+    return StepResult(crashed, head_on, tuple(collected))

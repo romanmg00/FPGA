@@ -9,6 +9,8 @@ import unittest
 
 from model import CRASH, MATCH_OVER, READY, RUNNING, ArenaGeometry, FrameInputs, Game, HudReserve, RuleParams
 from model.arena import EMPTY, REWARD_SLOT0, TRAIL_P1, TRAIL_P2, WALL, ArenaGrid, is_reward
+from model.lfsr import Lfsr
+from model.rewards import find_empty_cell
 from model.step import Bike, run_step
 from model.steering import DOWN, LEFT, RIGHT, UP
 
@@ -28,6 +30,16 @@ def empty_grid():
     grid = ArenaGrid(GEOM)
     grid.clear()
     return grid
+
+
+def put_reward_ahead(game, player, slot):
+    """Move Reward `slot` to the Cell in front of a Player's Bike."""
+    x, y = game.bikes[player].head
+    dx = 1 if player == 0 else -1
+    game.grid.write(*game.reward_cells[slot], EMPTY)
+    game.grid.write(x + dx, y, REWARD_SLOT0 + slot)
+    game.reward_cells[slot] = (x + dx, y)
+    return x + dx, y
 
 
 class StepBlockTests(unittest.TestCase):
@@ -53,13 +65,13 @@ class StepBlockTests(unittest.TestCase):
         self.assertEqual(result.crashed, (True, True))
         self.assertTrue(result.head_on)
 
-    def test_crash_step_writes_nothing(self):
+    def test_crashed_bike_stays_put(self):
         grid = empty_grid()
         grid.write(41, 50, WALL)
         bikes = [Bike((40, 50), RIGHT, RIGHT), Bike((80, 50), LEFT, LEFT)]
         run_step(bikes, grid)
-        self.assertEqual(bikes[1].head, (80, 50))
-        self.assertEqual(grid.read(79, 50), EMPTY)
+        self.assertEqual(bikes[0].head, (40, 50))
+        self.assertEqual(grid.read(41, 50), WALL)
 
 
 class TurnTests(unittest.TestCase):
@@ -71,11 +83,16 @@ class TurnTests(unittest.TestCase):
         self.assertEqual(game.bikes[0].head, (x + 1, y))
 
     def test_last_valid_request_between_steps_wins(self):
-        # Heading RIGHT: UP then DOWN -> DOWN; UP then LEFT (a reversal) -> UP.
+        # Heading RIGHT, one request per frame across a 4-frame Step:
+        # UP then DOWN -> DOWN; UP then LEFT (a reversal) -> UP.
+        rules = RuleParams(frames_per_step=4, crash_freeze_frames=2)
         for requests, expected in (([UP, DOWN], DOWN), ([UP, LEFT], UP)):
-            game = Game(GEOM, RULES)
+            game = Game(GEOM, rules)
             start(game)
-            step(game, p1=requests)
+            for r in requests:
+                step(game, p1=[r])
+            while game.step_count == 0:
+                step(game)
             self.assertEqual(game.bikes[0].heading, expected, requests)
 
 
@@ -89,6 +106,19 @@ class RoundTests(unittest.TestCase):
         self.assertEqual(game.phase, CRASH)
         self.assertEqual(game.lives, [2, 3])
         self.assertEqual(game.points, [0, RULES.survival_bonus])
+
+    def test_survivor_moves_and_collects_in_the_crash_step(self):
+        game = Game(GEOM, RULES)
+        x, y = game.geom.x1 - 1, game.bikes[0].head[1]     # P1 faces the right Wall
+        game.bikes[0].head = (x, y)
+        game.grid.write(x, y, TRAIL_P1)
+        cell = put_reward_ahead(game, 1, 0)
+        start(game)
+        step(game)
+        self.assertEqual(game.crashed, (True, False))
+        self.assertEqual(game.bikes[1].head, cell)
+        self.assertEqual(game.grid.read(*cell), TRAIL_P2)
+        self.assertEqual(game.points, [0, RULES.reward_values[0] + RULES.survival_bonus])
 
     def test_own_trail_crash(self):
         game = Game(GEOM, RULES)
@@ -121,16 +151,13 @@ class RoundTests(unittest.TestCase):
 class RewardTests(unittest.TestCase):
     def test_collecting_pays_its_value_and_respawns_on_an_empty_cell(self):
         game = Game(GEOM, RULES)
-        x, y = game.bikes[0].head
-        old = game.reward_cells[2]
-        game.grid.write(*old, EMPTY)                 # move slot 2 (+5) ahead of P1
-        game.grid.write(x + 1, y, REWARD_SLOT0 + 2)
-        game.reward_cells[2] = (x + 1, y)
+        cell = put_reward_ahead(game, 0, 2)             # slot 2 is the +5
         start(game)
         step(game)
         self.assertEqual(game.points[0], RULES.reward_values[2])
+        self.assertEqual(game.grid.read(*cell), TRAIL_P1)
         new = game.reward_cells[2]
-        self.assertNotEqual(new, (x + 1, y))
+        self.assertNotEqual(new, cell)
         self.assertTrue(GEOM.in_interior(*new))
         self.assertEqual(game.grid.read(*new), REWARD_SLOT0 + 2)
         self.assertEqual(sum(1 for w in game.grid.words if is_reward(w)), 3)
@@ -139,14 +166,24 @@ class RewardTests(unittest.TestCase):
         rules = RuleParams(frames_per_step=1, crash_freeze_frames=2, points_cap=99)
         game = Game(GEOM, rules)
         game.points = [97, 0]
-        x, y = game.bikes[0].head
-        slot = 2
-        game.grid.write(*game.reward_cells[slot], EMPTY)
-        game.grid.write(x + 1, y, REWARD_SLOT0 + slot)
-        game.reward_cells[slot] = (x + 1, y)
+        put_reward_ahead(game, 0, 2)
         start(game)
         step(game)
         self.assertEqual(game.points[0], 99)
+
+
+class RewardPlacementTests(unittest.TestCase):
+    def test_last_empty_cell_is_found_and_a_full_arena_gives_none(self):
+        grid = empty_grid()
+        g = GEOM
+        last = (g.x1 - 1, g.y1 - 1)
+        for y in range(g.y0, g.y1):
+            for x in range(g.x0, g.x1):
+                if (x, y) != last:
+                    grid.write(x, y, TRAIL_P1)
+        self.assertEqual(find_empty_cell(grid, Lfsr(1)), last)
+        grid.write(*last, TRAIL_P2)
+        self.assertIsNone(find_empty_cell(grid, Lfsr(1)))
 
 
 class MatchTests(unittest.TestCase):
@@ -159,12 +196,16 @@ class MatchTests(unittest.TestCase):
         while game.phase == CRASH:
             step(game)
 
-    def test_match_ends_with_winner_by_points_then_start_begins_new_match(self):
+    def test_points_carry_over_and_decide_the_winner_not_lives(self):
         game = Game(GEOM, RULES)
-        for _ in range(3):
-            self.play_round(game, p1=[UP])   # P1 hits the top Wall every Round
+        game.points = [50, 0]
+        self.play_round(game, p1=[UP])       # P1 hits the top Wall every Round
+        self.assertEqual(game.points, [50, RULES.survival_bonus])
+        for _ in range(2):
+            self.play_round(game, p1=[UP])
         self.assertEqual(game.phase, MATCH_OVER)
-        self.assertEqual(game.winner, 1)
+        self.assertEqual(game.lives, [0, 3])
+        self.assertEqual(game.winner, 0)
         start(game)
         self.assertEqual(game.phase, RUNNING)
         self.assertEqual((game.lives, game.points), ([3, 3], [0, 0]))

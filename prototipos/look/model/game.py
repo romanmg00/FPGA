@@ -104,6 +104,16 @@ class Game:
     def _step(self) -> None:
         result = run_step(self.bikes, self.grid)
         self.step_count += 1
+        cap = self.rules.points_cap
+        for i, slot in enumerate(result.collected):
+            if slot is not None:
+                self.points[i] = add_points(self.points[i], self.rules.reward_values[slot], cap)
+        for slot in result.collected:          # respawn P1's first, then P2's
+            if slot is not None:
+                place_reward(slot, self.reward_cells, self.grid, self.lfsr)
+        for slot, cell in enumerate(self.reward_cells):
+            if cell is None:                   # the Arena was full; try again
+                place_reward(slot, self.reward_cells, self.grid, self.lfsr)
         if any(result.crashed):
             self.crashed = result.crashed
             self.head_on = result.head_on
@@ -111,17 +121,8 @@ class Game:
                 if result.crashed[i]:
                     self.lives[i] -= 1
                 elif result.crashed[1 - i]:
-                    self.points[i] = add_points(
-                        self.points[i], self.rules.survival_bonus, self.rules.points_cap)
+                    self.points[i] = add_points(self.points[i], self.rules.survival_bonus, cap)
             self._enter(CRASH)
-            return
-        for i, slot in enumerate(result.collected):
-            if slot is not None:
-                self.points[i] = add_points(
-                    self.points[i], self.rules.reward_values[slot], self.rules.points_cap)
-        for slot in result.collected:          # respawn P1's first, then P2's
-            if slot is not None:
-                place_reward(slot, self.reward_cells, self.grid, self.lfsr)
 
     def _after_crash(self) -> None:
         if min(self.lives) <= 0:

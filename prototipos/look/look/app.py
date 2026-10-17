@@ -101,12 +101,12 @@ class App:
             flags.append("BRAM over the XC7A100T total")
         flags += self.bike_rom.problems + [p for r in self.reward_roms for p in r.problems]
         if not font.scale_is_power_of_two:
-            flags.append(f"Digits x{font.scale}: not a power-of-two scale")
+            notes.append(f"Digits x{font.scale}: scale needs counters, not a bit slice")
         if self.look.hud == "corners":
             covered = self._covered_cells(font)
             flags.append(f"HUD hides {covered} Arena Cells: needs a rule")
         if self.reward_roms[0].size > self.geom.cell_px:
-            notes.append("Reward sprite > Cell: neighbours can overlap")
+            notes.append("Reward > Cell: neighbours can overlap")
         if self.bike_rom.size != self.look.bike_px:
             notes.append(f"PNG Bike is {self.bike_rom.size} px (size axis ignored)")
         return rows, total18, clear, flags, notes
