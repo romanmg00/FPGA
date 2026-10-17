@@ -11,10 +11,30 @@ import pygame
 from model import CRASH, MATCH_OVER, READY
 
 from .font import FONTS, ICON_PX, ICONS
-from .rgb444 import expand
+from .rgb444 import expand, halve, lerp
 
 GAP = 4
 BLINK_FRAMES = 16          # on/off half-period while blinking
+
+
+def digit_font(look):
+    """neon and chrome are colour treatments of the seven-segment glyphs."""
+    return FONTS["block" if look.font == "block" else "seg"].at_height(look.digit_px)
+
+
+def chrome_rows(colour: int, h: int) -> tuple:
+    """80s chrome lettering: white to colour on top, a dark split line,
+    colour to half colour below. A per-glyph-row colour LUT in hardware."""
+    rows = []
+    for r in range(h):
+        t = r / (h - 1)
+        if r == h // 2:
+            rows.append(halve(halve(colour)))
+        elif r < h // 2:
+            rows.append(lerp(0xFFF, colour, t * 2))
+        else:
+            rows.append(lerp(colour, halve(colour), (t - 0.5) * 2))
+    return tuple(rows)
 
 
 def _blink_on(frames: int) -> bool:
@@ -107,13 +127,14 @@ class HudRenderer:
         self._glyphs = {}
 
     def _bitmap(self, key, rows, scale, colour):
+        """colour is one word, or a tuple with one word per glyph row."""
         k = (key, scale, colour)
         if k not in self._glyphs:
             h, w = len(rows), len(rows[0])
             surf = pygame.Surface((w * scale, h * scale))
             surf.set_colorkey((0, 0, 0))
-            rgb = expand(colour)
             for r in range(h):
+                rgb = expand(colour[r] if isinstance(colour, tuple) else colour)
                 for c in range(w):
                     if rows[r][c]:
                         surf.fill(rgb, (c * scale, r * scale, scale, scale))
@@ -121,7 +142,7 @@ class HudRenderer:
         return self._glyphs[k]
 
     def draw(self, frame, look, palette, snap):
-        font = FONTS[look.font].at_height(look.digit_px)
+        font = digit_font(look)
         for box in backing_boxes(look.hud, font):
             frame.fill(expand(palette["hud_bg"]), box)
         colours = (palette["p1"], palette["p2"])
@@ -132,8 +153,14 @@ class HudRenderer:
                     continue
                 value = snap["points"][el.player]
                 digit = value // 10 if el.index == 0 else value % 10
-                bmp = self._bitmap(("d", font.name, digit), font.glyphs[digit], font.scale,
-                                   colours[el.player])
+                col = colours[el.player]
+                if look.font == "neon":            # unlit segments glow faintly
+                    ghost = self._bitmap(("d", font.name, 8), font.glyphs[8], font.scale,
+                                         halve(halve(col)))
+                    frame.blit(ghost, (el.x, el.y))
+                elif look.font == "chrome":
+                    col = chrome_rows(col, font.glyph_h)
+                bmp = self._bitmap(("d", font.name, digit), font.glyphs[digit], font.scale, col)
             elif el.kind == "life":
                 name = "life" if el.index < snap["lives"][el.player] else "life_lost"
                 bmp = self._bitmap(name, ICONS[name], 1, colours[el.player])

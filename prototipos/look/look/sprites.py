@@ -13,7 +13,7 @@ import pygame
 from model.steering import DOWN, LEFT, RIGHT, UP
 
 from . import art
-from .rgb444 import TINT_KEY, TRANSPARENT, expand, quantize
+from .rgb444 import DIM_TINT_KEY, TINT_KEY, TRANSPARENT, expand, halve, quantize
 
 
 def rom_address(heading: int, dx: int, dy: int, bits: int) -> int:
@@ -51,7 +51,11 @@ class SpriteRom:
             for dy in range(s):
                 for dx in range(s):
                     w = self.words[rom_address(heading, dx, dy, self.bits)]
-                    surf.set_at((dx, dy), expand(tint if w == TINT_KEY else w))
+                    if w == TINT_KEY:
+                        w = tint
+                    elif w == DIM_TINT_KEY:
+                        w = halve(tint)
+                    surf.set_at((dx, dy), expand(w))
             surf.set_colorkey(expand(TRANSPARENT))
             self._surfaces[key] = surf
         return self._surfaces[key]
@@ -100,7 +104,7 @@ class SpriteLibrary:
 
     def reward(self, look: str, kind: int, size: int) -> SpriteRom:
         fn = art.REWARD_LOOKS[look][kind]
-        return self._generated(f"reward-{fn.__name__[7:]}-{size}", fn, size)
+        return self._generated(f"reward-{fn.__name__[7:].replace('_', '-')}-{size}", fn, size)
 
     def _generated(self, name, fn, size):
         def make():

@@ -48,7 +48,8 @@ def main() -> None:
                 continue
             done.add(fn)
             for size in (4, 8, 16, 32):
-                save(f"reward-{fn.__name__[7:]}-{size}", size, fn(size), args.force)
+                name = fn.__name__[7:].replace("_", "-")
+                save(f"reward-{name}-{size}", size, fn(size), args.force)
 
 
 if __name__ == "__main__":

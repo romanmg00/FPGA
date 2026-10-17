@@ -60,8 +60,9 @@ class Item:
         return self.width * self.depth <= LUT_ROM_BITS
 
 
-def items(geom, bike_px, reward_sizes, font, icon_bits) -> list:
-    """reward_sizes: the side of each distinct Reward ROM (one per ROM)."""
+def items(geom, bike_px, reward_sizes, font, icon_bits, extras=()) -> list:
+    """reward_sizes: the side of each distinct Reward ROM (one per ROM).
+    extras: (name, width, depth) of effect LUTs in use."""
     rows = [Item(f"Bike ROM {bike_px}x{bike_px}", 2, 12, bike_px * bike_px)]
     for px in reward_sizes:
         rows.append(Item(f"Reward ROM {px}x{px}", 1, 12, px * px))
@@ -70,6 +71,7 @@ def items(geom, bike_px, reward_sizes, font, icon_bits) -> list:
         Item(f"Digit font {font.glyph_w}x{font.glyph_h}", 1, 1, font.rom_bits),
         Item("HUD icons", 1, 1, icon_bits),
     ]
+    rows += [Item(name, 1, w, d) for name, w, d in extras]
     return rows
 
 

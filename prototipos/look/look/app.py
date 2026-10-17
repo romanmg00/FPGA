@@ -14,11 +14,12 @@ from model import FrameInputs, Game, RuleParams, ArenaGeometry
 from model.params import SCREEN_H, SCREEN_W
 from model.steering import DOWN, LEFT, RIGHT, UP
 
-from . import budget
-from .candidates import AXES, GEOMETRY_FIELDS, PALETTES, LookConfig, cycle, hud_reserve
-from .font import FONTS, ICON_ROM_BITS
-from .hud import backing_boxes
+from . import budget, fx
+from .candidates import AXES, GEOMETRY_FIELDS, PALETTES, PRESETS, LookConfig, cycle, hud_reserve
+from .font import ICON_ROM_BITS
+from .hud import backing_boxes, digit_font
 from .render import SIZE, FrameRenderer
+from .rgb444 import DIM_TINT_KEY
 from .sprites import SpriteLibrary
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # prototype/
@@ -34,7 +35,10 @@ P2_KEYS = {pygame.K_w: UP, pygame.K_d: RIGHT, pygame.K_s: DOWN, pygame.K_a: LEFT
 START_KEYS = (pygame.K_SPACE, pygame.K_RETURN)
 AXIS_KEYS = {pygame.K_1: "1", pygame.K_2: "2", pygame.K_3: "3", pygame.K_4: "4",
              pygame.K_5: "5", pygame.K_6: "6", pygame.K_7: "7", pygame.K_8: "8",
-             pygame.K_9: "9", pygame.K_0: "0", pygame.K_f: "F", pygame.K_h: "H"}
+             pygame.K_9: "9", pygame.K_0: "0", pygame.K_f: "F", pygame.K_h: "H",
+             pygame.K_b: "B", pygame.K_n: "N", pygame.K_r: "R", pygame.K_x: "X",
+             pygame.K_c: "C"}
+PANEL_PAGES = ("look", "hardware", None)        # Tab cycles; None hides the panel
 
 OK, WARN, BAD, DIM, TEXT = (120, 220, 120), (240, 200, 80), (255, 90, 90), (140, 140, 160), (230, 230, 240)
 
@@ -47,7 +51,8 @@ class App:
         self.look = LookConfig()
         self.rules = RuleParams()
         self.paused = False
-        self.show_panel = True
+        self.page = 0
+        self.preset = "synthwave"
         self.show_cells = False
         self.fullscreen = False
         self.message = ""
@@ -81,6 +86,13 @@ class App:
                     self.message = ""
                 return
 
+    def next_preset(self, step):
+        names = list(PRESETS)
+        self.preset = names[(names.index(self.preset) + step) % len(names)]
+        self.look = replace(self.look, **PRESETS[self.preset])
+        self._new_renderer()
+        self.message = f"Preset: {self.preset}"
+
     def change_speed(self, delta):
         k = max(1, min(30, self.rules.frames_per_step + delta))
         self.rules = replace(self.rules, frames_per_step=k)
@@ -89,10 +101,10 @@ class App:
     # --- checks for the panel ---------------------------------------------
     def checks(self):
         """(budget rows, flags needing a fix before lockdown, notes)."""
-        font = FONTS[self.look.font].at_height(self.look.digit_px)
+        font = digit_font(self.look)
         distinct = {id(r): r for r in self.reward_roms}.values()     # shared ROM counts once
         rows = budget.items(self.geom, self.bike_rom.size, [r.size for r in distinct],
-                            font, ICON_ROM_BITS)
+                            font, ICON_ROM_BITS, fx.lut_items(self.look, font.glyph_h))
         flags, notes = [], []
         clear = budget.clear_us(self.geom)
         if clear > budget.BLANK_US:
@@ -113,7 +125,12 @@ class App:
             notes.append("Reward > Cell: neighbours can overlap")
         if self.bike_rom.size != self.look.bike_px:
             notes.append(f"PNG Bike is {self.bike_rom.size} px (size axis ignored)")
+        if self.uses_halo():
+            notes.append("Art uses dim tint key 080 (proposal)")
         return rows, total18, clear, flags, notes
+
+    def uses_halo(self) -> bool:
+        return any(DIM_TINT_KEY in r.words for r in (self.bike_rom,) + self.reward_roms)
 
     def _covered_cells(self, font):
         g, c = self.geom, self.geom.cell_px
@@ -135,13 +152,13 @@ class App:
                 pass
         pygame.init()
         pygame.display.set_caption("CS-256 Tron - Look Prototype (L1)")
-        self.ui_font = pygame.font.SysFont("consolas,menlo,monospace", 15)
-        self.ui_bold = pygame.font.SysFont("consolas,menlo,monospace", 15, bold=True)
+        self.ui_font = pygame.font.SysFont("consolas,menlo,monospace", 14)
+        self.ui_bold = pygame.font.SysFont("consolas,menlo,monospace", 14, bold=True)
         desk_w, desk_h = pygame.display.get_desktop_sizes()[0]
         scale = min(1.0, (desk_w * 0.92 - PANEL_W) / SCREEN_W, desk_h * 0.85 / SCREEN_H)
         self.window_size = (int(SCREEN_W * scale) + PANEL_W, int(SCREEN_H * scale))
         self.screen = pygame.display.set_mode(self.window_size, pygame.RESIZABLE)
-        frame = pygame.Surface(SIZE)
+        frame = pygame.Surface(SIZE, 0, 32)         # fx.finish works on packed RGB
         clock = pygame.time.Clock()
 
         while True:
@@ -186,6 +203,8 @@ class App:
                 start = True
             elif k in AXIS_KEYS:
                 self.change_axis(AXIS_KEYS[k], -1 if ev.mod & pygame.KMOD_SHIFT else 1)
+            elif k == pygame.K_m:
+                self.next_preset(-1 if ev.mod & pygame.KMOD_SHIFT else 1)
             elif k == pygame.K_p:
                 self.paused = not self.paused
             elif k == pygame.K_BACKSPACE:
@@ -198,7 +217,7 @@ class App:
             elif k == pygame.K_g:
                 self.show_cells = not self.show_cells
             elif k == pygame.K_TAB:
-                self.show_panel = not self.show_panel
+                self.page = (self.page + 1) % len(PANEL_PAGES)
             elif k == pygame.K_F11:
                 self._toggle_fullscreen()
             elif k == pygame.K_F12:
@@ -226,7 +245,7 @@ class App:
     def _present(self, frame, snap, fps):
         self.screen.fill((24, 24, 30))
         sw, sh = self.screen.get_size()
-        panel = self.show_panel and not self.fullscreen
+        panel = PANEL_PAGES[self.page] is not None and not self.fullscreen
         view_w = sw - (PANEL_W if panel else 0)
         scale = min(view_w / SCREEN_W, sh / SCREEN_H)
         if self.fullscreen and scale >= 1:
@@ -242,11 +261,11 @@ class App:
         y = 8
         g, lk, rules = self.geom, self.look, self.rules
 
-        def line(text, colour=TEXT, bold=False):
+        def line(text, colour=TEXT, bold=False, x=0):
             nonlocal y
             surf = (self.ui_bold if bold else self.ui_font).render(text, True, colour)
-            self.screen.blit(surf, (x0 + 10, y))
-            y += 18
+            self.screen.blit(surf, (x0 + 10 + x, y))
+            y += 17
 
         line("LOOK PROTOTYPE  L1", bold=True)
         state = snap["phase"] + ("  [PAUSED]" if self.paused else "")
@@ -255,41 +274,53 @@ class App:
              f"P2 {snap['points'][1]:2d} pts {snap['lives'][1]} lives")
         line(f"view {scale * 100:.0f}%   {fps:4.1f} fps", DIM)
         y += 6
-        line("CANDIDATES (key, Shift = back)", bold=True)
-        for k, field, _ in self.axes:
-            line(f" {k}  {field:<12} {getattr(lk, field)}")
-        y += 6
-        line("ARENA AND SPEED", bold=True)
-        line(f" {g.width} x {g.height} Cells, Wall {g.wall_cells} Cell(s)")
-        steps = FRAME_HZ / rules.frames_per_step
-        line(f" [ ]  K = {rules.frames_per_step} frames/Step = {steps:.1f} Steps/s")
-        line(f"      {steps * g.cell_px:.0f} px/s, crosses Arena in {g.width / steps:.1f} s")
-        y += 6
         rows, total18, clear, flags, notes = self.checks()
-        line("BRAM (estimate, RAMB18 halves)", bold=True)
-        for r in rows:
-            tag = "  LUT?" if r.maybe_lut else ""
-            line(f" {r.name:<22}{r.instances}x {r.bits / 1024:7.1f} Kb {r.ramb18:3d}{tag}")
-        pct = 100 * total18 / (2 * budget.RAMB36_TOTAL)
-        line(f" total {total18} of {2 * budget.RAMB36_TOTAL} RAMB18 ({pct:.1f}%)",
-             OK if pct < 100 else BAD)
-        line(f" Arena clear {clear:,.1f} us of {budget.BLANK_US:.1f} us",
-             OK if clear <= budget.BLANK_US else BAD)
-        y += 6
-        line("NEEDS FIXING BEFORE LOCKDOWN", bold=True)
-        if not flags:
-            line(" none", OK)
-        for f in flags:
-            line(" ! " + f, BAD)
-        for n in notes:
-            line(" i " + n, WARN)
+        if PANEL_PAGES[self.page] == "look":
+            line(f"CANDIDATES   M preset: {self.preset}", bold=True)
+            half = (len(self.axes) + 1) // 2
+            top = y
+            for n, (k, field, _) in enumerate(self.axes):
+                if n == half:
+                    y = top
+                y_col = 0 if n < half else 182
+                value = str(getattr(lk, field)).replace("png:", "")
+                line(f"{k} {field[:9]:<9} {value[:10]}", x=y_col)
+            y = top + 17 * half + 6
+            line("ARENA AND SPEED", bold=True)
+            line(f" {g.width} x {g.height} Cells, Wall {g.wall_cells} Cell(s)")
+            steps = FRAME_HZ / rules.frames_per_step
+            line(f" [ ]  K = {rules.frames_per_step} frames/Step = {steps:.1f} Steps/s")
+            line(f"      {steps * g.cell_px:.0f} px/s, crosses Arena in {g.width / steps:.1f} s")
+            y += 6
+            line("NEEDS FIXING BEFORE LOCKDOWN", bold=True)
+            if not flags:
+                line(" none", OK)
+            for f in flags:
+                line(" ! " + f, BAD)
+            for n in notes:
+                line(" i " + n, WARN)
+        else:
+            line("BRAM (estimate, RAMB18 halves)", bold=True)
+            for r in rows:
+                tag = " LUT?" if r.maybe_lut else ""
+                line(f" {r.name[:20]:<20}{r.instances}x{r.bits / 1024:6.1f}Kb{r.ramb18:3d}{tag}")
+            pct = 100 * total18 / (2 * budget.RAMB36_TOTAL)
+            line(f" total {total18} of {2 * budget.RAMB36_TOTAL} RAMB18 ({pct:.1f}%)",
+                 OK if pct < 100 else BAD)
+            line(f" Arena clear {clear:,.1f} us of {budget.BLANK_US:.1f} us",
+                 OK if clear <= budget.BLANK_US else BAD)
+            y += 6
+            line("EFFECTS AND THEIR HARDWARE", bold=True)
+            for name in fx.active(lk, self.uses_halo()):
+                line(" " + name, OK)
+                line("   " + fx.HW_COST[name], DIM)
         if self.message:
             y += 6
             line(self.message, WARN)
-        y = self.screen.get_height() - 4 * 18 - 8
+        y = self.screen.get_height() - 4 * 17 - 8
         line("P1 arrows  P2 WASD  Start Space/Enter", DIM)
-        line("P pause  Backspace reset  G Cells", DIM)
-        line("Tab panel  F11 fullscreen  F12 screenshot", DIM)
+        line("P pause  Backspace reset  G Cells  M preset", DIM)
+        line("Tab panel page  F11 fullscreen  F12 shot", DIM)
         line("Esc quit", DIM)
 
 

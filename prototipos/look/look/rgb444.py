@@ -2,6 +2,7 @@
 
 TRANSPARENT = 0x000      # sprite tips / handout step 7: black is see-through
 TINT_KEY = 0x0F0         # replaced by the Player (or Reward) colour
+DIM_TINT_KEY = 0x080     # replaced by half the tint: glow halos (L2 proposal)
 NEAR_BLACK = 0x111       # art uses this where it needs a visible black
 
 
@@ -18,3 +19,12 @@ def quantize(r: int, g: int, b: int) -> int:
 def halve(c12: int) -> int:
     """Each channel shifted right once: a dim variant that costs no ROM."""
     return ((c12 >> 1) & 0x777)
+
+
+def lerp(a: int, b: int, t: float) -> int:
+    """Per-channel mix of two words, rounded to RGB444 (for building LUTs)."""
+    out = 0
+    for shift in (8, 4, 0):
+        ca, cb = (a >> shift) & 0xF, (b >> shift) & 0xF
+        out |= int(round(ca + (cb - ca) * t)) << shift
+    return out
