@@ -42,22 +42,22 @@ These check Steps, Turns, Crashes, Rewards, Points, Rounds, Matches and geometry
 | F12 | Save the game image to `prototype/out/`, without the panel or debug overlay |
 | Esc | Leave fullscreen, or quit in windowed mode |
 
-Candidate keys cycle forward; hold Shift to go back. Names below match the panel.
+Candidate keys cycle forward; hold Shift to go back. The panel shows each axis by its field name (in brackets).
 
 | Key | Axis | Choices |
 |---|---|---|
-| 1 | HUD layout | `top`, `sides`, `corners` |
-| 2 | Cell side | 4, 8, 16 px |
-| 3 | Bike side | 16, 32, 64 px |
-| 4 | Bike style | `cycle`, `arrow`, then any `png:<name>` found in `assets/` |
-| 5 | Reward look | `gem`, `orb`, `gem+star` (+3 gem, +5 star) |
-| 6 | Reward side | `half-bike`, `cell` |
-| 7 | Palette | `classic`, `softer`, `strong` |
-| 8 | Trail look | `full`, `inset`, `core` |
-| 9 | Grid lines | `off`, `32px`, `cell` |
-| 0 | Bike anchor | `centre`, `nose` |
-| F | Digit font | `seg`, `block` |
-| H | Digit height | 32, 48, 64 px |
+| 1 | HUD layout (`hud`) | `top`, `sides`, `corners` |
+| 2 | Cell side (`cell_px`) | 4, 8, 16 px |
+| 3 | Bike side (`bike_px`) | 16, 32, 64 px |
+| 4 | Bike style (`bike_style`) | `cycle`, `arrow`, then any `png:<name>` found in `assets/` |
+| 5 | Reward look (`reward_look`) | `gem`, `orb`, `gem+star` (+3 gem, +5 star) |
+| 6 | Reward side (`reward_size`) | `half-bike`, `cell` |
+| 7 | Palette (`palette`) | `classic`, `softer`, `strong` |
+| 8 | Trail look (`trail`) | `full`, `inset`, `core` |
+| 9 | Grid lines (`grid`) | `off`, `32px`, `cell` |
+| 0 | Bike anchor (`anchor`) | `centre`, `nose` |
+| F | Digit font (`font`) | `seg`, `block` |
+| H | Digit height (`digit_px`) | 32, 48, 64 px |
 
 Changing HUD layout, Cell side or digit height creates a new Match. Other axes redraw the current state. The top HUD reserves a band rounded to 16 px; sides reserve 96 px each. Corners cover Arena Cells and need a rule before lockdown.
 
@@ -86,7 +86,7 @@ Arena clear is compared with 47,040 pixel clocks of vertical blanking: 28 lines 
 
 From `Game_research/`, `python tools/make_candidate_art.py` writes `assets/candidates/*.png`. It keeps existing files; `--force` overwrites them. An edited PNG with the same name replaces generated art when the viewer next loads it. Restart the viewer after editing because ROMs are cached.
 
-Any `assets/bike-<name>.png` appears as Bike style `png:<name>` on restart. Its native size overrides the Bike size axis. Candidate Bikes are generated at 16/32/64 px; Rewards at 4/8/16/32 px.
+Any `assets/bike-<name>.png` appears as Bike style `png:<name>` on restart. Its native size overrides the Bike size axis, and `half-bike` Rewards follow that native size. Candidate Bikes are generated at 16/32/64 px; Rewards at 4/8/16/32 px.
 
 Art must be square with a power-of-two side and point UP. Use RGB444 colours: black `000` is transparent, green `0F0` is the Player/Reward tint key, and `111` gives visible black. In PNG RGB bytes these are `#000000`, `#00FF00` and `#111111`. The loader keeps the top four bits of each channel and treats alpha below 128 as transparent. Do not rely on partial alpha. L3's `.coe` asset flow follows lockdown.
 

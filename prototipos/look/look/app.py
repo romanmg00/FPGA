@@ -62,7 +62,8 @@ class App:
     def _new_renderer(self):
         look = self.look
         self.bike_rom = self.sprites.bike(look.bike_style, look.bike_px)
-        self.reward_roms = tuple(self.sprites.reward(look.reward_look, k, look.reward_px)
+        reward_px = look.reward_px(self.bike_rom.size)
+        self.reward_roms = tuple(self.sprites.reward(look.reward_look, k, reward_px)
                                  for k in (0, 1))
         self.renderer = FrameRenderer(self.geom, look, PALETTES[look.palette],
                                       self.sprites, self.bike_rom, self.reward_roms)
@@ -108,7 +109,7 @@ class App:
         if self.look.hud == "corners":
             covered = self._covered_cells(font)
             flags.append(f"HUD hides {covered} Arena Cells: needs a rule")
-        if self.reward_roms[0].size > self.geom.cell_px:
+        if max(r.size for r in self.reward_roms) > self.geom.cell_px:
             notes.append("Reward > Cell: neighbours can overlap")
         if self.bike_rom.size != self.look.bike_px:
             notes.append(f"PNG Bike is {self.bike_rom.size} px (size axis ignored)")

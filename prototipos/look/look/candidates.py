@@ -51,9 +51,9 @@ class LookConfig:
     font: str = "seg"
     digit_px: int = 32
 
-    @property
-    def reward_px(self) -> int:
-        return self.bike_px // 2 if self.reward_size == "half-bike" else self.cell_px
+    def reward_px(self, bike_px: int) -> int:
+        """bike_px is the loaded Bike ROM's side (a PNG Bike keeps its own)."""
+        return bike_px // 2 if self.reward_size == "half-bike" else self.cell_px
 
 
 # key label, field, choices. bike_style choices are filled in at run time
