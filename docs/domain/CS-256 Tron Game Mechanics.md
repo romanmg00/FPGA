@@ -23,6 +23,8 @@ The game rules on one page, for group discussion. Capitalised words are defined 
 - 🔵 proposed, not yet agreed
 - ⏳ waits for the rendered size test
 
+The added Game Model proposals below are 🔵 items for the L2 lockdown, not agreed rules.
+
 ## Match and Rounds
 
 - ✅ Two Players, each steering one Bike, in a shared Arena surrounded by Walls.
@@ -31,12 +33,15 @@ The game rules on one page, for group discussion. Capitalised words are defined 
 - ✅ The Match ends when either Player has no Lives left. **The Player with more Points wins.** Equal Points is a Draw.
 - ✅ After the Match ends, the game freezes with the final Scoreboard shown. Pressing Start begins a new Match: Lives go back to 3 and Points to 0.
 - ✅ Start positions: P1 at left-centre heading right; P2 at right-centre heading left.
+- 🔵 After the Crash freeze, the next Round is set up and waits for Start. At the end of a Match, Start begins the new Match straight away.
+- 🔵 Start positions note for L2: with the current mirrored start Cells, the Bikes are always an odd Manhattan distance apart. Both change Cell parity each Step, so they cannot enter the same Cell together; only the swap case of a Head-on Crash is reachable in play. Decide whether to shift one start Cell by one Cell so both cases are reachable.
 
 ## Movement
 
 - ✅ Bikes never stop. Every Step, each Bike advances one Cell along its Heading.
 - ✅ A Player can Turn 90° left or right. A 180° reversal is ignored.
 - 🔵 If a Player presses several directions between two Steps, the last valid one is applied at the next Step.
+- 🔵 A Turn is judged against the Bike's current Heading. Pressing that Heading is not a Turn and does not cancel a pending Turn. Turn requests are ignored while no Round is running.
 - ✅ Movement is stepped (Cell by Cell) for now. Smooth movement is a possible later upgrade.
 - ⏳ How many frames pass per Step (Bike speed).
 
@@ -46,6 +51,7 @@ The game rules on one page, for group discussion. Capitalised words are defined 
 - ✅ A Bike Crashes if it moves into a Wall, any Trail (including its own), or the same Cell as the other Bike in the same Step.
 - ✅ Head-on Crash: if the two Bikes enter the same Cell, or swap Cells, in one Step, both Crash.
 - ✅ Both Bikes move at the same time; neither has priority.
+- 🔵 In a Step where one Bike Crashes, that Bike stays in its Cell. The other Bike still completes its move, leaving Trail and collecting any Reward it enters.
 - ✅ A Crash ends the Round, and the crashed Player loses one Life. If both Crash in the same Step, both lose a Life.
 - 🔵 After a Crash, the game freezes for about 2 s with the crashed Bike blinking. Then the next Round starts.
 - ✅ No extra mechanic ends a long Round. Rewards are what tempt Players to take risks.
@@ -55,12 +61,14 @@ The game rules on one page, for group discussion. Capitalised words are defined 
 - ✅ Points come from **Rewards** and the **Survival Bonus**. They carry over between Rounds and reset only at a new Match.
 - ✅ **Survival Bonus:** when a Round ends, the Player who did not Crash gains bonus Points. This makes crashing on purpose a losing move. 🔵 Value: +5.
 - 🔵 Points stop at 99.
+- 🔵 In a Step where one Bike Crashes, the surviving Player receives any Reward's Points first, then the Survival Bonus. The 99 cap applies to the total.
 
 ## Rewards
 
 - ✅ Three Rewards are in the Arena at all times: 🔵 two worth +3 and one worth +5.
 - ✅ Each appears at a random empty spot. When a Bike collects one, a new one of the same kind appears elsewhere at once.
 - ✅ The Cells a Bike drives through while collecting become its Trail, as usual.
+- 🔵 Rewards are placed again at the start of every Round. If the Arena has no empty Cell left, a collected Reward does not reappear until the next Round. This is an exception to “Three Rewards are in the Arena at all times”.
 - ⏳ Reward size: about half the Bike's size.
 
 ## Controls
