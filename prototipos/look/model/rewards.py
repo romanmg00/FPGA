@@ -6,10 +6,13 @@
    sampling, so no modulo circuit is needed.
 2. If every draw was occupied, scan the grid in address order, starting
    after the last candidate and wrapping, and take the first EMPTY Cell.
-3. If there is no EMPTY Cell at all, the slot stays empty (None); the game
-   retries it after every Step until it is placed.
+3. If there is no EMPTY Cell at all, the slot stays empty (None) until the
+   next Round. Trails never free a Cell during a Round, so a retry could
+   not succeed. (🔵 proposal: the mechanics note says three Rewards at all
+   times, which a full Arena cannot satisfy.)
 
-The HDL must follow the same order so Step logs match.
+The HDL must follow the same order so Step logs match. Worst case per
+placement: RANDOM_DRAWS * 32 shifts plus one read per grid word.
 """
 
 from .arena import EMPTY, REWARD_SLOT0, ArenaGrid

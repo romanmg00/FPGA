@@ -108,11 +108,10 @@ class Game:
         for i, slot in enumerate(result.collected):
             if slot is not None:
                 self.points[i] = add_points(self.points[i], self.rules.reward_values[slot], cap)
-        for slot in result.collected:          # respawn P1's first, then P2's
+        # Respawn P1's Reward first, then P2's. In a full Arena the slot stays
+        # empty until the next Round (see rewards.py).
+        for slot in result.collected:
             if slot is not None:
-                place_reward(slot, self.reward_cells, self.grid, self.lfsr)
-        for slot, cell in enumerate(self.reward_cells):
-            if cell is None:                   # the Arena was full; try again
                 place_reward(slot, self.reward_cells, self.grid, self.lfsr)
         if any(result.crashed):
             self.crashed = result.crashed

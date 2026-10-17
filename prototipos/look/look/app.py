@@ -15,7 +15,6 @@ from model.params import SCREEN_H, SCREEN_W
 from model.steering import DOWN, LEFT, RIGHT, UP
 
 from . import budget
-from .art import reward_rom_count
 from .candidates import AXES, GEOMETRY_FIELDS, PALETTES, LookConfig, cycle, hud_reserve
 from .font import FONTS, ICON_ROM_BITS
 from .hud import backing_boxes
@@ -90,12 +89,16 @@ class App:
     def checks(self):
         """(budget rows, flags needing a fix before lockdown, notes)."""
         font = FONTS[self.look.font].at_height(self.look.digit_px)
-        rows = budget.items(self.geom, self.bike_rom.size, self.reward_roms[0].size,
-                            reward_rom_count(self.look.reward_look), font, ICON_ROM_BITS)
+        distinct = {id(r): r for r in self.reward_roms}.values()     # shared ROM counts once
+        rows = budget.items(self.geom, self.bike_rom.size, [r.size for r in distinct],
+                            font, ICON_ROM_BITS)
         flags, notes = [], []
         clear = budget.clear_us(self.geom)
         if clear > budget.BLANK_US:
             flags.append(f"Arena clear {clear:,.0f} us > {budget.BLANK_US:.1f} us blanking")
+        place2 = 2 * budget.placement_us(self.geom)
+        if place2 > budget.BLANK_US:
+            notes.append(f"G4: 2 placements worst {place2:,.0f} us > blank")
         total18 = sum(r.ramb18 for r in rows)
         if total18 > 2 * budget.RAMB36_TOTAL:
             flags.append("BRAM over the XC7A100T total")

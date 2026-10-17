@@ -123,8 +123,3 @@ REWARD_LOOKS = {
     "orb": (reward_orb, reward_orb),
     "gem+star": (reward_gem, reward_star),
 }
-
-
-def reward_rom_count(look: str) -> int:
-    small, big = REWARD_LOOKS[look]
-    return 1 if small is big else 2

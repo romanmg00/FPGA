@@ -8,6 +8,8 @@ numbers. No pygame here.
 from dataclasses import dataclass
 
 from model.arena import CELL_BITS
+from model.lfsr import SHIFTS_PER_DRAW
+from model.rewards import RANDOM_DRAWS
 
 PIXEL_HZ = 83.46e6                 # handout pixel clock
 BLANK_LINES = 28                   # vcount 827 and 0..26: full blank lines
@@ -58,16 +60,26 @@ class Item:
         return self.width * self.depth <= LUT_ROM_BITS
 
 
-def items(geom, bike_px, reward_px, reward_roms, font, icon_bits) -> list:
-    return [
-        Item(f"Bike ROM {bike_px}x{bike_px}", 2, 12, bike_px * bike_px),
-        Item(f"Reward ROM {reward_px}x{reward_px}", reward_roms, 12, reward_px * reward_px),
+def items(geom, bike_px, reward_sizes, font, icon_bits) -> list:
+    """reward_sizes: the side of each distinct Reward ROM (one per ROM)."""
+    rows = [Item(f"Bike ROM {bike_px}x{bike_px}", 2, 12, bike_px * bike_px)]
+    for px in reward_sizes:
+        rows.append(Item(f"Reward ROM {px}x{px}", 1, 12, px * px))
+    rows += [
         Item(f"Arena grid {geom.stride_w}x{geom.stride_h}", 1, CELL_BITS, geom.stride_w * geom.stride_h),
         Item(f"Digit font {font.glyph_w}x{font.glyph_h}", 1, 1, font.rom_bits),
         Item("HUD icons", 1, 1, icon_bits),
     ]
+    return rows
 
 
 def clear_us(geom) -> float:
     """One write per pixel clock over the whole padded grid."""
     return geom.stride_w * geom.stride_h / PIXEL_HZ * 1e6
+
+
+def placement_us(geom) -> float:
+    """Worst case for one Reward placement (model/rewards.py): every LFSR
+    draw rejected, then a read of every grid word. Two can fall in one Step."""
+    cycles = RANDOM_DRAWS * SHIFTS_PER_DRAW + geom.stride_w * geom.stride_h
+    return cycles / PIXEL_HZ * 1e6
