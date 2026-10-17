@@ -60,8 +60,8 @@ class FrameRenderer:
         self.trails = pygame.Surface(SIZE)
         self.trails.set_colorkey((0, 0, 0))
         self.pulse = look.trail == "pulse"
-        if self.pulse:
-            self.mask = pygame.Surface(SIZE)
+        if self.pulse:                        # each Trail Cell's stripe colour
+            self.shine_src = pygame.Surface(SIZE)
             self.stripes = fx.stripe_surface()
         self.frame = 0
 
@@ -86,14 +86,14 @@ class FrameRenderer:
     def _clear_trails(self):
         self.trails.fill((0, 0, 0))
         if self.pulse:
-            self.mask.fill((0, 0, 0))
+            self.shine_src.fill((0, 0, 0))
 
     def _draw_cell(self, x, y, code) -> None:
         c = self.geom.cell_px
         r = pygame.Rect(x * c, y * c, c, c)
         self.trails.fill((0, 0, 0), r)
         if self.pulse:
-            self.mask.fill((0, 0, 0), r)
+            self.shine_src.fill((0, 0, 0), r)
         if code not in (TRAIL_P1, TRAIL_P2):
             return
         col = self.pal["p1"] if code == TRAIL_P1 else self.pal["p2"]
@@ -110,7 +110,7 @@ class FrameRenderer:
         else:                                 # full, pulse
             self.trails.fill(expand(col), r)
         if self.pulse:
-            self.mask.fill((255, 255, 255), r)
+            self.shine_src.fill(expand(fx.shine(col)), r)
 
     # --- frame ------------------------------------------------------------
     def draw(self, frame: pygame.Surface, snap: dict) -> None:
@@ -118,12 +118,13 @@ class FrameRenderer:
         ph = fx.phase(self.frame)
         frame.blit(self.bases[ph % len(self.bases)], (0, 0))
         frame.blit(self.trails, (0, 0))
-        if self.pulse:
-            shine = self.mask.copy()
+        if self.pulse:                        # stripe pixels take the shine colour
+            shine = self.shine_src.copy()
             shift = (2 * self.frame) % fx.STRIPE_PERIOD
             shine.blit(self.stripes, (shift - fx.STRIPE_PERIOD, 0),
                        special_flags=pygame.BLEND_RGB_MULT)
-            frame.blit(shine, (0, 0), special_flags=pygame.BLEND_RGB_ADD)
+            shine.set_colorkey((0, 0, 0))
+            frame.blit(shine, (0, 0))
 
         self._draw_rewards(frame, snap, ph)
 

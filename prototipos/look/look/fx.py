@@ -37,7 +37,7 @@ HW_COST = {                # short enough for one panel line each
     "floor grid": "row LUT 1/d,lines,colour; 1 DSP",
     "neon Wall": "4 edge comparators",
     "neon Trail": "Cell-local x/y bit tests",
-    "pulse Trail": "(x+y-2f) mod 64 < 6, sat. add",
+    "pulse Trail": "(x+y-2f) mod 64 < 6 -> c/4 + 12",
     "crash ring": "max(|dx|,|dy|) vs radius",
     "flash": "c/2+7 per channel, 4 frames",
     "scanlines": "y[0] ? c - c/4 : c",
@@ -237,13 +237,20 @@ def _neon_wall(a, x0, y0, x1, y1, pal):
     a[ring(0)] = glow
 
 
+def shine(c12: int) -> int:
+    """Pulse-stripe colour: near white, c/4 + 12 per channel. Unlike a
+    fixed add it brightens every colour, including channels already at 15."""
+    return ((c12 >> 2) & 0x333) + 0xCCC
+
+
 def stripe_surface() -> pygame.Surface:
-    """Diagonal stripes for the pulse Trail, 2 periods wide so it can scroll."""
+    """Diagonal stripe mask for the pulse Trail (white on stripes), 2 periods
+    wide so it can scroll."""
     w = W + STRIPE_PERIOD
     xs = np.arange(w, dtype=np.int32)[:, None]
     on = (((xs + YS) % STRIPE_PERIOD) < 6)
     a = np.zeros((w, H, 3), np.uint8)
-    a[on] = 85                                      # +5 levels of 15, saturating
+    a[on] = 255
     return pygame.surfarray.make_surface(a)
 
 

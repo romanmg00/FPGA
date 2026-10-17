@@ -107,7 +107,7 @@ Each effect is a function of pixel position, a frame counter and game state. The
 | floor grid | Perspective grid with rows moving towards the viewer | Row LUT for `1/d`, lines and colour; one DSP |
 | neon Wall | Bright tube along the Wall edge | Four edge comparators |
 | neon Trail | Coloured edge with a bright core | Cell-local x/y bit tests |
-| pulse Trail | Diagonal bright stripes moving along Trails | `(x+y-2f) mod 64 < 6`; saturating addition |
+| pulse Trail | Near-white stripes moving along Trails, on any Player colour | `(x+y-2f) mod 64 < 6` selects `c/4 + 12` per channel |
 | crash ring | Expanding square rings from each crashed Bike, kept inside the white border | Compare `max(abs(dx), abs(dy))` with radius |
 | flash | Brief brightening after a Crash | `c/2+7` per channel for four frames of Crash age |
 | scanlines | Dim alternate rows | `y[0] ? c - c/4 : c` |
