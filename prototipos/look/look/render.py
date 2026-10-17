@@ -12,7 +12,7 @@ import pygame
 
 from model import CRASH
 from model.arena import TRAIL_P1, TRAIL_P2
-from model.params import SCREEN_H, SCREEN_W
+from model.params import BORDER_PX, SCREEN_H, SCREEN_W
 from model.steering import DOWN, LEFT, RIGHT, UP
 
 from . import fx
@@ -167,6 +167,12 @@ class FrameRenderer:
         """Square shockwaves from each crashed Bike's Cell."""
         c = self.geom.cell_px
         t = snap["phase_frames"]
+        b = BORDER_PX                         # rings stay inside the white border
+        frame.set_clip(pygame.Rect(b, b, SCREEN_W - 2 * b, SCREEN_H - 2 * b))
+        self._ring_cells(frame, snap, c, t)
+        frame.set_clip(None)
+
+    def _ring_cells(self, frame, snap, c, t):
         for i in (0, 1):
             if not snap["crashed"][i]:
                 continue
