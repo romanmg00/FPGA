@@ -11,6 +11,7 @@ All work for the CS-256 class project (the two-player Tron game) lives in this f
 | `CS-256 Tron Glossary.md` | Canonical game vocabulary. Use these terms in notes, code comments, and the report |
 | `CS-256 VGA and Sprite Design Plan.md` | VGA timing, render pipeline, sprite ROMs, milestones |
 | `CS-256 Tron Development Plan.md` | Calendar, freezes, scope tiers, work list, verification approach, prototype phases |
+| `CS-256 Tron Integration Comparison.md` | Every difference from Roman's team repo (`romanmg00/FPGA`), with team decisions and technical recommendations, for the integration meeting |
 | `CS-256 TA Email - Game Clock.md` | Draft email to the TAs about the game-clock decision |
 | `CS-256 Official FPGA Coding Practices.md` | Detailed manufacturer guidance for the selected design, plus divided-clock/clock-enable and sprite-pipeline comparisons |
 | `Nexys_A7_Game_Research_Report.md` | Board capabilities research |
