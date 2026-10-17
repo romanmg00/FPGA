@@ -43,8 +43,10 @@ class SpriteRom:
     def bits(self) -> int:
         return (self.size - 1).bit_length()
 
-    def surface(self, heading: int, tint: int) -> pygame.Surface:
-        key = (heading, tint)
+    def surface(self, heading: int, tint: int, dim: int = None) -> pygame.Surface:
+        """dim: colour for the dim tint key (default tint/2, the plain rule)."""
+        dim = halve(tint) if dim is None else dim
+        key = (heading, tint, dim)
         if key not in self._surfaces:
             s = self.size
             surf = pygame.Surface((s, s))
@@ -54,7 +56,7 @@ class SpriteRom:
                     if w == TINT_KEY:
                         w = tint
                     elif w == DIM_TINT_KEY:
-                        w = halve(tint)
+                        w = dim
                     surf.set_at((dx, dy), expand(w))
             surf.set_colorkey(expand(TRANSPARENT))
             self._surfaces[key] = surf

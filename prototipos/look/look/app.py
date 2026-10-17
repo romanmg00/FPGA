@@ -37,7 +37,7 @@ AXIS_KEYS = {pygame.K_1: "1", pygame.K_2: "2", pygame.K_3: "3", pygame.K_4: "4",
              pygame.K_5: "5", pygame.K_6: "6", pygame.K_7: "7", pygame.K_8: "8",
              pygame.K_9: "9", pygame.K_0: "0", pygame.K_f: "F", pygame.K_h: "H",
              pygame.K_b: "B", pygame.K_n: "N", pygame.K_r: "R", pygame.K_x: "X",
-             pygame.K_c: "C"}
+             pygame.K_c: "C", pygame.K_v: "V"}
 PANEL_PAGES = ("look", "bram", "effects", None)  # Tab cycles; None hides the panel
 
 OK, WARN, BAD, DIM, TEXT = (120, 220, 120), (240, 200, 80), (255, 90, 90), (140, 140, 160), (230, 230, 240)

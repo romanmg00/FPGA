@@ -46,6 +46,21 @@ class Canvas:
             if _inside(u, v, pts):
                 self.px[j][i] = c(u, v) if callable(c) else c
 
+    def glow(self, colour=None) -> None:
+        """Halo hugging the silhouette: every transparent pixel within
+        `radius` (1 px, 2 px from 64 px art) of a drawn pixel gets `colour`."""
+        colour = DT if colour is None else colour
+        s, r = self.size, 2 if self.size >= 64 else 1
+        drawn = [[w != 0x000 for w in row] for row in self.px]
+        for j in range(s):
+            for i in range(s):
+                if drawn[j][i]:
+                    continue
+                if any(drawn[jj][ii]
+                       for jj in range(max(0, j - r), min(s, j + r + 1))
+                       for ii in range(max(0, i - r), min(s, i + r + 1))):
+                    self.px[j][i] = colour
+
     def words(self) -> list:
         return [w for row in self.px for w in row]
 
@@ -87,25 +102,51 @@ def bike_arrow(size: int) -> list:
 
 
 def bike_synth(size: int) -> list:
-    """80s light cycle: glow halo, tinted shell, chrome body, glowing rims."""
-    chrome = lambda u, v: lerp(0xEEF, 0x548, min(1.0, abs(v - 0.42) * 2.6))
+    """80s light cycle, top-down: glowing wheel rings, gunmetal body shaded
+    like a cylinder, light lines down the sides, rider with a tinted visor."""
+    gunmetal = lambda u, v: lerp(0x99B, 0x224, min(1.0, abs(u - 0.5) * 3.2))
     c = Canvas(size)
-    c.ellipse(0.5, 0.5, 0.42, 0.50, DT)            # glow halo
-    c.ellipse(0.5, 0.5, 0.32, 0.47, T)             # shell
-    c.ellipse(0.5, 0.5, 0.23, 0.40, chrome)        # chrome body
-    c.ellipse(0.5, 0.19, 0.17, 0.13, T)            # front rim
-    c.ellipse(0.5, 0.19, 0.09, 0.07, 0x112)
-    c.ellipse(0.5, 0.81, 0.19, 0.14, T)            # rear rim
-    c.ellipse(0.5, 0.81, 0.10, 0.08, 0x112)
-    c.rect(0.46, 0.27, 0.54, 0.73, T)              # spine stripe
-    c.ellipse(0.5, 0.50, 0.11, 0.13, 0x113)        # canopy
-    c.ellipse(0.5, 0.45, 0.07, 0.035, 0xAEF)       # visor glint
-    c.rect(0.40, 0.00, 0.60, 0.05, WHITE)          # headlight
-    c.rect(0.44, 0.95, 0.56, 1.00, 0xF24)          # tail light
+    c.ellipse(0.5, 0.17, 0.18, 0.15, T)                       # front wheel ring
+    c.ellipse(0.5, 0.17, 0.10, 0.08, 0x112)
+    c.ellipse(0.5, 0.82, 0.21, 0.17, T)                       # rear wheel ring
+    c.ellipse(0.5, 0.82, 0.12, 0.09, 0x112)
+    c.polygon([(0.38, 0.24), (0.62, 0.24), (0.71, 0.44), (0.71, 0.74),
+               (0.60, 0.84), (0.40, 0.84), (0.29, 0.74), (0.29, 0.44)], gunmetal)
+    c.rect(0.29, 0.44, 0.34, 0.75, T)                         # side light lines
+    c.rect(0.66, 0.44, 0.71, 0.75, T)
+    c.rect(0.46, 0.24, 0.54, 0.40, T)                         # nose light
+    c.ellipse(0.5, 0.63, 0.11, 0.09, 0x223)                   # rider's back
+    c.ellipse(0.5, 0.51, 0.12, 0.12, NEAR_BLACK)              # helmet
+    c.ellipse(0.5, 0.47, 0.09, 0.04, T)                       # visor
+    c.ellipse(0.5, 0.17, 0.03, 0.03, 0xBCF)                   # hub glints
+    c.ellipse(0.5, 0.82, 0.03, 0.03, 0xBCF)
+    c.rect(0.42, 0.00, 0.58, 0.03, WHITE)                     # headlight
+    c.rect(0.42, 0.96, 0.58, 0.99, 0xF24)                     # tail light
+    c.glow()
     return c.words()
 
 
-BIKE_STYLES = {"synth": bike_synth, "cycle": bike_cycle, "arrow": bike_arrow}
+def bike_racer(size: int) -> list:
+    """80s wedge racer: tinted hull edge, chrome deck, dark canopy, racing
+    stripes and two white-hot thrusters."""
+    chrome = lambda u, v: lerp(0xDDF, 0x335, min(1.0, abs(u - 0.5) * 2.6 + max(0.0, v - 0.55)))
+    c = Canvas(size)
+    c.polygon([(0.5, 0.04), (0.74, 0.22), (0.85, 0.70), (0.75, 0.94),
+               (0.25, 0.94), (0.15, 0.70), (0.26, 0.22)], T)   # hull edge
+    c.polygon([(0.5, 0.12), (0.66, 0.27), (0.75, 0.68), (0.67, 0.87),
+               (0.33, 0.87), (0.25, 0.68), (0.34, 0.27)], chrome)
+    c.rect(0.39, 0.56, 0.44, 0.86, T)                         # racing stripes
+    c.rect(0.56, 0.56, 0.61, 0.86, T)
+    c.ellipse(0.5, 0.40, 0.10, 0.15, 0x112)                   # canopy
+    c.ellipse(0.47, 0.34, 0.03, 0.05, 0xCEF)                  # canopy glint
+    c.rect(0.30, 0.88, 0.42, 0.96, WHITE)                     # thrusters
+    c.rect(0.58, 0.88, 0.70, 0.96, WHITE)
+    c.glow()
+    return c.words()
+
+
+BIKE_STYLES = {"synth": bike_synth, "racer": bike_racer, "cycle": bike_cycle,
+               "arrow": bike_arrow}
 
 
 # --- Rewards (tinted per kind with the palette's Reward colours) ----------

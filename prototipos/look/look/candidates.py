@@ -73,6 +73,7 @@ class LookConfig:
     reward_anim: str = "pulse"
     crash: str = "ring+flash"
     crt: str = "scanlines"
+    bike_fx: str = "glow"
 
     def reward_px(self, bike_px: int) -> int:
         """bike_px is the loaded Bike ROM's side (a PNG Bike keeps its own)."""
@@ -99,6 +100,7 @@ AXES = [
     ("R", "reward_anim", ("pulse", "spin", "still")),
     ("X", "crash", ("ring+flash", "ring", "blink")),
     ("C", "crt", ("scanlines", "off")),
+    ("V", "bike_fx", ("glow", "streaks", "none")),
 ]
 
 GEOMETRY_FIELDS = ("hud", "cell_px", "digit_px")       # changing these starts a new Match
@@ -107,13 +109,16 @@ GEOMETRY_FIELDS = ("hud", "cell_px", "digit_px")       # changing these starts a
 PRESETS = {
     "synthwave": dict(palette="synthwave", bg="sunset", grid="neon", wall="neon",
                       trail="pulse", bike_style="synth", reward_look="neon",
-                      reward_anim="pulse", font="neon", crash="ring+flash", crt="scanlines"),
+                      reward_anim="pulse", font="neon", crash="ring+flash", crt="scanlines",
+                      bike_fx="glow"),
     "outrun": dict(palette="outrun", bg="stars", grid="neon", wall="neon",
-                   trail="neon", bike_style="synth", reward_look="neon",
-                   reward_anim="spin", font="chrome", crash="ring", crt="scanlines"),
+                   trail="neon", bike_style="racer", reward_look="neon",
+                   reward_anim="spin", font="chrome", crash="ring", crt="scanlines",
+                   bike_fx="streaks"),
     "classic": dict(palette="classic", bg="plain", grid="32px", wall="flat",
                     trail="full", bike_style="cycle", reward_look="gem",
-                    reward_anim="still", font="seg", crash="blink", crt="off"),
+                    reward_anim="still", font="seg", crash="blink", crt="off",
+                    bike_fx="none"),
 }
 
 

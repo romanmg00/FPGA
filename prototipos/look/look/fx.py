@@ -44,6 +44,8 @@ HW_COST = {                # short enough for one panel line each
     "Reward pulse": "4-entry tint table per kind",
     "Reward spin": "Heading = frame[4:3] (address)",
     "glow halo": "key 080 -> tint/2 (proposal)",
+    "Bike glow pulse": "4-entry dim-tint table per Player",
+    "speed streaks": "rect compares vs head + Heading",
     "neon digits": "ghost = segment-area compares",
     "chrome digits": "row LUT 2 x 16 x 12 b",
 }
@@ -290,6 +292,10 @@ def active(look, halo: bool) -> list:
         on.append(look.trail + " Trail")
     if halo:
         on.append("glow halo")
+        if look.bike_fx != "none":
+            on.append("Bike glow pulse")
+    if look.bike_fx == "streaks":
+        on.append("speed streaks")
     if look.reward_anim != "still":
         on.append("Reward " + look.reward_anim)
     if look.crash != "blink":
@@ -312,7 +318,8 @@ def lut_items(look, glyph_h: int) -> list:
         rows.append(("Sun row LUT", 20, SUN_R + SUN_RISE if look.grid == "floor" else 2 * SUN_R + 1))
     if look.grid == "floor":                      # 1/d 16 b + 4 phase line bits + colour 12 b
         rows.append(("Floor row LUT", 32, H // 2))
-    pulses = (4 if look.grid == "neon" else 0) + (8 if look.reward_anim == "pulse" else 0)
+    pulses = ((4 if look.grid == "neon" else 0) + (8 if look.reward_anim == "pulse" else 0)
+              + (8 if look.bike_fx != "none" else 0))
     if pulses:
         rows.append(("Pulse colour table", 12, pulses))
     if look.font == "chrome":                     # one bank per Player

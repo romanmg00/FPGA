@@ -10,7 +10,7 @@ to RGB444 as a final check.
 
 import pygame
 
-from model import CRASH
+from model import CRASH, RUNNING
 from model.arena import TRAIL_P1, TRAIL_P2
 from model.params import BORDER_PX, SCREEN_H, SCREEN_W
 from model.steering import DOWN, LEFT, RIGHT, UP
@@ -130,6 +130,7 @@ class FrameRenderer:
 
         crashing = snap["phase"] == CRASH
         blink_off = (snap["phase_frames"] // BLINK_FRAMES) % 2 == 1
+        bike_fx = self.look.bike_fx
         for i in (0, 1):
             if crashing and snap["crashed"][i] and blink_off:
                 continue
@@ -137,7 +138,12 @@ class FrameRenderer:
             tint = self.pal["p1"] if i == 0 else self.pal["p2"]
             rom = self.bike_rom
             pos = sprite_origin(snap["heads"][i], c, rom.size, heading, self.look.anchor)
-            frame.blit(rom.surface(heading, tint), pos)
+            if bike_fx == "streaks" and snap["phase"] == RUNNING:
+                self._draw_streaks(frame, pos, rom.size, heading, tint)
+            dim = None
+            if bike_fx != "none":                 # halo breathes with the phase
+                dim = lerp(halve(halve(tint)), lerp(halve(tint), tint, 0.5), PULSE_LEVELS[ph])
+            frame.blit(rom.surface(heading, tint, dim), pos)
 
         crash_fx = self.look.crash
         if crashing and crash_fx != "blink":
@@ -147,6 +153,26 @@ class FrameRenderer:
         flash = (crashing and crash_fx == "ring+flash" and snap["phase_frames"] < FLASH_FRAMES)
         fx.finish(frame, flash, self.look.crt == "scanlines")
         self.frame += 1
+
+    def _draw_streaks(self, frame, pos, size, heading, tint):
+        """Speed lines trailing the sprite's back edge, flickering in length.
+        In hardware: a few rectangle compares against the head position."""
+        ox, oy = pos
+        w = max(1, size // 16)
+        flick = (self.frame >> 2) & 1
+        for off, length, colour in ((0.42, 0.8, halve(tint)), (0.58, 0.45, halve(halve(tint)))):
+            d = int(size * off)
+            n = int(size * length) + flick * size // 8
+            for side in (-1, 1):
+                if heading in (UP, DOWN):
+                    x = ox + size // 2 + side * d - w // 2
+                    y = oy + size if heading == UP else oy - n
+                    r = (x, y, w, n)
+                else:
+                    y = oy + size // 2 + side * d - w // 2
+                    x = ox - n if heading == RIGHT else ox + size
+                    r = (x, y, n, w)
+                frame.fill(expand(colour), r)
 
     def _draw_rewards(self, frame, snap, ph):
         c = self.geom.cell_px
