@@ -38,7 +38,7 @@ AXIS_KEYS = {pygame.K_1: "1", pygame.K_2: "2", pygame.K_3: "3", pygame.K_4: "4",
              pygame.K_9: "9", pygame.K_0: "0", pygame.K_f: "F", pygame.K_h: "H",
              pygame.K_b: "B", pygame.K_n: "N", pygame.K_r: "R", pygame.K_x: "X",
              pygame.K_c: "C"}
-PANEL_PAGES = ("look", "hardware", None)        # Tab cycles; None hides the panel
+PANEL_PAGES = ("look", "bram", "effects", None)  # Tab cycles; None hides the panel
 
 OK, WARN, BAD, DIM, TEXT = (120, 220, 120), (240, 200, 80), (255, 90, 90), (140, 140, 160), (230, 230, 240)
 
@@ -126,7 +126,7 @@ class App:
         if self.bike_rom.size != self.look.bike_px:
             notes.append(f"PNG Bike is {self.bike_rom.size} px (size axis ignored)")
         if self.uses_halo():
-            notes.append("Art uses dim tint key 080 (proposal)")
+            flags.append("Dim tint key 080: not in limit 3 yet")
         return rows, total18, clear, flags, notes
 
     def uses_halo(self) -> bool:
@@ -299,7 +299,7 @@ class App:
                 line(" ! " + f, BAD)
             for n in notes:
                 line(" i " + n, WARN)
-        else:
+        elif PANEL_PAGES[self.page] == "bram":
             line("BRAM (estimate, RAMB18 halves)", bold=True)
             for r in rows:
                 tag = " LUT?" if r.maybe_lut else ""
@@ -309,15 +309,17 @@ class App:
                  OK if pct < 100 else BAD)
             line(f" Arena clear {clear:,.1f} us of {budget.BLANK_US:.1f} us",
                  OK if clear <= budget.BLANK_US else BAD)
-            y += 6
+        else:
             line("EFFECTS AND THEIR HARDWARE", bold=True)
             for name in fx.active(lk, self.uses_halo()):
-                line(" " + name, OK)
-                line("   " + fx.HW_COST[name], DIM)
+                line(f" {name:<13}{fx.HW_COST[name]}")
         if self.message:
             y += 6
             line(self.message, WARN)
-        y = self.screen.get_height() - 4 * 17 - 8
+        footer = self.screen.get_height() - 4 * 17 - 8
+        if y > footer:
+            return                                  # window too short for the key help
+        y = footer
         line("P1 arrows  P2 WASD  Start Space/Enter", DIM)
         line("P pause  Backspace reset  G Cells  M preset", DIM)
         line("Tab panel page  F11 fullscreen  F12 shot", DIM)

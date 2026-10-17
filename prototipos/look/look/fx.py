@@ -29,23 +29,23 @@ FLOOR_Z = 92480            # floor perspective: row spacing at the bottom
 FLOOR_SPACING = 32         # world units between floor lines
 STRIPE_PERIOD = 64         # px along x+y between pulse stripes on Trails
 
-HW_COST = {
-    "sky": "row LUT 50 x 12 b, index y[9:4]",
-    "stars": "position hash: 2 small multipliers",
-    "sunset": "half-width LUT per sun row + comparators",
-    "neon grid": "x[4:0], y[4:0] tests + 4-entry pulse colours",
-    "floor grid": "row LUTs (1/d, line, colour) + 1 DSP multiply",
-    "neon Wall": "4 edge comparators around the Arena",
+HW_COST = {                # short enough for one panel line each
+    "sky": "row LUT 50x12 b, index y[9:4]",
+    "stars": "hash, 3 const mults (shift/add)",
+    "sunset": "row LUT: half-width + colour",
+    "neon grid": "x/y[4:0] tests, 4 pulse colours",
+    "floor grid": "row LUT 1/d,lines,colour; 1 DSP",
+    "neon Wall": "4 edge comparators",
     "neon Trail": "Cell-local x/y bit tests",
-    "pulse Trail": "(x + y - 2f)[5:2] == 0 test, saturating add",
-    "crash ring": "max(|dx|,|dy|) vs radius from freeze counter",
-    "flash": "c/2 + 7 per channel for 4 frames",
-    "scanlines": "y[0] ? c - c/4 : c per channel",
-    "Reward pulse": "4-entry tint table per frame",
-    "Reward spin": "Heading = frame_counter[4:3] (address rotation)",
-    "glow halo": "art key 080 -> tint/2 (shift)",
-    "neon digits": "glyph 8 as ghost: 2nd ROM read port",
-    "chrome digits": "row colour LUT 16 x 12 b",
+    "pulse Trail": "(x+y-2f) mod 64 < 6, sat. add",
+    "crash ring": "max(|dx|,|dy|) vs radius",
+    "flash": "c/2+7 per channel, 4 frames",
+    "scanlines": "y[0] ? c - c/4 : c",
+    "Reward pulse": "4-entry tint table per kind",
+    "Reward spin": "Heading = frame[4:3] (address)",
+    "glow halo": "key 080 -> tint/2 (proposal)",
+    "neon digits": "ghost = segment-area compares",
+    "chrome digits": "row LUT 2 x 16 x 12 b",
 }
 
 
@@ -248,17 +248,22 @@ def stripe_surface() -> pygame.Surface:
 
 
 def finish(surface: pygame.Surface, flash: bool, scanlines: bool) -> None:
-    """Final colour stage on 4-bit levels: crash flash, scanlines, RGB444."""
+    """Final colour stage on 4-bit levels: crash flash, scanlines, RGB444.
+    The handout's white border is left out, so it stays all 1s."""
     assert surface.get_bitsize() == 32 and max(surface.get_masks()[:3]) <= 0xFF0000
     p = pygame.surfarray.pixels2d(surface)       # 0x00RRGGBB per pixel
-    v = (p >> 4) & 0x0F0F0F                       # three 4-bit levels
-    if flash:
-        v = ((v >> 1) & 0x070707) + 0x070707
-    if scanlines:
-        odd = v[:, 1::2]
-        odd -= (odd >> 2) & 0x030303
-    p[...] = v * 0x11                             # n -> n * 17 per channel
-    del p
+    p[...] = ((p >> 4) & 0x0F0F0F) * 0x11         # RGB444: n -> n * 17
+    b = BORDER_PX
+    inside = p[b:W - b, b:H - b]                  # starts on an even row (b = 10)
+    if flash or scanlines:
+        v = (inside >> 4) & 0x0F0F0F
+        if flash:
+            v = ((v >> 1) & 0x070707) + 0x070707
+        if scanlines:
+            odd = v[:, 1::2]
+            odd -= (odd >> 2) & 0x030303
+        inside[...] = v * 0x11
+    del inside, p
 
 
 def active(look, halo: bool) -> list:
@@ -292,14 +297,17 @@ def active(look, halo: bool) -> list:
 
 
 def lut_items(look, glyph_h: int) -> list:
-    """(name, width, depth) of the effect LUTs, for the BRAM budget."""
+    """(name, width, depth) of the effect tables, for the BRAM budget."""
     rows = []
     if look.bg != "plain":
         rows.append(("Sky gradient LUT", 12, H // SKY_BAND))
-    if look.bg == "sunset":
-        rows.append(("Sun width LUT", 8, SUN_R + SUN_RISE if look.grid == "floor" else 2 * SUN_R + 1))
-    if look.grid == "floor":
-        rows.append(("Floor 1/d LUT", 16, H // 2))
-    if look.font == "chrome":
-        rows.append(("Chrome row LUT", 12, glyph_h))
+    if look.bg == "sunset":                       # half-width 8 b + colour 12 b
+        rows.append(("Sun row LUT", 20, SUN_R + SUN_RISE if look.grid == "floor" else 2 * SUN_R + 1))
+    if look.grid == "floor":                      # 1/d 16 b + 4 phase line bits + colour 12 b
+        rows.append(("Floor row LUT", 32, H // 2))
+    pulses = (4 if look.grid == "neon" else 0) + (8 if look.reward_anim == "pulse" else 0)
+    if pulses:
+        rows.append(("Pulse colour table", 12, pulses))
+    if look.font == "chrome":                     # one bank per Player
+        rows.append(("Chrome row LUT", 12, 2 * glyph_h))
     return rows

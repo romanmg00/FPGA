@@ -154,7 +154,9 @@ class HudRenderer:
                 value = snap["points"][el.player]
                 digit = value // 10 if el.index == 0 else value % 10
                 col = colours[el.player]
-                if look.font == "neon":            # unlit segments glow faintly
+                if look.font == "neon":            # unlit segments glow faintly; in
+                    # hardware the ghost is the union of the segment rectangles
+                    # (comparators on glyph x/y), not a second ROM read
                     ghost = self._bitmap(("d", font.name, 8), font.glyphs[8], font.scale,
                                          halve(halve(col)))
                     frame.blit(ghost, (el.x, el.y))
