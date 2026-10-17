@@ -20,13 +20,13 @@ Run from `prototype/`:
 python -m look
 ```
 
-Run the headless Game Model tests from `prototype/`:
+Run both test suites from `prototype/`:
 
 ```powershell
 python -m unittest discover -s tests
 ```
 
-These check Steps, Turns, Crashes, Rewards, Points, Rounds, Matches and geometry. M2's scenario files, Step logs and HDL log comparison are separate work.
+`tests/test_model.py` checks the Game Model rules: Steps, Turns, Crashes, Rewards, Points, Rounds, Matches and geometry. `tests/test_look_limits.py` runs headless and checks sampled frames from every preset for RGB444 and the handout's white border, including Crash frames. It also checks that pulse stripes are clearly brighter than both Player Trails, the default look fits BRAM and Arena-clear blanking, and generated art has the expected square, power-of-two sizes. M2's scenario files, Step logs and HDL log comparison are separate work.
 
 ## Controls
 
@@ -52,7 +52,7 @@ Candidate keys cycle forward; hold Shift to go back. The panel shows each axis b
 | 1 | HUD layout (`hud`) | `top`, `sides`, `corners` |
 | 2 | Cell side (`cell_px`) | 4, 8, 16 px |
 | 3 | Bike side (`bike_px`) | 16, 32, 64 px |
-| 4 | Bike style (`bike_style`) | `synth`, `cycle`, `arrow`, then any `png:<name>` found in `assets/` |
+| 4 | Bike style (`bike_style`) | `synth`, `racer`, `cycle`, `arrow`, then any `png:<name>` found in `assets/` |
 | 5 | Reward look (`reward_look`) | `neon`, `gem`, `orb`, `gem+star` (`neon` and `gem+star`: +3 gem, +5 star) |
 | 6 | Reward side (`reward_size`) | `half-bike`, `cell` |
 | 7 | Palette (`palette`) | `synthwave`, `outrun`, `classic`, `softer`, `strong` |
@@ -66,12 +66,31 @@ Candidate keys cycle forward; hold Shift to go back. The panel shows each axis b
 | R | Reward animation (`reward_anim`) | `pulse`, `spin`, `still` |
 | X | Crash effect (`crash`) | `ring+flash`, `ring`, `blink` |
 | C | CRT effect (`crt`) | `scanlines`, `off` |
+| V | Bike effects (`bike_fx`) | `glow`, `streaks`, `none` |
+
+The presets in `look/candidates.py` pair `synthwave` with `synth` + `glow`, `outrun` with `racer` + `streaks`, and `classic` with `cycle` + `none`. Both `glow` and `streaks` pulse any Bike halo; `none` leaves it at its fixed dim tint.
 
 Changing HUD layout, Cell side or digit height creates a new Match. Other axes redraw the current state. The top HUD reserves a band rounded to 16 px; sides reserve 96 px each. Corners cover Arena Cells and need a rule before lockdown.
 
 The renderer's frame counter drives animation. `fx.phase` selects four phases of eight frames each. Changing any look axis or preset rebuilds the renderer and restarts animation. Pause freezes the Game Model, including Crash age; ambient animation keeps running.
 
-Reported steady drawing is about 8–10 ms per 1280 × 800 frame on the development PC (rendering only, measured headless). Renderer rebuilds take longer.
+See [Performance and hardware tracking](#performance-and-hardware-tracking) for measured frame times and renderer rebuild costs.
+
+## Performance and hardware tracking
+
+From `prototype/`, run:
+
+```powershell
+python -m look.metrics
+```
+
+This renders the configurations in `look/metrics.py`'s `CONFIGS` headless: all three presets at 8 px Cells, then `synthwave` at 4 and 16 px Cells. Each run measures 240 frames after 30 warm-up frames. Draw time includes the Game Model frame update, Trail update, drawing and final colour stage; build time measures a renderer rebuild.
+
+The command appends rows to `prototype/metrics/look-metrics.csv` and rewrites [prototype/metrics/latest.md](metrics/latest.md). The CSV columns, in `FIELDS` order, are `date`, `commit`, `dirty`, `host`, `python`, `pygame`, `config`, `cell_px`, `build_ms`, `draw_ms_median`, `draw_ms_p95`, `ramb18`, `ramb18_pct`, `effect_table_bits`, `clear_us`, `placement2_us`, `blank_us`, `rgb444_ok`, `border_ok` and `flags`.
+
+Commit code first, run the metrics from a clean working tree, then commit both metrics files. This makes each row name the clean commit measured. The `dirty` column flags any uncommitted change in the repository. Timing is per machine, recorded in `host`; compare rows from the same host. Hardware figures are estimates, pending synthesis.
+
+The [baseline on Alan-Legion at commit `69842fc`](metrics/latest.md) records draw medians of 3.34–10.13 ms and p95 times of 3.83–10.83 ms, all below the 16.7 ms frame budget. RAMB18 use ranges from 11 to 33 halves (4.1–12.2% of 270). The 4 px Arena-clear flag records 1,570.5 µs against 563.6 µs of blanking; 8 and 16 px Cells fit that budget. Every `synthwave` configuration and `outrun` flag dim tint key `080` as outside FPGA limit 3; `classic` has no lockdown flags.
 
 ## Panel and FPGA limits
 
@@ -114,8 +133,12 @@ Each effect is a function of pixel position, a frame counter and game state. The
 | Reward pulse | Reward tint brightens and dims | Four-entry tint table per kind |
 | Reward spin | Reward turns through four Headings | Heading from `frame[4:3]`, using ROM addressing |
 | glow halo | Dim tint around Bike and Reward art | Key `080` selects half the tint; L2 proposal |
+| Bike glow pulse | Bike halo breathes through four animation phases | Four-entry dim-tint table per Player |
+| speed streaks | Flickering lines behind a moving Bike, only while a Round is running | Rectangle compares against the head position and Heading |
 | neon digits | Lit segments over faint unlit segments | Ghost from segment-area comparators |
 | chrome digits | Row shading with a dark centre split | Row LUT, 2 × 16 × 12 bits |
+
+Pulse Trail stripe pixels take `c/4 + 12` per channel, near white for any Player colour; a fixed add was invisible on cyan because its green and blue channels were already 15.
 
 The neon digit ghost is the union of the segment rectangles, using comparators on glyph x/y in hardware. It does not need a second ROM read.
 
@@ -127,7 +150,9 @@ From `Game_research/`, `python tools/make_candidate_art.py` writes `assets/candi
 
 Any `assets/bike-<name>.png` appears as Bike style `png:<name>` on restart. Its native size overrides the Bike size axis, and `half-bike` Rewards follow that native size. Candidate Bikes are generated at 16/32/64 px; Rewards at 4/8/16/32 px.
 
-The new candidate files are `bike-synth-*.png`, `reward-neon-gem-*.png` and `reward-neon-star-*.png` in `assets/candidates/`, at those sizes.
+The new candidate files are `bike-synth-*.png`, `bike-racer-*.png`, `reward-neon-gem-*.png` and `reward-neon-star-*.png` in `assets/candidates/`, at those sizes.
+
+Generated `synth` and `racer` Bike halos now hug the silhouette. `Canvas.glow` in `look/art.py` puts the dim tint key on transparent pixels within 1 px of drawn art, or 2 px for 64 px art.
 
 Art must be square with a power-of-two side and point UP. Use RGB444 colours: black `000` is transparent, green `0F0` is the Player/Reward tint key, and `111` gives visible black. In PNG RGB bytes these are `#000000`, `#00FF00` and `#111111`. The loader keeps the top four bits of each channel and treats alpha below 128 as transparent. Do not rely on partial alpha. L3's `.coe` asset flow follows lockdown.
 

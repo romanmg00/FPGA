@@ -111,7 +111,7 @@ def main():
     stamp = {
         "date": time.strftime("%Y-%m-%d %H:%M"),
         "commit": _git("rev-parse", "--short", "HEAD") or "unknown",
-        "dirty": bool(_git("status", "--porcelain", "--", ".")),
+        "dirty": bool(_git("status", "--porcelain")),          # whole repository
         "host": platform.node(),
         "python": platform.python_version(),
         "pygame": pygame.version.ver,
