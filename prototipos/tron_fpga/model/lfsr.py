@@ -1,4 +1,4 @@
-"""Reward-placement LFSR. The HDL must implement exactly this sequence.
+"""Reward-placement LFSR: this prototype's candidate, not yet selected for the HDL.
 
 32-bit Fibonacci LFSR, shift left, XOR feedback from bits 31, 21, 1 and 0
 (polynomial x^32 + x^22 + x^2 + x + 1, maximal length; XAPP052 Table 3 lists

@@ -160,7 +160,7 @@ Severity reflects the effect on integration. Pinned team-repo links use `C` for 
 - **Verified.**
   - The team README targets Icarus on a Mac ([README L7](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/README.md#L7)). The contract shapes ports for Icarus ([C L33](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/proyecto_final/Contrato%20de%20interfaces%20game_top%20%28CS%20256%29.md#L33), [L489](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/proyecto_final/Contrato%20de%20interfaces%20game_top%20%28CS%20256%29.md#L489)).
   - `.gitignore` excludes `prototipos/*/assets/*`, `hw/` and `*.bit` ([.gitignore L13–L20](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/.gitignore#L13-L20)).
-  - The vault README requires matching the workstation's Vivado version for IP ([README](../README.md#Toolchain)).
+  - The vault README requires matching the workstation's Vivado version for IP ([README](../README.md#toolchain)).
 - **Inference.** Icarus is not a dependable simulator for Vivado-generated Clocking Wizard, Block Memory Generator or XPM CDC models. Evidence must come from `xsim` at the pinned Vivado version. If COE or IP files land in an ignored path, builds are not reproducible.
 - **Recommendation.** Make `xsim` the authoritative simulator and keep Icarus for pure-RTL smoke tests. Track `.xci`, `.coe`, PNG sources and Tcl build scripts; ignore generated outputs.
 
