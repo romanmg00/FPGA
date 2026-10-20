@@ -4,14 +4,15 @@ id: cs256-ta-email-game-clock-20261015
 title: CS-256 TA Email - Game Clock
 type: note
 subject: CS-256
-status: draft
+status: archived
 created_at: "2026-10-15T17:30:00"
+updated_at: "2026-10-20T14:39:59"
 term: 2026-fall
 sources:
   - "[[CS-256 Official FPGA Coding Practices]]"
   - "[[CS-256 VGA and Sprite Design Plan]]"
   - "[[CS-256 Tron Development Plan]]"
-review_status: unreviewed
+review_status: legacy
 tags:
   - tron
   - fpga
@@ -22,7 +23,7 @@ tags:
 > [!warning] Superseded draft, 20 October 2026
 > The team reported that the TAs recommended following the handout architecture strictly. The final game uses the divided approximately 60 Hz game clock under [[0002-follow-ta-divided-game-clock]]. The email below is retained as historical drafting; it is not a pending request to approve the frame-enable alternative.
 
-Draft email to the TAs asking them to confirm the game-clock decision (pixel clock with a `frame_tick` enable instead of the handout's ~60 Hz divided clock). Send before the Tue 20 Oct meeting; the answer is needed by Tue 27 Oct, before W3 is planned. The earlier second TA question (pixel alignment with sprites) is no longer needed: the design now follows the sprite tips as written.
+This preserved email draft asked whether the game could use a pixel-clock frame enable instead of the handout's divided game clock. The question was closed after the team reported the TAs' strict-architecture instruction; its former send-by dates and permission request are no longer active.
 
 ---
 

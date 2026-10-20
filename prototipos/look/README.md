@@ -1,8 +1,8 @@
 # CS-256 Tron prototype
 
-> **Implementation status, 20 October 2026:** this README describes the existing viewer/model, which predates the team's reconciled specification. The selected design is now 16 px Cells, four-bit Arena words, Rewards +1/+1/+3, Survival Bonus +3, a configurable goal defaulting to 10, native RGB444 `.coe` sprites, and one shared headless rules model in the team repository. Migration has not been implemented during the discussion. See [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] and the team interface contract; current prototype defaults and passing tests do not supersede those decisions.
+> **Implementation status, 20 October 2026:** this README describes the existing local viewer/model, which predates the team's locked specification. The target uses 16 px Cells, four-bit Arena words, Rewards +1/+1/+3, Survival Bonus +3, a configurable goal defaulting to 10, native RGB444 `.coe` sprites, and one shared headless rules model in the team repository. Migration has not been implemented. See [[CS-256 Tron Agreed Specification 2026-10-20]] and [[CS-256 Tron Architecture and Documentation Map]]; current prototype defaults and passing tests do not establish those decisions as implemented.
 
-The L1 Look Prototype viewer runs on the headless M1 Game Model. Two Players can play while comparing art, sizes and HUD layouts. See [[CS-256 Tron Development Plan#Phases]] for L1/L2 and M1/M2. Candidate choices and model defaults remain subject to L2; this viewer does not close L1 or M1.
+This is the earlier L1/M1 PC prototype: two Players can play while comparing art, sizes and HUD layouts. Those work-list labels describe prototype work, not a remaining rule-lock gate. The locked target is in the agreed specification; this local model and viewer have not been migrated to it. Visual/layout review can still revise the explicitly working geometry through a documented specification update.
 
 The viewer defaults to the `synthwave` style preset. Sizes and Player colours still default to the recorded design: 8 px Cells, a 32 px Bike, P1 cyan and P2 orange.
 
@@ -129,7 +129,7 @@ Candidate keys cycle forward; hold Shift to go back. The panel shows each axis b
 
 The presets in `look/candidates.py` pair `synthwave` with `synth` + `glow`, `outrun` with `racer` + `streaks`, and `classic` with `cycle` + `none`. Both `glow` and `streaks` pulse any Bike halo; `none` leaves it at its fixed dim tint.
 
-Changing HUD layout, Cell side or digit height creates a new Match. Other axes redraw the current state. The top HUD reserves a band rounded to 16 px; sides reserve 96 px each. Corners cover Arena Cells and need a rule before lockdown.
+Changing HUD layout, Cell side or digit height creates a new Match. Other axes redraw the current state. The top HUD reserves a band rounded to 16 px; sides reserve 96 px each. The corner candidate covers Arena Cells and is not the selected working layout in the agreement.
 
 The renderer's frame counter drives animation. `fx.phase` selects four phases of eight frames each. Changing any look axis or preset rebuilds the renderer and restarts animation. Pause freezes the Game Model, including Crash age; ambient animation keeps running.
 
@@ -149,13 +149,13 @@ The command appends rows to `prototype/metrics/look-metrics.csv` and rewrites [p
 
 Commit code first, run the metrics from a clean working tree, then commit both metrics files. This makes each row name the clean commit measured. The `dirty` column flags any uncommitted change in the repository. Timing is per machine, recorded in `host`; compare rows from the same host. Hardware figures are estimates, pending synthesis.
 
-The [baseline on Alan-Legion at commit `69842fc`](metrics/latest.md) records draw medians of 3.34–10.13 ms and p95 times of 3.83–10.83 ms, all below the 16.7 ms frame budget. RAMB18 use ranges from 11 to 33 halves (4.1–12.2% of 270). The 4 px Arena-clear flag records 1,570.5 µs against 563.6 µs of blanking; 8 and 16 px Cells fit that budget. Every `synthwave` configuration and `outrun` flag dim tint key `080` as outside FPGA limit 3; `classic` has no lockdown flags.
+The [baseline on Alan-Legion at commit `69842fc`](metrics/latest.md) records draw medians of 3.34–10.13 ms and p95 times of 3.83–10.83 ms, all below the 16.7 ms frame budget. RAMB18 use ranges from 11 to 33 halves (4.1–12.2% of 270). The 4 px Arena-clear flag records 1,570.5 µs against 563.6 µs of blanking; 8 and 16 px Cells fit that estimate. The legacy metrics label every `synthwave` configuration and `outrun` as using dim tint key `080`; `classic` has no such flag. These candidate flags are not target-build sign-off.
 
 ## Panel and FPGA limits
 
 The panel shows the phase, Round, Step, Points, Lives, display scale and measured frame rate. Arena dimensions count interior Cells, excluding Walls and HUD reservations. Speed uses the hardware frame rate (about 59.998 Hz): Steps/s = frame rate / K. It also shows px/s and the time to cross the Arena width. The PC loop targets 60 fps; it is not cycle-accurate.
 
-The six limits are in [[CS-256 Tron Development Plan#FPGA limits for the Look Prototype]].
+The legacy candidate checks are in [[CS-256 Tron Development Plan#Historical limits used by the Look Prototype]].
 
 | Limit | Viewer check or readout |
 |---|---|
@@ -170,7 +170,7 @@ BRAM counts use RAMB18 halves: 270 halves = 135 RAMB36 blocks = 4,860 Kb on the 
 
 Arena clear is compared with 47,040 pixel clocks of vertical blanking: 28 lines × 1,680 clocks at 83.46 MHz, or 563.6 µs. At 8 px Cells, the padded grid is 256 × 128 and clear takes about 392.6 µs.
 
-“Needs fixing before lockdown” flags cover excess clear time, excess BRAM, invalid sprite dimensions, HUD coverage of Arena Cells and use of dim tint key `080` outside FPGA limit 3. Informational notes cover non-power-of-two digit scaling, Rewards larger than Cells, PNG Bike size overriding the size axis, and worst-case Reward placement. These notes still need review: at 8 px Cells, `placement_us` estimates about 417 µs per Reward and 834 µs for two in one Step. G4/A2 needs a bounded or multi-frame HDL schedule; the functional model does this work immediately.
+The legacy metrics also emit the label “Needs fixing before lockdown” for excess clear time, excess BRAM, invalid sprite dimensions, HUD coverage of Arena Cells and use of dim tint key `080`. Informational notes cover non-power-of-two digit scaling, Rewards larger than Cells, PNG Bike size overriding the size axis, and worst-case Reward placement. At the old 8 px Cell configuration, `placement_us` estimates about 417 µs per Reward and 834 µs for two in one Step. The target's separate 16 px estimate is documented in [[CS-256 Tron Development Plan#Open items]] and is not proof of a feasible HDL schedule. The local Python model executes placement synchronously in software; G4/A2 still needs a measured bounded or multi-frame hardware schedule.
 
 ## 80s style effects and their hardware
 
@@ -191,7 +191,7 @@ Each effect is a function of pixel position, a frame counter and game state. The
 | scanlines | Dim alternate rows | `y[0] ? c - c/4 : c` |
 | Reward pulse | Reward tint brightens and dims | Four-entry tint table per kind |
 | Reward spin | Reward turns through four Headings | Heading from `frame[4:3]`, using ROM addressing |
-| glow halo | Dim tint around Bike and Reward art | Key `080` selects half the tint; L2 proposal |
+| glow halo | Dim tint around Bike and Reward art | Legacy viewer effect using key `080`; excluded from the selected core asset format |
 | Bike glow pulse | Bike halo breathes through four animation phases | Four-entry dim-tint table per Player |
 | speed streaks | Flickering lines behind a moving Bike, only while a Round is running | Rectangle compares against the head position and Heading |
 | neon digits | Lit segments over faint unlit segments | Ghost from segment-area comparators |
@@ -213,13 +213,13 @@ The new candidate files are `bike-synth-*.png`, `bike-racer-*.png`, `reward-neon
 
 Generated `synth` and `racer` Bike halos now hug the silhouette. `Canvas.glow` in `look/art.py` puts the dim tint key on transparent pixels within 1 px of drawn art, or 2 px for 64 px art.
 
-Art must be square with a power-of-two side and point UP. Use RGB444 colours: black `000` is transparent, green `0F0` is the Player/Reward tint key, and `111` gives visible black. In PNG RGB bytes these are `#000000`, `#00FF00` and `#111111`. The loader keeps the top four bits of each channel and treats alpha below 128 as transparent. Do not rely on partial alpha. L3's `.coe` asset flow follows lockdown.
+Art in this local viewer must be square with a power-of-two side and point UP. It converts PNG channels to RGB444: black `000` is transparent, green `0F0` is the Player/Reward tint key, and `111` gives visible black. In PNG RGB bytes these are `#000000`, `#00FF00` and `#111111`. The loader keeps the top four bits of each channel and treats alpha below 128 as transparent. Do not rely on partial alpha. The selected target uses native RGB444 `.coe` sprites; the planned L3 conversion/check is unfinished, and this viewer reads PNG rather than `.coe` files.
 
-Dim tint key `080` (PNG `#008800`) selects half the Player/Reward tint, channel by channel, for glow halos. This is an L2 proposal outside FPGA limit 3. The viewer flags art using it under “needs fixing before lockdown”. A literal `080` pixel in older art is now treated as the dim key too.
+The legacy viewer interprets dim tint key `080` (PNG `#008800`) as half the Player/Reward tint for glow halos. This key is excluded from the selected core asset format; the viewer flags it as a legacy candidate issue. Older local art with `080` pixels still uses this viewer behavior.
 
-## Game Model and HDL contract
+## Local Game Model (implementation reference)
 
-The modules follow hardware blocks. `model/` has no graphics imports; it checks functional state at frame and Step boundaries.
+This section documents the existing local `prototype/model/` code only. It is a migration input, not the selected HDL contract or the shared reference model. The team selected one headless model in the team repository for both PC viewers and HDL scenarios; the exact migration base and adapters remain engineering work. `model/` has no graphics imports and checks functional state at frame and Step boundaries.
 
 | Module | Work-list objectives | Responsibility |
 |---|---|---|
@@ -233,24 +233,31 @@ The modules follow hardware blocks. `model/` has no graphics imports; it checks 
 | `scoring.py` | G5 | Points addition with a cap; Lives are updated by `game.py` |
 | `__init__.py` | M1 | Public package exports |
 
-The current model fixes the following comparison contract for HDL, pending L2 decisions:
+The following behavior is implemented in this local model as of this README revision. It predates and differs from the locked target; use it to understand current prototype output, not as a rule decision:
 
-- Grid addresses concatenate Cell y and x bits, with power-of-two row and column allocations. Cell words are 3 bits: `0` empty, `1` Wall, `2` P1 Trail, `3` P2 Trail, `4`/`5`/`6` Reward slots 0/1/2; `7` is unused. HUD space and padding hold Wall. This encoding is a model proposal.
+- Grid addresses concatenate Cell y and x bits, with power-of-two row and column allocations. Cell words are 3 bits: `0` empty, `1` Wall, `2` P1 Trail, `3` P2 Trail, `4`/`5`/`6` Reward slots 0/1/2; `7` is unused. Words outside the configured interior, including HUD reservations and allocation padding, hold Wall. This is local implementation data, not the selected shared-model encoding.
 - Heading codes are UP=0, RIGHT=1, DOWN=2, LEFT=3. Each Bike latches its last valid Turn against its current Heading.
 - The LFSR is 32-bit Fibonacci, shifts left, and XORs bits 31, 21, 1 and 0 into bit 0. A draw advances 32 shifts. The default seed is `0x1D2C3B4A`; zero is illegal. Hard reset restores the seed; ordinary new Rounds and Matches continue the sequence.
 - Reward placement tries up to 64 draws, taking x from the low x bits and y from the next y bits. The first empty Cell wins. If all fail, scan in address order starting after the last candidate, wrapping through the full allocation. If none is empty, leave that slot empty until the next Round. Initial placement uses slots 0, 1, 2; collected Rewards are replaced in P1 then P2 order.
 - Each Step applies pending Headings, then reads and checks both next Cells before either Bike writes. A crashed Bike stays in its Cell; a surviving Bike completes its move and leaves Trail, including when it collects a Reward.
 - Award Reward Points before the Survival Bonus. Each addition is capped at 99 by default. Reward values default to 3, 3, 5; the Survival Bonus defaults to 5.
 
-## Model choices awaiting L2
+### Game Model and HDL contract
 
-The Game Model proposals below are in [[CS-256 Tron Game Mechanics]]. The style proposals follow them. None is an agreed change:
+Legacy heading retained for links from the historical comparison. The material in this section describes only this local prototype; it does not define the selected shared-model or HDL contract.
 
-- [[CS-256 Tron Game Mechanics#Movement|Movement]]: judge Turns against current Heading; a same-Heading request keeps a pending Turn; ignore requests outside a running Round.
-- [[CS-256 Tron Game Mechanics#Trails and Crashes|Trails and Crashes]]: a crashed Bike stays; the survivor still moves, leaves Trail and collects Rewards in that Step.
-- [[CS-256 Tron Game Mechanics#Points|Points]]: Reward Points precede the Survival Bonus, with the 99 cap on the total.
-- [[CS-256 Tron Game Mechanics#Rewards|Rewards]]: place Rewards at each Round's start; a full Arena leaves a collected slot empty until the next Round.
-- [[CS-256 Tron Game Mechanics#Match and Rounds|Match and Rounds]]: wait for Start after the Crash freeze; Start at Match end begins the new Match straight away.
-- [[CS-256 Tron Game Mechanics#Match and Rounds|Start positions]]: mirrored starts keep an odd Manhattan distance, so only the swap Head-on Crash is reachable. Decide whether to shift one start Cell by one Cell for the same-Cell case.
-- [80s style effects](#80s-style-effects-and-their-hardware): decide whether to adopt dim tint key `080` for glow halos and add it to FPGA limit 3.
-- Final colour stage: decide whether to adopt crash flash and scanlines after the HUD, skipping the white border. Keep Decision B pixel alignment from [[CS-256 VGA and Sprite Design Plan#Decision B: prefetch sprite data while keeping current-pixel timing]].
+## Local implementation gaps against the locked agreement
+
+These are differences between the present local prototype and [[CS-256 Tron Agreed Specification 2026-10-20]], not open rule questions. Reconcile them during the model migration and update this implementation note from the resulting code:
+
+| Area | Locked target | Existing local prototype |
+|---|---|---|
+| Arena | 16 px working Cells; 8192 × 4-bit words and agreed codes | Configurable 4/8/16 px; 8 px default; 3-bit words |
+| Points and Rewards | Goal 10/20/30/40 (default 10), no 99 cap; Rewards +1/+1/+3 and Survival Bonus +3 | No selected goal rule; 99 cap; Rewards +3/+3/+5 and Survival Bonus +5 |
+| Step cadence | One Cell every six approximately 60 Hz game-clock ticks | Frame-based `frames_per_step`, default 4, in the PC model |
+| Randomness | Start-influenced normal-play seed and fixed-seed test mode; exact sequence unresolved | Fixed 32-bit model seed and local 32-bit LFSR/search schedule |
+| Model ownership | One shared headless model in the team repository | Separate local model remains here; migration has not happened |
+
+The exact selected PRNG sequence, seed capture/advancement, and hardware placement schedule remain implementation questions. See [[CS-256 Tron Agreed Specification 2026-10-20#Rewards and randomness]] and the [[CS-256 Tron Architecture and Documentation Map#Traceability]] table.
+
+The current candidate viewer still includes effects outside the core asset contract, including the legacy `080` dim-tint key. The selected core sprite format uses `000` transparency and `0F0` Player tint; optional effects must not be described as implemented core behavior.

@@ -6,9 +6,11 @@ type: note
 subject: CS-256
 status: draft
 created_at: "2026-10-14T15:57:29"
-updated_at: "2026-10-20T14:21:11"
+updated_at: "2026-10-20T14:53:11"
 term: 2026-fall
 sources:
+  - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
+  - "[[CS-256 Tron Team Decisions 2026-10-20]]"
   - "[[CS-256 Tron Game Overview]]"
   - "[[Nexys_A7_Game_Research_Report]]"
   - "[[CS-256 Official FPGA Coding Practices]]"
@@ -22,6 +24,10 @@ tags:
 
 # CS-256 VGA and Sprite Design Plan
 
+Use [[CS-256 Tron Architecture and Documentation Map]] for document status. The locked [[CS-256 Tron Agreed Specification 2026-10-20]] owns the selected game rules and implementation boundary; this note records design guidance and planned verification, not completed hardware behavior.
+
+The 20 October documentation pass checked agreement consistency and navigation. Complete source review and implementation validation remain outstanding; the note's source-review status remains unchanged.
+
 > [!decision] Follow the course READMEs — preference settled 2026-10-15
 > Use the [class project handout](../cs256-fall-2026/classproject/README.md) and [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) as the implementation baseline.
 >
@@ -29,11 +35,11 @@ tags:
 >    **Evidence:** AMD recommends enables instead of HDL clock gating ([UG949: Using Gated Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Gated-Clocks)), describes enable inference ([Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables)), and advises avoiding local clocks from fabric counter division ([Avoiding Local Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Avoiding-Local-Clocks)). Those guidelines motivated the superseded frame-enable proposal; they do not override the TAs’ course-architecture instruction. Routing, generated-clock constraints and coherent transfers remain implementation work.
 > 2. **Decision B:** keep `curr_x`/`curr_y` aligned with the pixel being output and leave the handout's sync/visible timing unchanged. Start sprite reads early by the configured ROM latency, as the sprite tips describe.
 >
-> [[CS-256 Official FPGA Coding Practices]] documents implementation guidance and [[CS-256 Official FPGA Coding Practices#Future evaluation of both paths|both clock paths for future evaluation]]. For the final game, the divided-clock path is selected (ADR 0002). Output-aligned coordinates and early sprite reads remain the course baseline; alternative pipelines are historical comparisons. Timing constraints, state transfers and boundary handling still require implementation evidence.
+> [[CS-256 Official FPGA Coding Practices]] documents implementation guidance and the [[CS-256 Official FPGA Coding Practices#Historical comparison of both clock paths|historical clock-path comparison]]. For the final game, the divided-clock path is selected (ADR 0002). Output-aligned coordinates and early sprite reads remain the course baseline; alternatives are historical research, not active design choices. Timing constraints, state transfers and boundary handling still require implementation evidence.
 
 This note covers the research and planning phase for the VGA display and sprite pipeline of the Tron game in [[CS-256 Tron Game Overview]]. The binding requirements are the [class project README](../cs256-fall-2026/classproject/README.md) (the **handout**) and the [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) (the **sprite tips**). Section 6 checks every design choice against them, step by step.
 
-This remains a design plan, with no implementation validation claimed. Course requirements and the TAs’ architecture instruction take precedence, followed by the team repository’s interface contract reconciled with [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]]. This plan mirrors that authority. The previous one-clock/delayed-sync sketch is retained in the appendix as **superseded, unsimulated reference**. A Python model previously checked sprite-rotation addressing; it did not verify clocking or VGA alignment.
+This remains a design plan, with no implementation validation claimed. Course requirements and the TAs’ architecture instruction take precedence, followed by the locked team decisions in [[CS-256 Tron Agreed Specification 2026-10-20]]. The remote interface contract is the selected implementation contract after it has been reconciled with that baseline. The previous one-clock/delayed-sync sketch is retained in the appendix as **superseded, unsimulated reference**. A Python model previously checked sprite-rotation addressing; it did not verify clocking or VGA alignment.
 
 > [!info] Working geometry and assets, selected 20 October 2026
 > Use **16 px Cells**, **32 × 32 px Bike sprites** and **16 × 16 px Reward sprites** on the course's **1280 × 800** visible image (80 × 50 screen Cells before Walls/HUD). Reserve **64 px at the top for HUD**, exactly four Cell rows and 8% of image height, initially with **32 px text**. A separate 16 px Wall below gives **78 × 44 playable Cells**, `cx=1..78`, `cy=5..48`. Per Q23, these are **revisable working bounds, not a hard lock**. Until revised consistently, text must fit the selected band. Earlier 8 px examples below are historical calculations, not the selected geometry. **Native 12-bit RGB444 `.coe` sprites are selected**: 1024 words per Bike and 256 per Reward. Q35 centres Bike sprites on head Cells; Q36 selects `000` transparency, `0F0` tint and initial P1 cyan/P2 orange, without a special `080` glow key. Implementation details remain open. The course sprite README permits arbitrary image sizes (its example is 40 × 30), so square power-of-two art is our addressing choice. Its 2-cycle latency is an example; inspect the actual IP configuration. See [[CS-256 Tron Team Decisions 2026-10-20#Course README guidance checked for Q14]].
@@ -103,7 +109,7 @@ The manufacturer's detailed guidance is in [[CS-256 Official FPGA Coding Practic
 
 The display and ROM reads run on `pixclk` (requested 83.46 MHz). The game clock is separate and is not assumed to coincide with vertical blanking. Use suitable clock routing and generated-clock constraints, and inspect the actual relationship in Vivado. A divided clock is not automatically asynchronous, but any transfer still needs a defined timing/coherency contract. See [[CS-256 Official FPGA Coding Practices#Game clock and Decision A]].
 
-For the full game, work out how a Step request, a coherent snapshot of Bike positions/Headings, and grid updates reach the pixel-clock domain. A fast memory controller may service a slow-clock request and return a completed result; its multi-cycle memory operations must not be paced by the 60 Hz clock. The exact transfer protocol is an implementation task. Do not assume independently synchronized bits form a coherent position, or claim blanking-only updates before this transfer is designed and tested.
+The selected boundary uses fast Arena/memory service alongside the slower game-state domain and fast video. Work out how a Step request, coherent Bike position/Heading state, and grid updates cross those interfaces; the exact service clock and transfer protocol remain implementation tasks. Multi-cycle memory work must not be paced by the 60 Hz game clock. Do not assume independently synchronized bits form a coherent position, or claim blanking-only updates before the transfer is designed and tested.
 
 ### Decision B: prefetch sprite data while keeping current-pixel timing
 
@@ -120,11 +126,11 @@ Sprite positions and Heading used for a prefetched address must match those used
 | `t-L` | Issue the sprite address for the pixel that will be visible at `t` | Render the current pixel using previously fetched data |
 | `t` | Continue fetching later pixels | ROM data, `curr_x`/`curr_y`, current sprite mask and unchanged VGA timing all describe the same pixel |
 
-This follows the sprite tips' early-read instruction while preserving the handout's output-coordinate contract. There is no selected `LAT` delay on sync or current coordinates. Detailed latency, first/last-pixel and wrap examples are in [[CS-256 Official FPGA Coding Practices#Pixel alignment and Decision B]]. The same note retains the delayed-stream alternative for future comparison; it does not require changing the game-clock architecture.
+This follows the sprite tips' early-read instruction while preserving the handout's output-coordinate contract. There is no selected `LAT` delay on sync or current coordinates. Detailed latency, first/last-pixel and wrap examples are in [[CS-256 Official FPGA Coding Practices#Pixel alignment and Decision B]]. The delayed-stream sketch is retained as historical pipeline research and is not an outstanding design choice.
 
 ### Decision C: collisions use the Arena grid; the sprite is cosmetic
 
-Retain the grid-based game design and rules in [[CS-256 Tron Game Mechanics]]. The 8-pixel Cell, 32 × 32 Bike and two-bit grid are exploratory sizes/encoding, not final decisions. Rewards require a richer encoding than the earlier two-bit sketch.
+Retain the grid-based game design and rules in [[CS-256 Tron Agreed Specification 2026-10-20]]. The earlier 8-pixel Cell and two-bit grid are historical exploration, not the selected baseline. Rewards require the agreed four-bit encoding.
 
 Render-side grid reads must describe the current displayed pixel after their memory latency. Game-side reads/writes need an explicit memory-controller schedule and same-address collision policy. Evaluate both Bikes' proposed moves before committing either Trail so a Step respects the agreed simultaneous movement rules. Do not use the superseded per-Player read/check/write loop as a complete collision algorithm.
 
@@ -138,7 +144,7 @@ Render-side grid reads must describe the current displayed pixel after their mem
 | Sprite address logic | Uses future raster coordinates and the coherent sprite state to issue reads `L` cycles early; rotation by address remains available for square art. |
 | Sprite memory | Block Memory Generator, Single Port ROM, 12-bit width and depth matching the `.coe`; inspect address width and latency in Summary. |
 | `drawcon` | Purely combinational. Uses current display coordinates with matching prefetched texels; the nonzero foreground wins, otherwise background. |
-| Game/render boundary | Explicitly designed and tested clock-domain/state-transfer interface; memory-controller operations advance at a suitable fast clock. |
+| Game/render boundary | The fast Arena service owns memory writes. Define and test coherent slow-game requests/results and render snapshots; the exact fast clock, transfer protocol, and service bounds remain unresolved. |
 
 No replacement HDL is claimed here. The previous code is preserved in the appendix to avoid mistaking its frame-enable and delayed-sync assumptions for the selected implementation.
 
@@ -162,7 +168,7 @@ No replacement HDL is claimed here. The previous code is preserved in the append
    In the Summary tab, confirm the **address width (10)** and the **actual reported read latency** (2 cycles in the course example). Use the measured configuration as the prefetch lead; keep current coordinates and sync timing unchanged.
 4. Instantiate it twice, once per bike: `bike bike1 (...)`, `bike bike2 (...)`. Each instance is a separate single-port ROM: 2 of 270 RAMB18 blocks.
 
-## 5. Testing plan (feeds the 3-mark testing section of the report)
+## 5. Planned verification (feeds the 3-mark testing section of the report)
 
 | Test | Checks |
 |---|---|
@@ -170,7 +176,7 @@ No replacement HDL is claimed here. The previous code is preserved in the append
 | Sprite prefetch timing | Read each texel `L` cycles early and check it appears at the current `curr_x`/`curr_y`, with unchanged sync timing. Check first/last pixels, line/frame wrap, startup and state updates. |
 | `tb_frame_dump` ("virtual monitor") | Works only from `hsync`/`vsync`, as a monitor would. It counts pixels after each sync edge and writes one frame to a `.ppm` file (`P3 1280 800 15`) via `$fwrite`. View the frame on the PC before using the board. |
 | Sprite alignment | In the dumped frame, the sprite's top-left texel lands exactly at (`blkpos_x`, `blkpos_y`) in all four rotations. This proves the latency compensation. |
-| Game logic and clock transfer | Check the divided game-clock rate and M1 button/reset behavior. Then check coherent game/render transfers, grid operations and simultaneous Steps against the mechanics note. |
+| Game logic and clock transfer | Check the divided game-clock rate and M1 button/reset behavior. Then check coherent game/render transfers, grid operations and simultaneous Steps against the agreed specification. |
 
 The Block Memory Generator ships a behavioural simulation model, so the ROMs work in xsim. Keep waveform captures and the `.ppm` frames as report figures.
 
@@ -217,35 +223,35 @@ Status key:
 | Step 8: all `drawcon` logic combinational | Combinational. ROM and prefetch logic sit outside `drawcon` | ✅ |
 | Step 9: instantiate in `game_top` and connect to `vga_out` | Connect current coordinates and matching prefetched texels, without delaying the handout timing | ✅ ➕ |
 | Step 10: second clock divider + counter → ~60 Hz game clock | Second clock divider plus counter as instructed (Decision A) | ✅ |
-| Steps 11–12: five buttons; centre resets to the centre; ±4 per tick | Literal ±4 version at M1. The game version steers a heading, one 8-px cell per K ticks | ✅ M1 / ➕ game |
+| Steps 11–12: five buttons; centre resets to the centre; ±4 per tick | Literal ±4 version at M1. The selected game moves one 16 px Cell every six approximately 60 Hz game-clock ticks | ✅ M1 / ➕ game |
 | Step 13: the block cannot hit the border | Selected 16 px Cells use side Wall columns 0/79; preserve the 10 px white border, keep head Cells inside the playable bounds and clip cosmetic sprite overlap as needed | ✅ |
 | `game_top` diagram: position logic / `drawcon` / `vga_out` / two clock dividers | Retain the two clock dividers and handout blocks; add sprite/grid/Scoreboard modules | ✅ ➕ |
 
 ### Sprite tips
 
-| Sprite-tips instruction | Plan | Status |
+| Sprite-tips instruction | Target plan | Workspace status |
 |---|---|---|
-| `.coe` row-by-row vector, radix 16, 12-bit RGB (4 bits each) | `png2coe.py` writes exactly that | ✅ |
-| Matlab/Python conversion script | Python with Pillow | ✅ |
-| Block Memory Generator, renamed component, **Single Port ROM**, other defaults | `bike`, Single Port ROM, defaults; one instance per bike | ✅ |
-| Port A width = bits per pixel (12), depth = rows (1024); enable "Always Enabled" | Same | ✅ |
-| Load the init file in Other Options | Same | ✅ |
-| Instantiation: `name inst (.clka(clk), .addra(...), .douta(...))` | `bike bike1 (.clka(pixclk), .addra(address_bike1), .douta(mem_bike1))` | ✅ |
-| Address derives from the current pixel, sprite position and size; width from the Summary tab | Derive the address from prefetched position and sprite bounds; expect 10 bits for 1024 pixels, then verify Summary | ✅ |
-| 2-cycle ROM latency: start reading 2 cycles before display | Prefetch 2 cycles early for a 2-cycle ROM; verify actual latency and preserve current display timing | ✅ |
+| `.coe` row-by-row vector, radix 16, 12-bit RGB (4 bits each) | Planned converter emits the handout format | Not implemented; `tools/png2coe.py` is absent from this workspace |
+| Matlab/Python conversion script | Planned Python converter using Pillow | Not implemented |
+| Block Memory Generator, renamed component, **Single Port ROM**, other defaults | Planned `bike` ROM, one instance per Bike | No generated IP project is present |
+| Port A width = bits per pixel (12), depth = rows (1024); enable "Always Enabled" | Planned configuration | Not generated or verified |
+| Load the init file in Other Options | Planned `.coe` association | Not generated or verified |
+| Instantiation: `name inst (.clka(clk), .addra(...), .douta(...))` | Planned ROM instances and connections | No HDL implementation is present |
+| Address derives from the current pixel, sprite position and size; width from the Summary tab | Use prefetched position and sprite bounds, then check generated address width | No HDL implementation or IP Summary is present |
+| 2-cycle ROM latency: start reading 2 cycles before display | Use the actual configured end-to-end latency as the prefetch lead; 2 cycles is the course example | Not verified; actual IP latency is unknown |
 
-**Course-baseline decision:** follow the divided game clock and early sprite reads. Keep the clock-enable and delayed-stream alternatives documented for future evaluation in [[CS-256 Official FPGA Coding Practices#Future evaluation of both paths]]. Clock transfer, prefetch boundary handling and simulation remain implementation work.
+**Course-baseline decision:** follow the divided game clock and early sprite reads. The clock-enable and delayed-stream alternatives in [[CS-256 Official FPGA Coding Practices#Historical comparison of both clock paths]] are preserved only as historical context. Clock transfer, prefetch boundary handling and simulation remain implementation work.
 
-## 7. Milestones, mapped to the rubric and dates
+## 7. Design work and verification links
 
-| # | Deliverable | Rubric link | Target |
-|---|---|---|---|
-| M0 | `vga_out` + testbench; switch colour on the lab monitor (checks the 1280 × 800 lock) | report: VGA | first |
-| M1 | `curr_x`/`curr_y`, rectangle, `drawcon` border, ±4 moving block with border limit (literal handout) | control, 2.5 | before pre-demo |
-| M2 | `png2coe.py`, `bike` ROM ×2, latency-aware prefetch, frame-dump test, 4 rotations | sprites, 2 | before pre-demo |
-| M3 | Trail grid RAM/controller, divided-clock game logic, coherent render transfer and collisions | map/interactions, 2.5 | **pre-demo, 2026-11-19** |
-| M4 | Two players; score/lives on 7-segment (reuse `homework1/multidigit.sv`); switch colours and speed | extras, 2 | demo prep |
-| M5 | UART WASD keyboard, power-ups, master menu | extras/creativity, 1–2 | **demo, 2026-11-30** |
+The work-list IDs and their completion checks live in [[CS-256 Tron Development Plan#Work list]]. Internal build targets remain tentative; the course assessment dates remain fixed as recorded in that plan.
+
+| Design work | Existing work-list IDs | Readiness and evidence |
+|---|---|---|
+| Course video timing and handout movement exercise | V1–V4 | Testbench and board checks listed in the development plan; the game clock must follow ADR 0002. |
+| Sprite assets and output-aligned prefetch | L3, P2, P3 | Test actual ROM latency, first/last pixels, line/frame wrap, and all four rotations. |
+| Agreed game core, Arena service, input, and Scoreboard | A1/A2, G1–G5, I1–I4, X1/X2 | Follow the agreed specification; record simulation, CDC/timing, and board evidence under the existing objective IDs. |
+| On-screen HUD and optional styling | H2, C1/C2 | HUD follows the core. Menus, live customization, glow, scanlines, animated backgrounds, and power-ups are outside the core; power-ups are out of term. |
 
 Planned source files go in `CS-256/Game_research/`, per the folder policy in [README](README.md):
 
@@ -254,18 +260,13 @@ Planned source files go in `CS-256/Game_research/`, per the folder policy in [RE
 - `tools/png2coe.py`;
 - `assets/`: `.coe` files.
 
-## 8. Open questions for the group
+## 8. Settled inputs and remaining engineering work
 
-Status after the 2026-10-14 grilling session. Game terms follow [[CS-256 Tron Glossary]].
+Gameplay and the project baseline are settled in [[CS-256 Tron Agreed Specification 2026-10-20]]; this plan has no remaining group rule questions. Use [[CS-256 Tron Glossary]] for terms. The Arena layout is revisable after playtesting, and the internal 15/23 November planning targets are flexible.
 
-1. **"30 pixels" trail note:** resolved. Trails are infinite and one Cell wide, so no per-player FIFO is needed. A finite trail remains a possible challenge-mode variant.
-2. **Cell size:** resolved 2026-10-20: 16 px Cells, 80 × 50 screen grid before Walls/HUD. Earlier 4/8 px exploration remains research.
-3. **Game clock and sprite alignment:** confirmed from the TAs’ strict-architecture instruction on 2026-10-20 (ADR 0002). Follow the handout's divided slow clock and the sprite tips' early reads; retain output-aligned `curr_x`/`curr_y`. Implementation details remain to be tested.
-4. **Scores and lives:** the team revised the physical Scoreboard on 2026-10-20: left four digits P2, right four P1; each bank shows `P2`/`L2` or `P1`/`L1` and a two-digit value. Both banks alternate Points/Lives together every 3 seconds, continuously visible, starting a new Match on Points and continuing through non-playing phases. The later on-screen HUD has a fixed 64 px top reservation; its text must fit that band and preserve the white border.
-5. **Bike art:** resolved 2026-10-20: 32 × 32 Bike sprites and 16 × 16 Reward sprites. Square art supports our rotation-by-address convention; it is not a TA restriction.
-6. **Two-player inputs:** resolved. P1 uses the board buttons; P2 uses the PC keyboard (WASD) over UART. Moves are simultaneous: if both Bikes enter the same Cell, both Crash. 180° reversals are ignored.
-7. **Movement model (compromise):** stepped movement, one Cell per Step, with cadence controlled by register K. The earlier proposal counted frames; map K to the selected divided-game-clock updates when implementing the speed control. It looks slightly jumpy at 8 px Cells. **Upgrade path:** smooth movement (P px per frame, committing a Cell at each boundary crossing, with Turns buffered to boundaries) can replace the position update later without changing the trail grid or Crash logic. Keeping K in a register also lets a switch or Power-up change the speed later.
-8. **Cell encoding:** settled 2026-10-20: **four bits**, retaining team codes 0–6, reserving 7 and assigning 8/9/10 to the three Reward slots. Use a shared table in the headless model and HDL package; see [[CS-256 Official FPGA Coding Practices#Arena memory and reset]]. The earlier two-/three-bit sketches are historical.
+The selected clock and pixel pipeline are documented above and in ADR 0002. The exact generated-clock setup, ROM latency, fast-memory schedule, clock-domain transfer protocol, reset/Pause handling during transactions, and resource/timing results still need engineering and verification evidence. These are open implementation tasks, not undecided replacements for the selected architecture.
+
+The initial art format excludes the candidate `080` dim-tint key. Reconcile candidate assets before claiming they follow the core format. Optional effects remain subject to scope and the design/evidence checks in the development plan.
 
 ## Sources to confirm
 
@@ -276,7 +277,7 @@ Status after the 2026-10-14 grilling session. Game terms follow [[CS-256 Tron Gl
 ## Appendix. Alternative one-clock and delayed-sync sketch
 
 > [!warning] Alternative reference only — not the current baseline
-> The following unsimulated sketch is retained so the team can evaluate the alternative later. Its `frame_tick` game architecture, `LAT`-delayed sync and request-stage `curr_x`/`curr_y` are **not the selected baseline**. Its timing/behavior claims are unverified. Evaluate the clock choice separately from the sprite pipeline and use the comparison in [[CS-256 Official FPGA Coding Practices#Future evaluation of both paths]]; this sketch is not a verified implementation candidate as-is.
+> The following unsimulated sketch is retained as historical research. Its `frame_tick` game architecture and `LAT`-delayed sync/request-stage `curr_x`/`curr_y` are **not the selected baseline**, and its timing/behavior claims are unverified. It is not an implementation candidate or an outstanding architecture decision. See the historical comparison in [[CS-256 Official FPGA Coding Practices#Historical comparison of both clock paths]].
 
 
 #### `vga_out`: handout timing, plus `LAT` and `frame_tick`

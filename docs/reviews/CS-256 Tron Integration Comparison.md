@@ -4,15 +4,16 @@ id: cs256-tron-integration-comparison-20261017
 title: CS-256 Tron Integration Comparison
 type: note
 subject: CS-256
-status: draft
+status: archived
 created_at: "2026-10-17T17:30:00"
+updated_at: "2026-10-20T14:39:59"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Game Mechanics]]"
   - "[[CS-256 Tron Development Plan]]"
   - "[[CS-256 VGA and Sprite Design Plan]]"
   - "[[CS-256 Official FPGA Coding Practices]]"
-review_status: unreviewed
+review_status: legacy
 tags:
   - tron
   - integration
@@ -20,10 +21,10 @@ tags:
 
 # CS-256 Tron Integration Comparison
 
-> [!warning] Historical comparison; meeting decisions supersede its recommendations
-> See [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] for approved rules and [[0002-follow-ta-divided-game-clock]] for the final divided-game-clock architecture. The “Already agreed” frame-enable row, the Path B game build and suggestions to change the README to Path B below are superseded by the TAs’ strict-handout instruction, reported on 20 October.
+> [!warning] Historical integration snapshot
+> This comparison records the team-repository state reviewed at commit `f5cb82c901e33a453fcaea2720a80702fda54718` (15 October 2026) and recommendations prepared before the 20 October meeting. The live decision record and [[CS-256 Tron Agreed Specification 2026-10-20]] supersede its “Already agreed” labels, proposed rules, staffing map, clock choice, and integration recommendations. Keep it as provenance; it is not a current contract or a review of current remote `main`.
 
-Every difference between Roman's team repository and this research folder, for one team meeting. Each row ends in either a **team decision** or a **recommendation** that the team can accept without much discussion.
+Historical comparison of Roman's team repository and this research folder, prepared for the 20 October integration meeting. The rows preserve pre-meeting evidence and recommendations; they are not current authority.
 
 - **Roman's side:** [romanmg00/FPGA](https://github.com/romanmg00/FPGA), `main` at `f5cb82c` (15 Oct). The main sources are `README.md`, `proyecto_final/Contrato de interfaces game_top (CS 256).md` (the **contract**, dated 11 Oct), `proyecto_final/{counters,vga_out}.sv` with their testbenches, and the Python reference model `prototipos/tron/`.
 - **Our side:** [[CS-256 Tron Game Mechanics]] (14 Oct), [[CS-256 Tron Development Plan]], [[CS-256 VGA and Sprite Design Plan]], [ADR 0001](docs/adr/0001-pixel-clock-with-frame-enable.md), and `prototype/` (Game Model and Look viewer).

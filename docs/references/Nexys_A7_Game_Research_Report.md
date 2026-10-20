@@ -1,5 +1,8 @@
 # Nexys A7-100T / Artix-7 XC7A100T - Research Report for FPGA Video Game Development
 
+> [!note] General board research, not the CS-256 game specification
+> The generic 640 × 480 recommendations below are examples for FPGA game development. The CS-256 Tron project follows its course handout's 1280 × 800 mode and the accepted project architecture; see [[CS-256 VGA and Sprite Design Plan]] and [[CS-256 Tron Agreed Specification 2026-10-20]].
+
 **Scope assumption:** this report assumes the board is the **Digilent Nexys A7-100T**, populated with the **AMD/Xilinx Artix-7 XC7A100T-1CSG324C**. If your silkscreen says **Arty A7-100T** or another XC7A100T board, the FPGA resources are similar but the onboard peripherals and connectors are different.
 
 ## Executive summary

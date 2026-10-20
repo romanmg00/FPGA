@@ -6,9 +6,11 @@ type: plan
 subject: CS-256
 status: draft
 created_at: "2026-10-15T16:58:26"
-updated_at: "2026-10-20T14:21:11"
+updated_at: "2026-10-20T15:14:27"
 term: 2026-fall
 sources:
+  - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
+  - "[[CS-256 Tron Team Decisions 2026-10-20]]"
   - "[[CS-256 Tron Game Mechanics]]"
   - "[[CS-256 VGA and Sprite Design Plan]]"
   - "[[CS-256 Official FPGA Coding Practices]]"
@@ -21,13 +23,15 @@ tags:
 
 # CS-256 Tron Development Plan
 
-The week-by-week plan for building the Tron game in time for the pre-demo, the demo and the report. Game terms follow [[CS-256 Tron Glossary]]; the rules are in [[CS-256 Tron Game Mechanics]].
+Use [[CS-256 Tron Architecture and Documentation Map]] for document authority and traceability. This note records tentative work sequencing and evidence checks. Game terms follow [[CS-256 Tron Glossary]]; rule details belong to [[CS-256 Tron Agreed Specification 2026-10-20]].
+
+The 20 October documentation pass checked agreement consistency and navigation. It did not validate every cited source or establish implementation readiness; the note's source-review status remains unchanged.
 
 > [!info] Agreed baseline recorded, 20 October 2026
 > The user closed the discussion and locked the decisions in [[CS-256 Tron Agreed Specification 2026-10-20]]. The two-person ownership, core rules and divided-game-clock architecture are settled. The **schedule, feature staging and working Arena layout remain tentative/revisable**. Open items below are engineering and verification work, not unapproved replacements for the agreed rules.
 
-> [!info] Team reconciliation in progress, 20 October 2026
-> [[CS-256 Tron Agreed Specification 2026-10-20]] and [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] supersede conflicting older values below: selected Points Goals 10/20/30/40 (default 10, captured at new-Match Start), Rewards +1/+1/+3, Survival Bonus +3, no 99-Point cap, last valid Turn, and BTNC/UART Space/Enter Start. Geometry is the revisable 16 px Cell / 32 px Bike / 16 px Reward / 64 px HUD layout. Speed is one Cell per six slow ticks; non-final Crashes show two seconds of blinking before preparation/fresh Start, while final Crashes show the effect then enter Match-over. P2/P1 Scoreboard banks alternate together every three seconds. One Start launches a prepared new Match with all three initial Rewards. Implementation and the remote contract still need reconciliation; the schedule is explicitly tentative.
+> [!info] Implementation alignment status, 20 October 2026
+> The agreed baseline is locked, but the remote interface contract and both model implementations have not been reconciled or migrated. Read the exact rules in the specification rather than repeating their full tables here. The work list below is planning; the schedule is tentative, and passing legacy-prototype tests do not prove target behavior.
 
 ## Planning vocabulary
 
@@ -39,10 +43,10 @@ These words are for this plan only; they are not game terms.
 
 ## Calendar and freezes
 
-| Week | Dates (Sun–Thu) | Fixed events |
+| Week | Dates (Sun–Thu) | Course assessments and tentative work targets |
 |---|---|---|
 | W0 | Thu 15 Oct | Planning starts |
-| W1 | 18–22 Oct | Look Prototype; design lockdown target Thu 22 Oct |
+| W1 | 18–22 Oct | Look Prototype; review agreed baseline and candidate visuals (flexible) |
 | W2 | 25–29 Oct | Game Model verification ready Thu 29 Oct |
 | W3 | 1–5 Nov | |
 | W4 | 8–12 Nov | Last build week for the pre-demo build |
@@ -67,7 +71,7 @@ Optional features (Should and Could tiers) are added only when the Must tier is 
 
 | Week | Objectives |
 |---|---|
-| **W1** 18–22 Oct | S1, S2, S3 · L1 → **L2 (Thu 22 Oct)** · M1 · V1 · I2 (UART RX testbench) |
+| **W1** 18–22 Oct | S1, S2, S3 · L1 → L2 visual review (flexible) · M1 · V1 · I2 (UART RX testbench) |
 | **W2** 25–29 Oct | L3 · M2 · V2, V3 · I1 · I2 on the board · G1, G2 (Cell size as a parameter, compared against Step logs) |
 | **W3** 1–5 Nov | V4 · X1/X2 · A1/A2 · P2/P3 · I3/I4 · advance G3–G5 as interfaces become ready |
 | **W4** 8–12 Nov | Integrate G1–G5, Arena, inputs, sprites and Scoreboard · board playtests (Z1/Z2) → tentative pre-demo target |
@@ -84,58 +88,58 @@ W3 is the heaviest week. G1/G2 sit in W2 and the Scoreboard (I4) in W3, ahead of
 | Slot | Purpose |
 |---|---|
 | **Tuesday 11:30** (weekly) | Review the current Week, unblock problems, split next Week's Objectives into Tasks |
-| **Thursday after 14:30** | Integration build and board checks (Z1): merge, build, read the reports, run HW checks, save evidence. Closes the Week. Design lockdown + playtest (L2) uses the Thu 22 Oct slot |
+| **Thursday after 14:30** | Integration build and board checks (Z1): merge, build, read the reports, run HW checks, save evidence. Closes the Week. The planned Thu 22 Oct L2 slot is for visual review of the agreed baseline, not a new rule-lock gate |
 | **Monday after 14:30** | Optional extra board time |
 
 ### W1 Tasks (18–22 Oct)
 
 | Obj. | Tasks | Done when |
 |---|---|---|
-| S1 | Create the repo and invite all · agree a branch workflow · move `Game_research/` into it · check the myws Vivado version and pick the IP-generation version | All three can clone and push; Vivado version recorded in the README |
+| S1 | Confirm both members can access the selected team repo · agree a branch workflow · reconcile this local project with the team contract · check the myws Vivado version and pick the IP-generation version | Both members can work from the selected repo; Vivado version recorded in the README |
 | S2 | Tcl script that builds the project from sources (`xc7a100tcsg324-1`) · build script: synthesis → implementation → bitstream + report set · program the board from each laptop (start with `test-dualcomb.bit`) | One command produces the V1 bitstream; each member has programmed the board once |
 | S3 | xsim run script per testbench · `tb_frame_dump`: decodes sync → `.ppm` · `.ppm` → PNG helper | `tb_vga_out` runs with one command; one frame dumped and viewed |
 | L1 | Viewer shell: 1280 × 800 (scaled to fit), RGB444 reduction, BRAM and clear-time readout · 2–3 HUD layouts · Bike art at 16/32/64 px · Cell sizes 4/8/16 with Arena dimensions · Reward look | Candidates ready to compare on Thursday |
-| L2 | Playtest on M1 · go through the lockdown checklist · show the candidates on the lab monitor · update the mechanics note, glossary and VGA plan | Checklist signed off; mechanics note all ✅, or falls back to the existing design |
+| L2 | Review the locked target against the legacy M1 viewer and show visual candidates on the lab monitor; record layout feedback and any needed specification revision | Visual feedback recorded; do not treat local-model output as target-rule evidence or silently reopen agreed rules |
 | M1 | Block functions (Step/Turn, Crash including Head-on, grid, Round/Match FSM, Rewards with LFSR, Points) · keyboard play (P1 arrows, P2 WASD) · rule values and Step rate as parameters | Two people can play a full Match |
 | V1 | `vga_out` per handout steps 5–9 + switch colour · `tb_vga_out` checks (test table in the VGA plan) · Clocking Wizard 83.46 MHz + XDC · board: switch colour on the monitor, achieved frequency recorded | Testbench passes; monitor locks; `V1-*` evidence saved |
-| I2 | UART receiver on `pixclk` (settings below): 2-FF sync, 16× oversampling · testbench: single and back-to-back bytes, a bad stop bit | Testbench passes |
+| I2 | UART RX testbench for single/back-to-back bytes and bad stop bits; confirm receiver clock, ordered command transfer, and agreed Space/Enter decode during implementation | Testbench passes |
 
 W2 Tasks are split at the Tue 20 Oct meeting.
 
-**UART settings (agreed 2026-10-15):** 115200 baud, 8N1. One ASCII byte per key press (`w`, `a`, `s`, `d`, space); upper and lower case are treated the same. The receiver plan uses `pixclk` (83.46 MHz). With the divided game clock selected on 2026-10-20, commands need deliberate transfer into the slow game domain, preserving order and the last valid Turn. Space and Enter are both selected Start keys; their shared wire encoding remains an implementation follow-up. The 16× oversampling divider is 45, giving 115,916 baud, 0.6% above 115,200 and well within UART tolerance.
+**UART settings (agreement):** 115200 baud, 8N1. P2 sends WASD; Space and Enter are both Start keys, but Enter's wire encoding is unfinished. The exact UART receiver clock and CDC implementation remain design work. Decode and preserve ordered events, then transfer them coherently into the divided game-clock domain. The older 16× oversampling divider estimate is a proposal to re-check against the chosen receiver clock and implementation.
 
 ## Scope tiers
 
-As recorded in [[CS-256 Tron Game Mechanics#Beyond the core game]]:
+As agreed in [[CS-256 Tron Agreed Specification 2026-10-20#Scope and tentative schedule]]:
 
 | Tier | Contents |
 |---|---|
 | Must | All agreed rules (Rounds, 3 Lives, Trails, Crashes, Rewards, Survival Bonus); Bike sprite from BRAM; P2 over UART with the Web Serial page; 7-segment Scoreboard |
 | Should | On-screen HUD |
-| Could | Switch-chosen Player colours (Setup Phase); speed/challenge switch |
-| Won't (this term) | Power-ups; smooth movement |
+| Could / after core | Live colour or speed customization, menus, smooth movement, and visual effects, subject to scope and testing |
+| Out of term | Power-ups |
 
 ## Phases
 
 ### Look Prototype (W1)
 
-A PC program for the HUD, sprite and Cell sizes, Bike art and the overall look of the game.
+A PC program for comparing HUD, sprite and Cell sizes, Bike art and the overall look. The existing local viewer is a legacy prototype; its model defaults do not implement the locked target.
 
-1. **Free design.** Any sizes or mock-ups are allowed. The viewer always shows the image at 1280 × 800 and reduced to RGB444. Anything that breaks the [FPGA limits](#fpga-limits-for-the-look-prototype) is marked "needs fixing before lockdown".
-2. **Design review and playtest session.** Target Thu 22 Oct, both members. The 20 October working layout is 16 px Cells, 32 × 32 Bikes, 16 × 16 Rewards, a 64 px top HUD band and a 78 × 44 playable interior. Review art, readability, geometry and remaining 🔵/⏳ rules. Geometry is **not hard-locked**: revise it after game review/testing when needed, and keep the authoritative team contract, mechanics, glossary and implementations consistent. Record accepted rules as ✅; the review date alone does not approve unanswered proposals.
-3. **Constrained asset flow (after lockdown, W2).** PNG → `png2coe.py` → `.coe` → viewer. The viewer draws sprites from the `.coe` files, so the PC shows exactly what the ROMs will hold.
+1. **Candidate comparison.** The local viewer can show different sizes and mock-ups at 1280 × 800 with RGB444 reduction. These options document the former prototype workflow; target rules and core assets come from the agreed specification.
+2. **Visual review.** A Thu 22 Oct session was a flexible planning target. The agreement was locked on 20 October. The review may record art/readability feedback and revise the explicitly working layout through a documented specification update; it is not a pending rule or clock decision. The legacy M1 model is not target-rule evidence.
+3. **Target asset flow (planned).** Generate native RGB444 art and `.coe` ROM inputs as specified in the agreement. The current PC viewer reads PNG files and converts their channels for display; it does not load `.coe` files. Validate rendered art against the generated ROM contents as an implementation task.
 
 ### Game Model (W1–W2)
 
-The game logic in software, as the ground truth recommended in [[CS-256 L11 Slides]] (p. 44). Level: **it mimics the hardware's functional architecture** (one function per hardware block), and it is **bit-accurate only where it can be seen**: Cell coordinates, Points/Lives and final-Step totals with the selected Points Goal; no obsolete 99-Point cap, and the same LFSR as the HDL for Reward placement. It is checked once per Step, not per clock cycle, so it does not depend on the clock design.
+The shared headless model is the functional reference for the selected rules and verification scenarios. It should model observable Cell coordinates, Points/Lives, full final-Step totals, and the selected Reward sequence. The exact PRNG, seed advancement, and placement service are still engineering choices; once selected, the HDL and model must agree. The model is checked at Step boundaries, not per clock cycle.
 
 - **Selected on 20 October:** one shared, headless rules model in the team repository, imported by the PC viewers and used for HDL verification scenarios. The current local `prototype/model/` and team `prototipos/tron/juego.py` are migration inputs, not two continuing rule authorities. Choose the migration base/location and viewer adapters during implementation planning.
-- Playable by Thu 22 Oct, for the playtest session.
-- Step logs, scenario files and the diff script ready by Thu 29 Oct.
+- Target shared-model playability and Step-log evidence are tentative W1–W2 work; the existing local viewer is not evidence that migration is complete.
+- Step logs, scenario files and the diff script are tentative W2 targets (Thu 29 Oct); this is not a course deadline.
 
 ### HDL build (W1–W5)
 
-The handout steps (V1–V4), setup (S1–S3) and device I/O (I1–I3) do not depend on the prototypes and start in W1. Game logic (G), the Arena grid (A), the sprite pipeline (P2) and the HUD (H2) start after lockdown, from W2.
+The handout steps (V1–V4), setup (S1–S3) and device I/O (I1–I3) can proceed from W1. Game logic (G), the Arena grid (A), the sprite pipeline (P2) and the HUD (H2) follow the locked specification; visual review is not a prerequisite rule-lock gate.
 
 ## Verification
 
@@ -143,7 +147,7 @@ The handout steps (V1–V4), setup (S1–S3) and device I/O (I1–I3) do not dep
 
 - **Testbench first, always**, for anything with logic: counters, FSMs, clock crossings, the grid controller, UART bit timing, pixel alignment.
 - **Board check only for what simulation cannot show:** monitor lock and colours, real button bounce, a real browser sending over UART, 7-segment visibility, game feel and speed, repeated reset and pause.
-- **Timing, CDC and DRC reports on every weekly integration build** (commands in [[CS-256 Official FPGA Coding Practices#Evidence to collect before choosing or shipping either path]]).
+- **Timing, CDC and DRC reports on every weekly integration build** (commands in [[CS-256 Official FPGA Coding Practices#Implementation and verification evidence]]).
 - A Task is done when its testbench passes. An Objective marked HW is done only after its board check.
 
 ### Step-log comparison
@@ -171,9 +175,9 @@ Scenario set (L11 p. 43, corner cases). Add a scenario whenever a bug is found:
 11. New Match after the Match ends
 12. Long random game with random inputs from both Players (stresses the LFSR)
 
-## FPGA limits for the Look Prototype
+## Historical limits used by the Look Prototype
 
-Every locked design element must pass these. They come from the hardware and from [[CS-256 Official FPGA Coding Practices]].
+This checklist described candidate-renderer checks in the earlier prototype workflow. It is not the target contract: the agreed specification and course handout own current requirements. The prototype still supports several legacy options, including 4/8/16 px Cells.
 
 1. **1280 × 800, fixed.** Verified 2026-10-15: the [class handout](../cs256-fall-2026/classproject/README.md) sets the visible region to `hcount` 336–1615 (1,280 pixels) and `vcount` 27–826 (800 lines), with `curr_x` 0–1279 and `curr_y` 0–799. Its 83.46 MHz pixel clock over 1680 × 828 total gives 59.998 Hz.
 2. **RGB444 only (4,096 colours).** Verified 2026-10-15: the Nexys A7 Reference Manual (revised 10 July 2019, §8, p. 18) says the board drives VGA with "4 bits-per-color" through resistor dividers, giving 16 levels per channel and "4096 different colors". The handout uses 4-bit `pix_r/g/b`, the sprite tips use 12-bit RGB `.coe` words, and the class XDC maps `VGA_R/G/B[3:0]`. The manual's timing example is 640 × 480, so it does not confirm the 1280 × 800 mode; that comes from the handout alone.
@@ -194,10 +198,10 @@ Verified in: TB = testbench, HW = board check.
 | S3 | Simulation harness: xsim scripts and `tb_frame_dump` (`.ppm`) | TB |
 | **L: Look Prototype** | | |
 | L1 | Free design of HUD, sizes, Bike art, palette (replaces the earlier size test and UI/HUD session) | PC at 1280 × 800, RGB444 |
-| L2 | Design lockdown and playtest session | team sign-off |
-| L3 | Asset flow: Bike art and `png2coe.py` with checks (1,024 words, row order), viewer draws from `.coe` | script check |
+| L2 | Visual review of the agreed baseline and prototype candidates; no rule-lock gate | feedback recorded |
+| L3 | Target asset flow: native RGB444 art and `.coe` checks; compare ROM contents with the PNG-based local viewer | script and image check |
 | **M: Game Model** | | |
-| M1 | Playable Game Model in hardware-block structure | playtest |
+| M1 | One shared headless Game Model in hardware-block structure, used by both PC viewers and HDL scenarios | scenario/playtest evidence |
 | M2 | Step logs, 12 scenarios, log-diff script | script |
 | **V: Video, handout steps (built literally)** | | |
 | V1 | `vga_out`: counters, sync, visible region + `tb_vga_out` | TB → HW (monitor lock, switch colour) |
@@ -211,7 +215,7 @@ Verified in: TB = testbench, HW = board check.
 | P2 | Bike ROM ×2, early-read pipeline, rotation by address | TB (first/last pixel, line/frame wrap, 4 rotations) → HW |
 | P3 | Reward sprite(s) | TB → HW |
 | **A: Arena** | | |
-| A1 | Arena grid BRAM on `pixclk`: render read port, Walls | TB → HW |
+| A1 | Arena grid BRAM on a suitable fast memory/service clock: render reads and Walls; exact clock choice is not settled | TB → HW |
 | A2 | Grid controller: check/write commands, Arena clear with timing budget | TB |
 | **G: Game logic** | | |
 | G1 | Step/Turn: Heading, 180° ignored, last valid input, Step rate | TB |
@@ -221,11 +225,11 @@ Verified in: TB = testbench, HW = board check.
 | G5 | Rewards/Survival Bonus scoring, selected Points Goal, simultaneous finishes and full final-Step totals | TB |
 | **I: Device I/O** | | |
 | I1 | Buttons: sync, debounce, Turn events; pause switch; CPU_RESETN | TB → HW |
-| I2 | UART RX + WASD/Space decoder | TB (bit timing) → HW (serial terminal) |
+| I2 | UART RX + ordered WASD/Space/Enter decoder; Enter wire encoding and CDC details remain to be selected | TB (bit timing and ordering) → HW (serial terminal) |
 | I3 | Web Serial controller page (Chrome/Edge, Mac and Windows) | HW |
 | I4 | Scoreboard: BCD → `multidigit`, 8 digits | TB → HW |
 | **H: HUD (Should)** | | |
-| H2 | Digit font ROM + HUD renderer (layout comes from L2) | TB → HW |
+| H2 | Digit font ROM + HUD renderer using the specification's initial 64 px working HUD band | TB → HW |
 | **C: Could** | | |
 | C1 | Player colours from switches (tint key) | HW |
 | C2 | Speed/challenge switch | HW |
@@ -247,7 +251,7 @@ Each Objective's done check includes saving one piece of evidence for the report
 
 **Team membership confirmed by the TAs, 20 October 2026: Roman and Alan only.** Kevin is no longer a project member; the previous three-person assignments and test rotation are superseded.
 
-**Q33 direction:** distribute the HDL game engine between both members, otherwise keep the recommended division. The following module-level allocation implements that direction and is included in the final meeting record for review.
+**Q33 direction:** distribute the HDL game engine between both members, otherwise keep the recommended division. The following module-level allocation is recorded as agreed in [[CS-256 Tron Agreed Specification 2026-10-20#Work division and independent verification]].
 
 | Person | Design ownership | Independent official tests |
 |---|---|---|
@@ -264,6 +268,6 @@ Alan coordinates the shared reference model, but both now contribute HDL game lo
 1. Use the Q33 two-person split and cross-testing to revise the **tentative** 15/23 November targets and feature staging as progress becomes clear. Q40 explicitly keeps the schedule flexible; the course assessment deadlines remain fixed.
 2. Clock architecture is settled on 2026-10-20: the TAs recommended strict handout architecture. Use the divided game clock and restore X1; see [[0002-follow-ta-divided-game-clock]]. The older [[CS-256 TA Email - Game Clock]] is a superseded draft, not a pending prerequisite. Design X1 before integrating game and renderer.
 3. Implement and verify the decisions in [[CS-256 Tron Agreed Specification 2026-10-20]]. Q35 preserves mirrored starts; same-Cell Head-on Crash scenarios use arranged positions. Preparation must place all three initial Rewards; Match-ending Crashes retain the winner, show the two-second effect and then enter Match-over. The 99-Point cap is removed.
-4. G4/A2: the current software search tries 64 LFSR draws (32 shifts each), then scans the padded grid. At selected **16 px Cells / 8192 words**, the existing idealized estimator gives `(64 × 32 + 8192) / 83.46 MHz ≈ 123 µs` per placement, or **246 µs for two**, before memory/controller overhead. The old 417/834 µs estimate applied to 8 px Cells. Neither estimate proves a feasible divided-game-clock interface or safe update timing. Verify a bounded or multi-frame placement service, occupancy revalidation and coherent transfers; do not pace an 8192-word bulk clear one word per 60 Hz tick.
+4. G4/A2: the legacy local software search tries 64 LFSR draws (32 shifts each), then scans the padded grid. At selected **16 px Cells / 8192 words**, the existing idealized estimator gives `(64 × 32 + 8192) / 83.46 MHz ≈ 123 µs` per placement, or **246 µs for two**, before memory/controller overhead. The old 417/834 µs estimate applied to 8 px Cells. Neither estimate proves a feasible divided-game-clock interface or safe update timing. Verify a bounded or multi-frame placement service, occupancy revalidation and coherent transfers; do not pace an 8192-word bulk clear one word per 60 Hz tick.
 5. Q36 keeps glow, scanlines and animated backgrounds optional after the core build. The core art convention uses only `000` transparency and `0F0` tint; `080` is not an extra glow key. Reconcile existing candidate art/effects before claiming core-format compliance. Any later colour stage must preserve the course-aligned pixel timing.
 

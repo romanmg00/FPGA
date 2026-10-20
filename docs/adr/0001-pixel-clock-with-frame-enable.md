@@ -7,7 +7,9 @@ status: superseded by ADR-0002
 > [!warning] Superseded on 20 October 2026
 > The team confirmed that the TAs instructed it to follow the handout architecture strictly. The final game uses the divided approximately 60 Hz game clock. See [[0002-follow-ta-divided-game-clock]]. The reasoning below is historical research, not the active build decision or a pending TA-approval request.
 
-The handout (*Drawing Logic Module* step 10) asks for a second clock divider giving a ~60 Hz game clock. We build that step literally for the lab exercise (milestone V4: the ±4 moving block), but the Tron game itself runs all logic, including the UART receiver, on `pixclk` (83.46 MHz) and starts each update with a one-cycle `frame_tick` enable at the start of vertical blanking (59.998 Hz); Steps happen every K ticks. Decided 2026-10-15, pending TA confirmation (status becomes `accepted` once they agree; see [[CS-256 TA Email - Game Clock]]).
+Everything below records the former proposal and its reasoning. Its consequences and conditional actions are superseded by ADR 0002; use that accepted ADR and the agreed specification for current implementation work.
+
+The handout (*Drawing Logic Module* step 10) asks for a second clock divider giving a ~60 Hz game clock. The 15 October 2026 proposal was to build that step literally for the lab exercise (milestone V4: the ±4 moving block), but run the Tron game logic on `pixclk` (83.46 MHz) with a one-cycle `frame_tick` enable. That proposal was superseded on 20 October after the TAs' strict-architecture instruction; it is not pending confirmation.
 
 **Why.** We choose `pixclk` for the game and memory controller while retaining a frame-rate update cadence. The source-backed reasoning is:
 

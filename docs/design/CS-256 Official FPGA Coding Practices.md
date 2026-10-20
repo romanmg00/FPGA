@@ -6,9 +6,11 @@ type: note
 subject: CS-256
 status: active
 created_at: "2026-10-15T15:34:02"
-updated_at: "2026-10-15T18:02:01"
+updated_at: "2026-10-20T14:53:11"
 term: 2026-fall
 sources:
+  - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
+  - "[[CS-256 Tron Team Decisions 2026-10-20]]"
   - "[[CS-256 VGA and Sprite Design Plan]]"
   - "[[CS-256 Tron Glossary]]"
   - "[[CS-256 Tron Game Mechanics]]"
@@ -22,9 +24,11 @@ tags:
 
 # CS-256 Official FPGA Coding Practices
 
-**Current baseline (confirmed 2026-10-20, [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md)):** follow the TAs’ strict handout instruction: the **final game uses Path A**, the second Clocking Wizard plus counter-divided approximately 60 Hz game clock. ADR 0001 and Path B are superseded historical alternatives. Output-aligned `curr_x`/`curr_y` and early sprite reads follow the [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) unchanged. Both clock paths remain documented below.
+**Current baseline (confirmed 2026-10-20, [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md)):** follow the TAs’ strict handout instruction: the final game uses a second Clocking Wizard plus counter divider to produce an approximately 60 Hz **game-state clock**. ADR 0001's pixel-clock/frame-enable proposal is superseded. Output-aligned `curr_x`/`curr_y` and early sprite reads follow the [sprite tips](../cs256-fall-2026/classproject/sprites/README.md). The old clock-path comparison is retained below as history, not as a live choice.
 
 Research checked on **2026-10-15**. Paragraphs marked **AMD guidance** describe vendor documentation. **Project application** identifies our engineering interpretation. Manufacturer guidance supports implementation choices; it does not establish course acceptance or prove this game works.
+
+The 20 October documentation pass checked consistency with the locked agreement. It did not independently revalidate every vendor-source claim; the note's source-review status remains unchanged.
 
 ## Sources behind the historical pixel-clock proposal
 
@@ -86,11 +90,11 @@ Check each query resolves to exactly one intended pin in the synthesized netlist
 
 **AMD guidance:** an edge-triggered block with a condition that retains the old register value describes enable behavior. Enables can affect control sets, so they are not resource-free. [UG949: Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables).
 
-**Why this supports using the full clock:** AMD recommends enables rather than HDL clock gating, warns about fabric-routed counter clocks, and recommends reducing synchronous crossings. Applying those principles here motivates one `pixclk` for game/controller/render logic and a frame-rate enable for launching work. This combines three explicit guidelines into a project-specific choice. [Using Gated Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Gated-Clocks), [Avoiding Local Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Avoiding-Local-Clocks), [Limiting Synchronous Clock Domain Crossing Paths](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Limiting-Synchronous-Clock-Domain-Crossing-Paths).
+**Historical rationale from superseded ADR 0001:** AMD recommends enables rather than HDL clock gating, warns about fabric-routed counter clocks, and recommends reducing synchronous crossings. The former proposal applied those principles to one `pixclk` for game/controller/render logic and a frame-rate enable for launching work. This was a project-specific proposal, not AMD's prescription and not the accepted clock architecture. [Using Gated Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Gated-Clocks), [Avoiding Local Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Avoiding-Local-Clocks), [Limiting Synchronous Clock Domain Crossing Paths](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Limiting-Synchronous-Clock-Domain-Crossing-Paths).
 
-**Project application:** clock game logic, renderer and memory controllers with `pixclk`. A one-cycle `frame_tick` or counter enable decides **when to launch** a Step. While busy, the memory FSM advances on each `pixclk` edge; do not gate every read/wait/check/write transition with the once-per-frame event. This removes the game/render clock crossing but leaves external inputs asynchronous and still requires memory arbitration.
+> **Historical project proposal, superseded by ADR 0002:** clock game logic, renderer and memory controllers with `pixclk`. A one-cycle `frame_tick` or counter enable would decide when to launch a Step, while the memory FSM advances on each `pixclk` edge. This path is not the selected build architecture.
 
-A frame-derived enable gives approximately 59.998 Hz with the handout timing; a separate synchronous counter enable can target a different update rate. State changes must be scheduled or snapshotted coherently; one shared clock alone does not ensure a consistent frame. ADR 0001 proposed this path, but ADR 0002 supersedes it after the TAs’ strict-architecture instruction. Path A is selected for the final game; Path B remains research.
+A frame-derived enable gives approximately 59.998 Hz with the handout timing; a separate synchronous counter enable can target a different update rate. State changes must be scheduled or snapshotted coherently; one shared clock alone does not ensure a consistent frame. ADR 0001 proposed this path, but ADR 0002 supersedes it after the TAs’ strict-architecture instruction. Path A is selected for the final game; Path B is historical material.
 
 ## Clock-domain transfers for Path A
 
@@ -114,7 +118,7 @@ A frame-derived enable gives approximately 59.998 Hz with the handout timing; a 
 
 **AMD guidance:** `XPM_FIFO_ASYNC` writes on eligible write-clock edges and reads on eligible read-clock edges. Flag/data latency depends on configuration, and access must be inhibited during reset/busy. This can decouple transfers without a per-word full handshake. [UG953 2024.2: XPM_FIFO_ASYNC](https://docs.amd.com/r/2024.2-English/ug953-vivado-7series-libraries/XPM_FIFO_ASYNC).
 
-**Project application:** for one command per 60 Hz edge, evaluate a FIFO if a timed crossing is unsuitable. Size it for pending commands, synchronization delays and the longest renderer/controller stall. A FIFO does not solve an average consumer rate lower than the producer rate. Keep grid commands ordered; only coalesce display snapshots if discarding intermediate snapshots is an explicitly acceptable behavior.
+**Engineering guidance:** if a measured producer rate and crossing classification require buffering, evaluate a FIFO and size it for pending commands, synchronization delays and the longest renderer/controller stall. A FIFO does not solve an average consumer rate lower than the producer rate. Keep grid commands ordered; only coalesce display snapshots if discarding intermediate snapshots is an explicitly acceptable behavior. The target transfer protocol remains unselected.
 
 For isolated events, do not assume a pulse synchronizer has unlimited rate. `XPM_CDC_PULSE` requires a gap of at least `2 × max(source period, destination period)` from the current source pulse's falling edge to the next source pulse's rising edge. With a 60 Hz domain, that gap is about **33.3 ms**; a new event every 16.7 ms is outside this macro contract. Match the installed macro's contract to the actual event rate. [UG953: XPM_CDC_PULSE](https://docs.amd.com/r/en-US/ug953-vivado-7series-libraries/XPM_CDC_PULSE).
 
@@ -154,21 +158,21 @@ These calculations were checked in Python against the handout numbers. They do *
 
 Keep ROMs always enabled as in the sprite tips initially. If reads are later gated, preserve every required internal advance; enabling only while the **current** sprite is visible can omit the first prefetched texels. A final RGB register, registered address calculation or other new stage changes the total early-read lead. Balance separate sprite/trail paths against the same output pixel. No new stage is free merely because the BRAM itself reports two cycles.
 
-### Future delayed-stream pipeline
+### Historical delayed-stream pipeline
 
 **AMD guidance:** the rest of a design must account for added pipeline latency. [UG949: Pipelining Considerations](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Pipelining-Considerations).
 
-**Project application:** an alternative issues reads from request coordinates and delays sync/visible plus the matching pixel metadata until data is ready. Its request coordinates must be named separately from output coordinates. It can preserve the external video waveform's periods and relative alignment, but changes the handout's internal interface unless output-aligned `curr_x`/`curr_y` are retained. Evaluate this separately from the clock choice: **clock enable does not require delayed sync**, and divided-clock game logic can use either sprite strategy.
+**Historical alternative:** issue reads from request coordinates and delay sync/visible plus the matching pixel metadata until data is ready. Its request coordinates must be named separately from output coordinates. It can preserve the external video waveform's periods and relative alignment, but changes the handout's internal interface unless output-aligned `curr_x`/`curr_y` are retained. This sketch is separate from the clock choice: **clock enable does not require delayed sync**, and either clock path could technically be paired with either pipeline. The handout-aligned early-read pipeline remains selected.
 
 ## Arena memory and reset
 
-**Selected project encoding (team decision, 2026-10-20):** use **8192 × 4-bit words** with a 13-bit `{cy[5:0], cx[6:0]}` address for the 16 px screen grid. Codes: 0 empty, 1 Wall, 2 P1 Trail, 3 P1 head, 4 P2 Trail, 5 P2 head, 6 Crash, 7 reserved, and 8/9/10 Reward slots 0/1/2. The three Reward slots have independent state. Synchronize these constants in the shared headless model and HDL package; unused coordinate padding and the HUD/Wall regions are not playable. These are team choices, not an AMD-prescribed encoding. Existing code still needs migration from the incompatible local three-bit table.
+**Selected project encoding:** use the 8192 × 4-bit Arena, 13-bit `{cy[5:0], cx[6:0]}` address and cell codes recorded in [[CS-256 Tron Agreed Specification 2026-10-20#Clocks, Arena encoding and service boundary]]. These are team choices, not AMD-prescribed. Synchronize them in the shared headless model and HDL package; the local implementation still needs migration from its incompatible three-bit table.
 
 **Selected service architecture (Q28 clarified by Q32):** retain approximately 60 Hz game-state logic and fast video/memory service. The fast controller is the Arena write owner, executing validated game commands and returning results. Define coherent request/result payloads and render snapshots, occupancy revalidation for delayed Reward placement, reset/pause behavior during a transaction, and measured service/round-trip bounds. Do not infer those guarantees merely from dual-port memory or a common clock on its ports.
 
 **AMD guidance:** UG473's BRAM **common-clock** collision rules require both ports to be driven by the same clock-buffer driver. Other CLKA/CLKB connections use the independent-clock rules. Two reads succeed; conflicting writes are nondeterministic; read-during-write results depend on the documented configuration. [UG473 v1.14, Conflict Avoidance, pp. 19–20](https://docs.amd.com/api/khub/documents/9gZGbqBxtlKXxBfkBt~lAg/content).
 
-**Project application:** comparing UG473's shared-buffer rule with UG903's related-clock definition shows that a safely timed clock pair is not automatically a common-clock BRAM connection. A useful implementation option for Path A is to keep **both grid ports on `pixclk`**, with a fast controller servicing slow-domain commands through the chosen transfer interface. The game still uses the handout's slow clock. This avoids treating dual-port BRAM as an automatic CDC protocol and simplifies port arbitration. If ports instead use different clocks, apply the independent-clock collision restrictions explicitly.
+**Possible implementation option, not selected:** keep both grid ports on `pixclk`, with a fast controller servicing slow-game-clock commands through a defined transfer interface. This may simplify port arbitration, but it does not settle the port clocks or CDC design. Compare the actual clock-buffer drivers and apply the matching common-clock or independent-clock collision restrictions; dual-port BRAM alone is not a CDC protocol.
 
 Use one defined write owner. Check both Bikes' candidate Cells before committing either Trail; handle same-Cell simultaneous Crashes in logic. These are game rules, not a BRAM write mode. During blanking, either disable rendering reads or give them harmless addresses and ignore the returned invalid/irrelevant pixels; blank RGB alone does not stop the RAM access. Do not depend on an unspecified read-during-write value.
 
@@ -206,7 +210,7 @@ Use Digilent's per-pin package and voltage constraints. Clock E3 is LVCMOS33 wit
 
 A package-pin assignment is not an external timing budget. AMD's output-delay constraints describe an external launch/capture relationship, with appropriate min/max values. Do not invent a monitor setup/hold specification or silence unconstrained VGA outputs with arbitrary numbers. Document the chosen video-output timing model, inspect paths through the final compositor to RGB/sync pins, and test the actual monitor. A purely combinational RGB path is not proven glitch-free just because the raster counters are registered. [UG903: Use of set_output_delay](https://docs.amd.com/r/en-US/ug903-vivado-using-constraints/Use-of-set_output_delay-Command-Options).
 
-## Evidence to collect before choosing or shipping either path
+## Implementation and verification evidence
 
 **AMD guidance:** `report_cdc` checks synchronization structures, whereas clock interaction/timing reports address clock relationships and slack. Neither substitutes for the other. Clock-utilization reports expose clock buffers/routing and loads. Timing signoff uses the routed design. [UG906: CDC Terminology](https://docs.amd.com/r/en-US/ug906-vivado-design-analysis/Terminology), [Report Clock Domain Crossings](https://docs.amd.com/r/en-US/ug906-vivado-design-analysis/Report-Clock-Domain-Crossings), [Report Clock Utilization](https://docs.amd.com/r/en-US/ug906-vivado-design-analysis/Report-Clock-Utilization), [Report Timing Summary](https://docs.amd.com/r/en-US/ug906-vivado-design-analysis/Report-Timing-Summary).
 
@@ -232,10 +236,12 @@ Our acceptance evidence should include:
 - Setup/hold and pulse-width results; documented exceptions and external I/O coverage. No broad exception used to hide an unimplemented transfer.
 - Transfer throughput, payload stability, sequence/order, reset behavior, overflow/underflow and worst-case stalls. For async macros, enable supported usage assertions in simulation.
 - Sprite/trail read latencies and edge convention; first/last visible pixel, porch prefetch, line/frame wrap, all sprite rotations and state-update boundaries. Decode frame dumps from external syncs.
-- Bounded memory operations and full Arena-clear timing; two simultaneous Bike moves checked against [[CS-256 Tron Game Mechanics]].
+- Bounded memory operations and full Arena-clear timing; two simultaneous Bike moves checked against [[CS-256 Tron Agreed Specification 2026-10-20]].
 - On-board monitor lock, controls and repeated reset/pause operation. Timing closure and a functional simulation are different evidence.
 
-## Future evaluation of both paths
+## Historical comparison of both clock paths
+
+This comparison was written while the game-clock choice was open. ADR 0002 has since selected the divided game-state clock under the TAs’ strict handout instruction; the table records provenance and does not leave a live selection task. Reconsidering the clock architecture requires the team to formally reopen the accepted decision and follow any course/TA direction.
 
 | Criterion | Path A — divided game clock, selected final game | Path B — historical pixel-clock-enable proposal |
 |---|---|---|
@@ -248,6 +254,6 @@ Our acceptance evidence should include:
 | Main verification burden | Generated clocks, crossing classification, throughput and coherency | Enable cadence, FSM continuation and same-domain arbitration |
 | Evidence needed | Routed timing/clock/CDC reports and transfer stress tests | Routed timing/control-set reports and frame-update stress tests |
 
-Do not infer a power/resource winner from the table; compare implemented versions with the same game behavior and constraints. Preserve the current handout milestone before evaluating a substitute. Independently compare **prefetch** versus **delayed stream** using pin-level pixel alignment, boundary logic complexity and the public coordinate contract. Change one architectural axis at a time so the comparison explains its result.
+Do not infer a power/resource winner from the historical table. The delayed-stream pipeline remains a separate historical alternative to the selected handout-aligned early-read pipeline; it is not an outstanding project decision.
 
 No IP generation, HDL simulation, synthesis, routed implementation, power comparison or board test was performed for this research. Python arithmetic checks establish only the stated timing/grid calculations. Actual interface choice, divider factor, FIFO depth and output timing budget remain implementation decisions supported by the evidence above.

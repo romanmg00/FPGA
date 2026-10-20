@@ -6,6 +6,7 @@ type: note
 subject: CS-256
 status: draft
 created_at: "2026-10-14T15:49:32"
+updated_at: "2026-10-20T14:39:59"
 sources:
   - "[[Nexys_A7_Game_Research_Report]]"
 source_image_original_name: 1000196852.jpg
@@ -18,6 +19,9 @@ tags:
 ---
 
 # CS-256 Tron Game Overview
+
+> [!note] Historical whiteboard record
+> This note preserves the early concept and rubric visible in the source photograph. References to an unresolved Points system, a Master role, menus, and unspecified controls predate the decisions locked in [[CS-256 Tron Agreed Specification 2026-10-20]]; they are not current requirements.
 
 This note describes the proposed game using the supplied whiteboard photograph, `1000196852.jpg`, and the user's explanation. The photograph records planning decisions, rather than a finished game screen: the left side contains the assessment rubric, the center sketches the system, and the right side lists selected game features and inputs. The current focus is the FPGA's VGA display design.
 
