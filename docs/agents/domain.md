@@ -4,7 +4,7 @@ How project agents use the game vocabulary, decisions, architecture records, and
 
 ## Read in this order
 
-1. Read the root [README](../README.md) and [[CS-256 Tron Architecture and Documentation Map]] for the authority order and document statuses.
+1. Read the [documentation README](../README.md) and [[CS-256 Tron Architecture and Documentation Map]] for the authority order and document statuses.
 2. Read [[CS-256 Tron Agreed Specification 2026-10-20]] for the locked team baseline. Use [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] for decision provenance; the older comparison below that record is historical.
 3. Use [[CS-256 Tron Glossary]] for terms and [[CS-256 Tron Game Mechanics]] as a short topic index. The specification owns the rule details.
 4. Read the accepted ADRs relevant to the task. ADR 0002 records the divided game clock; ADR 0001 is superseded. A plan or technical recommendation is not an accepted decision.
@@ -17,13 +17,15 @@ Course requirements and the TAs' strict-architecture instruction take precedence
 This is a single game context:
 
 ```text
-CS-256/Game_research/
-├── CS-256 Tron Glossary.md
-├── CS-256 Tron Agreed Specification 2026-10-20.md
-├── CS-256 Tron Game Mechanics.md     # derived index
-└── docs/adr/
-    ├── 0001-pixel-clock-with-frame-enable.md  # superseded
-    └── 0002-follow-ta-divided-game-clock.md   # accepted
+docs/
+├── decisions/
+│   └── CS-256 Tron Agreed Specification 2026-10-20.md   # locked, never edited
+├── domain/
+│   ├── CS-256 Tron Glossary.md
+│   └── CS-256 Tron Game Mechanics.md                    # derived index
+└── adr/
+    ├── 0001-pixel-clock-with-frame-enable.md            # superseded
+    └── 0002-follow-ta-divided-game-clock.md             # accepted
 ```
 
 ## Use the glossary and surface conflicts

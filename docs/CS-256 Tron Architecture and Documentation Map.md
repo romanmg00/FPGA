@@ -6,7 +6,7 @@ type: note
 subject: CS-256
 status: active
 created_at: "2026-10-20T14:38:28"
-updated_at: "2026-10-20T15:14:27"
+updated_at: "2026-10-20T19:25:26"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
@@ -28,7 +28,7 @@ This note identifies which document owns each kind of project fact, how the curr
 1. **Course requirements and TA instructions** govern the assignment and architecture. The course repository is read-only reference material for this project.
 2. **[[CS-256 Tron Agreed Specification 2026-10-20]]** is the current team baseline for behavior and agreed design. Its `decision_status: agreed` records that the team discussion was closed and locked.
 3. **[[CS-256 Tron Team Decisions 2026-10-20#Live decision record]]** is the provenance record. Its pre-meeting comparison and recommendations below the live record are historical.
-4. **The selected team-repository interface contract** becomes the implementation-interface authority after it is reconciled with course requirements and the locked specification. The local decision record identifies the remote snapshot it reviewed as `f5cb82c901e33a453fcaea2720a80702fda54718` from 15 October; the contract and code have not been migrated in this workspace.
+4. **The interface contract in `proyecto_final/Contrato de interfaces game_top (CS 256).md`** becomes the implementation-interface authority after it is reconciled with course requirements and the locked specification. The decision record reviewed it at commit `f5cb82c901e33a453fcaea2720a80702fda54718` from 15 October; the contract has not yet been reconciled.
 5. **Code describes present implementation behavior.** It does not override the selected design. Plans describe intended work; passing tests for a legacy implementation do not establish target behavior.
 
 These status fields answer different questions: `decision_status: agreed` means a team decision was locked; `review_status` describes review of the note's content; neither means implementation is complete or verified. Implementation and verification status must come from the actual source and objective-linked evidence.
@@ -68,8 +68,8 @@ Start with the project [README](README.md), then read the agreed specification a
 | [[CS-256 VGA and Sprite Design Plan]] | Design plan; Roman leads video, team reviews | Raster, output-aligned pixels, sprite prefetch, test plan, and design work packages | Course handout, sprite tips, agreed spec. Update accepted design links and add evidence only after actual checks. |
 | [[CS-256 Official FPGA Coding Practices]] | Source-backed engineering guidance; team-maintained | AMD/vendor constraints, proposed interfaces, implementation checks | Official manuals and product guides. Distinguish sourced guidance, project arithmetic, selected decisions, and unverified proposals. |
 | [[CS-256 Tron Development Plan]] | Tentative work plan; Alan coordinates | Existing objective IDs, owners, proposed sequencing, and evidence checks | Specification and progress evidence. Update staging as work changes; keep 15/23 November targets flexible and course dates fixed. |
-| [Prototype README](../prototipos/look/README.md) | Current local-implementation guide; local code owner | How to run and inspect the legacy local viewer/model | `prototype/` source. Update when that code changes; keep its behavior separate from the selected contract until migration. |
-| `prototype/model/` | Current local implementation; code owner per repository | Actual local Python model behavior | Source code is authoritative only for this implementation. Reconcile during migration; its tests do not verify the agreed target. |
+| [Prototype README](../prototipos/look/README.md) | Current local-implementation guide; local code owner | How to run and inspect the legacy local viewer/model | `prototipos/look/` source. Update when that code changes; keep its behavior separate from the selected contract until migration. |
+| `prototipos/look/model/` | Current local implementation; code owner per repository | Actual local Python model behavior | Source code is authoritative only for this implementation. Reconcile during migration; its tests do not verify the agreed target. |
 | [Prototype metrics](../prototipos/look/metrics/latest.md) | Historical generated evidence, 17 October; code-generated | PC viewer measurements and hardware estimates for the local prototype | Metrics script and CSV; regenerate only for a new measurement run. Not HDL or board evidence. |
 | [[CS-256 Tron Integration Comparison]] | Archived snapshot; team-maintained history | Pre-meeting comparison against remote commit `f5cb82c…` | Meeting preparation. Do not treat its recommendations or “Already agreed” labels as current. A current remote review must be recorded separately. |
 | [[CS-256 TA Email - Game Clock]] | Archived superseded draft; preserved | Historical frame-enable approval request | Closed by the reported strict-architecture instruction and ADR 0002; no TA permission is pending. |
@@ -78,7 +78,8 @@ Start with the project [README](README.md), then read the agreed specification a
 | [Official documentation bundle](references/Nexys_A7_100T_Official_Docs/README.md) | Vendor-source index; preserved | Links to board, FPGA, and sensor documentation | Vendor publications; follow course project requirements for this game's design. |
 | [[CS-256 Tron Documentation Control Review 2026-10-20]] | Audit record; project-maintained | Reviewed scope, discrepancies, changes, unresolved work, and validation | This documentation review; update when its findings are reconciled or validation status changes. |
 | [[CS-256 Tron Opus 5.5 Architecture and Integration Review]] | Independent review; proposals, not accepted ADRs | Pinned main-repository findings and architecture/integration options | Reviewed main SHA and locked agreement; read the Parent review section before selecting a proposed interface. Update as findings are resolved. |
-| [[CS-256 Tron Repository Merge Plan]] | Draft migration proposal; team decision pending | Import method, file mapping, history and working-copy options | Integration review and current repository state; validate commands and record choices before executing. No merge or vault relocation has occurred. |
+| [Locked records index](decisions/README.md) | Integrity record; team-owned | SHA-256 values, tags and the old-to-new path map for the two locked records | Update only if a further dated record is added; the locked records themselves never change. |
+| [[CS-256 Tron Repository Merge Plan]] | Executed migration procedure, 20 October 2026; Alan | Import method, file mapping, history and working-copy options | Executed through branch `integrate/game-research` with the corrections recorded in its execution note. Converting the vault folder (step F) has not been done. |
 
 ## Traceability
 
@@ -86,12 +87,12 @@ The objective identifiers below already exist in [[CS-256 Tron Development Plan#
 
 | Agreed area | Existing work IDs | Current implementation / evidence | Remaining work |
 |---|---|---|---|
-| Turns, movement, simultaneous collision, Trails | G1/G2 | Local `prototype/model/step.py` and `steering.py` are legacy implementation; local tests exercise that behavior only | Migrate one model; implement Roman's assigned HDL blocks; cross-test agreed edge cases and record Step-log evidence. |
+| Turns, movement, simultaneous collision, Trails | G1/G2 | Local `prototipos/look/model/step.py` and `steering.py` are legacy implementation; local tests exercise that behavior only | Migrate one model; implement Roman's assigned HDL blocks; cross-test agreed edge cases and record Step-log evidence. |
 | Match/Round lifecycle, Lives, scoring, Rewards | G3/G4/G5 | Local model remains incompatible in its Points goal, cap, Reward values, Survival Bonus, timing, and PRNG choices | Implement the locked order and full legal final-Step total; choose and verify PRNG, seed advancement, and bounded placement service. |
-| Arena storage and service boundary | A1/A2/X1 | No local HDL directory or agreed service implementation is present in this workspace; plan and guidance contain proposals | Reconcile the contract; establish one write owner, coherent requests/results/snapshots, and measured service/reset/Pause behavior. |
+| Arena storage and service boundary | A1/A2/X1 | No Arena HDL or agreed service implementation exists in this repository yet; plan and guidance contain proposals | Reconcile the contract; establish one write owner, coherent requests/results/snapshots, and measured service/reset/Pause behavior. |
 | Video and sprite memory | V1–V4/P2/P3 | VGA plan and local viewer are design/PC references; no target HDL evidence is recorded here | Verify generated clocks, actual ROM latency, early reads, boundaries, RGB/sync alignment, synthesis, and board lock. |
 | Inputs and physical Scoreboard | I1–I4/X2 | The plan specifies intended checks; local GUI controls are not the target board/UART implementation | Finish Enter encoding, ordered command transfer, P/L glyphs, board checks, and timing/CDC evidence. |
-| Scenario and integration verification | M2/Z1/Z2/Z3/Z4/Z5 | Local prototype tests/metrics exist for the legacy implementation; the `evidence/`, `hdl/`, and `sim/` directories are absent from this workspace inventory | Record target model/HDL comparisons, playtests, routed timing/CDC/DRC, and report evidence against the existing IDs. |
+| Scenario and integration verification | M2/Z1/Z2/Z3/Z4/Z5 | Local prototype tests/metrics exist for the legacy implementation; `proyecto_final/` holds only the VGA counter skeleton and its testbenches, and no `evidence/` folder exists yet | Record target model/HDL comparisons, playtests, routed timing/CDC/DRC, and report evidence against the existing IDs. |
 
 ## Schedule status
 
@@ -99,4 +100,4 @@ The pre-demo build around **15 November** and demo-code freeze around **23 Novem
 
 ## Integration review follow-up
 
-The independent review confirms agreement fidelity and identifies contract reconciliation, shared-model migration and the X1 slow-game/fast-service interface as the main integration blockers. Its custom mailbox, input batching and render-update policy are proposed implementations requiring proof; they are not additional accepted architecture decisions. See [[CS-256 Tron Opus 5.5 Architecture and Integration Review#Parent review and adoption limits]]. The repository merge plan is a separate draft; team-repository selection alone does not approve its history rewriting, publishing or working-copy conversion procedure.
+The independent review confirms agreement fidelity and identifies contract reconciliation, shared-model migration and the X1 slow-game/fast-service interface as the main integration blockers. Its custom mailbox, input batching and render-update policy are proposed implementations requiring proof; they are not additional accepted architecture decisions. See [[CS-256 Tron Opus 5.5 Architecture and Integration Review#Parent review and adoption limits]]. The repository merge plan was approved by the team and executed on 20 October 2026 through a pull request; converting the vault folder into a working clone remains a separate, later step.

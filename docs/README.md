@@ -1,43 +1,36 @@
-# CS-256 Tron Project: Folder Policy
+# CS-256 Tron Project: Documentation and Decisions
 
-All work for the CS-256 class project (the two-player Tron game) lives in this folder: notes, designs, decisions, HDL, testbenches, tools, and sprite assets. Do not write project files anywhere else in the vault. In particular, `CS-256/Homework/` is read-only, and `CS-256/cs256-fall-2026/` is the course's own repository (reference only, never push).
+This folder holds the team's decisions, architecture decision records (ADRs), design notes, plans, reviews and references for the CS-256 class project, the two-player Tron game. It was imported with its Git history from Alan's `CS-256/Game_research` repository on 20 October 2026; see [the merge plan](plan/CS-256%20Tron%20Repository%20Merge%20Plan.md). The hardware lives in `proyecto_final/` and the PC prototypes in `prototipos/`. `CS-256/cs256-fall-2026/` is the course's own repository: reference only, never push.
 
 ## Layout
 
+Paths are relative to the repository root.
+
 | Path | Contents |
 |---|---|
-| `CS-256 Tron Game Overview.md` | Game concept from the whiteboard photo |
-| `CS-256 Tron Game Mechanics.md` | Short, derived navigation summary of the locked rules |
-| `CS-256 Tron Glossary.md` | Canonical game vocabulary. Use these terms in notes, code comments, and the report |
-| `CS-256 VGA and Sprite Design Plan.md` | VGA timing, render pipeline, sprite ROMs, milestones |
-| `CS-256 Tron Development Plan.md` | Calendar, freezes, scope tiers, work list, verification approach, prototype phases |
-| `CS-256 Tron Agreed Specification 2026-10-20.md` | Consolidated team-agreed baseline locked at the end of the discussion; layout and schedule remain tentative |
-| `CS-256 Tron Team Decisions 2026-10-20.md` | Question-by-question meeting decisions and the source-backed pre-meeting comparison |
-| `CS-256 Tron Integration Comparison.md` | Historical comparison against the team-repository snapshot checked 15 October; recommendations are not decisions |
-| `CS-256 TA Email - Game Clock.md` | Superseded historical draft; the game-clock question is closed |
-| `CS-256 Official FPGA Coding Practices.md` | Manufacturer guidance for the selected design; superseded clock and pixel-pipeline comparisons are marked historical |
-| `CS-256 Tron Architecture and Documentation Map.md` | Document authority, status, owners, update triggers, and traceability |
-| `CS-256 Tron Documentation Control Review 2026-10-20.md` | Audit scope, findings, edits, and validation evidence |
-| `CS-256 Tron Opus 5.5 Architecture and Integration Review.md` | Pinned team-repository review, integration gaps and proposed architecture; read the parent-review reservations before adopting recommendations |
-| `CS-256 Tron Repository Merge Plan.md` | Draft repository-import procedure and choices; no migration, history rewrite or publication has been approved or executed by this review |
-| `Nexys_A7_Game_Research_Report.md` | Board capabilities research |
-| `Datasheets/`, `Nexys_A7_100T_Official_Docs/` | Vendor references |
-| `hdl/` | Synthesizable SystemVerilog and `.xdc` constraints |
-| `sim/` | Testbenches and simulation outputs (waveforms, `.ppm` frame dumps) |
-| `prototype/` | Legacy local Python model (`model/`, headless), viewer (`look/`, pygame-ce), and local tests/metrics; shared-model migration and target Step logs remain open |
-| `tools/` | Host-side scripts, such as `png2coe.py`, and the P2 web controller page (Web Serial) |
+| `docs/decisions/` | **Locked** 20 October records, never edited: the Agreed Specification (current team-rule authority) and the Team Decisions provenance record. Hashes, tags and the old-path map are in [decisions/README.md](decisions/README.md) |
+| `docs/adr/` | Architecture decision records, numbered `0001-slug.md`. ADR 0001 is superseded, ADR 0002 is accepted; later team decisions start at 0003 |
+| `docs/CS-256 Tron Architecture and Documentation Map.md` | Document authority, status, owners, update triggers, and traceability |
+| `docs/domain/` | Glossary (canonical game vocabulary; use these terms in notes, code comments, and the report) and Game Mechanics (derived index of the locked rules) |
+| `docs/design/` | VGA and Sprite Design Plan; Official FPGA Coding Practices (manufacturer guidance; superseded clock and pixel-pipeline comparisons are marked historical) |
+| `docs/plan/` | Development Plan (calendar, freezes, scope tiers, work list, verification approach) and the Repository Merge Plan |
+| `docs/reviews/` | Opus 5.5 Architecture and Integration Review (read its parent-review reservations before adopting recommendations), Documentation Control Review, and the archived Integration Comparison |
+| `docs/history/` | Game Overview (whiteboard concept), superseded TA game-clock email draft, and the import commit map |
+| `docs/references/` | Nexys A7 research report, vendor datasheets (`datasheets/`), and official documentation links |
+| `docs/agents/` | Instructions for AI agents: issue tracker, triage labels, domain docs. The root `AGENTS.md` and `CLAUDE.md` point here |
+| `proyecto_final/` | Hardware: interface contract, SystemVerilog, testbenches |
+| `prototipos/look/` | Legacy local Python Look Prototype: model (`model/`, headless), viewer (`look/`, pygame-ce), tests and metrics; shared-model migration and target Step logs remain open |
+| `prototipos/` (others) | Roman's prototypes and launcher, including the `tron/` viewer |
+| `tools/` | Host-side scripts, such as candidate-art generation and `png2coe.py` |
 | `assets/` | Sprite art (`.png`) and generated `.coe` files |
-| `evidence/` | Report evidence (waveforms, `.ppm` frames, board photos, report excerpts), named `<ObjectiveID>-<short-name>.<ext>`; logged in the development plan |
-| `docs/adr/` | Architecture decision records, numbered `0001-slug.md` |
-| `AGENTS.md`, `CLAUDE.md`, `docs/agents/` | Instructions for AI agents: issue tracker, triage labels, domain docs |
 
-Create the subfolders when their first file is needed.
+Create new folders, such as `evidence/` for report evidence named `<ObjectiveID>-<short-name>.<ext>`, when their first file is needed.
 
-**Implementation home:** the team selected [romanmg00/FPGA](https://github.com/romanmg00/FPGA) for the shared HDL/model implementation. Its interface contract must first be reconciled with the course requirements and the locked team agreement; the remote contract and either implementation have not been migrated during the discussion. Until that reconciliation is recorded, the agreed specification is the current team-rule authority and existing code describes only its own present behavior.
+**Implementation home:** this repository, [romanmg00/FPGA](https://github.com/romanmg00/FPGA), is the team's shared HDL/model implementation home. Its interface contract (`proyecto_final/Contrato de interfaces game_top (CS 256).md`) must first be reconciled with the course requirements and the locked team agreement. Until that reconciliation is recorded, the agreed specification is the current team-rule authority and existing code describes only its own present behavior.
 
 ## Read and authority path
 
-1. Start with this folder policy and [[CS-256 Tron Architecture and Documentation Map]].
+1. Start with this README and [[CS-256 Tron Architecture and Documentation Map]].
 2. Read [[CS-256 Tron Agreed Specification 2026-10-20]] for the locked baseline and [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] for decision provenance. The pre-meeting comparison later in the decision note is historical.
 3. Use [[CS-256 Tron Game Mechanics]] as a topic index and [[CS-256 Tron Glossary]] for terms; neither replaces the specification.
 4. Read accepted ADRs and the relevant design guidance. [ADR 0002](adr/0002-follow-ta-divided-game-clock.md) is the accepted game-clock decision; ADR 0001 is superseded.
@@ -58,10 +51,10 @@ As confirmed from the TAs’ instruction on 2026-10-20, the team is **Roman and 
 
 - **Authority:** course requirements and the TAs' strict-architecture instruction govern the project. The locked [[CS-256 Tron Agreed Specification 2026-10-20]] is the current team decision baseline. The team repository's interface contract is the selected implementation contract only after it incorporates that baseline; its older rules do not override the agreement. Existing code documents current behavior, not intended behavior. See the [[CS-256 Tron Architecture and Documentation Map]] for ownership and status.
 
-- Follow the course [class project handout](../../cs256-fall-2026/classproject/README.md) and [sprite tips](../../cs256-fall-2026/classproject/sprites/README.md) strictly, as confirmed by the team from its TAs’ recommendation on 2026-10-20. The **final game** uses a second Clocking Wizard plus counter divider for an approximately **60 Hz game clock**, output-aligned coordinates and early sprite-memory reads. [ADR 0002](adr/0002-follow-ta-divided-game-clock.md) supersedes the frame-enable proposal in ADR 0001. Clock-enable and delayed-stream alternatives remain historical research in [[CS-256 Official FPGA Coding Practices]].
+- Follow the course [class project handout](../../cs256-fall-2026/classproject/README.md) and [sprite tips](../../cs256-fall-2026/classproject/sprites/README.md) strictly, as confirmed by the team from its TAs’ recommendation on 2026-10-20. Links into `cs256-fall-2026/` resolve only when this repository is cloned beside the course repository, as in the vault's `CS-256/` folder. The **final game** uses a second Clocking Wizard plus counter divider for an approximately **60 Hz game clock**, output-aligned coordinates and early sprite-memory reads. [ADR 0002](adr/0002-follow-ta-divided-game-clock.md) supersedes the frame-enable proposal in ADR 0001. Clock-enable and delayed-stream alternatives remain historical research in [[CS-256 Official FPGA Coding Practices]].
 
 - The requested **83.46 MHz pixel clock** is separate from the approximately **60 Hz frame refresh** and the approximately **60 Hz game-state clock**. The divider, fast Arena service, and video pipeline have different responsibilities; do not describe the divided game clock as display-only.
 
-- New notes use the vault's frontmatter and naming standard ([Metadata and File Standard](../../../00-System/Planning/Metadata-and-File-Standard.md)), with a `CS-256` title prefix.
-- When a game term is settled or changed, update the glossary. For rule changes, update the agreed specification and decision provenance first; update Mechanics only if its topic links need to change.
+- New notes use the Obsidian vault's frontmatter and naming standard ([Metadata and File Standard](../../../00-System/Planning/Metadata-and-File-Standard.md)), with a `CS-256` title prefix.
+- When a game term is settled or changed, update the glossary. The 20 October records in `docs/decisions/` stay byte-identical: record a rule change as a new ADR (0003 onward) or a dated successor specification, then update Mechanics' topic links if needed.
 - Code and generated files (`.sv`, `.xdc`, `.coe`, `.py`) do not need frontmatter.
