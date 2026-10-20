@@ -6,7 +6,7 @@ type: plan
 subject: CS-256
 status: active
 created_at: "2026-10-20T15:08:18"
-updated_at: "2026-10-20T19:26:51"
+updated_at: "2026-10-20T19:33:29"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Opus 5.5 Architecture and Integration Review]]"
@@ -23,7 +23,7 @@ tags:
 # CS-256 Tron Repository Merge Plan
 
 > [!info] Executed on 20 October 2026, with changes
-> The team approved the import, and Alan ran steps A–D on branch `integrate/game-research`, which reaches `main` through a pull request (step E). Step F, converting the vault folder, has not been done. Where the procedure below differs from what was run, [[#Execution record, 2026-10-20]] is authoritative. The procedure text is kept as drafted.
+> The team approved the import, and Alan ran steps A–D on branch `integrate/game-research`. Pushing it and the pull request to `main` (step E) are pending, and step F, converting the vault folder, has not been done. Where the procedure below differs from what was run, [[#Execution record, 2026-10-20]] is authoritative. The procedure text is kept as drafted.
 
 This plan merges the local `CS-256/Game_research` repository into the team repository [romanmg00/FPGA](https://github.com/romanmg00/FPGA). Roman's `main` stays the canonical branch. Our decisions, ADRs, design notes, reviews, Look Prototype, tools and art are **merged with their Git history, not discarded**.
 
@@ -55,7 +55,12 @@ This plan merges the local `CS-256/Game_research` repository into the team repos
 
 - Check the two locked files by name against their full hashes. The `docs/decisions/*.md` glob now also matches `README.md`.
 - The empty-diff check on Roman's paths holds only before step D. After D, the only intended changes to his files are the README section and the `.gitignore` entries.
-- Branch pushes do not publish tags, so `research/decisions-2026-10-20` and `research/research-pre-merge` are pushed explicitly.
+- Branch pushes do not publish tags, so `research/decisions-2026-10-20` and `research/research-pre-merge` are pushed explicitly, and nothing else: `git push --atomic --no-follow-tags origin` with the branch and the two tag refspecs.
+
+**Vault side effects while both folders exist.** `CS-256/FPGA/` sits in the vault beside `CS-256/Game_research/`. Until step F:
+
+- Every device's `.stignore` should exclude `/CS-256/FPGA/.git`, as step F already requires for `Game_research/.git`, and only one machine runs Git.
+- The two folders share 24 note filenames, so Obsidian may resolve a bare wikilink to either copy. The current notes are the ones in `CS-256/FPGA/`.
 
 ## Summary
 

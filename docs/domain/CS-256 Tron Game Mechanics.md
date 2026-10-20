@@ -6,7 +6,7 @@ type: note
 subject: CS-256
 status: active
 created_at: "2026-10-14T23:00:00"
-updated_at: "2026-10-20T14:34:31"
+updated_at: "2026-10-20T19:33:29"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
@@ -37,7 +37,7 @@ Use [[CS-256 Tron Glossary]] for domain terms. A rule agreement records intended
 
 ## Maintenance
 
-When the team formally revises a rule, update the agreed specification and its decision provenance first, then check the affected links here and the glossary. Keep implementation notes and evidence linked to the rule they realize; do not copy the specification's rule tables into this index.
+When the team formally revises a rule, record it in a new ADR (0003 onward) or a dated successor record; the 20 October specification and decision record stay byte-identical. Then check the affected links here and the glossary. Keep implementation notes and evidence linked to the rule they realize; do not copy the specification's rule tables into this index.
 
 ## Legacy section links
 

@@ -6,7 +6,7 @@ type: plan
 subject: CS-256
 status: draft
 created_at: "2026-10-15T16:58:26"
-updated_at: "2026-10-20T15:14:27"
+updated_at: "2026-10-20T19:33:29"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
@@ -133,7 +133,7 @@ A PC program for comparing HUD, sprite and Cell sizes, Bike art and the overall 
 
 The shared headless model is the functional reference for the selected rules and verification scenarios. It should model observable Cell coordinates, Points/Lives, full final-Step totals, and the selected Reward sequence. The exact PRNG, seed advancement, and placement service are still engineering choices; once selected, the HDL and model must agree. The model is checked at Step boundaries, not per clock cycle.
 
-- **Selected on 20 October:** one shared, headless rules model in the team repository, imported by the PC viewers and used for HDL verification scenarios. The current local `prototype/model/` and team `prototipos/tron/juego.py` are migration inputs, not two continuing rule authorities. Choose the migration base/location and viewer adapters during implementation planning.
+- **Selected on 20 October:** one shared, headless rules model in the team repository, imported by the PC viewers and used for HDL verification scenarios. The current local `prototipos/look/model/` and team `prototipos/tron/juego.py` are migration inputs, not two continuing rule authorities. Choose the migration base/location and viewer adapters during implementation planning.
 - Target shared-model playability and Step-log evidence are tentative W1–W2 work; the existing local viewer is not evidence that migration is complete.
 - Step logs, scenario files and the diff script are tentative W2 targets (Thu 29 Oct); this is not a course deadline.
 

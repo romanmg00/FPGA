@@ -6,7 +6,7 @@ type: note
 subject: CS-256
 status: active
 created_at: "2026-10-20T14:38:28"
-updated_at: "2026-10-20T19:25:26"
+updated_at: "2026-10-20T19:33:29"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
@@ -59,8 +59,8 @@ Start with the project [README](README.md), then read the agreed specification a
 | [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) | Process pointers; project-maintained | Agent reading order and folder guidance | Must mirror this map and README; update when those sources or agent workflow change. |
 | [Domain docs](agents/domain.md) | Process pointer; project-maintained | Domain reading order and conflict handling | This map, glossary, specification, and ADR statuses; update when document authority changes. |
 | [Issue tracker](agents/issue-tracker.md) and [triage labels](agents/triage-labels.md) | Process references; project-maintained | GitHub issue and label conventions | Tracker configuration; update only when the workflow or actual labels change. These do not decide game behavior. |
-| [[CS-256 Tron Agreed Specification 2026-10-20]] | **Locked team-rule authority**; team-owned | Selected game rules, hardware baseline, work division, and tentative scope/schedule | Course requirements plus the live decision record. Revise only when the team formally reopens a decision or course/TA direction requires it. |
-| [[CS-256 Tron Team Decisions 2026-10-20]] | Decision provenance; team-owned | Q1–Q40 and source-backed context | Live discussion. Preserve the old comparison as history; update only for a formal correction/reopened decision. |
+| [[CS-256 Tron Agreed Specification 2026-10-20]] | **Locked team-rule authority**; team-owned | Selected game rules, hardware baseline, work division, and tentative scope/schedule | Course requirements plus the live decision record. **Never edited** (SHA-256 in [decisions/README.md](decisions/README.md)). When the team formally reopens a decision or course/TA direction requires a change, record it in a new ADR or a dated successor record. |
+| [[CS-256 Tron Team Decisions 2026-10-20]] | Decision provenance; team-owned | Q1–Q40 and source-backed context | Live discussion. **Never edited**, including its historical comparison. Record a formal correction or reopened decision in a new ADR or a dated successor record. |
 | [[CS-256 Tron Game Mechanics]] | **Derived index**; project-maintained | Links from rule topics to the specification | Specification headings; update links when the specification changes. It is not a second rule source. |
 | [[CS-256 Tron Glossary]] | Vocabulary authority; project-maintained | Canonical meanings of game terms | Domain language; update when a term is resolved or changes, without duplicating implementation details. |
 | [ADR 0002](adr/0002-follow-ta-divided-game-clock.md) | **Accepted architecture decision**; team-owned | Strict handout divided game-state clock and consequences | TA instruction and course handout. Revisit only if course/TA direction or a formally reopened architecture decision changes. |
@@ -79,7 +79,7 @@ Start with the project [README](README.md), then read the agreed specification a
 | [[CS-256 Tron Documentation Control Review 2026-10-20]] | Audit record; project-maintained | Reviewed scope, discrepancies, changes, unresolved work, and validation | This documentation review; update when its findings are reconciled or validation status changes. |
 | [[CS-256 Tron Opus 5.5 Architecture and Integration Review]] | Independent review; proposals, not accepted ADRs | Pinned main-repository findings and architecture/integration options | Reviewed main SHA and locked agreement; read the Parent review section before selecting a proposed interface. Update as findings are resolved. |
 | [Locked records index](decisions/README.md) | Integrity record; team-owned | SHA-256 values, tags and the old-to-new path map for the two locked records | Update only if a further dated record is added; the locked records themselves never change. |
-| [[CS-256 Tron Repository Merge Plan]] | Executed migration procedure, 20 October 2026; Alan | Import method, file mapping, history and working-copy options | Executed through branch `integrate/game-research` with the corrections recorded in its execution note. Converting the vault folder (step F) has not been done. |
+| [[CS-256 Tron Repository Merge Plan]] | Migration procedure, import prepared 20 October 2026; Alan | Import method, file mapping, history and working-copy options | Steps A–D ran on branch `integrate/game-research`, with the corrections recorded in its execution note; the push, pull request and merge (step E) are pending, and the vault folder has not been converted (step F). |
 
 ## Traceability
 
@@ -100,4 +100,4 @@ The pre-demo build around **15 November** and demo-code freeze around **23 Novem
 
 ## Integration review follow-up
 
-The independent review confirms agreement fidelity and identifies contract reconciliation, shared-model migration and the X1 slow-game/fast-service interface as the main integration blockers. Its custom mailbox, input batching and render-update policy are proposed implementations requiring proof; they are not additional accepted architecture decisions. See [[CS-256 Tron Opus 5.5 Architecture and Integration Review#Parent review and adoption limits]]. The repository merge plan was approved by the team and executed on 20 October 2026 through a pull request; converting the vault folder into a working clone remains a separate, later step.
+The independent review confirms agreement fidelity and identifies contract reconciliation, shared-model migration and the X1 slow-game/fast-service interface as the main integration blockers. Its custom mailbox, input batching and render-update policy are proposed implementations requiring proof; they are not additional accepted architecture decisions. See [[CS-256 Tron Opus 5.5 Architecture and Integration Review#Parent review and adoption limits]]. The repository merge plan was approved by the team, and the import was prepared on 20 October 2026 on branch `integrate/game-research`. Pushing it, Roman's pull-request review and the merge are still pending; converting the vault folder into a working clone is a separate, later step.
