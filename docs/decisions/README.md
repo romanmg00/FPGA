@@ -27,11 +27,13 @@ The records cite files by their location in the Obsidian vault before the import
 | Path cited in the locked records (under `CS-256/Game_research/`) | Path in this repository |
 |---|---|
 | `README` | `docs/README.md` |
-| `prototype/README` | `prototipos/look/README.md` |
-| `prototype/` (including the `cd` and `requirements.txt` commands) | `prototipos/look/` |
-| `prototype/look/app.py`, `candidates.py`, `font.py`, `hud.py` | `prototipos/look/look/` (same names) |
-| `prototype/model/lfsr.py`, `params.py`, `rewards.py`, `steering.py` | `prototipos/look/model/` (same names) |
+| `prototype/README` | `prototipos/tron_fpga/README.md` |
+| `prototype/` (including the `cd` and `requirements.txt` commands) | `prototipos/tron_fpga/` |
+| `prototype/look/app.py`, `candidates.py`, `font.py`, `hud.py` | `prototipos/tron_fpga/juego/` (same names) |
+| `prototype/model/lfsr.py`, `params.py`, `rewards.py`, `steering.py` | `prototipos/tron_fpga/model/` (same names) |
 | `Datasheets/Nexys-A7-100T-Master.xdc` | `docs/references/datasheets/Nexys-A7-100T-Master.xdc` (same pins as the root `nexys-a7-100t-master.xdc`) |
 | Notes cited by name, such as `[[CS-256 Tron Glossary]]` | Same filename under `docs/`; see the layout in [`../README.md`](../README.md) |
+
+The import first placed the prototype at `prototipos/look/`, with its viewer package at `prototipos/look/look/`. Both were renamed on 20 October 2026, to `prototipos/tron_fpga/` and `prototipos/tron_fpga/juego/`; `git log --follow` traces the files across both moves.
 
 Links into `CS-256/cs256-fall-2026/` point at the course repository, which is not part of this repository.

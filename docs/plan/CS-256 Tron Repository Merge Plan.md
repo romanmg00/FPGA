@@ -42,7 +42,8 @@ This plan merges the local `CS-256/Game_research` repository into the team repos
   - the team-repository read path and agent instructions;
   - the locked-records index and the commit map;
   - the root README section and `.gitignore` entries;
-  - this record.
+  - this record;
+  - **a rename, after the first reviews:** `prototipos/look/` became `prototipos/tron_fpga/` and its viewer package `look/` became `juego/`, so the launch command is now `python -m juego`. The new name says what the prototype is: a Tron game built around the planned Nexys A7 hardware blocks, next to Roman's `prototipos/tron/`. Both moves used `git mv`. The steps above and the filter-repo commands keep the `prototipos/look/` paths as they ran. "Look Prototype" stays the name of the L1 objective.
 
   Course links point at the sibling `cs256-fall-2026/` checkout, so they resolve in the vault but not on GitHub.
 - **Smoke checks** (they check the move, not the agreed rules):
@@ -59,12 +60,12 @@ This plan merges the local `CS-256/Game_research` repository into the team repos
 
 **Vault side effects while both folders exist.** `CS-256/FPGA/` sits in the vault beside `CS-256/Game_research/`. Until step F:
 
-- Every device's `.stignore` should exclude `/CS-256/FPGA/.git`, as step F already requires for `Game_research/.git`, and only one machine runs Git.
-- The two folders share 24 note filenames, so Obsidian may resolve a bare wikilink to either copy. The current notes are the ones in `CS-256/FPGA/`.
+- Every device's `.stignore` should exclude `/CS-256/FPGA/.git`, as step F already requires for `Game_research/.git`, and only one machine runs Git. Added on the Git machine on 20 October; each other device still needs the line.
+- The two folders share 24 note filenames, so Obsidian may resolve a bare wikilink to either copy. The current notes are the ones in `CS-256/FPGA/`. Adding `CS-256/Game_research/` to Obsidian's excluded files hides the old copies until step F.
 
 ## Summary
 
-- **Result.** One repository, `romanmg00/FPGA` `main`. It contains Roman's existing tree unchanged, plus `docs/` (decisions, ADRs, design, plans, reviews), `prototipos/look/` (our prototype), `tools/` and `assets/`.
+- **Result.** One repository, `romanmg00/FPGA` `main`. It contains Roman's existing tree unchanged, plus `docs/` (decisions, ADRs, design, plans, reviews), `prototipos/tron_fpga/` (our prototype), `tools/` and `assets/`.
 - **Method.** Filter a throwaway copy of our repository. Merge it into a branch of Roman's repository with `--allow-unrelated-histories`. Add small follow-up commits, open a pull request, and merge it with **"Create a merge commit"**.
 - **Locked records stay byte-identical**, verified by SHA-256: specification `cd524e90…`, decision record `ff9c1c62…`. Their historical links stay resolvable through tags and a path map.
 - **Nothing is lost.** Material kept out of the public repository stays in a Git bundle, in archive tags and in an ignored `local/` folder.
@@ -134,16 +135,16 @@ FPGA/                                    romanmg00/FPGA, main (canonical)
 ├── proyecto_final/                      Roman's hardware root, unchanged; rtl/ sim/ ip/ constraints/ scripts/ added later
 ├── prototipos/                          Roman's prototypes, unchanged
 │   ├── tron/                            Roman's viewer; becomes an adapter over model/ after decision D1
-│   ├── look/                            our Look Prototype, intact (look/, model/, tests/, metrics/, README, requirements)
+│   ├── tron_fpga/                       our Look Prototype, renamed from look/ (juego/, model/, tests/, metrics/, README, requirements)
 │   └── lanzador.py, correr_pruebas.py, slither/, mountain_crash/, zombie_crossing/
-├── model/                               after D1: shared model, via git mv from prototipos/look/model (if D1 = A)
+├── model/                               after D1: shared model, via git mv from prototipos/tron_fpga/model (if D1 = A)
 ├── tools/                               make_candidate_art.py, vga_out_tb_cycle_model.py; later png2coe.py
 ├── assets/                              candidates/*.png; later native art and generated .coe
 ├── web/                                 later: Web Serial controller page
 └── local/                               ignored, never published: vendor datasheets and the duplicate XDC
 ```
 
-Our prototype goes to `prototipos/look/`, following Roman's `prototipos/<game>/` convention, and is not split at import time. Moving its model to `model/` waits for decision D1, so the import does not prejudge it. The hardware subfolder layout and module owners are in [[CS-256 Tron Opus 5.5 Architecture and Integration Review#4.4 Proposed canonical repository structure and model governance]].
+Our prototype goes to `prototipos/look/` (renamed afterwards to `prototipos/tron_fpga/`; see the execution record), following Roman's `prototipos/<game>/` convention, and is not split at import time. Moving its model to `model/` waits for decision D1, so the import does not prejudge it. The hardware subfolder layout and module owners are in [[CS-256 Tron Opus 5.5 Architecture and Integration Review#4.4 Proposed canonical repository structure and model governance]].
 
 ## Path map
 
@@ -286,7 +287,7 @@ Make one small commit per item so Roman can review each separately.
 3. **Root `README.md`.** Add a short "Documentation and decisions / Documentación y decisiones" section linking `docs/README.md`, `docs/decisions/` and `docs/adr/`.
 4. **`.gitignore`.** Add `.pytest_cache/`, `prototipos/look/out/`, Vivado run directories and `local/`.
 5. **Python environments (M5).** Keep `prototipos/requirements.txt` (Roman) and `prototipos/look/requirements.txt` (ours) separate, and document one virtual environment per viewer.
-6. **Optional, in Roman's file:** a `look` entry in `prototipos/lanzador.py`. It runs `python -m look` with `cwd=prototipos/look`.
+6. **Optional, in Roman's file:** a `tron_fpga` entry in `prototipos/lanzador.py`. It runs `python -m juego` with `cwd=prototipos/tron_fpga`.
 7. **Optional:** a `CODEOWNERS` file so that changes to `docs/decisions/` and `docs/adr/` need both members.
 
 **Check:**
@@ -319,7 +320,7 @@ git switch -C main origin/main
 git branch --set-upstream-to=origin/main main
 ```
 
-4. Move any ignored local renders from `prototype/out/` to `prototipos/look/out/`, then remove the emptied old folders.
+4. Move any ignored local renders from `prototype/out/` to `prototipos/tron_fpga/out/`, then remove the emptied old folders.
 5. Reopen Obsidian and run the link check.
 
 **Check:**

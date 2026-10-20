@@ -24,7 +24,7 @@ lecturesFromCs256/
 
 # Game_research (importado)
 .pytest_cache/
-prototipos/look/out/
+prototipos/tron_fpga/out/
 # Corridas de Vivado
 *.runs/
 *.cache/

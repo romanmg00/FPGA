@@ -1,6 +1,8 @@
-# CS-256 Tron prototype
+# CS-256 Tron FPGA prototype (`tron_fpga`)
 
 > **Implementation status, 20 October 2026:** this README describes the existing local viewer/model, which predates the team's locked specification. The target uses 16 px Cells, four-bit Arena words, Rewards +1/+1/+3, Survival Bonus +3, a configurable goal defaulting to 10, native RGB444 `.coe` sprites, and one shared headless rules model in the team repository. Migration has not been implemented. See [[CS-256 Tron Agreed Specification 2026-10-20]] and [[CS-256 Tron Architecture and Documentation Map]]; current prototype defaults and passing tests do not establish those decisions as implemented.
+
+`tron_fpga` is a PC version of the game built around the planned Nexys A7 hardware: `model/` splits the rules into the hardware blocks (Arena grid BRAM, Step controller, the Reward-placement LFSR the HDL must copy), and the viewer package `juego/` draws 1280 x 800 frames in RGB444 with ROM-style fonts and BRAM estimates. It was imported as `prototipos/look/` and renamed on 20 October 2026; "Look Prototype" remains the name of its L1 objective in the Development Plan.
 
 This is the earlier L1/M1 PC prototype: two Players can play while comparing art, sizes and HUD layouts. Those work-list labels describe prototype work, not a remaining rule-lock gate. The locked target is in the agreed specification; this local model and viewer have not been migrated to it. Visual/layout review can still revise the explicitly working geometry through a documented specification update.
 
@@ -10,53 +12,53 @@ The viewer defaults to the `synthwave` style preset. Sizes and Player colours st
 
 This is a local, two-player Python desktop game. You need Python 3.10 or newer, a keyboard, and a graphical desktop. No FPGA board or Vivado installation is needed to play. The dependencies are pygame-ce, NumPy and Pillow.
 
-Open a terminal in this `prototipos/look/` folder, which contains `requirements.txt`, `look/` and `model/`. From the repository root, enter it with:
+Open a terminal in this `prototipos/tron_fpga/` folder, which contains `requirements.txt`, `juego/` and `model/`. From the repository root, enter it with:
 
 ```sh
-cd prototipos/look
+cd prototipos/tron_fpga
 ```
 
 Create the virtual environment outside the repository so it is not synced by OneDrive/Syncthing. Keep it separate from the environment for `prototipos/requirements.txt`: that one installs `pygame` and this one installs `pygame-ce`, and both provide the `pygame` module. Choose the commands for your operating system.
 
 ### Linux / macOS
 
-Run these commands from `prototipos/look/`:
+Run these commands from `prototipos/tron_fpga/`:
 
 ```bash
 python3 -m venv "$HOME/.venvs/cs256-tron"
 source "$HOME/.venvs/cs256-tron/bin/activate"
 python -m pip install -r requirements.txt
-python -m look
+python -m juego
 ```
 
 ### Windows (PowerShell)
 
-Run these commands from `prototipos/look/`:
+Run these commands from `prototipos/tron_fpga/`:
 
 ```powershell
 py -3 -m venv "$env:USERPROFILE\.venvs\cs256-tron"
 & "$env:USERPROFILE\.venvs\cs256-tron\Scripts\python.exe" -m pip install -r requirements.txt
-& "$env:USERPROFILE\.venvs\cs256-tron\Scripts\python.exe" -m look
+& "$env:USERPROFILE\.venvs\cs256-tron\Scripts\python.exe" -m juego
 ```
 
 These Windows commands use the environment's Python directly, so activating a PowerShell script is unnecessary.
 
 ### Run again later
 
-Open a terminal in `prototipos/look/`. On Linux/macOS:
+Open a terminal in `prototipos/tron_fpga/`. On Linux/macOS:
 
 ```bash
 source "$HOME/.venvs/cs256-tron/bin/activate"
-python -m look
+python -m juego
 ```
 
 On Windows (PowerShell):
 
 ```powershell
-& "$env:USERPROFILE\.venvs\cs256-tron\Scripts\python.exe" -m look
+& "$env:USERPROFILE\.venvs\cs256-tron\Scripts\python.exe" -m juego
 ```
 
-Launch the package with `-m look`; running `look/app.py` directly does not set up its package imports.
+Launch the package with `-m juego`; running `juego/app.py` directly does not set up its package imports.
 
 ## Play your first Round
 
@@ -70,7 +72,7 @@ The side panel lets you compare visual candidates. **Tab** cycles its pages or h
 
 ## Troubleshooting
 
-- **`No module named look` or `No module named model`:** make sure the terminal is in `prototipos/look/`, then use `python -m look` (or the full Windows Python command above).
+- **`No module named juego` or `No module named model`:** make sure the terminal is in `prototipos/tron_fpga/`, then use `python -m juego` (or the full Windows Python command above).
 - **Missing `pygame`, `numpy` or `PIL`:** install `requirements.txt` using the same environment's Python that launches the game. The package providing `PIL` is Pillow; the package providing `pygame` here is pygame-ce.
 - **`python3` or `py` is not found:** install Python 3.10 or newer and reopen the terminal. On Windows, enable the Python launcher during installation.
 - **Linux cannot create a virtual environment:** install your distribution's Python venv support (often the `python3-venv` package), then retry.
@@ -79,7 +81,7 @@ The side panel lets you compare visual candidates. **Tab** cycles its pages or h
 
 ## Tests
 
-Run both test suites from `prototipos/look/`:
+Run both test suites from `prototipos/tron_fpga/`:
 
 ```powershell
 python -m unittest discover -s tests
@@ -101,7 +103,7 @@ python -m unittest discover -s tests
 | M / Shift+M | Next / previous style preset: `synthwave`, `outrun`, `classic`; presets never change geometry |
 | Tab | Cycle the panel in windowed mode: look page, BRAM page, effects page, hidden |
 | F11 | Toggle fullscreen; 1:1 on the 1280 × 800 lab monitor, integer enlargement on larger displays |
-| F12 | Save the game image to `prototipos/look/out/`, without the panel or debug overlay |
+| F12 | Save the game image to `prototipos/tron_fpga/out/`, without the panel or debug overlay |
 | Esc | Leave fullscreen, or quit in windowed mode |
 
 Candidate keys cycle forward; hold Shift to go back. The panel shows each axis by its field name, shortened to fit.
@@ -127,7 +129,7 @@ Candidate keys cycle forward; hold Shift to go back. The panel shows each axis b
 | C | CRT effect (`crt`) | `scanlines`, `off` |
 | V | Bike effects (`bike_fx`) | `glow`, `streaks`, `none` |
 
-The presets in `look/candidates.py` pair `synthwave` with `synth` + `glow`, `outrun` with `racer` + `streaks`, and `classic` with `cycle` + `none`. Both `glow` and `streaks` pulse any Bike halo; `none` leaves it at its fixed dim tint.
+The presets in `juego/candidates.py` pair `synthwave` with `synth` + `glow`, `outrun` with `racer` + `streaks`, and `classic` with `cycle` + `none`. Both `glow` and `streaks` pulse any Bike halo; `none` leaves it at its fixed dim tint.
 
 Changing HUD layout, Cell side or digit height creates a new Match. Other axes redraw the current state. The top HUD reserves a band rounded to 16 px; sides reserve 96 px each. The corner candidate covers Arena Cells and is not the selected working layout in the agreement.
 
@@ -137,15 +139,15 @@ See [Performance and hardware tracking](#performance-and-hardware-tracking) for 
 
 ## Performance and hardware tracking
 
-From `prototipos/look/`, run:
+From `prototipos/tron_fpga/`, run:
 
 ```powershell
-python -m look.metrics
+python -m juego.metrics
 ```
 
-This renders the configurations in `look/metrics.py`'s `CONFIGS` headless: all three presets at 8 px Cells, then `synthwave` at 4 and 16 px Cells. Each run measures 240 frames after 30 warm-up frames. Draw time includes the Game Model frame update, Trail update, drawing and final colour stage; build time measures a renderer rebuild.
+This renders the configurations in `juego/metrics.py`'s `CONFIGS` headless: all three presets at 8 px Cells, then `synthwave` at 4 and 16 px Cells. Each run measures 240 frames after 30 warm-up frames. Draw time includes the Game Model frame update, Trail update, drawing and final colour stage; build time measures a renderer rebuild.
 
-The command appends rows to `prototipos/look/metrics/look-metrics.csv` and rewrites [prototipos/look/metrics/latest.md](metrics/latest.md). The CSV columns, in `FIELDS` order, are `date`, `commit`, `dirty`, `host`, `python`, `pygame`, `config`, `cell_px`, `build_ms`, `draw_ms_median`, `draw_ms_p95`, `ramb18`, `ramb18_pct`, `effect_table_bits`, `clear_us`, `placement2_us`, `blank_us`, `rgb444_ok`, `border_ok` and `flags`.
+The command appends rows to `prototipos/tron_fpga/metrics/look-metrics.csv` and rewrites [prototipos/tron_fpga/metrics/latest.md](metrics/latest.md). The CSV columns, in `FIELDS` order, are `date`, `commit`, `dirty`, `host`, `python`, `pygame`, `config`, `cell_px`, `build_ms`, `draw_ms_median`, `draw_ms_p95`, `ramb18`, `ramb18_pct`, `effect_table_bits`, `clear_us`, `placement2_us`, `blank_us`, `rgb444_ok`, `border_ok` and `flags`.
 
 Commit code first, run the metrics from a clean working tree, then commit both metrics files. This makes each row name the clean commit measured. The `dirty` column flags any uncommitted change in the repository. Timing is per machine, recorded in `host`; compare rows from the same host. Hardware figures are estimates, pending synthesis.
 
@@ -211,7 +213,7 @@ Any `assets/bike-<name>.png` appears as Bike style `png:<name>` on restart. Its 
 
 The new candidate files are `bike-synth-*.png`, `bike-racer-*.png`, `reward-neon-gem-*.png` and `reward-neon-star-*.png` in `assets/candidates/`, at those sizes.
 
-Generated `synth` and `racer` Bike halos now hug the silhouette. `Canvas.glow` in `look/art.py` puts the dim tint key on transparent pixels within 1 px of drawn art, or 2 px for 64 px art.
+Generated `synth` and `racer` Bike halos now hug the silhouette. `Canvas.glow` in `juego/art.py` puts the dim tint key on transparent pixels within 1 px of drawn art, or 2 px for 64 px art.
 
 Art in this local viewer must be square with a power-of-two side and point UP. It converts PNG channels to RGB444: black `000` is transparent, green `0F0` is the Player/Reward tint key, and `111` gives visible black. In PNG RGB bytes these are `#000000`, `#00FF00` and `#111111`. The loader keeps the top four bits of each channel and treats alpha below 128 as transparent. Do not rely on partial alpha. The selected target uses native RGB444 `.coe` sprites; the planned L3 conversion/check is unfinished, and this viewer reads PNG rather than `.coe` files.
 
@@ -219,7 +221,7 @@ The legacy viewer interprets dim tint key `080` (PNG `#008800`) as half the Play
 
 ## Local Game Model (implementation reference)
 
-This section documents the existing local `prototipos/look/model/` code only. It is a migration input, not the selected HDL contract or the shared reference model. The team selected one headless model in the team repository for both PC viewers and HDL scenarios; the exact migration base and adapters remain engineering work. `model/` has no graphics imports and checks functional state at frame and Step boundaries.
+This section documents the existing local `prototipos/tron_fpga/model/` code only. It is a migration input, not the selected HDL contract or the shared reference model. The team selected one headless model in the team repository for both PC viewers and HDL scenarios; the exact migration base and adapters remain engineering work. `model/` has no graphics imports and checks functional state at frame and Step boundaries.
 
 | Module | Work-list objectives | Responsibility |
 |---|---|---|

@@ -5,7 +5,7 @@ This is the team repository for the CS-256 two-player Tron game (Roman and Alan)
 ## Layout and boundaries
 
 - `proyecto_final/`: hardware. Its interface contract, `proyecto_final/Contrato de interfaces game_top (CS 256).md`, is Roman's and is written in Spanish.
-- `prototipos/`: PC prototypes. `prototipos/tron/` is Roman's viewer; `prototipos/look/` is the imported Look Prototype. Each has its own requirements file and needs its own virtual environment: one uses `pygame`, the other `pygame-ce`.
+- `prototipos/`: PC prototypes. `prototipos/tron/` is Roman's viewer; `prototipos/tron_fpga/` is Alan's hardware-modelled Tron (viewer package `juego/`, rules in `model/`), imported as the Look Prototype. Each has its own requirements file and needs its own virtual environment: one uses `pygame`, the other `pygame-ce`.
 - `docs/`: decisions, ADRs, design notes, plans and reviews. See [docs/README.md](docs/README.md) for the layout.
 - `tools/`, `assets/`: host-side scripts and sprite art.
 

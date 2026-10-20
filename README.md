@@ -23,9 +23,10 @@ El diseño en hardware está en `proyecto_final/`. Su contrato de interfaces
   contrato digan otra cosa, mandan estas reglas hasta que se reconcilie el contrato.
 - [`docs/adr/`](docs/adr/): decisiones de arquitectura. Las nuevas decisiones del
   equipo van como ADR 0003 en adelante.
-- `prototipos/look/`: el Look Prototype de Alan (modelo, visor con pygame-ce, pruebas
+- `prototipos/tron_fpga/`: el Tron de Alan modelado sobre el hardware del Nexys A7
+  (reglas en `model/` por bloques de hardware, visor `juego/` con pygame-ce, pruebas
   y métricas). Usa su propio entorno virtual; ver
-  [`prototipos/look/README.md`](prototipos/look/README.md).
+  [`prototipos/tron_fpga/README.md`](prototipos/tron_fpga/README.md).
 - `AGENTS.md` y `CLAUDE.md`: instrucciones para agentes; `CLAUDE.md` importa
   `AGENTS.md`.
 

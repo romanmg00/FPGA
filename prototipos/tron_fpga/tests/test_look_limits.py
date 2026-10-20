@@ -3,7 +3,7 @@
 These guard the Development Plan's "FPGA limits for the Look Prototype"
 and the handout's white border against new effects, and the pulse Trail's
 visibility for both Player colours. Headless (SDL dummy video driver).
-Run from prototipos/look/: python -m unittest discover -s tests
+Run from prototipos/tron_fpga/: python -m unittest discover -s tests
 """
 
 import os
@@ -18,11 +18,11 @@ import pygame  # noqa: E402
 pygame.init()
 pygame.display.set_mode((1, 1))
 
-from look import budget  # noqa: E402
-from look.app import App  # noqa: E402
-from look.art import BIKE_STYLES, REWARD_LOOKS  # noqa: E402
-from look.candidates import PALETTES, PRESETS  # noqa: E402
-from look.rgb444 import expand  # noqa: E402
+from juego import budget  # noqa: E402
+from juego.app import App  # noqa: E402
+from juego.art import BIKE_STYLES, REWARD_LOOKS  # noqa: E402
+from juego.candidates import PALETTES, PRESETS  # noqa: E402
+from juego.rgb444 import expand  # noqa: E402
 from model import CRASH, FrameInputs, RuleParams  # noqa: E402
 from model.arena import TRAIL_P1, TRAIL_P2  # noqa: E402
 from model.params import BORDER_PX  # noqa: E402

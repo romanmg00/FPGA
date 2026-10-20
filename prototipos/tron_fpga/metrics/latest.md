@@ -1,6 +1,6 @@
 # Look Prototype metrics (latest run)
 
-Run 2026-10-17 16:32 on `Alan-Legion`, commit `69842fc`; Python 3.12.4, pygame-ce 2.5.8. History: `look-metrics.csv`. Regenerate with `python -m look.metrics` from `prototype/`, then commit both files.
+Run 2026-10-17 16:32 on `Alan-Legion`, commit `69842fc`; Python 3.12.4, pygame-ce 2.5.8. History: `look-metrics.csv`. Regenerate with `python -m juego.metrics` from `prototipos/tron_fpga/`, then commit both files.
 
 Draw time is the PC viewer's work per 1280 x 800 frame (Game tick, Trail update, render, final colour stage), headless, 240 frames after 30 warm-up; the 60 fps budget is 16.7 ms. Build time is a renderer rebuild (look change).
 

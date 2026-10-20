@@ -1,6 +1,6 @@
 """Look Prototype viewer (objective L1), playable on the Game Model (M1).
 
-Run from prototipos/look/:  python -m look
+Run from prototipos/tron_fpga/:  python -m juego
 """
 
 import os
@@ -22,7 +22,7 @@ from .render import SIZE, FrameRenderer
 from .rgb444 import DIM_TINT_KEY
 from .sprites import SpriteLibrary
 
-HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # prototipos/look/
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # prototipos/tron_fpga/
 ASSETS = os.path.join(os.path.dirname(os.path.dirname(HERE)), "assets")   # repository root
 OUT = os.path.join(HERE, "out")
 

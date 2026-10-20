@@ -14,10 +14,10 @@ import sys
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "prototipos", "look"))
+sys.path.insert(0, os.path.join(ROOT, "prototipos", "tron_fpga"))
 
-from look import art                    # noqa: E402
-from look.rgb444 import expand          # noqa: E402
+from juego import art                   # noqa: E402
+from juego.rgb444 import expand         # noqa: E402
 
 OUT = os.path.join(ROOT, "assets", "candidates")
 

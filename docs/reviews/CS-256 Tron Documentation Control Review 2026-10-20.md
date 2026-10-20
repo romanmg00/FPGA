@@ -33,7 +33,7 @@ The pre-edit inventory contained **22 Markdown files** under `CS-256/Game_resear
 
 I also read the read-only course class-project README and sprite tips because the accepted architecture depends on them. The handout explicitly instructs a second divider and approximately 60 Hz clock for game logic; the sprite tips require early reads by the actual memory latency. I inspected local `prototype/model/params.py`, `scoring.py`, `step.py`, `rewards.py`, and `lfsr.py` to distinguish current local behavior from the target.
 
-The course repository and Homework were not edited. I did not edit code, tests, generated assets, vendor sources, or any remote repository. The generated [prototype metrics summary](../../prototipos/look/metrics/latest.md) was reviewed and left untouched. The separate `CS-256 Tron Opus 5.5 Architecture and Integration Review.md` was absent from this checkout at review time; I did not create a link to it or treat its future recommendations as decisions. This review does not claim to audit current remote `main`.
+The course repository and Homework were not edited. I did not edit code, tests, generated assets, vendor sources, or any remote repository. The generated [prototype metrics summary](../../prototipos/tron_fpga/metrics/latest.md) was reviewed and left untouched. The separate `CS-256 Tron Opus 5.5 Architecture and Integration Review.md` was absent from this checkout at review time; I did not create a link to it or treat its future recommendations as decisions. This review does not claim to audit current remote `main`.
 
 At audit start the nested `Game_research` repository was at `6ef8104` with uncommitted README, plan, mechanics, glossary, ADR, and other document edits already present; the two locked primary notes and ADR 0002 were untracked. I preserved that working state and built on it. The `/tmp` snapshot is for comparison, not a new vault artifact.
 
@@ -47,7 +47,7 @@ The project [README](../README.md) and [AGENTS.md](../../AGENTS.md) directed rea
 
 ### High — legacy prototype behavior was presented as unresolved design
 
-The [prototype README](../../prototipos/look/README.md) called the local 3-bit Arena, 99-Point cap, +3/+3/+5 Rewards, +5 Survival Bonus, and four-frame cadence a comparison contract with “Model choices awaiting L2.” The code in `prototype/model/` confirms these are current legacy implementation details. L2 is no longer the point at which the locked behavior is to be decided.
+The [prototype README](../../prototipos/tron_fpga/README.md) called the local 3-bit Arena, 99-Point cap, +3/+3/+5 Rewards, +5 Survival Bonus, and four-frame cadence a comparison contract with “Model choices awaiting L2.” The code in `prototype/model/` confirms these are current legacy implementation details. L2 is no longer the point at which the locked behavior is to be decided.
 
 **Fix:** the README labels those sections as local implementation behavior and gives a short target-versus-local mismatch table. It states that current local tests and metrics do not prove the locked design is implemented.
 
