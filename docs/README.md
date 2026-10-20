@@ -26,7 +26,7 @@ Paths are relative to the repository root.
 
 Create new folders, such as `evidence/` for report evidence named `<ObjectiveID>-<short-name>.<ext>`, when their first file is needed.
 
-**Implementation home:** this repository, [romanmg00/FPGA](https://github.com/romanmg00/FPGA), is the team's shared HDL/model implementation home. Its interface contract (`proyecto_final/Contrato de interfaces game_top (CS 256).md`) must first be reconciled with the course requirements and the locked team agreement. Until that reconciliation is recorded, the agreed specification is the current team-rule authority and existing code describes only its own present behavior.
+**Implementation home:** this repository, [romanmg00/FPGA](https://github.com/romanmg00/FPGA), is the team's shared HDL/model implementation home. Its interface contract (`proyecto_final/Contrato de interfaces game_top (CS 256).md`) must first be reconciled with the course requirements and the locked team agreement. The 20 October update of the contract adopts the agreed rules, inputs, clocks, Arena codes and two-person split, and marks the interfaces the specification leaves open as *Pendiente*; its earlier version is in `proyecto_final/deprecated/`. Until each pending interface is settled and recorded there, the agreed specification is the current team-rule authority and existing code describes only its own present behavior.
 
 ## Read and authority path
 
