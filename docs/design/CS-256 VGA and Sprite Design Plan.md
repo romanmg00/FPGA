@@ -29,15 +29,15 @@ Use [[CS-256 Tron Architecture and Documentation Map]] for document status. The 
 The 20 October documentation pass checked agreement consistency and navigation. Complete source review and implementation validation remain outstanding; the note's source-review status remains unchanged.
 
 > [!decision] Follow the course READMEs — preference settled 2026-10-15
-> Use the [class project handout](../cs256-fall-2026/classproject/README.md) and [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) as the implementation baseline.
+> Use the [class project handout](../../../cs256-fall-2026/classproject/README.md) and [sprite tips](../../../cs256-fall-2026/classproject/sprites/README.md) as the implementation baseline.
 >
-> 1. **Decision A (confirmed 2026-10-20, see [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md)):** follow the TAs’ strict handout architecture. The second Clocking Wizard plus counter divider produces the approximately **60 Hz clock for the final game’s game-state logic**, not only milestone V4. ADR 0001 is superseded.
+> 1. **Decision A (confirmed 2026-10-20, see [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md)):** follow the TAs’ strict handout architecture. The second Clocking Wizard plus counter divider produces the approximately **60 Hz clock for the final game’s game-state logic**, not only milestone V4. ADR 0001 is superseded.
 >    **Evidence:** AMD recommends enables instead of HDL clock gating ([UG949: Using Gated Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Gated-Clocks)), describes enable inference ([Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables)), and advises avoiding local clocks from fabric counter division ([Avoiding Local Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Avoiding-Local-Clocks)). Those guidelines motivated the superseded frame-enable proposal; they do not override the TAs’ course-architecture instruction. Routing, generated-clock constraints and coherent transfers remain implementation work.
 > 2. **Decision B:** keep `curr_x`/`curr_y` aligned with the pixel being output and leave the handout's sync/visible timing unchanged. Start sprite reads early by the configured ROM latency, as the sprite tips describe.
 >
 > [[CS-256 Official FPGA Coding Practices]] documents implementation guidance and the [[CS-256 Official FPGA Coding Practices#Historical comparison of both clock paths|historical clock-path comparison]]. For the final game, the divided-clock path is selected (ADR 0002). Output-aligned coordinates and early sprite reads remain the course baseline; alternatives are historical research, not active design choices. Timing constraints, state transfers and boundary handling still require implementation evidence.
 
-This note covers the research and planning phase for the VGA display and sprite pipeline of the Tron game in [[CS-256 Tron Game Overview]]. The binding requirements are the [class project README](../cs256-fall-2026/classproject/README.md) (the **handout**) and the [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) (the **sprite tips**). Section 6 checks every design choice against them, step by step.
+This note covers the research and planning phase for the VGA display and sprite pipeline of the Tron game in [[CS-256 Tron Game Overview]]. The binding requirements are the [class project README](../../../cs256-fall-2026/classproject/README.md) (the **handout**) and the [sprite tips](../../../cs256-fall-2026/classproject/sprites/README.md) (the **sprite tips**). Section 6 checks every design choice against them, step by step.
 
 This remains a design plan, with no implementation validation claimed. Course requirements and the TAs’ architecture instruction take precedence, followed by the locked team decisions in [[CS-256 Tron Agreed Specification 2026-10-20]]. The remote interface contract is the selected implementation contract after it has been reconciled with that baseline. The previous one-clock/delayed-sync sketch is retained in the appendix as **superseded, unsimulated reference**. A Python model previously checked sprite-rotation addressing; it did not verify clocking or VGA alignment.
 
@@ -60,7 +60,7 @@ This settles the whiteboard note "Revisar 1280p": the course mode is 1280 × 800
 | Total | 1680 | 828 |
 
 - The pixel clock is **83.46 MHz**, so 83.46 MHz / (1680 × 828) = **59.998 Hz** frame rate and 49.68 kHz line rate.
-- The counters start at the sync pulse: sync, then back porch, visible region, and front porch, as in [vgawaveform.png](../cs256-fall-2026/classproject/vgawaveform.png).
+- The counters start at the sync pulse: sync, then back porch, visible region, and front porch, as in [vgawaveform.png](../../../cs256-fall-2026/classproject/vgawaveform.png).
 - Use the **handout's numbers**. Digilent's official manual §8.1 illustrates 640 × 480 and directs readers to VESA for other modes; it does not independently certify this course's 1280 × 800 timing ([manual, physical pp. 18–21](https://digilent.com/reference/_media/reference/programmable-logic/nexys-a7/nexys-a7_rm.pdf#page=18)).
 - **Risk:** monitors vary in which 16:10 timing they lock to. Test the lab monitor at milestone M0.
 
@@ -72,16 +72,16 @@ This settles the whiteboard note "Revisar 1280p": the course mode is 1280 × 800
 | 80 × 50 Arena grid (16 px Cells), 4 bits per Cell | 32 Kb (8192 × 4, padded 128 × 64 allocation) | 1 RAMB36 estimate; verify generated IP/synthesis |
 | 32 × 32 × 12-bit bike sprite, one ROM per bike | 12,288 b each | 1 RAMB18 each |
 
-The XC7A100T has 135 × 36 Kb = 4,860 Kb BRAM ([DS180, Table 4, p. 3](Datasheets/DS180_7_Series_FPGA_Overview.pdf)). Pixel colour is therefore computed from small memories as the beam scans: the handout's `vga_out` + `drawcon` structure ([game_top.png](../cs256-fall-2026/classproject/game_top.png)).
+The XC7A100T has 135 × 36 Kb = 4,860 Kb BRAM ([DS180, Table 4, p. 3](../references/datasheets/DS180_7_Series_FPGA_Overview.pdf)). Pixel colour is therefore computed from small memories as the beam scans: the handout's `vga_out` + `drawcon` structure ([game_top.png](../../../cs256-fall-2026/classproject/game_top.png)).
 
 ### Clock and timing headroom
 
-- **MMCM:** for speed grade -1, the VCO range is 600–1200 MHz and the PFD range is 10–450 MHz ([DS181, Table 37, pp. 38–39](Datasheets/DS181_Artix_7_DC_AC_Switching.pdf)). A search over legal settings found **83.4586 MHz** (D = 7, M = 55.5, O = 9.5, VCO = 792.9 MHz), an error of 0.002%. The handout notes the wizard "will not achieve the exact requested frequency, but it will be close enough". Record the frequency it actually reports.
-- **BRAM:** -1 Fmax is 388.20 MHz ([DS181, Table 30, p. 31](Datasheets/DS181_Artix_7_DC_AC_Switching.pdf)), about 4.6× the pixel clock. Clock-to-out is 0.89 ns with the output register (p. 30), which leaves the 11.98 ns pixel period mostly free for the colour mux.
+- **MMCM:** for speed grade -1, the VCO range is 600–1200 MHz and the PFD range is 10–450 MHz ([DS181, Table 37, pp. 38–39](../references/datasheets/DS181_Artix_7_DC_AC_Switching.pdf)). A search over legal settings found **83.4586 MHz** (D = 7, M = 55.5, O = 9.5, VCO = 792.9 MHz), an error of 0.002%. The handout notes the wizard "will not achieve the exact requested frequency, but it will be close enough". Record the frequency it actually reports.
+- **BRAM:** -1 Fmax is 388.20 MHz ([DS181, Table 30, p. 31](../references/datasheets/DS181_Artix_7_DC_AC_Switching.pdf)), about 4.6× the pixel clock. Clock-to-out is 0.89 ns with the output register (p. 30), which leaves the 11.98 ns pixel period mostly free for the colour mux.
 
 ### Board pins
 
-The VGA pins come from the class copy of the master XDC, [nexys-a7-100t-master.xdc](../cs256-fall-2026/nexys-a7-100t-master.xdc). Its header notes that the Nexys 4 DDR (the board named in the handout) and the Nexys A7 share the XDC.
+The VGA pins come from the class copy of the master XDC, [nexys-a7-100t-master.xdc](../../../cs256-fall-2026/nexys-a7-100t-master.xdc). Its header notes that the Nexys 4 DDR (the board named in the handout) and the Nexys A7 share the XDC.
 
 | Signal | Pins |
 |---|---|
@@ -101,7 +101,7 @@ Keep the handout's hierarchy and signal meanings: `game_top` contains the clock 
 ### Decision A: use the handout's divided game clock
 
 > [!decision] Applies to the final game, confirmed 2026-10-20
-> The TAs recommended following this architecture strictly. This section is the active baseline; [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md) supersedes ADR 0001.
+> The TAs recommended following this architecture strictly. This section is the active baseline; [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md) supersedes ADR 0001.
 
 Follow *Drawing Logic Module* steps 10–13: instantiate the second clock divider, request a low supported frequency, then use a counter to divide it to approximately 60 Hz. Update the moving block's position on that slow clock. For M1, implement the literal centre reset and ±4-pixel button-controlled movement with boundary checks before extending to Tron rules.
 
@@ -253,7 +253,7 @@ The work-list IDs and their completion checks live in [[CS-256 Tron Development 
 | Agreed game core, Arena service, input, and Scoreboard | A1/A2, G1–G5, I1–I4, X1/X2 | Follow the agreed specification; record simulation, CDC/timing, and board evidence under the existing objective IDs. |
 | On-screen HUD and optional styling | H2, C1/C2 | HUD follows the core. Menus, live customization, glow, scanlines, animated backgrounds, and power-ups are outside the core; power-ups are out of term. |
 
-Planned source files go in `CS-256/Game_research/`, per the folder policy in [README](README.md):
+Planned source files go in `CS-256/Game_research/`, per the folder policy in [README](../README.md):
 
 - `hdl/`: `vga_out.sv`, `drawcon.sv`, `game_top.sv`, `game_top.xdc`;
 - `sim/`: `tb_vga_out.sv`, `tb_frame_dump.sv`;

@@ -4,7 +4,7 @@ How project agents use the game vocabulary, decisions, architecture records, and
 
 ## Read in this order
 
-1. Read the root [README](../../README.md) and [[CS-256 Tron Architecture and Documentation Map]] for the authority order and document statuses.
+1. Read the root [README](../README.md) and [[CS-256 Tron Architecture and Documentation Map]] for the authority order and document statuses.
 2. Read [[CS-256 Tron Agreed Specification 2026-10-20]] for the locked team baseline. Use [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] for decision provenance; the older comparison below that record is historical.
 3. Use [[CS-256 Tron Glossary]] for terms and [[CS-256 Tron Game Mechanics]] as a short topic index. The specification owns the rule details.
 4. Read the accepted ADRs relevant to the task. ADR 0002 records the divided game clock; ADR 0001 is superseded. A plan or technical recommendation is not an accepted decision.

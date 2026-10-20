@@ -33,7 +33,7 @@ The pre-edit inventory contained **22 Markdown files** under `CS-256/Game_resear
 
 I also read the read-only course class-project README and sprite tips because the accepted architecture depends on them. The handout explicitly instructs a second divider and approximately 60 Hz clock for game logic; the sprite tips require early reads by the actual memory latency. I inspected local `prototype/model/params.py`, `scoring.py`, `step.py`, `rewards.py`, and `lfsr.py` to distinguish current local behavior from the target.
 
-The course repository and Homework were not edited. I did not edit code, tests, generated assets, vendor sources, or any remote repository. The generated [prototype metrics summary](prototype/metrics/latest.md) was reviewed and left untouched. The separate `CS-256 Tron Opus 5.5 Architecture and Integration Review.md` was absent from this checkout at review time; I did not create a link to it or treat its future recommendations as decisions. This review does not claim to audit current remote `main`.
+The course repository and Homework were not edited. I did not edit code, tests, generated assets, vendor sources, or any remote repository. The generated [prototype metrics summary](../../prototipos/look/metrics/latest.md) was reviewed and left untouched. The separate `CS-256 Tron Opus 5.5 Architecture and Integration Review.md` was absent from this checkout at review time; I did not create a link to it or treat its future recommendations as decisions. This review does not claim to audit current remote `main`.
 
 At audit start the nested `Game_research` repository was at `6ef8104` with uncommitted README, plan, mechanics, glossary, ADR, and other document edits already present; the two locked primary notes and ADR 0002 were untracked. I preserved that working state and built on it. The `/tmp` snapshot is for comparison, not a new vault artifact.
 
@@ -41,13 +41,13 @@ At audit start the nested `Game_research` repository was at `6ef8104` with uncom
 
 ### High — authority was split across active documents
 
-The project [README](README.md) and [AGENTS.md](AGENTS.md) directed readers to the team repository's interface contract and Mechanics note as authorities. The locked specification says the remote contract and implementations were not changed by the discussion and that stale code is a discrepancy to reconcile. This left future readers with two plausible, conflicting sources. The [Domain docs](docs/agents/domain.md) also described Mechanics as the agreed rules document.
+The project [README](../README.md) and [AGENTS.md](../../AGENTS.md) directed readers to the team repository's interface contract and Mechanics note as authorities. The locked specification says the remote contract and implementations were not changed by the discussion and that stale code is a discrepancy to reconcile. This left future readers with two plausible, conflicting sources. The [Domain docs](../agents/domain.md) also described Mechanics as the agreed rules document.
 
-**Fix:** the README and agent pointers now put course/TA requirements first, the locked specification as the current team baseline, the decision record as provenance, and the remote contract as the implementation-interface authority only after reconciliation. Mechanics is now a derived index. The [architecture map](CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md) makes those roles explicit.
+**Fix:** the README and agent pointers now put course/TA requirements first, the locked specification as the current team baseline, the decision record as provenance, and the remote contract as the implementation-interface authority only after reconciliation. Mechanics is now a derived index. The [architecture map](../CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md) makes those roles explicit.
 
 ### High — legacy prototype behavior was presented as unresolved design
 
-The [prototype README](prototype/README.md) called the local 3-bit Arena, 99-Point cap, +3/+3/+5 Rewards, +5 Survival Bonus, and four-frame cadence a comparison contract with “Model choices awaiting L2.” The code in `prototype/model/` confirms these are current legacy implementation details. L2 is no longer the point at which the locked behavior is to be decided.
+The [prototype README](../../prototipos/look/README.md) called the local 3-bit Arena, 99-Point cap, +3/+3/+5 Rewards, +5 Survival Bonus, and four-frame cadence a comparison contract with “Model choices awaiting L2.” The code in `prototype/model/` confirms these are current legacy implementation details. L2 is no longer the point at which the locked behavior is to be decided.
 
 **Fix:** the README labels those sections as local implementation behavior and gives a short target-versus-local mismatch table. It states that current local tests and metrics do not prove the locked design is implemented.
 
@@ -69,7 +69,7 @@ I compared the full agreed specification with the live Q1–Q40 record. The spec
 
 ## Control structure established
 
-The [CS-256 Tron Architecture and Documentation Map](CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md) provides:
+The [CS-256 Tron Architecture and Documentation Map](../CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md) provides:
 
 - One canonical owner for team rules, vocabulary, clock architecture, code behavior, verification, and tentative planning.
 - A reading sequence from README and agreement through glossary/mechanics, accepted ADRs, implementation status, evidence, and planning.

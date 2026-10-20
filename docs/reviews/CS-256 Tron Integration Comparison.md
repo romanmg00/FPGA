@@ -27,12 +27,12 @@ tags:
 Historical comparison of Roman's team repository and this research folder, prepared for the 20 October integration meeting. The rows preserve pre-meeting evidence and recommendations; they are not current authority.
 
 - **Roman's side:** [romanmg00/FPGA](https://github.com/romanmg00/FPGA), `main` at `f5cb82c` (15 Oct). The main sources are `README.md`, `proyecto_final/Contrato de interfaces game_top (CS 256).md` (the **contract**, dated 11 Oct), `proyecto_final/{counters,vga_out}.sv` with their testbenches, and the Python reference model `prototipos/tron/`.
-- **Our side:** [[CS-256 Tron Game Mechanics]] (14 Oct), [[CS-256 Tron Development Plan]], [[CS-256 VGA and Sprite Design Plan]], [ADR 0001](docs/adr/0001-pixel-clock-with-frame-enable.md), and `prototype/` (Game Model and Look viewer).
+- **Our side:** [[CS-256 Tron Game Mechanics]] (14 Oct), [[CS-256 Tron Development Plan]], [[CS-256 VGA and Sprite Design Plan]], [ADR 0001](../adr/0001-pixel-clock-with-frame-enable.md), and `prototype/` (Game Model and Look viewer).
 - **Binding for both:** the course handout (`classproject/README.md`) and the sprite tips (`classproject/sprites/README.md`).
 
 Roman's contract was written before our Mechanics note, so neither side was contradicting the other on purpose. Both are complete designs for the same game.
 
-**How this was checked.** An adversarial review (GPT-6.1 Sol, high effort) cross-checked the first draft, and its corrections are included. No HDL simulator was available, so the HDL timing claims come from a cycle model ([tools/vga_out_tb_cycle_model.py](tools/vga_out_tb_cycle_model.py)), not from simulation.
+**How this was checked.** An adversarial review (GPT-6.1 Sol, high effort) cross-checked the first draft, and its corrections are included. No HDL simulator was available, so the HDL timing claims come from a cycle model ([tools/vga_out_tb_cycle_model.py](../../tools/vga_out_tb_cycle_model.py)), not from simulation.
 
 ## 0. Agenda in one list
 

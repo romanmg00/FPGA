@@ -113,11 +113,11 @@ Severity reflects the effect on integration. Pinned team-repo links use `C` for 
 ### F5 — High: no shared executable model exists; both candidates implement superseded rules with incompatible encodings and PRNGs
 
 - **Verified, local model.**
-  - It has no Points Goal, and a Points comparison picks the winner ([`model/game.py` L126–L130](prototype/model/game.py)).
-  - It applies a 99 cap (L107, L123; [`params.py` L123](prototype/model/params.py)) with values (3, 3, 5) and a +5 bonus (L122–L124).
-  - It uses K = 4 frames per Step (L125), a default 8 px Cell (L38) and 3-bit codes without head codes ([`arena.py` L11–L16](prototype/model/arena.py)).
-  - It places Rewards **before** Start ([`game.py` L56–L64](prototype/model/game.py)).
-  - It uses a 32-bit Fibonacci LFSR advanced 32 shifts per draw ([`lfsr.py` L12–L13](prototype/model/lfsr.py)).
+  - It has no Points Goal, and a Points comparison picks the winner ([`model/game.py` L126–L130](../../prototipos/look/model/game.py)).
+  - It applies a 99 cap (L107, L123; [`params.py` L123](../../prototipos/look/model/params.py)) with values (3, 3, 5) and a +5 bonus (L122–L124).
+  - It uses K = 4 frames per Step (L125), a default 8 px Cell (L38) and 3-bit codes without head codes ([`arena.py` L11–L16](../../prototipos/look/model/arena.py)).
+  - It places Rewards **before** Start ([`game.py` L56–L64](../../prototipos/look/model/game.py)).
+  - It uses a 32-bit Fibonacci LFSR advanced 32 shifts per draw ([`lfsr.py` L12–L13](../../prototipos/look/model/lfsr.py)).
 - **Verified, team model.**
   - It uses a 16-bit Galois `LFSR16` advanced every tick ([`juego.py` L28–L40](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/prototipos/tron/juego.py#L28-L40), [L313](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/prototipos/tron/juego.py#L313)).
   - It keeps the latest key and checks reversal only at the Step ([L104–L107](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/prototipos/tron/juego.py#L104-L107), [L388–L391](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/prototipos/tron/juego.py#L388-L391)). So RIGHT → UP → LEFT keeps going RIGHT, and a same-Heading press cancels a Pending Turn.
@@ -160,7 +160,7 @@ Severity reflects the effect on integration. Pinned team-repo links use `C` for 
 - **Verified.**
   - The team README targets Icarus on a Mac ([README L7](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/README.md#L7)). The contract shapes ports for Icarus ([C L33](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/proyecto_final/Contrato%20de%20interfaces%20game_top%20%28CS%20256%29.md#L33), [L489](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/proyecto_final/Contrato%20de%20interfaces%20game_top%20%28CS%20256%29.md#L489)).
   - `.gitignore` excludes `prototipos/*/assets/*`, `hw/` and `*.bit` ([.gitignore L13–L20](https://github.com/romanmg00/FPGA/blob/f5cb82c901e33a453fcaea2720a80702fda54718/.gitignore#L13-L20)).
-  - The vault README requires matching the workstation's Vivado version for IP ([README](README.md#Toolchain)).
+  - The vault README requires matching the workstation's Vivado version for IP ([README](../README.md#Toolchain)).
 - **Inference.** Icarus is not a dependable simulator for Vivado-generated Clocking Wizard, Block Memory Generator or XPM CDC models. Evidence must come from `xsim` at the pinned Vivado version. If COE or IP files land in an ignored path, builds are not reproducible.
 - **Recommendation.** Make `xsim` the authoritative simulator and keep Icarus for pure-RTL smoke tests. Track `.xci`, `.coe`, PNG sources and Tcl build scripts; ignore generated outputs.
 

@@ -24,7 +24,7 @@ tags:
 
 # CS-256 Official FPGA Coding Practices
 
-**Current baseline (confirmed 2026-10-20, [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md)):** follow the TAs’ strict handout instruction: the final game uses a second Clocking Wizard plus counter divider to produce an approximately 60 Hz **game-state clock**. ADR 0001's pixel-clock/frame-enable proposal is superseded. Output-aligned `curr_x`/`curr_y` and early sprite reads follow the [sprite tips](../cs256-fall-2026/classproject/sprites/README.md). The old clock-path comparison is retained below as history, not as a live choice.
+**Current baseline (confirmed 2026-10-20, [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md)):** follow the TAs’ strict handout instruction: the final game uses a second Clocking Wizard plus counter divider to produce an approximately 60 Hz **game-state clock**. ADR 0001's pixel-clock/frame-enable proposal is superseded. Output-aligned `curr_x`/`curr_y` and early sprite reads follow the [sprite tips](../../../cs256-fall-2026/classproject/sprites/README.md). The old clock-path comparison is retained below as history, not as a live choice.
 
 Research checked on **2026-10-15**. Paragraphs marked **AMD guidance** describe vendor documentation. **Project application** identifies our engineering interpretation. Manufacturer guidance supports implementation choices; it does not establish course acceptance or prove this game works.
 
@@ -32,16 +32,16 @@ The 20 October documentation pass checked consistency with the locked agreement.
 
 ## Sources behind the historical pixel-clock proposal
 
-The [superseded clock ADR](docs/adr/0001-pixel-clock-with-frame-enable.md) contains claim-level citations. The following map preserves that proposal’s reasoning; it does not override the selected divided-clock baseline in ADR 0002:
+The [superseded clock ADR](../adr/0001-pixel-clock-with-frame-enable.md) contains claim-level citations. The following map preserves that proposal’s reasoning; it does not override the selected divided-clock baseline in ADR 0002:
 
 | Conclusion | Supporting reference | What comes from the source, and what we conclude |
 |---|---|---|
 | Use a synchronous enable to control updates | [UG949: Using Gated Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Gated-Clocks), [Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables) | AMD recommends enables instead of HDL clock gating and describes their inference. Selecting `pixclk` for this game's controller is our application. |
 | Avoid an unnecessary fabric-derived game clock | [UG949: Avoiding Local Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Avoiding-Local-Clocks) | AMD identifies counter-divided local clocks and their skew/routing challenges. This does not ban every divided clock. |
 | Sharing `pixclk` simplifies the game/render boundary | [UG949: Limiting Synchronous Clock Domain Crossing Paths](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Limiting-Synchronous-Clock-Domain-Crossing-Paths) | AMD recommends limiting these crossings. Removing our extra game domain removes its crossings; external-input synchronization remains necessary. |
-| The controller needs enough fast cycles between game updates | [PG058 v8.4, read latency and Summary](https://docs.amd.com/v/u/en-US/pg058-blk-mem-gen), [course sprite tips](../cs256-fall-2026/classproject/sprites/README.md) | The sources establish synchronous/configurable memory latency. The estimated 8-cycle Step and its execution times are project assumptions/calculations. |
+| The controller needs enough fast cycles between game updates | [PG058 v8.4, read latency and Summary](https://docs.amd.com/v/u/en-US/pg058-blk-mem-gen), [course sprite tips](../../../cs256-fall-2026/classproject/sprites/README.md) | The sources establish synchronous/configurable memory latency. The estimated 8-cycle Step and its execution times are project assumptions/calculations. |
 | A full handshake through a 60 Hz source has a throughput cost | [UG953: XPM_CDC_HANDSHAKE](https://docs.amd.com/r/en-US/ug953-vivado-7series-libraries/XPM_CDC_HANDSHAKE) | The macro specifies full acknowledgement/rearm and source synchronization stages. Millisecond estimates follow from our 60 Hz source assumption; other transfer designs differ. |
-| The update rate can remain about 60 Hz while the controller uses the pixel clock | [Course raster and clock settings](../cs256-fall-2026/classproject/README.md), [UG949: Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables) | The course supplies the timing; the enable supplies conditional state updates. `83.46 MHz / (1680 × 828) ≈ 59.998 Hz` and the K-frame Step cadence are project arithmetic/design. |
+| The update rate can remain about 60 Hz while the controller uses the pixel clock | [Course raster and clock settings](../../../cs256-fall-2026/classproject/README.md), [UG949: Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables) | The course supplies the timing; the enable supplies conditional state updates. `83.46 MHz / (1680 × 828) ≈ 59.998 Hz` and the K-frame Step cadence are project arithmetic/design. |
 
 **Scope of the conclusion:** AMD does not specify “83.46 MHz rather than 60 Hz” for this project. The superseded proposal chose a fast common clock for controller execution and a slow enable cadence for launching Steps. Completing the whole transaction inside blanking remains a simulation requirement, not a consequence guaranteed by the enable alone.
 
@@ -49,7 +49,7 @@ The [superseded clock ADR](docs/adr/0001-pixel-clock-with-frame-enable.md) conta
 
 Target: **Digilent Nexys A7-100T**, **Artix-7 XC7A100T-1CSG324C**, Vivado part **`xc7a100tcsg324-1`**. Digilent identifies the 100T as functionally identical to the Nexys 4 DDR named in the handout. Its oscillator is 100 MHz on E3. VGA uses RGB444, two sync signals and a resistor-divider DAC for a 75 Ω termination and approximately 0–0.7 V. The manual's 640 × 480 example does not certify the course's 1280 × 800 timing. [Digilent manual, revised 2019-07-10, physical pp. 6, 13, 18–21](https://digilent.com/reference/_media/reference/programmable-logic/nexys-a7/nexys-a7_rm.pdf), [official board definition](https://raw.githubusercontent.com/Digilent/vivado-boards/master/new/board_files/nexys-a7-100t/D.0/1.3/board.xml).
 
-This investigation uses AMD's 7-series architecture guides **UG472 v1.14** and **UG473 v1.14**, **PG058 v8.4 (2021-08-06)** for Block Memory Generator, and linked Vivado methodology/library pages. Most online pages are 2026.1; explicitly versioned older pages are identified where used. Match the shared workstation's Vivado/IP version before adopting options or templates. Keep the [project toolchain policy](README.md).
+This investigation uses AMD's 7-series architecture guides **UG472 v1.14** and **UG473 v1.14**, **PG058 v8.4 (2021-08-06)** for Block Memory Generator, and linked Vivado methodology/library pages. Most online pages are 2026.1; explicitly versioned older pages are identified where used. Match the shared workstation's Vivado/IP version before adopting options or templates. Keep the [project toolchain policy](../README.md).
 
 ## Game clock and Decision A
 

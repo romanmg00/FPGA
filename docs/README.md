@@ -40,7 +40,7 @@ Create the subfolders when their first file is needed.
 1. Start with this folder policy and [[CS-256 Tron Architecture and Documentation Map]].
 2. Read [[CS-256 Tron Agreed Specification 2026-10-20]] for the locked baseline and [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] for decision provenance. The pre-meeting comparison later in the decision note is historical.
 3. Use [[CS-256 Tron Game Mechanics]] as a topic index and [[CS-256 Tron Glossary]] for terms; neither replaces the specification.
-4. Read accepted ADRs and the relevant design guidance. [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md) is the accepted game-clock decision; ADR 0001 is superseded.
+4. Read accepted ADRs and the relevant design guidance. [ADR 0002](adr/0002-follow-ta-divided-game-clock.md) is the accepted game-clock decision; ADR 0001 is superseded.
 5. Read implementation notes alongside the actual code. The local prototype and the last reviewed remote snapshot predate the agreement; neither is evidence that the selected rules are implemented.
 6. Check verification plans and recorded evidence before claiming a feature works. [[CS-256 Tron Development Plan]] is tentative planning, not an implementation report.
 
@@ -58,10 +58,10 @@ As confirmed from the TAs’ instruction on 2026-10-20, the team is **Roman and 
 
 - **Authority:** course requirements and the TAs' strict-architecture instruction govern the project. The locked [[CS-256 Tron Agreed Specification 2026-10-20]] is the current team decision baseline. The team repository's interface contract is the selected implementation contract only after it incorporates that baseline; its older rules do not override the agreement. Existing code documents current behavior, not intended behavior. See the [[CS-256 Tron Architecture and Documentation Map]] for ownership and status.
 
-- Follow the course [class project handout](../cs256-fall-2026/classproject/README.md) and [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) strictly, as confirmed by the team from its TAs’ recommendation on 2026-10-20. The **final game** uses a second Clocking Wizard plus counter divider for an approximately **60 Hz game clock**, output-aligned coordinates and early sprite-memory reads. [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md) supersedes the frame-enable proposal in ADR 0001. Clock-enable and delayed-stream alternatives remain historical research in [[CS-256 Official FPGA Coding Practices]].
+- Follow the course [class project handout](../../cs256-fall-2026/classproject/README.md) and [sprite tips](../../cs256-fall-2026/classproject/sprites/README.md) strictly, as confirmed by the team from its TAs’ recommendation on 2026-10-20. The **final game** uses a second Clocking Wizard plus counter divider for an approximately **60 Hz game clock**, output-aligned coordinates and early sprite-memory reads. [ADR 0002](adr/0002-follow-ta-divided-game-clock.md) supersedes the frame-enable proposal in ADR 0001. Clock-enable and delayed-stream alternatives remain historical research in [[CS-256 Official FPGA Coding Practices]].
 
 - The requested **83.46 MHz pixel clock** is separate from the approximately **60 Hz frame refresh** and the approximately **60 Hz game-state clock**. The divider, fast Arena service, and video pipeline have different responsibilities; do not describe the divided game clock as display-only.
 
-- New notes use the vault's frontmatter and naming standard ([Metadata and File Standard](../../00-System/Planning/Metadata-and-File-Standard.md)), with a `CS-256` title prefix.
+- New notes use the vault's frontmatter and naming standard ([Metadata and File Standard](../../../00-System/Planning/Metadata-and-File-Standard.md)), with a `CS-256` title prefix.
 - When a game term is settled or changed, update the glossary. For rule changes, update the agreed specification and decision provenance first; update Mechanics only if its topic links need to change.
 - Code and generated files (`.sv`, `.xdc`, `.coe`, `.py`) do not need frontmatter.

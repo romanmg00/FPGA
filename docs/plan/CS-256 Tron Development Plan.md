@@ -179,7 +179,7 @@ Scenario set (L11 p. 43, corner cases). Add a scenario whenever a bug is found:
 
 This checklist described candidate-renderer checks in the earlier prototype workflow. It is not the target contract: the agreed specification and course handout own current requirements. The prototype still supports several legacy options, including 4/8/16 px Cells.
 
-1. **1280 × 800, fixed.** Verified 2026-10-15: the [class handout](../cs256-fall-2026/classproject/README.md) sets the visible region to `hcount` 336–1615 (1,280 pixels) and `vcount` 27–826 (800 lines), with `curr_x` 0–1279 and `curr_y` 0–799. Its 83.46 MHz pixel clock over 1680 × 828 total gives 59.998 Hz.
+1. **1280 × 800, fixed.** Verified 2026-10-15: the [class handout](../../../cs256-fall-2026/classproject/README.md) sets the visible region to `hcount` 336–1615 (1,280 pixels) and `vcount` 27–826 (800 lines), with `curr_x` 0–1279 and `curr_y` 0–799. Its 83.46 MHz pixel clock over 1680 × 828 total gives 59.998 Hz.
 2. **RGB444 only (4,096 colours).** Verified 2026-10-15: the Nexys A7 Reference Manual (revised 10 July 2019, §8, p. 18) says the board drives VGA with "4 bits-per-color" through resistor dividers, giving 16 levels per channel and "4096 different colors". The handout uses 4-bit `pix_r/g/b`, the sprite tips use 12-bit RGB `.coe` words, and the class XDC maps `VGA_R/G/B[3:0]`. The manual's timing example is 640 × 480, so it does not confirm the 1280 × 800 mode; that comes from the handout alone.
 3. Sprites are square with power-of-two sides. The only rotations are the four 90° turns made by addressing. Black `000` is transparent and green `0F0` is the tint key. No alpha blending or scaling.
 4. Cell side is a power of two (4, 8 or 16 px).
@@ -209,7 +209,7 @@ Verified in: TB = testbench, HW = board check.
 | V3 | `drawcon`: border, block, compositing | TB (frame dump) → HW |
 | V4 | Divided game clock + generated-clock constraint; ±4 moving block with border limit (handout step 10, also the final game’s clock architecture per ADR 0002) | TB → HW |
 | **X: Clock crossing (Path A)** | | |
-| X1 | Game → render coherent snapshot and Arena command/result interface; restored by [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md). Verify memory-service scheduling and throughput | TB |
+| X1 | Game → render coherent snapshot and Arena command/result interface; restored by [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md). Verify memory-service scheduling and throughput | TB |
 | X2 | Input synchronization/debounce and ordered button/UART command transfer into the divided game-clock domain; preserve valid requests | TB |
 | **P: Sprites** | | |
 | P2 | Bike ROM ×2, early-read pipeline, rotation by address | TB (first/last pixel, line/frame wrap, 4 rotations) → HW |

@@ -73,7 +73,7 @@ Verified on 2026-10-20 at 15:08 (+03:00). Re-check these facts immediately befor
 2. **Lossless.** Every `Game_research` path gets a destination or a listed exclusion. History is kept. Excluded material stays in the bundle, the archive tags and `local/`.
 3. **Roman's paths stay put:** `README.md`, `nexys-a7-100t-master.xdc`, `proyecto_final/` (including the interface contract) and `prototipos/`. New material goes into new folders.
 4. **Locked records are never edited**, links included.
-5. **Decisions are first-class.** `docs/decisions/` holds the locked records and `docs/adr/` the ADRs. Later team decisions (D1–D9) become ADR 0003 onward. Each open decision is tracked as a GitHub issue until its ADR closes it, per [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md).
+5. **Decisions are first-class.** `docs/decisions/` holds the locked records and `docs/adr/` the ADRs. Later team decisions (D1–D9) become ADR 0003 onward. Each open decision is tracked as a GitHub issue until its ADR closes it, per [docs/agents/issue-tracker.md](../agents/issue-tracker.md).
 6. **Filenames are unchanged.** Obsidian resolves name-only wikilinks anywhere in the vault, so moving notes into `docs/` subfolders keeps those links working.
 
 ## Target structure
