@@ -21,3 +21,15 @@ Images/
 
 # PDFs del curso (pesados y con derechos de autor)
 lecturesFromCs256/
+
+# Game_research (importado)
+.pytest_cache/
+prototipos/look/out/
+# Corridas de Vivado
+*.runs/
+*.cache/
+*.hw/
+*.ip_user_files/
+*.sim/
+# Locales, no se suben
+local/

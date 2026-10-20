@@ -13,6 +13,22 @@ El diseño en hardware está en `proyecto_final/`. Su contrato de interfaces
 (módulos, señales, reparto del equipo y fechas) es
 `proyecto_final/Contrato de interfaces game_top (CS 256).md`.
 
+## Documentación y decisiones (Documentation and decisions)
+
+- [`docs/README.md`](docs/README.md): índice de la documentación, orden de lectura y
+  autoridad.
+- [`docs/decisions/`](docs/decisions/): la especificación acordada y el registro de
+  decisiones del 20 de octubre, **bloqueados** (no se editan; sus SHA-256 están en
+  [`docs/decisions/README.md`](docs/decisions/README.md)). Donde este README o el
+  contrato digan otra cosa, mandan estas reglas hasta que se reconcilie el contrato.
+- [`docs/adr/`](docs/adr/): decisiones de arquitectura. Las nuevas decisiones del
+  equipo van como ADR 0003 en adelante.
+- `prototipos/look/`: el Look Prototype de Alan (modelo, visor con pygame-ce, pruebas
+  y métricas). Usa su propio entorno virtual; ver
+  [`prototipos/look/README.md`](prototipos/look/README.md).
+- `AGENTS.md` y `CLAUDE.md`: instrucciones para agentes; `CLAUDE.md` importa
+  `AGENTS.md`.
+
 ## El juego
 
 - Dos motos de luz avanzan solas y dejan una estela. P1 maneja con W A S D y P2 con
