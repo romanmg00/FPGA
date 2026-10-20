@@ -4,9 +4,9 @@ id: cs256-tron-repository-merge-plan-20261020
 title: CS-256 Tron Repository Merge Plan
 type: plan
 subject: CS-256
-status: draft
+status: active
 created_at: "2026-10-20T15:08:18"
-updated_at: "2026-10-20T15:14:27"
+updated_at: "2026-10-20T19:26:51"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Opus 5.5 Architecture and Integration Review]]"
@@ -22,13 +22,40 @@ tags:
 
 # CS-256 Tron Repository Merge Plan
 
-> [!warning] Draft procedure — not authorized for execution by this review
-> The parent has identified adoption limits in [[CS-256 Tron Opus 5.5 Architecture and Integration Review#Parent review and adoption limits]]. The history-filtering, commit/reset, publication and vault-conversion commands below have not been validated or approved as an execution plan. Preserving a durable evidence copy can be done independently; the later “urgent” wording does not approve Step A.
+> [!info] Executed on 20 October 2026, with changes
+> The team approved the import, and Alan ran steps A–D on branch `integrate/game-research`, which reaches `main` through a pull request (step E). Step F, converting the vault folder, has not been done. Where the procedure below differs from what was run, [[#Execution record, 2026-10-20]] is authoritative. The procedure text is kept as drafted.
 
 This plan merges the local `CS-256/Game_research` repository into the team repository [romanmg00/FPGA](https://github.com/romanmg00/FPGA). Roman's `main` stays the canonical branch. Our decisions, ADRs, design notes, reviews, Look Prototype, tools and art are **merged with their Git history, not discarded**.
 
-> [!warning] Status: proposed, not executed
-> No command in this note has been run. Nothing has been committed, pushed or moved. Before Alan starts, the team approves decisions M1–M5 below (they form decision **D9** in [[CS-256 Tron Opus 5.5 Architecture and Integration Review#6.1 Team decisions, ranked]]). One step is urgent whatever is decided: [[#A. Preserve the decision-time evidence]].
+## Execution record, 2026-10-20
+
+**Decisions as settled by the team.** M1 = A (history-preserving import through a pull request merged with a merge commit). M2 changed: the team treats the repository as team-only, so the vendor datasheets and the duplicate XDC are **kept**, under `docs/references/datasheets/`, and the commit author identity is kept as is (`AIF31`). M3 = A (locked records frozen). M4: the merged repository is cloned at `CS-256/FPGA/` in the vault, beside `Game_research`; step F waits until after the merge. M5 = A (one environment per viewer). The optional launcher entry and `CODEOWNERS` were not added: `CODEOWNERS` cannot require both members' approval.
+
+**What was run, and how it differs from the procedure.**
+
+- **Step A, without touching `Game_research`.** Its repository, permissions and working tree were left unchanged. Before anything else, `~/cs256-backups/` received a full tarball of the folder (including the ignored renders in `prototype/out/`), a verified bundle of its history, and a copy of the `/tmp` snapshot with its manifest, all of whose hashes matched. The two new commits were made in a scratch clone: the snapshot overlay on `6ef8104` (tag `decisions-2026-10-20`), then the live working tree read through `git --work-tree` (tag `research-pre-merge`). File lists and contents matched the working tree exactly.
+- **Step B, one filter pass.** `git-filter-repo` v2.47.0 (the upstream script) ran with only the path renames and `--tag-rename ':research/'`. There was no exclusion and no mailmap. The research report needed **two full-filename renames**: `Nexys_A7_Game_Research_Report.` is not a prefix match and would have left both files at the root. A single pass produces one commit map, published as `docs/history/game-research-commit-map.txt`; filter-repo's second map is already cumulative, so joining two maps would have been wrong. Every historical path landed in the target layout.
+- **Step C.** Merged cleanly into a clone of `romanmg00/FPGA` `main` at `f5cb82c`, with no change to Roman's paths before step D.
+- **Step D.** Follow-up commits:
+  - the viewer and the art generator (`tools/make_candidate_art.py` also needed its `sys.path` fixed);
+  - relative links, each resolved from its old location and made relative from its new one;
+  - the team-repository read path and agent instructions;
+  - the locked-records index and the commit map;
+  - the root README section and `.gitignore` entries;
+  - this record.
+
+  Course links point at the sibling `cs256-fall-2026/` checkout, so they resolve in the vault but not on GitHub.
+- **Smoke checks** (they check the move, not the agreed rules):
+  - our 21 tests pass under pygame-ce 2.5.8;
+  - Roman's 35 tests pass under pygame 2.6.1, in a separate environment;
+  - the viewer starts with all 32 candidate PNGs;
+  - every relative Markdown link resolves.
+
+**Acceptance checks that replace the draft ones.**
+
+- Check the two locked files by name against their full hashes. The `docs/decisions/*.md` glob now also matches `README.md`.
+- The empty-diff check on Roman's paths holds only before step D. After D, the only intended changes to his files are the README section and the `.gitignore` entries.
+- Branch pushes do not publish tags, so `research/decisions-2026-10-20` and `research/research-pre-merge` are pushed explicitly.
 
 ## Summary
 
