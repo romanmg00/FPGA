@@ -10,17 +10,17 @@ The viewer defaults to the `synthwave` style preset. Sizes and Player colours st
 
 This is a local, two-player Python desktop game. You need Python 3.10 or newer, a keyboard, and a graphical desktop. No FPGA board or Vivado installation is needed to play. The dependencies are pygame-ce, NumPy and Pillow.
 
-Open a terminal in this `prototype/` folder, which contains `requirements.txt`, `look/` and `model/`. From the vault root, enter it with:
+Open a terminal in this `prototipos/look/` folder, which contains `requirements.txt`, `look/` and `model/`. From the repository root, enter it with:
 
 ```sh
-cd "CS-256/Game_research/prototype"
+cd prototipos/look
 ```
 
-Create the virtual environment outside the vault so it is not synced by OneDrive/Syncthing. Choose the commands for your operating system.
+Create the virtual environment outside the repository so it is not synced by OneDrive/Syncthing. Keep it separate from the environment for `prototipos/requirements.txt`: that one installs `pygame` and this one installs `pygame-ce`, and both provide the `pygame` module. Choose the commands for your operating system.
 
 ### Linux / macOS
 
-Run these commands from `prototype/`:
+Run these commands from `prototipos/look/`:
 
 ```bash
 python3 -m venv "$HOME/.venvs/cs256-tron"
@@ -31,7 +31,7 @@ python -m look
 
 ### Windows (PowerShell)
 
-Run these commands from `prototype/`:
+Run these commands from `prototipos/look/`:
 
 ```powershell
 py -3 -m venv "$env:USERPROFILE\.venvs\cs256-tron"
@@ -43,7 +43,7 @@ These Windows commands use the environment's Python directly, so activating a Po
 
 ### Run again later
 
-Open a terminal in `prototype/`. On Linux/macOS:
+Open a terminal in `prototipos/look/`. On Linux/macOS:
 
 ```bash
 source "$HOME/.venvs/cs256-tron/bin/activate"
@@ -70,7 +70,7 @@ The side panel lets you compare visual candidates. **Tab** cycles its pages or h
 
 ## Troubleshooting
 
-- **`No module named look` or `No module named model`:** make sure the terminal is in `prototype/`, then use `python -m look` (or the full Windows Python command above).
+- **`No module named look` or `No module named model`:** make sure the terminal is in `prototipos/look/`, then use `python -m look` (or the full Windows Python command above).
 - **Missing `pygame`, `numpy` or `PIL`:** install `requirements.txt` using the same environment's Python that launches the game. The package providing `PIL` is Pillow; the package providing `pygame` here is pygame-ce.
 - **`python3` or `py` is not found:** install Python 3.10 or newer and reopen the terminal. On Windows, enable the Python launcher during installation.
 - **Linux cannot create a virtual environment:** install your distribution's Python venv support (often the `python3-venv` package), then retry.
@@ -79,7 +79,7 @@ The side panel lets you compare visual candidates. **Tab** cycles its pages or h
 
 ## Tests
 
-Run both test suites from `prototype/`:
+Run both test suites from `prototipos/look/`:
 
 ```powershell
 python -m unittest discover -s tests
@@ -101,7 +101,7 @@ python -m unittest discover -s tests
 | M / Shift+M | Next / previous style preset: `synthwave`, `outrun`, `classic`; presets never change geometry |
 | Tab | Cycle the panel in windowed mode: look page, BRAM page, effects page, hidden |
 | F11 | Toggle fullscreen; 1:1 on the 1280 × 800 lab monitor, integer enlargement on larger displays |
-| F12 | Save the game image to `prototype/out/`, without the panel or debug overlay |
+| F12 | Save the game image to `prototipos/look/out/`, without the panel or debug overlay |
 | Esc | Leave fullscreen, or quit in windowed mode |
 
 Candidate keys cycle forward; hold Shift to go back. The panel shows each axis by its field name, shortened to fit.
@@ -111,7 +111,7 @@ Candidate keys cycle forward; hold Shift to go back. The panel shows each axis b
 | 1 | HUD layout (`hud`) | `top`, `sides`, `corners` |
 | 2 | Cell side (`cell_px`) | 4, 8, 16 px |
 | 3 | Bike side (`bike_px`) | 16, 32, 64 px |
-| 4 | Bike style (`bike_style`) | `synth`, `racer`, `cycle`, `arrow`, then any `png:<name>` found in `assets/` |
+| 4 | Bike style (`bike_style`) | `synth`, `racer`, `cycle`, `arrow`, then any `png:<name>` found in the root `assets/` |
 | 5 | Reward look (`reward_look`) | `neon`, `gem`, `orb`, `gem+star` (`neon` and `gem+star`: +3 gem, +5 star) |
 | 6 | Reward side (`reward_size`) | `half-bike`, `cell` |
 | 7 | Palette (`palette`) | `synthwave`, `outrun`, `classic`, `softer`, `strong` |
@@ -137,7 +137,7 @@ See [Performance and hardware tracking](#performance-and-hardware-tracking) for 
 
 ## Performance and hardware tracking
 
-From `prototype/`, run:
+From `prototipos/look/`, run:
 
 ```powershell
 python -m look.metrics
@@ -145,7 +145,7 @@ python -m look.metrics
 
 This renders the configurations in `look/metrics.py`'s `CONFIGS` headless: all three presets at 8 px Cells, then `synthwave` at 4 and 16 px Cells. Each run measures 240 frames after 30 warm-up frames. Draw time includes the Game Model frame update, Trail update, drawing and final colour stage; build time measures a renderer rebuild.
 
-The command appends rows to `prototype/metrics/look-metrics.csv` and rewrites [prototype/metrics/latest.md](metrics/latest.md). The CSV columns, in `FIELDS` order, are `date`, `commit`, `dirty`, `host`, `python`, `pygame`, `config`, `cell_px`, `build_ms`, `draw_ms_median`, `draw_ms_p95`, `ramb18`, `ramb18_pct`, `effect_table_bits`, `clear_us`, `placement2_us`, `blank_us`, `rgb444_ok`, `border_ok` and `flags`.
+The command appends rows to `prototipos/look/metrics/look-metrics.csv` and rewrites [prototipos/look/metrics/latest.md](metrics/latest.md). The CSV columns, in `FIELDS` order, are `date`, `commit`, `dirty`, `host`, `python`, `pygame`, `config`, `cell_px`, `build_ms`, `draw_ms_median`, `draw_ms_p95`, `ramb18`, `ramb18_pct`, `effect_table_bits`, `clear_us`, `placement2_us`, `blank_us`, `rgb444_ok`, `border_ok` and `flags`.
 
 Commit code first, run the metrics from a clean working tree, then commit both metrics files. This makes each row name the clean commit measured. The `dirty` column flags any uncommitted change in the repository. Timing is per machine, recorded in `host`; compare rows from the same host. Hardware figures are estimates, pending synthesis.
 
@@ -205,7 +205,7 @@ The neon digit ghost is the union of the segment rectangles, using comparators o
 
 ## Art workflow
 
-From `Game_research/`, `python tools/make_candidate_art.py` writes `assets/candidates/*.png`. It keeps existing files; `--force` overwrites them. An edited PNG with the same name replaces generated art when the viewer next loads it. Restart the viewer after editing because ROMs are cached.
+From the repository root, `python tools/make_candidate_art.py` writes `assets/candidates/*.png`. It keeps existing files; `--force` overwrites them. An edited PNG with the same name replaces generated art when the viewer next loads it. Restart the viewer after editing because ROMs are cached.
 
 Any `assets/bike-<name>.png` appears as Bike style `png:<name>` on restart. Its native size overrides the Bike size axis, and `half-bike` Rewards follow that native size. Candidate Bikes are generated at 16/32/64 px; Rewards at 4/8/16/32 px.
 
@@ -219,7 +219,7 @@ The legacy viewer interprets dim tint key `080` (PNG `#008800`) as half the Play
 
 ## Local Game Model (implementation reference)
 
-This section documents the existing local `prototype/model/` code only. It is a migration input, not the selected HDL contract or the shared reference model. The team selected one headless model in the team repository for both PC viewers and HDL scenarios; the exact migration base and adapters remain engineering work. `model/` has no graphics imports and checks functional state at frame and Step boundaries.
+This section documents the existing local `prototipos/look/model/` code only. It is a migration input, not the selected HDL contract or the shared reference model. The team selected one headless model in the team repository for both PC viewers and HDL scenarios; the exact migration base and adapters remain engineering work. `model/` has no graphics imports and checks functional state at frame and Step boundaries.
 
 | Module | Work-list objectives | Responsibility |
 |---|---|---|

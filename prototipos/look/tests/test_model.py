@@ -2,7 +2,7 @@
 
 Crash geometry is checked at the Step block (like a G2 testbench); Round and
 Match consequences are checked through Game.tick, the model's frame boundary.
-Run from prototype/: python -m unittest discover -s tests
+Run from prototipos/look/: python -m unittest discover -s tests
 """
 
 import unittest

@@ -1,6 +1,6 @@
 """Performance and hardware-budget log for the Look Prototype.
 
-Run from prototype/:  python -m look.metrics
+Run from prototipos/look/:  python -m look.metrics
 Renders each configuration headless, then appends one row per
 configuration to metrics/look-metrics.csv (history, with the git commit and
 host) and rewrites metrics/latest.md. Commit both files to keep the record.
@@ -30,7 +30,7 @@ from . import budget, fx  # noqa: E402
 from .candidates import PRESETS, LookConfig  # noqa: E402
 from .hud import digit_font  # noqa: E402
 
-HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))     # prototype/
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))     # prototipos/look/
 OUT_DIR = os.path.join(HERE, "metrics")
 CSV_PATH = os.path.join(OUT_DIR, "look-metrics.csv")
 MD_PATH = os.path.join(OUT_DIR, "latest.md")
@@ -142,7 +142,7 @@ def write_latest(stamp, results):
         f"Run {stamp['date']} on `{stamp['host']}`, commit `{stamp['commit']}`"
         f"{' with uncommitted changes' if stamp['dirty'] else ''}; Python {stamp['python']}, "
         f"pygame-ce {stamp['pygame']}. History: `look-metrics.csv`. Regenerate with "
-        "`python -m look.metrics` from `prototype/`, then commit both files.",
+        "`python -m look.metrics` from `prototipos/look/`, then commit both files.",
         "",
         "Draw time is the PC viewer's work per 1280 x 800 frame (Game tick, Trail update, "
         f"render, final colour stage), headless, {FRAMES} frames after {WARMUP} warm-up; "

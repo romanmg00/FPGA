@@ -3,7 +3,7 @@
 These guard the Development Plan's "FPGA limits for the Look Prototype"
 and the handout's white border against new effects, and the pulse Trail's
 visibility for both Player colours. Headless (SDL dummy video driver).
-Run from prototype/: python -m unittest discover -s tests
+Run from prototipos/look/: python -m unittest discover -s tests
 """
 
 import os

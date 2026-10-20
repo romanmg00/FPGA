@@ -4,7 +4,7 @@ The PNGs are starting points to edit. The viewer loads an edited PNG in
 place of the generated art with the same name. Existing files are kept
 unless --force is given.
 
-Usage (from Game_research/):  python tools/make_candidate_art.py [--force]
+Usage (from the repository root):  python tools/make_candidate_art.py [--force]
 """
 
 import argparse
@@ -14,7 +14,7 @@ import sys
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "prototype"))
+sys.path.insert(0, os.path.join(ROOT, "prototipos", "look"))
 
 from look import art                    # noqa: E402
 from look.rgb444 import expand          # noqa: E402
