@@ -11,6 +11,8 @@ All work for the CS-256 class project (the two-player Tron game) lives in this f
 | `CS-256 Tron Glossary.md` | Canonical game vocabulary. Use these terms in notes, code comments, and the report |
 | `CS-256 VGA and Sprite Design Plan.md` | VGA timing, render pipeline, sprite ROMs, milestones |
 | `CS-256 Tron Development Plan.md` | Calendar, freezes, scope tiers, work list, verification approach, prototype phases |
+| `CS-256 Tron Agreed Specification 2026-10-20.md` | Consolidated team-agreed baseline locked at the end of the discussion; layout and schedule remain tentative |
+| `CS-256 Tron Team Decisions 2026-10-20.md` | Question-by-question meeting decisions and the source-backed pre-meeting comparison |
 | `CS-256 Tron Integration Comparison.md` | Every difference from Roman's team repo (`romanmg00/FPGA`), with team decisions and technical recommendations, for the integration meeting |
 | `CS-256 TA Email - Game Clock.md` | Draft email to the TAs about the game-clock decision |
 | `CS-256 Official FPGA Coding Practices.md` | Detailed manufacturer guidance for the selected design, plus divided-clock/clock-enable and sprite-pipeline comparisons |
@@ -27,7 +29,11 @@ All work for the CS-256 class project (the two-player Tron game) lives in this f
 
 Create the subfolders when their first file is needed.
 
-**Pending move:** Roman is setting up the team git repository. Once everyone has access, project files move there; until then, this folder is the working copy.
+**Implementation home:** the team selected [romanmg00/FPGA](https://github.com/romanmg00/FPGA) and its reconciled interface contract as the project authority below course requirements. This folder holds the existing research/prototype and the agreed specification; code migration and updating the remote contract have not been performed during the discussion. See [[CS-256 Tron Agreed Specification 2026-10-20]].
+
+## Team
+
+As confirmed from the TAs’ instruction on 2026-10-20, the team is **Roman and Alan**. Earlier three-person ownership plans are superseded. See [[CS-256 Tron Development Plan#Ownership]] for the proposed two-person split and [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] for confirmed decisions. One shared headless rules model in the team repository is selected; the current separate model implementations still need migration.
 
 ## Toolchain
 
@@ -37,7 +43,9 @@ Create the subfolders when their first file is needed.
 
 ## Rules
 
-- Follow the course [class project handout](../cs256-fall-2026/classproject/README.md) and [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) as the implementation baseline (user preference, 2026-10-15). Keep the divided game clock and output-aligned coordinates with early sprite-memory reads as the current baseline. Document the clock-enable and delayed-stream alternatives in [[CS-256 Official FPGA Coding Practices]] for future evaluation; manufacturer guidance informs both paths.
+- **Specification authority (team decision, 2026-10-20):** course requirements and the TAs' strict-architecture instruction first, then the team repository's interface contract, reconciled with [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]]. Local mechanics/glossary/plans mirror those decisions. Existing Python/HDL and the remote contract still need reconciliation; an old implementation does not override the meeting record. The Arena layout is a revisable working baseline, not a hard lock.
+
+- Follow the course [class project handout](../cs256-fall-2026/classproject/README.md) and [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) strictly, as confirmed by the team from its TAs’ recommendation on 2026-10-20. The **final game** uses a second Clocking Wizard plus counter divider for an approximately **60 Hz game clock**, output-aligned coordinates and early sprite-memory reads. [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md) supersedes the frame-enable proposal in ADR 0001. Clock-enable and delayed-stream alternatives remain historical research in [[CS-256 Official FPGA Coding Practices]].
 
 - New notes use the vault's frontmatter and naming standard ([Metadata and File Standard](../../00-System/Planning/Metadata-and-File-Standard.md)), with a `CS-256` title prefix.
 - When a game term is settled or changed, update the glossary in the same change. When a game rule is settled or changed, update the mechanics note.

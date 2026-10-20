@@ -22,13 +22,13 @@ tags:
 
 # CS-256 Official FPGA Coding Practices
 
-**Current baseline (changed 2026-10-15, [ADR 0001](docs/adr/0001-pixel-clock-with-frame-enable.md)):** the game uses **Path B**, one pixel clock with a `frame_tick` enable, pending TA confirmation. The handout's divided clock (Path A) is built only for milestone V4 and stays the fallback. Output-aligned `curr_x`/`curr_y` and early sprite reads follow the [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) unchanged. Both clock paths remain documented below.
+**Current baseline (confirmed 2026-10-20, [ADR 0002](docs/adr/0002-follow-ta-divided-game-clock.md)):** follow the TAs’ strict handout instruction: the **final game uses Path A**, the second Clocking Wizard plus counter-divided approximately 60 Hz game clock. ADR 0001 and Path B are superseded historical alternatives. Output-aligned `curr_x`/`curr_y` and early sprite reads follow the [sprite tips](../cs256-fall-2026/classproject/sprites/README.md) unchanged. Both clock paths remain documented below.
 
 Research checked on **2026-10-15**. Paragraphs marked **AMD guidance** describe vendor documentation. **Project application** identifies our engineering interpretation. Manufacturer guidance supports implementation choices; it does not establish course acceptance or prove this game works.
 
-## Sources behind the pixel-clock decision
+## Sources behind the historical pixel-clock proposal
 
-The [clock ADR](docs/adr/0001-pixel-clock-with-frame-enable.md) now contains claim-level citations. This map makes the origin of its main conclusions explicit:
+The [superseded clock ADR](docs/adr/0001-pixel-clock-with-frame-enable.md) contains claim-level citations. The following map preserves that proposal’s reasoning; it does not override the selected divided-clock baseline in ADR 0002:
 
 | Conclusion | Supporting reference | What comes from the source, and what we conclude |
 |---|---|---|
@@ -39,7 +39,7 @@ The [clock ADR](docs/adr/0001-pixel-clock-with-frame-enable.md) now contains cla
 | A full handshake through a 60 Hz source has a throughput cost | [UG953: XPM_CDC_HANDSHAKE](https://docs.amd.com/r/en-US/ug953-vivado-7series-libraries/XPM_CDC_HANDSHAKE) | The macro specifies full acknowledgement/rearm and source synchronization stages. Millisecond estimates follow from our 60 Hz source assumption; other transfer designs differ. |
 | The update rate can remain about 60 Hz while the controller uses the pixel clock | [Course raster and clock settings](../cs256-fall-2026/classproject/README.md), [UG949: Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables) | The course supplies the timing; the enable supplies conditional state updates. `83.46 MHz / (1680 × 828) ≈ 59.998 Hz` and the K-frame Step cadence are project arithmetic/design. |
 
-**Scope of the conclusion:** AMD does not specify “83.46 MHz rather than 60 Hz” for this project. We choose a fast common clock for controller execution and a slow enable cadence for launching Steps. Completing the whole transaction inside blanking remains a simulation requirement, not a consequence guaranteed by the enable alone.
+**Scope of the conclusion:** AMD does not specify “83.46 MHz rather than 60 Hz” for this project. The superseded proposal chose a fast common clock for controller execution and a slow enable cadence for launching Steps. Completing the whole transaction inside blanking remains a simulation requirement, not a consequence guaranteed by the enable alone.
 
 ## Target and source scope
 
@@ -55,11 +55,11 @@ This investigation uses AMD's 7-series architecture guides **UG472 v1.14** and *
 |---|---|---|
 | Fabric clock gating | A LUT computes something such as `clk & enable` and drives clock pins | AMD advises against this HDL pattern and recommends inferring register enables. An enable transition can alter the clock waveform. Do not use it for either path. |
 | Registered clock division | A counter clocks a flip-flop whose output changes at a lower rate and drives a clock distribution resource | This is the handout path. It creates a generated clock and requires routing, waveform and crossing analysis. It is different from an AND gate on the clock. |
-| Register clock enable | Registers use `posedge pixclk`; a synchronous condition controls which state updates occur | This is the game proposal in ADR 0001, pending TA confirmation. The event is data/control, not a clock. A game FSM can execute at pixel-clock speed after an update starts. |
+| Register clock enable | Registers use `posedge pixclk`; a synchronous condition controls which state updates occur | This is the superseded game proposal in ADR 0001; ADR 0002 selects the divided-clock architecture. The event is data/control, not a clock. A game FSM can execute at pixel-clock speed after an update starts. |
 
 **AMD guidance:** UG949 recommends clock enables instead of HDL clock gating and generally avoiding fabric-routed local clocks. UG472 permits general interconnect as a BUFG input, but its connectivity table labels that route **not recommended**. Thus a divider flip-flop feeding a BUFG is device-supported, while retaining a fabric segment before the buffer; it is not equivalent to an all-dedicated MMCM clock path. [UG949: Using Gated Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Gated-Clocks), [Avoiding Local Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Avoiding-Local-Clocks), [UG472, Table 1-1 p. 25 and Global Clock Buffers p. 36](https://docs.amd.com/api/khub/documents/1kFbRqzm2fhwGy~cLQG2yA/content).
 
-### Path A — the handout divided-clock implementation and fallback
+### Path A — selected handout divided-clock implementation
 
 **Project application:** retain `100 MHz → second Clocking Wizard → divider counter → registered game-clock output → clock buffer → game logic`. Use a registered output rather than a combinational terminal-count decode as the clock. Inspect the implemented BUFG and its loads; a signal named `game_clk` does not establish its routing. Keep the clock running during a game pause; pause game state rather than placing an AND gate in the clock path.
 
@@ -82,7 +82,7 @@ create_generated_clock -name game_clk \
 
 Check each query resolves to exactly one intended pin in the synthesized netlist. Do not create an unrelated primary clock on the divider output or define duplicate clocks at both Q and BUFG/O. Verify propagation, period, waveform and clock ancestry in the reports.
 
-### Path B — pixel clock plus enable, proposed for the game
+### Path B — historical pixel-clock-enable alternative
 
 **AMD guidance:** an edge-triggered block with a condition that retains the old register value describes enable behavior. Enables can affect control sets, so they are not resource-free. [UG949: Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables).
 
@@ -90,7 +90,7 @@ Check each query resolves to exactly one intended pin in the synthesized netlist
 
 **Project application:** clock game logic, renderer and memory controllers with `pixclk`. A one-cycle `frame_tick` or counter enable decides **when to launch** a Step. While busy, the memory FSM advances on each `pixclk` edge; do not gate every read/wait/check/write transition with the once-per-frame event. This removes the game/render clock crossing but leaves external inputs asynchronous and still requires memory arbitration.
 
-A frame-derived enable gives approximately 59.998 Hz with the handout timing; a separate synchronous counter enable can target a different update rate. State changes must be scheduled or snapshotted coherently; one shared clock alone does not ensure a consistent frame. ADR 0001 proposes this path for the game, pending TA confirmation and implementation evidence; Path A remains available for comparison and fallback.
+A frame-derived enable gives approximately 59.998 Hz with the handout timing; a separate synchronous counter enable can target a different update rate. State changes must be scheduled or snapshotted coherently; one shared clock alone does not ensure a consistent frame. ADR 0001 proposed this path, but ADR 0002 supersedes it after the TAs’ strict-architecture instruction. Path A is selected for the final game; Path B remains research.
 
 ## Clock-domain transfers for Path A
 
@@ -162,6 +162,10 @@ Keep ROMs always enabled as in the sprite tips initially. If reads are later gat
 
 ## Arena memory and reset
 
+**Selected project encoding (team decision, 2026-10-20):** use **8192 × 4-bit words** with a 13-bit `{cy[5:0], cx[6:0]}` address for the 16 px screen grid. Codes: 0 empty, 1 Wall, 2 P1 Trail, 3 P1 head, 4 P2 Trail, 5 P2 head, 6 Crash, 7 reserved, and 8/9/10 Reward slots 0/1/2. The three Reward slots have independent state. Synchronize these constants in the shared headless model and HDL package; unused coordinate padding and the HUD/Wall regions are not playable. These are team choices, not an AMD-prescribed encoding. Existing code still needs migration from the incompatible local three-bit table.
+
+**Selected service architecture (Q28 clarified by Q32):** retain approximately 60 Hz game-state logic and fast video/memory service. The fast controller is the Arena write owner, executing validated game commands and returning results. Define coherent request/result payloads and render snapshots, occupancy revalidation for delayed Reward placement, reset/pause behavior during a transaction, and measured service/round-trip bounds. Do not infer those guarantees merely from dual-port memory or a common clock on its ports.
+
 **AMD guidance:** UG473's BRAM **common-clock** collision rules require both ports to be driven by the same clock-buffer driver. Other CLKA/CLKB connections use the independent-clock rules. Two reads succeed; conflicting writes are nondeterministic; read-during-write results depend on the documented configuration. [UG473 v1.14, Conflict Avoidance, pp. 19–20](https://docs.amd.com/api/khub/documents/9gZGbqBxtlKXxBfkBt~lAg/content).
 
 **Project application:** comparing UG473's shared-buffer rule with UG903's related-clock definition shows that a safely timed clock pair is not automatically a common-clock BRAM connection. A useful implementation option for Path A is to keep **both grid ports on `pixclk`**, with a fast controller servicing slow-domain commands through the chosen transfer interface. The game still uses the handout's slow clock. This avoids treating dual-port BRAM as an automatic CDC protocol and simplifies port arbitration. If ports instead use different clocks, apply the independent-clock collision restrictions explicitly.
@@ -178,7 +182,7 @@ Use one defined write owner. Check both Bikes' candidate Cells before committing
 | 8 px | 160 × 100 | 256 × 128 = 32,768 words | 392.6 µs |
 | 4 px | 320 × 200 | 512 × 256 = 131,072 words | 1,570.5 µs |
 
-The 28 complete blank lines provide 47,040 cycles, about **563.6 µs**. Thus the default 8 px clear can fit in principle, while a full 4 px clear cannot fit in that interval at one write per cycle. Controller overhead, Walls/Rewards and competing operations still need a measured budget. During a multi-frame clear, keep gameplay/render validity in a defined state; do not promise immediate reset of the Arena array.
+The 28 complete blank lines provide 47,040 cycles, about **563.6 µs**. The selected **16 px** padded clear has an idealized **98.2 µs** lower bound. The older 8 px estimate is 392.6 µs; a full 4 px clear cannot fit that blanking interval at one write per cycle. Controller overhead, Walls/Rewards and competing operations still need a measured budget. During a multi-frame clear, keep gameplay/render validity in a defined state; do not promise immediate reset of the Arena array.
 
 ## RTL, inputs and startup
 
@@ -233,7 +237,7 @@ Our acceptance evidence should include:
 
 ## Future evaluation of both paths
 
-| Criterion | Path A — divided game clock, V4 and fallback | Path B — pixel-clock enable, game proposal pending TAs |
+| Criterion | Path A — divided game clock, selected final game | Path B — historical pixel-clock-enable proposal |
 |---|---|---|
 | Course match | Directly follows the second-divider instruction | Needs teaching-staff acceptance if substituted for that instruction |
 | Clock resources | Extra Wizard/divider and slow-clock distribution | Game uses the existing pixel-clock distribution |

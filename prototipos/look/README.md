@@ -1,24 +1,83 @@
 # CS-256 Tron prototype
 
+> **Implementation status, 20 October 2026:** this README describes the existing viewer/model, which predates the team's reconciled specification. The selected design is now 16 px Cells, four-bit Arena words, Rewards +1/+1/+3, Survival Bonus +3, a configurable goal defaulting to 10, native RGB444 `.coe` sprites, and one shared headless rules model in the team repository. Migration has not been implemented during the discussion. See [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] and the team interface contract; current prototype defaults and passing tests do not supersede those decisions.
+
 The L1 Look Prototype viewer runs on the headless M1 Game Model. Two Players can play while comparing art, sizes and HUD layouts. See [[CS-256 Tron Development Plan#Phases]] for L1/L2 and M1/M2. Candidate choices and model defaults remain subject to L2; this viewer does not close L1 or M1.
 
 The viewer defaults to the `synthwave` style preset. Sizes and Player colours still default to the recorded design: 8 px Cells, a 32 px Bike, P1 cyan and P2 orange.
 
-## Install, run and tests
+## Quick start
 
-Install from `Game_research/`:
+This is a local, two-player Python desktop game. You need Python 3.10 or newer, a keyboard, and a graphical desktop. No FPGA board or Vivado installation is needed to play. The dependencies are pygame-ce, NumPy and Pillow.
 
-```powershell
-python -m pip install --user -r prototype/requirements.txt
+Open a terminal in this `prototype/` folder, which contains `requirements.txt`, `look/` and `model/`. From the vault root, enter it with:
+
+```sh
+cd "CS-256/Game_research/prototype"
 ```
 
-The dependencies are pygame-ce, NumPy and Pillow. Keep virtual environments outside the vault, which syncs through OneDrive/Syncthing.
+Create the virtual environment outside the vault so it is not synced by OneDrive/Syncthing. Choose the commands for your operating system.
 
-Run from `prototype/`:
+### Linux / macOS
 
-```powershell
+Run these commands from `prototype/`:
+
+```bash
+python3 -m venv "$HOME/.venvs/cs256-tron"
+source "$HOME/.venvs/cs256-tron/bin/activate"
+python -m pip install -r requirements.txt
 python -m look
 ```
+
+### Windows (PowerShell)
+
+Run these commands from `prototype/`:
+
+```powershell
+py -3 -m venv "$env:USERPROFILE\.venvs\cs256-tron"
+& "$env:USERPROFILE\.venvs\cs256-tron\Scripts\python.exe" -m pip install -r requirements.txt
+& "$env:USERPROFILE\.venvs\cs256-tron\Scripts\python.exe" -m look
+```
+
+These Windows commands use the environment's Python directly, so activating a PowerShell script is unnecessary.
+
+### Run again later
+
+Open a terminal in `prototype/`. On Linux/macOS:
+
+```bash
+source "$HOME/.venvs/cs256-tron/bin/activate"
+python -m look
+```
+
+On Windows (PowerShell):
+
+```powershell
+& "$env:USERPROFILE\.venvs\cs256-tron\Scripts\python.exe" -m look
+```
+
+Launch the package with `-m look`; running `look/app.py` directly does not set up its package imports.
+
+## Play your first Round
+
+1. Click the game window so it receives keyboard input.
+2. Press **Space** or **Enter** to start.
+3. Player 1 uses the **arrow keys**; Player 2 uses **W/A/S/D**. Bikes move automatically; these keys request Turns.
+4. Avoid Walls and Trails, and collect Rewards for Points. After the Crash freeze, press **Space** or **Enter** to start the next Round.
+5. Press **P** to pause, **Backspace** to reset, or **Esc** to quit. In fullscreen, the first **Esc** returns to windowed mode.
+
+The side panel lets you compare visual candidates. **Tab** cycles its pages or hides it, **M** changes the style preset, and **F11** toggles fullscreen. The complete controls are below.
+
+## Troubleshooting
+
+- **`No module named look` or `No module named model`:** make sure the terminal is in `prototype/`, then use `python -m look` (or the full Windows Python command above).
+- **Missing `pygame`, `numpy` or `PIL`:** install `requirements.txt` using the same environment's Python that launches the game. The package providing `PIL` is Pillow; the package providing `pygame` here is pygame-ce.
+- **`python3` or `py` is not found:** install Python 3.10 or newer and reopen the terminal. On Windows, enable the Python launcher during installation.
+- **Linux cannot create a virtual environment:** install your distribution's Python venv support (often the `python3-venv` package), then retry.
+- **No window appears over SSH or an error mentions a video device:** launch from a graphical desktop session. The interactive viewer needs a display; the tests below can run headless.
+- **The game is too fast:** press **[** to slow it down; **]** speeds it up.
+
+## Tests
 
 Run both test suites from `prototype/`:
 
