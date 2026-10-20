@@ -6,7 +6,7 @@ type: note
 subject: CS-256
 status: draft
 created_at: "2026-10-14T15:57:29"
-updated_at: "2026-10-20T14:53:11"
+updated_at: "2026-10-20T19:28:07"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
@@ -253,10 +253,9 @@ The work-list IDs and their completion checks live in [[CS-256 Tron Development 
 | Agreed game core, Arena service, input, and Scoreboard | A1/A2, G1–G5, I1–I4, X1/X2 | Follow the agreed specification; record simulation, CDC/timing, and board evidence under the existing objective IDs. |
 | On-screen HUD and optional styling | H2, C1/C2 | HUD follows the core. Menus, live customization, glow, scanlines, animated backgrounds, and power-ups are outside the core; power-ups are out of term. |
 
-Planned source files go in `CS-256/Game_research/`, per the folder policy in [README](../README.md):
+Planned source files go in this repository, per the layout in [README](../README.md):
 
-- `hdl/`: `vga_out.sv`, `drawcon.sv`, `game_top.sv`, `game_top.xdc`;
-- `sim/`: `tb_vga_out.sv`, `tb_frame_dump.sv`;
+- `proyecto_final/`, Roman's hardware root: `vga_out.sv` (already there), `drawcon.sv`, `game_top.sv`, `game_top.xdc`, and the testbenches `tb_vga_out.sv` and `tb_frame_dump.sv`. A subfolder layout is proposed, not selected, in [[CS-256 Tron Opus 5.5 Architecture and Integration Review#4.4 Proposed canonical repository structure and model governance]];
 - `tools/png2coe.py`;
 - `assets/`: `.coe` files.
 
