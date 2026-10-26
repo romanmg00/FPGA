@@ -1,0 +1,26 @@
+Digilent Nexys A7 Reference Manual:
+https://digilent.com/reference/_media/reference/programmable-logic/nexys-a7/nexys-a7_rm.pdf
+
+Digilent Nexys A7 Schematic Rev. D.0:
+https://digilent.com/reference/_media/reference/programmable-logic/nexys-a7/nexys-a7-sch.pdf
+
+Digilent Nexys A7-100T Master XDC:
+https://raw.githubusercontent.com/Digilent/digilent-xdc/master/Nexys-A7-100T-Master.xdc
+
+AMD DS180 — 7 Series FPGA Overview:
+https://docs.amd.com/v/u/en-US/ds180_7Series_Overview
+
+AMD DS181 — Artix-7 FPGA DC/AC Switching Characteristics:
+https://docs.amd.com/v/u/en-US/ds181_Artix_7_Data_Sheet
+
+AMD UG480 — XADC User Guide:
+https://docs.amd.com/r/en-US/ug480_7Series_XADC
+
+Analog Devices ADXL362 datasheet:
+https://www.analog.com/media/en/technical-documentation/data-sheets/adxl362.pdf
+
+Analog Devices ADT7420 datasheet:
+https://www.analog.com/media/en/technical-documentation/data-sheets/adt7420.pdf
+
+Analog Devices ADMP421 datasheet:
+https://www.analog.com/media/en/technical-documentation/obsolete-data-sheets/ADMP421.pdf

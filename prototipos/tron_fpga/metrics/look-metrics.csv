@@ -1,0 +1,6 @@
+date,commit,dirty,host,python,pygame,config,cell_px,build_ms,draw_ms_median,draw_ms_p95,ramb18,ramb18_pct,effect_table_bits,clear_us,placement2_us,blank_us,rgb444_ok,border_ok,flags
+2026-10-17 16:32,69842fc,False,Alan-Legion,3.12.4,2.5.8,"synthwave, 8 px",8,279,9.96,10.59,15,5.6,7260,392.6,834.3,563.6,True,True,Dim tint key 080: not in limit 3 yet
+2026-10-17 16:32,69842fc,False,Alan-Legion,3.12.4,2.5.8,"outrun, 8 px",8,260,8.15,8.87,15,5.6,1128,392.6,834.3,563.6,True,True,Dim tint key 080: not in limit 3 yet
+2026-10-17 16:32,69842fc,False,Alan-Legion,3.12.4,2.5.8,"classic, 8 px",8,44,3.34,3.83,11,4.1,0,392.6,834.3,563.6,True,True,none
+2026-10-17 16:32,69842fc,False,Alan-Legion,3.12.4,2.5.8,"synthwave, 4 px",4,334,10.13,10.83,33,12.2,7260,1570.5,3190.0,563.6,True,True,"Arena clear 1,570 us > 563.6 us blanking | Dim tint key 080: not in limit 3 yet"
+2026-10-17 16:32,69842fc,False,Alan-Legion,3.12.4,2.5.8,"synthwave, 16 px",16,252,9.81,10.38,11,4.1,7260,98.2,245.4,563.6,True,True,Dim tint key 080: not in limit 3 yet
