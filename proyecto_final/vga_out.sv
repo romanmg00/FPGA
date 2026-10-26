@@ -3,14 +3,14 @@ module vga_out (
     input  logic        rst,
     input  logic [3:0]  draw_r, draw_g, draw_b,
     output logic [10:0] curr_x,
-    output logic [9:0]  curr_y,
+    output logic [10:0] curr_y,
     output logic        tick_60hz,
     output logic [3:0]  pix_r, pix_g, pix_b,
     output logic        hsync, vsync
 );
 
     logic [10:0] hcnt;
-    logic [9:0] vcnt;
+    logic [10:0] vcnt;
     logic visible;
 
     counters c_counter(
@@ -29,7 +29,7 @@ module vga_out (
 
     always_ff @(posedge clk_pix) begin
         hsync <= ~ (hcnt>=11'b0 && hcnt<11'd136);
-        vsync <= (vcnt>=10'b0 && vcnt<10'd3);
+        vsync <= (vcnt>=11'b0 && vcnt<11'd3);
         if (visible) begin
             pix_r <= draw_r;
             pix_g <= draw_g;
