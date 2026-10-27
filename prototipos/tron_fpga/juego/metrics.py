@@ -22,9 +22,9 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 import numpy as np  # noqa: E402
 import pygame  # noqa: E402
 
-from model import FrameInputs, RuleParams  # noqa: E402
+from model import BoardInputs, RuleParams  # noqa: E402
 from model.params import BORDER_PX  # noqa: E402
-from model.steering import DOWN, LEFT, RIGHT, UP  # noqa: E402
+from model.turn_unit import DOWN, LEFT, RIGHT, UP  # noqa: E402
 
 from . import budget, fx  # noqa: E402
 from .candidates import PRESETS, LookConfig  # noqa: E402
@@ -39,9 +39,9 @@ WARMUP, FRAMES = 30, 240
 # frame -> (P1 Turn, P2 Turn): both Bikes keep moving and turning
 SCRIPT = {40: (UP, DOWN), 90: (RIGHT, LEFT), 140: (DOWN, UP), 190: (LEFT, RIGHT)}
 
-CONFIGS = [(f"{name}, 8 px", dict(preset, cell_px=8)) for name, preset in PRESETS.items()]
-CONFIGS += [("synthwave, 4 px", dict(PRESETS["synthwave"], cell_px=4)),
-            ("synthwave, 16 px", dict(PRESETS["synthwave"], cell_px=16))]
+# Every preset on the agreed 16 px layout. Rows before this layout was fixed
+# also compared 4 and 8 px Cells; the cell_px column keeps them comparable.
+CONFIGS = [(name, preset) for name, preset in PRESETS.items()]
 
 FIELDS = ["date", "commit", "dirty", "host", "python", "pygame", "config", "cell_px",
           "build_ms", "draw_ms_median", "draw_ms_p95", "ramb18", "ramb18_pct",
@@ -75,8 +75,9 @@ def measure(app, look) -> dict:
     for f in range(WARMUP + FRAMES):
         p1, p2 = SCRIPT.get(f - WARMUP, (None, None))
         turns = ((p1,), (p2,)) if p1 is not None else ((), ())
+        inputs = BoardInputs.keys(p1=turns[0], p2=turns[1], start=(f == 0))
         t0 = time.perf_counter()
-        app.game.tick(FrameInputs(turns=turns, start=(f == 0)))
+        app.game.tick(inputs)
         app.renderer.update_cells(app.game.grid)
         app.renderer.draw(frame, app.game.snapshot())
         dt = (time.perf_counter() - t0) * 1000
@@ -119,7 +120,7 @@ def main():
     results = []
     for name, fields in CONFIGS:
         look = replace(LookConfig(), **fields)
-        row = dict(stamp, config=name, cell_px=look.cell_px, **measure(app, look))
+        row = dict(stamp, config=name, cell_px=app.geom.cell_px, **measure(app, look))
         results.append(row)
         print(f"{name:<18} draw {row['draw_ms_median']} ms (p95 {row['draw_ms_p95']}), "
               f"RAMB18 {row['ramb18']}, clear {row['clear_us']} us, flags: {row['flags']}")
@@ -144,7 +145,7 @@ def write_latest(stamp, results):
         f"pygame-ce {stamp['pygame']}. History: `look-metrics.csv`. Regenerate with "
         "`python -m juego.metrics` from `prototipos/tron_fpga/`, then commit both files.",
         "",
-        "Draw time is the PC viewer's work per 1280 x 800 frame (Game tick, Trail update, "
+        "Draw time is the PC viewer's work per 1280 x 800 frame (game tick, Trail update, "
         f"render, final colour stage), headless, {FRAMES} frames after {WARMUP} warm-up; "
         "the 60 fps budget is 16.7 ms. Build time is a renderer rebuild (look change).",
         "",

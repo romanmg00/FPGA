@@ -1,134 +1,153 @@
-"""Rule values and Arena geometry for the Game Model.
+"""Shared constants: the Python copy of `game_pkg.sv`.
 
-Every rule value marked 🔵 or ⏳ in CS-256 Tron Game Mechanics is a parameter
-here, so the L2 lockdown can change a value without touching the rules.
-Geometry follows the handout: 1280 x 800 visible pixels and a 10 px white
-border; the Wall is the ring of Cells that covers that border.
+Names follow `game_pkg` in the interface contract (proyecto_final/,
+section 5) so the model and the HDL read the same values;
+tests/test_model.py checks them against the contract. Rule values are the
+agreed specification's (2026-10-20). Its layout and start Cells are a
+working baseline the team may revise after testing: change them here, in
+the contract and in a new ADR together.
+
+The block marked PROPOSAL holds values this model needs for the slow/fast
+service boundary (X1). They follow the recommended architecture in the
+Opus 5.5 Architecture and Integration Review, section 5, and are not team
+decisions yet; see docs/design/CS-256 Tron Game Model Hardware Map.md.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-SCREEN_W = 1280                      # handout: curr_x 0..1279
-SCREEN_H = 800                       # handout: curr_y 0..799
-BORDER_PX = 10                       # handout Drawing Logic step 4
-CELL_SIZES = (4, 8, 16)              # Development Plan, FPGA limit 4
-HUD_ALIGN_PX = 16                    # HUD reservations stay on a 16 px grid
+# --- Video (handout): 1280 x 800 visible pixels and a 10 px white border ---
+SCREEN_W = 1280
+SCREEN_H = 800
+BORDER_PX = 10
+
+# --- Grid: 16 px Cells, address {cy[5:0], cx[6:0]} over a padded 128 x 64 grid ---
+TILE_SHIFT = 4
+CELL_PX = 1 << TILE_SHIFT
+GRID_W, GRID_H = 80, 50                  # Cells on screen
+HUD_ROWS = 4                             # cy 0..3: the 64 px HUD band
+CX_W, CY_W, ADDR_W = 7, 6, 13
+PLAY_CX_MIN, PLAY_CX_MAX = 1, 78         # 78 x 44 playable Cells, inclusive
+PLAY_CY_MIN, PLAY_CY_MAX = 5, 48         # Walls: cy 4, cy 49, cx 0, cx 79
+
+# --- Cell contents (CELL_*), the same in the model and the HDL ---
+CELL_EMPTY = 0
+CELL_WALL = 1                            # Wall or any inaccessible Cell (HUD band, padding)
+CELL_P1_TRAIL, CELL_P1_HEAD = 2, 3
+CELL_P2_TRAIL, CELL_P2_HEAD = 4, 5
+CELL_CRASH = 6                           # defined by the agreement; this model does not write it
+CELL_RESERVED = 7
+CELL_REWARD0 = 8                         # Reward slots 0..2 are codes 8..10
+CELL_BITS = 4
+
+# --- Headings (DIR_*): turning right adds 1 (mod 4) ---
+DIR_UP, DIR_RIGHT, DIR_DOWN, DIR_LEFT = 0, 1, 2, 3
+
+# --- Game states (G_*): contract proposal, plus G_PREP (this model's proposal) ---
+G_IDLE, G_PLAY, G_CRASH, G_READY, G_MATCH = 0, 1, 2, 3, 4
+G_PREP = 5                               # waiting for PREPARE: Arena clear, heads, three Rewards
+PHASE_NAMES = ("IDLE", "PLAY", "CRASH", "READY", "MATCH_OVER", "PREP")
+
+# --- Board buttons: bit positions in btn[4:0] ---
+BTN_U, BTN_D, BTN_L, BTN_R, BTN_C = 0, 1, 2, 3, 4
+SW_PAUSE = 0                             # sw[0]
+SW_GOAL_LSB = 14                         # sw[15:14]
+
+# --- Rules, in ticks of the ~60 Hz game clock (ADR 0002) ---
+STEP_TICKS = 6                           # one Cell every 6 ticks: ~10 Cells/s
+LIVES_START = 3
+REWARD_PTS0, REWARD_PTS1, REWARD_PTS2 = 1, 1, 3
+SURVIVAL_BONUS = 3
+CRASH_TICKS = 120                        # ~2 s Crash display
+SCORE_VIEW_TICKS = 180                   # ~3 s per Scoreboard view
+GOALS = (10, 20, 30, 40)                 # Points Goal by {SW15, SW14}
+
+# --- Start Cells: P1 (20, 27) heading RIGHT, P2 (59, 27) heading LEFT ---
+SAL_P1_CX, SAL_P2_CX, SAL_CY = 20, 59, 27
+
+# --- Widths that hold every legal value without wrapping ---
+# The largest final total is 39 + 3 (Reward) + 3 (Survival Bonus) = 45 at goal 40.
+POINTS_MAX = max(GOALS) - 1 + max(REWARD_PTS0, REWARD_PTS1, REWARD_PTS2) + SURVIVAL_BONUS
+POINTS_W = POINTS_MAX.bit_length()       # 6 bits
+LIVES_W = LIVES_START.bit_length()       # 2 bits
+
+# --- PROPOSAL: slow/fast service boundary (X1), not yet agreed ---
+SYNC_STAGES = 2          # 2-FF synchronizer on switches in the game domain
+STEP_LATENCY = 2         # ticks from a Step launch (READ2) to its registered outcome
+MIN_STEP_TICKS = 4       # launch, outcome (+2), COMMIT done seen (+4): next launch
+SEQ_W = 4                # mailbox command sequence number
+SERVICE_WINDOW = 1 << 18 # fast-domain cycles a command may take after the tick (~3.1 ms)
+LFSR_SEED = 0x1D2C_3B4A  # reset value and fixed-seed value of the Reward LFSR
+RANDOM_DRAWS = 64        # Reward placement: LFSR candidates before the address scan
+
+PIX_HZ = 83.46e6
+GAME_HZ = 60.0           # nominal; record the achieved Wizard/divider rate
 
 
-@dataclass(frozen=True)
-class HudReserve:
-    """Screen pixels kept out of the Arena for the HUD (0 = none)."""
-
-    top: int = 0
-    bottom: int = 0
-    left: int = 0
-    right: int = 0
+def goal_from_switches(sw: int) -> int:
+    """{SW15, SW14} as a 2-bit number: 00 -> 10 (default), 01 -> 20, 10 -> 30, 11 -> 40."""
+    return GOALS[sw & 3]
 
 
-@dataclass(frozen=True)
 class ArenaGeometry:
-    """Where the Arena's Cells sit on the screen and in the grid memory.
+    """The agreed working layout, in Cells and pixels.
 
-    The grid memory covers the whole screen, one word per Cell, with a
-    power-of-two row stride so the address is the bit concatenation
-    {cell_y, cell_x} of curr_y/curr_x slices. Cells outside the Arena
-    interior (Wall ring, HUD area, stride padding) hold WALL.
+    The Arena memory covers the whole screen, one word per Cell, padded to
+    128 x 64 so the address is the bit concatenation {cy, cx} of
+    curr_y[9:4] and curr_x[10:4] (curr_y is 11 bits wide, but bit 10 is
+    always 0 for rows 0..799). Every Cell outside the playable area (the
+    HUD band, the Wall ring and the padding) holds CELL_WALL.
     """
 
-    cell_px: int = 8
-    hud: HudReserve = field(default_factory=HudReserve)
-
-    def __post_init__(self):
-        if self.cell_px not in CELL_SIZES:
-            raise ValueError(f"Cell size must be one of {CELL_SIZES}, got {self.cell_px}")
-        for side in ("top", "bottom", "left", "right"):
-            px = getattr(self.hud, side)
-            if px < 0 or px % HUD_ALIGN_PX:
-                raise ValueError(f"HUD {side} reserve must be a multiple of {HUD_ALIGN_PX} px, got {px}")
-        if self.width < 8 or self.height < 8:
-            raise ValueError("HUD reserve leaves no playable Arena")
-
-    # Whole-screen grid in Cells
-    @property
-    def grid_w(self) -> int:
-        return SCREEN_W // self.cell_px
-
-    @property
-    def grid_h(self) -> int:
-        return SCREEN_H // self.cell_px
-
-    @property
-    def x_bits(self) -> int:
-        return (self.grid_w - 1).bit_length()
-
-    @property
-    def y_bits(self) -> int:
-        return (self.grid_h - 1).bit_length()
-
-    @property
-    def stride_w(self) -> int:
-        return 1 << self.x_bits
-
-    @property
-    def stride_h(self) -> int:
-        return 1 << self.y_bits
-
-    @property
-    def wall_cells(self) -> int:
-        """Wall thickness in Cells: enough to cover the 10 px border."""
-        return -(-BORDER_PX // self.cell_px)
-
-    # Arena interior, in grid Cells: x0 <= x < x1, y0 <= y < y1
-    @property
-    def x0(self) -> int:
-        return self.hud.left // self.cell_px + self.wall_cells
-
-    @property
-    def x1(self) -> int:
-        return self.grid_w - self.hud.right // self.cell_px - self.wall_cells
-
-    @property
-    def y0(self) -> int:
-        return self.hud.top // self.cell_px + self.wall_cells
-
-    @property
-    def y1(self) -> int:
-        return self.grid_h - self.hud.bottom // self.cell_px - self.wall_cells
-
-    @property
-    def width(self) -> int:
-        return self.x1 - self.x0
-
-    @property
-    def height(self) -> int:
-        return self.y1 - self.y0
+    cell_px = CELL_PX
+    x_bits, y_bits = CX_W, CY_W
+    stride_w, stride_h = 1 << CX_W, 1 << CY_W
+    hud_px = HUD_ROWS * CELL_PX
+    # Playable Cells: x0 <= cx < x1, y0 <= cy < y1
+    x0, x1 = PLAY_CX_MIN, PLAY_CX_MAX + 1
+    y0, y1 = PLAY_CY_MIN, PLAY_CY_MAX + 1
+    width, height = x1 - x0, y1 - y0
 
     def in_interior(self, x: int, y: int) -> bool:
         return self.x0 <= x < self.x1 and self.y0 <= y < self.y1
 
     def start_cells(self) -> tuple:
-        """P1 at left-centre, P2 mirrored at right-centre (mechanics ✅)."""
-        y = self.y0 + self.height // 2
-        x1 = self.x0 + self.width // 4
-        x2 = self.x1 - 1 - self.width // 4
-        return (x1, y), (x2, y)
+        return (SAL_P1_CX, SAL_CY), (SAL_P2_CX, SAL_CY)
+
+
+GEOMETRY = ArenaGeometry()
+DEFAULT_STARTS = ((SAL_P1_CX, SAL_CY, DIR_RIGHT), (SAL_P2_CX, SAL_CY, DIR_LEFT))
 
 
 @dataclass(frozen=True)
 class RuleParams:
-    """Game rule values. 🔵 = proposed, ⏳ = waits for the size test."""
+    """Rule values, defaulting to the agreed ones.
 
-    lives: int = 3                          # ✅
-    survival_bonus: int = 5                 # 🔵 +5
-    points_cap: int = 99                    # 🔵 Points stop at 99
-    reward_values: tuple = (3, 3, 5)        # 🔵 two +3 and one +5, one per slot
-    frames_per_step: int = 4                # ⏳ K: frames between Steps (Bike speed)
-    crash_freeze_frames: int = 120          # 🔵 about 2 s at 59.998 Hz
-    next_round_needs_start: bool = True     # 🔵 after the freeze, wait for Start
-    lfsr_seed: int = 0x1D2C_3B4A            # any non-zero 32-bit value
+    These stand for HDL module parameters. Tests shorten timers, scenarios
+    may move the start Cells (a testbench parameter, needed for a same-Cell
+    Head-on, which the mirrored starts cannot reach), and viewers may tune
+    `step_ticks` for playtesting; the first build keeps the agreed values.
+    With `fixed_seed`, every new Match restarts the Reward LFSR from `seed`
+    (repeatable tests); otherwise the Start tick is mixed into it.
+    """
+
+    lives: int = LIVES_START
+    reward_values: tuple = (REWARD_PTS0, REWARD_PTS1, REWARD_PTS2)
+    survival_bonus: int = SURVIVAL_BONUS
+    step_ticks: int = STEP_TICKS
+    crash_ticks: int = CRASH_TICKS
+    score_view_ticks: int = SCORE_VIEW_TICKS
+    seed: int = LFSR_SEED
+    fixed_seed: bool = False
+    starts: tuple = DEFAULT_STARTS       # ((cx, cy, heading) for P1, for P2)
 
     def __post_init__(self):
         if len(self.reward_values) != 3:
-            raise ValueError("Three Rewards are in the Arena at all times (mechanics ✅)")
-        if self.frames_per_step < 1:
-            raise ValueError("frames_per_step must be at least 1")
+            raise ValueError("There are exactly three Reward slots")
+        if self.step_ticks < MIN_STEP_TICKS:
+            raise ValueError(f"step_ticks must be at least {MIN_STEP_TICKS}: a Step needs "
+                             "a READ2 and a COMMIT round trip through the mailbox")
+        if self.crash_ticks < 1 or self.score_view_ticks < 1:
+            raise ValueError("timers must be at least one tick")
+        for x, y, _ in self.starts:
+            if not GEOMETRY.in_interior(x, y):
+                raise ValueError(f"start Cell {(x, y)} is not playable")

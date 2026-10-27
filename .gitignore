@@ -33,3 +33,7 @@ prototipos/tron_fpga/out/
 *.sim/
 # Locales, no se suben
 local/
+
+# Preserved PR #2 prototype screenshots
+prototipos/tron/fpga/out/
+!prototipos/tron_fpga/scenarios/*.log

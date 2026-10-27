@@ -19,7 +19,8 @@ Paths are relative to the repository root.
 | `docs/references/` | Nexys A7 research report, vendor datasheets (`datasheets/`), and official documentation links |
 | `docs/agents/` | Instructions for AI agents: issue tracker, triage labels, domain docs. The root `AGENTS.md` and `CLAUDE.md` point here |
 | `proyecto_final/` | Hardware: interface contract, SystemVerilog, testbenches |
-| `prototipos/tron_fpga/` | Legacy local Python prototype modelled on the hardware blocks (the Look Prototype, renamed from `prototipos/look/`): model (`model/`, headless), viewer (`juego/`, pygame-ce), tests and metrics; shared-model migration and target Step logs remain open |
+| `prototipos/tron_fpga/` | Newer hardware-block Python model and pygame-ce viewer from PR #4; see its README for proposal status |
+| `prototipos/tron/fpga/` | Preserved PR #2 comparison game, with frozen art in `assets/tron-pr2/`; [launch both](../prototipos/README.md) |
 | `prototipos/` (others) | Roman's prototypes and launcher, including the `tron/` viewer |
 | `tools/` | Host-side scripts, such as candidate-art generation and `png2coe.py` |
 | `assets/` | Sprite art (`.png`) and generated `.coe` files |

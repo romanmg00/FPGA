@@ -1,13 +1,15 @@
-"""The L1 candidate axes compared at the L2 lockdown, and their defaults.
+"""Visual candidates for the viewer, and their defaults.
 
-Sizes default to the design already recorded in the mechanics note and VGA
-plan (8 px Cells, 32 x 32 Bike, P1 cyan, P2 orange), so unlocked items fall
-back to them. The style axes default to the "synthwave" preset.
+Geometry is not a candidate: Cells, sprite sizes and the 64 px HUD band are
+the agreed working layout (model/params.py). The default "core" preset
+draws only what the agreed core build draws: plain background, Walls,
+Trails, Rewards and Bikes, with P1 cyan and P2 orange. Everything else
+(the on-screen HUD, animated backgrounds, grid lines, glow-style effects,
+scanlines, spinning or pulsing Rewards, the Crash ring and flash) comes
+after the core in the agreed scope.
 """
 
 from dataclasses import dataclass, replace
-
-from model import HudReserve
 
 from .rgb444 import halve
 
@@ -15,7 +17,7 @@ _BASE = dict(border=0xFFF, p1=0x0FF, p2=0xF80, hud_fg=0xFFF, hud_bg=0x000,
              star=0xCCF, sun_hi=0xFC4, sun_lo=0xD2A)
 
 PALETTES = {
-    # RGB444 words. P1 cyan and P2 orange in every palette (mechanics 🔵).
+    # RGB444 words. P1 cyan and P2 orange in every palette (agreed initial colours).
     # border = the handout's white 10 px frame. bg -> bg2 is the sky
     # gradient (top -> bottom); grid_glow is the neon halo; wall_line the
     # neon tube on the Wall edge.
@@ -42,80 +44,53 @@ for _p in PALETTES.values():                 # fields older palettes leave out
     _p.setdefault("grid_glow", halve(_p["grid"]))
     _p.setdefault("wall_line", 0xFFF)
 
-HUD_LAYOUTS = ("top", "sides", "corners")
-
-
-def hud_reserve(layout: str, digit_px: int) -> HudReserve:
-    """Screen area kept out of the Arena; the top band grows with the digits."""
-    if layout == "top":
-        return HudReserve(top=-(-(10 + digit_px + 6) // 16) * 16)
-    if layout == "sides":
-        return HudReserve(left=96, right=96)
-    return HudReserve()
-
-
 @dataclass(frozen=True)
 class LookConfig:
-    hud: str = "top"
-    cell_px: int = 8
-    bike_px: int = 32
-    bike_style: str = "synth"
-    reward_look: str = "neon"
-    reward_size: str = "half-bike"
-    palette: str = "synthwave"
-    trail: str = "pulse"
-    grid: str = "neon"
-    anchor: str = "centre"
-    font: str = "neon"
-    digit_px: int = 32
-    bg: str = "sunset"
-    wall: str = "neon"
-    reward_anim: str = "pulse"
-    crash: str = "ring+flash"
-    crt: str = "scanlines"
-    bike_fx: str = "glow"
-
-    def reward_px(self, bike_px: int) -> int:
-        """bike_px is the loaded Bike ROM's side (a PNG Bike keeps its own)."""
-        return bike_px // 2 if self.reward_size == "half-bike" else self.cell_px
+    hud: str = "off"
+    bike_style: str = "cycle"
+    reward_look: str = "gem+star"
+    palette: str = "classic"
+    trail: str = "full"
+    grid: str = "off"
+    font: str = "seg"
+    bg: str = "plain"
+    wall: str = "flat"
+    reward_anim: str = "still"
+    crash: str = "blink"
+    crt: str = "off"
+    bike_fx: str = "none"
 
 
 # key label, field, choices. bike_style choices are filled in at run time
 # because PNG art found in assets/ joins them.
 AXES = [
-    ("1", "hud", tuple(HUD_LAYOUTS)),
-    ("2", "cell_px", (4, 8, 16)),
-    ("3", "bike_px", (16, 32, 64)),
-    ("4", "bike_style", ()),
-    ("5", "reward_look", ("neon", "gem", "orb", "gem+star")),
-    ("6", "reward_size", ("half-bike", "cell")),
-    ("7", "palette", tuple(PALETTES)),
-    ("8", "trail", ("pulse", "neon", "full", "inset", "core")),
-    ("9", "grid", ("neon", "floor", "off", "32px", "cell")),
-    ("0", "anchor", ("centre", "nose")),
-    ("F", "font", ("neon", "chrome", "seg", "block")),
-    ("H", "digit_px", (32, 48, 64)),
-    ("B", "bg", ("sunset", "stars", "sky", "plain")),
-    ("N", "wall", ("neon", "flat")),
-    ("R", "reward_anim", ("pulse", "spin", "still")),
-    ("X", "crash", ("ring+flash", "ring", "blink")),
-    ("C", "crt", ("scanlines", "off")),
-    ("V", "bike_fx", ("glow", "streaks", "none")),
+    ("1", "bike_style", ()),
+    ("2", "reward_look", ("gem+star", "gem", "orb", "neon")),
+    ("3", "palette", tuple(PALETTES)),
+    ("4", "trail", ("full", "inset", "core", "neon", "pulse")),
+    ("5", "grid", ("off", "32px", "cell", "neon", "floor")),
+    ("H", "hud", ("off", "on")),
+    ("F", "font", ("seg", "block", "neon", "chrome")),
+    ("B", "bg", ("plain", "sky", "stars", "sunset")),
+    ("N", "wall", ("flat", "neon")),
+    ("R", "reward_anim", ("still", "pulse", "spin")),
+    ("X", "crash", ("blink", "ring", "ring+flash")),
+    ("C", "crt", ("off", "scanlines")),
+    ("V", "bike_fx", ("none", "streaks")),
 ]
 
-GEOMETRY_FIELDS = ("hud", "cell_px", "digit_px")       # changing these starts a new Match
-
-# Style presets (key M). Sizes and HUD layout are left alone.
+# Style presets (key M). "core" is the LookConfig default; the others show extras.
 PRESETS = {
-    "synthwave": dict(palette="synthwave", bg="sunset", grid="neon", wall="neon",
+    "core": {f: getattr(LookConfig(), f) for f in LookConfig.__dataclass_fields__},
+    "synthwave": dict(hud="on", palette="synthwave", bg="sunset", grid="neon", wall="neon",
                       trail="pulse", bike_style="synth", reward_look="neon",
                       reward_anim="pulse", font="neon", crash="ring+flash", crt="scanlines",
-                      bike_fx="glow"),
-    "outrun": dict(palette="outrun", bg="stars", grid="neon", wall="neon",
+                      bike_fx="none"),
+    "outrun": dict(hud="on", palette="outrun", bg="stars", grid="neon", wall="neon",
                    trail="neon", bike_style="racer", reward_look="neon",
                    reward_anim="spin", font="chrome", crash="ring", crt="scanlines",
                    bike_fx="streaks"),
-    "classic": dict(palette="classic", bg="plain", grid="32px", wall="flat",
+    "classic": dict(hud="on", palette="classic", bg="plain", grid="32px", wall="flat",
                     trail="full", bike_style="cycle", reward_look="gem",
                     reward_anim="still", font="seg", crash="blink", crt="off",
                     bike_fx="none"),

@@ -7,9 +7,8 @@ numbers. No pygame here.
 
 from dataclasses import dataclass
 
-from model.arena import CELL_BITS
+from model.params import CELL_BITS, RANDOM_DRAWS
 from model.lfsr import SHIFTS_PER_DRAW
-from model.rewards import RANDOM_DRAWS
 
 PIXEL_HZ = 83.46e6                 # handout pixel clock
 BLANK_LINES = 28                   # vcount 827 and 0..26: full blank lines
@@ -66,11 +65,11 @@ def items(geom, bike_px, reward_sizes, font, icon_bits, extras=()) -> list:
     rows = [Item(f"Bike ROM {bike_px}x{bike_px}", 2, 12, bike_px * bike_px)]
     for px in reward_sizes:
         rows.append(Item(f"Reward ROM {px}x{px}", 1, 12, px * px))
-    rows += [
-        Item(f"Arena grid {geom.stride_w}x{geom.stride_h}", 1, CELL_BITS, geom.stride_w * geom.stride_h),
-        Item(f"Digit font {font.glyph_w}x{font.glyph_h}", 1, 1, font.rom_bits),
-        Item("HUD icons", 1, 1, icon_bits),
-    ]
+    rows.append(Item(f"Arena grid {geom.stride_w}x{geom.stride_h}", 1, CELL_BITS,
+                     geom.stride_w * geom.stride_h))
+    if font is not None:                       # the HUD is optional (after the core)
+        rows += [Item(f"Digit font {font.glyph_w}x{font.glyph_h}", 1, 1, font.rom_bits),
+                 Item("HUD icons", 1, 1, icon_bits)]
     rows += [Item(name, 1, w, d) for name, w, d in extras]
     return rows
 
