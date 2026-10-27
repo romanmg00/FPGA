@@ -50,7 +50,7 @@ memory-map reference. The actual Vivado 2025.2 IP Catalog was opened and searche
 for `uart`; UART Lite and UART 16550 both display AXI interfaces, version 2.0
 (Rev. 39). Their block-diagram symbols expose `S_AXI`. Screenshots of both
 catalog selections and the interface diagram are retained in the
-[evidence directory](../../evidence/I2-uart-input-prototype/README.md). The search
+[evidence directory](../../prototipos/fpga/I2-uart-input-prototype/README.md). The search
 also returned LTPI; the conclusion here specifically concerns the two inspected
 UART cores. The batch flow also queried registered definitions for the target
 part and exported their templates and metadata.
@@ -95,7 +95,7 @@ fixed it; the focused regression then passed with exactly one intended framing
 error. **All four portable runs passed again after that change.** The complete
 RX run also reported exactly one intended framing error.
 
-The retained [portable logs and metadata](../../evidence/I2-uart-input-prototype/README.md)
+The retained [portable logs and metadata](../../prototipos/fpga/I2-uart-input-prototype/README.md)
 include the final receiver, FIFO, accelerated-path and real-ratio runs, tool
 version, static installed-IP inspection and Python counterexamples. The complete
 portable runner exited zero and wrote `All four Icarus runs passed.`

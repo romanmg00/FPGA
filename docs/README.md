@@ -80,7 +80,7 @@ Use this index to return to the relevant source before future work. The architec
 | [Roman's prototype instructions](../README.md#prototipos-en-python) | Launcher, pygame environment and `prototipos/tron/` viewer controls. Check each prototype's own behavior against the agreement. |
 | [Prototype metrics](../prototipos/tron_fpga/metrics/latest.md) and [CSV](../prototipos/tron_fpga/metrics/look-metrics.csv) | Historical PC-viewer measurements and hardware estimates from 17 October; not target HDL or board evidence. |
 | [UART transport experiment guide](../proyecto_final/prototypes/uart_input/README.md) | Throwaway SystemVerilog experiment, runners and reproduction instructions; separate from the game's accepted interfaces. |
-| [I2/X2 UART evidence](../evidence/I2-uart-input-prototype/README.md) | Retained Icarus/XSim logs, routed reports, IP Catalog screenshots, source hashes and model analysis, with explicit verification limits. |
+| [I2/X2 UART evidence](../prototipos/fpga/I2-uart-input-prototype/README.md) | Retained Icarus/XSim logs, routed reports, IP Catalog screenshots, source hashes and model analysis, with explicit verification limits. |
 | [Desktop Vivado launcher setup](../tools/vivado/README.md) | Administrator-installed launcher, scoped container access and invocation checks. Read alongside the Toolchain policy below. |
 | [Candidate-art generator](../tools/make_candidate_art.py) and [VGA cycle model](../tools/vga_out_tb_cycle_model.py) | Host-side asset generation and cycle-level exploration; inspect the scripts before use. |
 

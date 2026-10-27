@@ -1,6 +1,6 @@
 # I2 / X2 UART transport experiment evidence
 
-Recorded 27 October 2026. See the [findings](../../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md)
+Recorded 27 October 2026. See the [findings](../../../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md)
 for interpretation, assumptions, the completed Vivado/IP Catalog checks, and
 the remaining game-integration and physical-board limits.
 
@@ -58,4 +58,4 @@ bash proyecto_final/prototypes/uart_input/run.sh --docker
 ```
 
 The approved launcher and revocation instructions are in
-[tools/vivado/README.md](../../tools/vivado/README.md).
+[tools/vivado/README.md](../../../tools/vivado/README.md).
