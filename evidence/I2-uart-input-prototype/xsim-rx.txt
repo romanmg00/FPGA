@@ -1,0 +1,24 @@
+Time resolution is 1 ps
+RX_SWEEP rate=-3% phase=0 bytes=256 PASS
+RX_SWEEP rate=-3% phase=1 bytes=256 PASS
+RX_SWEEP rate=-3% phase=2 bytes=256 PASS
+RX_SWEEP rate=-3% phase=3 bytes=256 PASS
+RX_SWEEP rate=-2% phase=0 bytes=256 PASS
+RX_SWEEP rate=-2% phase=1 bytes=256 PASS
+RX_SWEEP rate=-2% phase=2 bytes=256 PASS
+RX_SWEEP rate=-2% phase=3 bytes=256 PASS
+RX_SWEEP rate=0% phase=0 bytes=256 PASS
+RX_SWEEP rate=0% phase=1 bytes=256 PASS
+RX_SWEEP rate=0% phase=2 bytes=256 PASS
+RX_SWEEP rate=0% phase=3 bytes=256 PASS
+RX_SWEEP rate=2% phase=0 bytes=256 PASS
+RX_SWEEP rate=2% phase=1 bytes=256 PASS
+RX_SWEEP rate=2% phase=2 bytes=256 PASS
+RX_SWEEP rate=2% phase=3 bytes=256 PASS
+RX_SWEEP rate=3% phase=0 bytes=256 PASS
+RX_SWEEP rate=3% phase=1 bytes=256 PASS
+RX_SWEEP rate=3% phase=2 bytes=256 PASS
+RX_SWEEP rate=3% phase=3 bytes=256 PASS
+PASS uart_rx_tb bytes=5132 commands=211 checks=33 framing_errors=1 clk_hz=83455882
+$finish called at time : 448298103310 ps : File "/builds/uart-20261027-150541-280860/source/uart_rx_tb.sv" Line 137
+INFO: xsimkernel Simulation Memory Usage: 278872 KB (Peak: 336144 KB), Simulation CPU Usage: 20600 ms

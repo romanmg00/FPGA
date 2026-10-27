@@ -1,0 +1,12 @@
+{
+  "model": "prototipos/tron_fpga/model (local implementation, not selected shared model)",
+  "ordered_right_up_left_pending": "UP",
+  "latest_only_right_up_left_pending": "RIGHT (valid UP lost)",
+  "timely_crash_start_final_phase": "READY",
+  "delayed_crash_start_final_phase": "PLAY",
+  "conclusion": "FIFO order is necessary; FIFO alone does not ensure fresh Start eligibility.",
+  "wire_commands_per_second": 11520.0,
+  "consumer_commands_per_second": 60,
+  "ideal_64_entry_fill_ms": 5.5846422338568935,
+  "64_command_service_seconds": 1.0666666666666667
+}

@@ -6,7 +6,7 @@ type: plan
 subject: CS-256
 status: draft
 created_at: "2026-10-15T16:58:26"
-updated_at: "2026-10-20T19:33:29"
+updated_at: "2026-10-21T14:20:24"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
@@ -123,7 +123,7 @@ As agreed in [[CS-256 Tron Agreed Specification 2026-10-20#Scope and tentative s
 
 ### Look Prototype (W1)
 
-A PC program for comparing HUD, sprite and Cell sizes, Bike art and the overall look. The existing local viewer is a legacy prototype; its model defaults do not implement the locked target.
+A PC program for comparing HUD, sprite and Cell sizes, Bike art and the overall look. Since 21 October 2026 the local viewer runs on the agreed rules and fixed working layout, and compares only art and extras; its passing tests are model evidence, not HDL evidence.
 
 1. **Candidate comparison.** The local viewer can show different sizes and mock-ups at 1280 × 800 with RGB444 reduction. These options document the former prototype workflow; target rules and core assets come from the agreed specification.
 2. **Visual review.** A Thu 22 Oct session was a flexible planning target. The agreement was locked on 20 October. The review may record art/readability feedback and revise the explicitly working layout through a documented specification update; it is not a pending rule or clock decision. The legacy M1 model is not target-rule evidence.

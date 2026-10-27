@@ -1,0 +1,34 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Tue Oct 27 12:09:23 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_exceptions -file /builds/uart-20261027-150541-280860/exceptions.rpt
+| Design       : uart_input_board
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Exceptions Report
+
+Position  From                                                                              Through         To                                                                Setup           Hold            Status           
+--------  --------------------------------------------------------------------------------  --------------  ----------------------------------------------------------------  --------------  --------------  -----------------
+2         *                                                                                 *               [get_ports {led[*]}]                                              false           false           
+4         [get_cells {{u_path/u_fifo/wr_gray_reg[0]} {u_path/u_fifo/wr_gray_reg[1]} {u_pat  *               [get_cells -hier -regexp {.*u_fifo/wr_gray_sync1_reg\[[0-9]+\]}]  max_dpo=11.982  -               
+          h/u_fifo/wr_gray_reg[2]} {u_path/u_fifo/wr_gray_reg[3]} {u_path/u_fifo/wr_gray_r                                                                                                                    
+          eg[4]} {u_path/u_fifo/wr_gray_reg[5]} {u_path/u_fifo/wr_gray_reg[6]}}]                                                                                                                              
+6         [get_cells {{u_path/u_fifo/rd_gray_reg[0]} {u_path/u_fifo/rd_gray_reg[1]} {u_pat  *               [get_cells -hier -regexp {.*u_fifo/rd_gray_sync1_reg\[[0-9]+\]}]  max_dpo=11.982  -               
+          h/u_fifo/rd_gray_reg[2]} {u_path/u_fifo/rd_gray_reg[3]} {u_path/u_fifo/rd_gray_r                                                                                                                    
+          eg[4]} {u_path/u_fifo/rd_gray_reg[5]} {u_path/u_fifo/rd_bin_reg[6]}}]                                                                                                                               
+8         [get_cells -hier -filter {NAME =~ */u_fifo/rd_up_reg}]                            *               [get_cells -hier -filter {NAME =~ */u_fifo/rd_up_sync1_reg}]      false           false           
+9         [get_cells -hier -filter {NAME =~ */u_fifo/wr_up_reg}]                            *               [get_cells -hier -filter {NAME =~ */u_fifo/wr_up_sync1_reg}]      false           false           
+10        [get_ports uart_rx_pin]                                                           *               [get_cells -hier -filter {NAME == u_path/u_rx_sync/stage1_reg}]   false           false           
+11        [get_ports cpu_resetn]                                                            *               [get_cells -hier -filter {NAME == u_button_sync/stage1_reg}]      false           false           
+12        [get_cells reset_hold_reg]                                                        *               [get_cells u_reset_pix/stage1_reg]                                false           false           
+13        [get_cells reset_hold_reg]                                                        *               [get_cells u_reset_game/stage1_reg]                               false           false           
+14        [get_pins {u_path/u_fifo/memory_reg_0_63_0_2/RAMA/CLK u_path/u_fifo/memory_reg_0  *               [get_cells -hier -regexp {.*u_fifo/rd_data_reg\[[0-9]+\]}]        max_dpo=11.982  -               
+          _63_0_2/RAMB/CLK u_path/u_fifo/memory_reg_0_63_0_2/RAMC/CLK}]                                                                                                                                       
+

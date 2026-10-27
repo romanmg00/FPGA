@@ -1,0 +1,23 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Tue Oct 27 12:09:23 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_clock_networks -file /builds/uart-20261027-150541-280860/clock-networks.rpt
+| Design       : uart_input_board
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Clock Networks Report
+
+
+Constrained Clocks
+-------------------
+
+Clock board_clk (100MHz)(endpoints: 119 clock, 2 nonclock)
+Port clk
+

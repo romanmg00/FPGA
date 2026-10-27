@@ -1,0 +1,119 @@
+{
+  "method": "Static installed IP-XACT XML inspection; no GUI or Vivado process used.",
+  "components": [
+    {
+      "component": "axi_uartlite_v2_0",
+      "source": "/home/alan/.local/share/cs256-vivado/tools/2025.2/Vivado/data/ip/xilinx/axi_uartlite_v2_0/component.xml",
+      "sha256": "bdf1d997551931466127f9defd686459640d4790718c0cb60c38aac69445c630",
+      "interfaces": [
+        {
+          "name": "S_AXI",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "interface",
+            "name": "aximm",
+            "version": "1.0"
+          },
+          "slave": true
+        },
+        {
+          "name": "ACLK",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "signal",
+            "name": "clock",
+            "version": "1.0"
+          },
+          "slave": true
+        },
+        {
+          "name": "ARESETN",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "signal",
+            "name": "reset",
+            "version": "1.0"
+          },
+          "slave": true
+        },
+        {
+          "name": "INTERRUPT",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "signal",
+            "name": "interrupt",
+            "version": "1.0"
+          },
+          "slave": false
+        },
+        {
+          "name": "UART",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "interface",
+            "name": "uart",
+            "version": "1.0"
+          },
+          "slave": false
+        }
+      ]
+    },
+    {
+      "component": "axi_uart16550_v2_0",
+      "source": "/home/alan/.local/share/cs256-vivado/tools/2025.2/Vivado/data/ip/xilinx/axi_uart16550_v2_0/component.xml",
+      "sha256": "d13d602156b25a4184ea0f7ad77db599c2f941f6cae180aa2899c95c2a2d8836",
+      "interfaces": [
+        {
+          "name": "INTERRUPT",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "signal",
+            "name": "interrupt",
+            "version": "1.0"
+          },
+          "slave": false
+        },
+        {
+          "name": "ACLK",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "signal",
+            "name": "clock",
+            "version": "1.0"
+          },
+          "slave": true
+        },
+        {
+          "name": "ARESETN",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "signal",
+            "name": "reset",
+            "version": "1.0"
+          },
+          "slave": true
+        },
+        {
+          "name": "S_AXI",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "interface",
+            "name": "aximm",
+            "version": "1.0"
+          },
+          "slave": true
+        },
+        {
+          "name": "UART",
+          "bus": {
+            "vendor": "xilinx.com",
+            "library": "interface",
+            "name": "uart",
+            "version": "1.0"
+          },
+          "slave": false
+        }
+      ]
+    }
+  ]
+}

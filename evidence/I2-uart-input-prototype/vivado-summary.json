@@ -1,0 +1,40 @@
+{
+  "vivado": "2025.2 build 6299465",
+  "part": "xc7a100tcsg324-1",
+  "output_dir": "/home/alan/.local/share/cs256-vivado/builds/uart-20261027-150541-280860",
+  "xsim_runs_passed": 4,
+  "xsim_clk_hz": 83455882,
+  "achieved_pixel_hz": 83455882.35294117,
+  "game_hz": 59.99952000383997,
+  "setup_wns_ns": 7.344,
+  "hold_whs_ns": 0.119,
+  "pulse_wpws_ns": 3.0,
+  "failing_setup_hold_pulse_endpoints": 0,
+  "drc_findings": 0,
+  "methodology_findings": 0,
+  "unclocked_register_pins": 0,
+  "unconstrained_internal_endpoints": 0,
+  "gray_bus_endpoints_each": 7,
+  "gray_bus_bound_ns": 11.982,
+  "gray_bus_skew_ns": [
+    0.847,
+    0.875
+  ],
+  "cdc_warnings": {
+    "CDC-6": 2,
+    "CDC-15": 3
+  },
+  "cdc_critical_findings": 0,
+  "bitstream": "/home/alan/.local/share/cs256-vivado/builds/uart-20261027-150541-280860/uart_input_board.bit",
+  "bitstream_bytes": 3825917,
+  "bitstream_sha256": "68d24330b6f2c59e1f1c7fe093c3129262ef2d5afe9eff437e17fc104db9d56f",
+  "native_gui_checked": true,
+  "physical_board_tested": false,
+  "unattended_launcher": {
+    "path": "/usr/local/sbin/cs256-vivado",
+    "uid": 1000,
+    "gid": 1000,
+    "no_new_privs": 1,
+    "fresh_sudo_verified": true
+  }
+}

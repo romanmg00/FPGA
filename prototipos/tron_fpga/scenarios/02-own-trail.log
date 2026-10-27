@@ -1,0 +1,5 @@
+tick=5 round=1 step=0 phase=PLAY p1=20,27,R p2=59,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+tick=13 round=1 step=1 phase=PLAY p1=20,26,U p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+tick=19 round=1 step=2 phase=PLAY p1=19,26,L p2=57,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+tick=25 round=1 step=3 phase=PLAY p1=19,27,D p2=56,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+tick=31 round=1 step=4 phase=CRASH p1=19,27,R p2=55,27,L crash=10 points=0,3 lives=2,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-

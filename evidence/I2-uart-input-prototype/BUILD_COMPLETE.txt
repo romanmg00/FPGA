@@ -1,0 +1,1 @@
+XSim, IP inspection and routed bitstream generation completed; inspect reports before timing/CDC sign-off.

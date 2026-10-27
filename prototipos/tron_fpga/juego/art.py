@@ -2,18 +2,17 @@
 
 Shapes are described in unit coordinates (0..1) and sampled at pixel
 centres, so one description gives 16, 32 and 64 px versions. Every image is
-square, points UP, uses black 000 as transparent, green 0F0 as the tint
-key and dark green 080 as the dim tint key (half the tint, for glow
-halos; an L2 proposal), and is returned row by row, the order png2coe.py writes into a .coe.
+square, points UP, uses black 000 as transparent and green 0F0 as the tint
+key (the agreed core sprite format, with no 080 dim key), and is returned
+row by row, the order png2coe.py writes into a .coe.
 No pygame or Pillow here; tools/make_candidate_art.py saves them as PNGs.
 """
 
 import math
 
-from .rgb444 import DIM_TINT_KEY, NEAR_BLACK, TINT_KEY, lerp
+from .rgb444 import NEAR_BLACK, TINT_KEY, lerp
 
 T = TINT_KEY
-DT = DIM_TINT_KEY
 DARK = 0x333
 GREY = 0x666
 LIGHT = 0xCCC
@@ -45,21 +44,6 @@ class Canvas:
         for i, j, u, v in self._centres():
             if _inside(u, v, pts):
                 self.px[j][i] = c(u, v) if callable(c) else c
-
-    def glow(self, colour=None) -> None:
-        """Halo hugging the silhouette: every transparent pixel within
-        `radius` (1 px, 2 px from 64 px art) of a drawn pixel gets `colour`."""
-        colour = DT if colour is None else colour
-        s, r = self.size, 2 if self.size >= 64 else 1
-        drawn = [[w != 0x000 for w in row] for row in self.px]
-        for j in range(s):
-            for i in range(s):
-                if drawn[j][i]:
-                    continue
-                if any(drawn[jj][ii]
-                       for jj in range(max(0, j - r), min(s, j + r + 1))
-                       for ii in range(max(0, i - r), min(s, i + r + 1))):
-                    self.px[j][i] = colour
 
     def words(self) -> list:
         return [w for row in self.px for w in row]
@@ -122,7 +106,6 @@ def bike_synth(size: int) -> list:
     c.ellipse(0.5, 0.82, 0.03, 0.03, 0xBCF)
     c.rect(0.42, 0.00, 0.58, 0.03, WHITE)                     # headlight
     c.rect(0.42, 0.96, 0.58, 0.99, 0xF24)                     # tail light
-    c.glow()
     return c.words()
 
 
@@ -141,7 +124,6 @@ def bike_racer(size: int) -> list:
     c.ellipse(0.47, 0.34, 0.03, 0.05, 0xCEF)                  # canopy glint
     c.rect(0.30, 0.88, 0.42, 0.96, WHITE)                     # thrusters
     c.rect(0.58, 0.88, 0.70, 0.96, WHITE)
-    c.glow()
     return c.words()
 
 
@@ -180,8 +162,7 @@ def reward_star(size: int) -> list:
 
 def reward_neon_gem(size: int) -> list:
     c = Canvas(size)
-    c.polygon([(0.5, 0.0), (1.0, 0.5), (0.5, 1.0), (0.0, 0.5)], DT)
-    c.polygon([(0.5, 0.12), (0.88, 0.5), (0.5, 0.88), (0.12, 0.5)], T)
+    c.polygon([(0.5, 0.02), (0.98, 0.5), (0.5, 0.98), (0.02, 0.5)], T)
     c.polygon([(0.5, 0.32), (0.68, 0.5), (0.5, 0.68), (0.32, 0.5)], WHITE)
     return c.words()
 
@@ -195,7 +176,6 @@ def reward_neon_star(size: int) -> list:
             pts.append((0.5 + r * math.cos(a), 0.53 + r * math.sin(a)))
         return pts
     c = Canvas(size)
-    c.ellipse(0.5, 0.52, 0.48, 0.48, DT)
     c.polygon(star(0.46, 0.21), T)
     c.ellipse(0.5, 0.53, 0.10, 0.10, WHITE)
     return c.words()

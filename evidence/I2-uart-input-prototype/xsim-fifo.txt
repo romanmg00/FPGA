@@ -1,0 +1,5 @@
+Time resolution is 1 ps
+FIFO_FULL capacity=64 rejected=16 ordered drain PASS
+PASS uart_async_fifo_tb accepted=6212 read=5956 rejected=3165 seed=0x0256cafe
+$finish called at time : 145760900 ps : File "/builds/uart-20261027-150541-280860/source/uart_async_fifo_tb.sv" Line 132
+INFO: xsimkernel Simulation Memory Usage: 282988 KB (Peak: 336160 KB), Simulation CPU Usage: 1300 ms

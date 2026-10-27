@@ -1,10 +1,12 @@
-"""Reward-placement LFSR: this prototype's candidate, not yet selected for the HDL.
+"""Reward-placement LFSR in arena_ctrl: this prototype's candidate, not yet selected.
 
 32-bit Fibonacci LFSR, shift left, XOR feedback from bits 31, 21, 1 and 0
 (polynomial x^32 + x^22 + x^2 + x + 1, maximal length; XAPP052 Table 3 lists
 taps 32,22,2,1 in XNOR form, this is the XOR form). The all-zero state is
 illegal. The register advances only when a placement candidate is drawn:
-one draw is 32 shifts, so each draw is a fresh 32-bit word.
+one draw is 32 shifts, so each draw is a fresh 32-bit word. It resets to
+LFSR_SEED; at each new Match, PREPARE either reloads LFSR_SEED (fixed-seed
+mode) or XORs in the game-domain tick counter captured at Start.
 """
 
 WIDTH = 32
@@ -18,6 +20,12 @@ class Lfsr:
         if seed & MASK == 0:
             raise ValueError("LFSR seed must be non-zero")
         self.state = seed & MASK
+
+    def mix(self, value: int) -> None:
+        """XOR in Start-timing entropy; a result of zero keeps the old state."""
+        mixed = (self.state ^ value) & MASK
+        if mixed:
+            self.state = mixed
 
     def shift(self) -> None:
         fb = 0

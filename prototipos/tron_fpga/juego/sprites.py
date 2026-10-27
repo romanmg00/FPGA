@@ -10,10 +10,22 @@ import os
 
 import pygame
 
-from model.steering import DOWN, LEFT, RIGHT, UP
+from model.turn_unit import DOWN, LEFT, RIGHT, UP
 
 from . import art
-from .rgb444 import DIM_TINT_KEY, TINT_KEY, TRANSPARENT, expand, halve, quantize
+from .rgb444 import TINT_KEY, TRANSPARENT, expand, quantize
+
+
+BIKE_PX = 32
+REWARD_PX = 16
+
+
+def _checked(rom: "SpriteRom", side: int) -> "SpriteRom":
+    """Flag art that is not at the agreed native size."""
+    problem = f"{rom.name}: {rom.size}x{rom.size}, not the agreed {side}x{side}"
+    if rom.size != side and problem not in rom.problems:
+        rom.problems.append(problem)
+    return rom
 
 
 def rom_address(heading: int, dx: int, dy: int, bits: int) -> int:
@@ -43,10 +55,8 @@ class SpriteRom:
     def bits(self) -> int:
         return (self.size - 1).bit_length()
 
-    def surface(self, heading: int, tint: int, dim: int = None) -> pygame.Surface:
-        """dim: colour for the dim tint key (default tint/2, the plain rule)."""
-        dim = halve(tint) if dim is None else dim
-        key = (heading, tint, dim)
+    def surface(self, heading: int, tint: int) -> pygame.Surface:
+        key = (heading, tint)
         if key not in self._surfaces:
             s = self.size
             surf = pygame.Surface((s, s))
@@ -55,8 +65,6 @@ class SpriteRom:
                     w = self.words[rom_address(heading, dx, dy, self.bits)]
                     if w == TINT_KEY:
                         w = tint
-                    elif w == DIM_TINT_KEY:
-                        w = dim
                     surf.set_at((dx, dy), expand(w))
             surf.set_colorkey(expand(TRANSPARENT))
             self._surfaces[key] = surf
@@ -85,7 +93,8 @@ def load_png(path: str, name: str) -> SpriteRom:
 
 
 class SpriteLibrary:
-    """Bike and Reward ROMs by (kind, style, size), from assets/ or generated."""
+    """Bike and Reward ROMs by (kind, style), from assets/ or generated, at
+    the agreed native sizes: 32 x 32 Bikes (1024 words), 16 x 16 Rewards (256)."""
 
     def __init__(self, assets_dir: str):
         self.assets_dir = assets_dir
@@ -99,14 +108,17 @@ class SpriteLibrary:
     def bike_styles(self) -> tuple:
         return tuple(art.BIKE_STYLES) + tuple(self.png_bikes)
 
-    def bike(self, style: str, size: int) -> SpriteRom:
+    def bike(self, style: str) -> SpriteRom:
         if style in self.png_bikes:
-            return self._get(("bike", style), lambda: load_png(self.png_bikes[style], style))
-        return self._generated(f"bike-{style}-{size}", art.BIKE_STYLES[style], size)
+            rom = self._get(("bike", style), lambda: load_png(self.png_bikes[style], style))
+        else:
+            rom = self._generated(f"bike-{style}-{BIKE_PX}", art.BIKE_STYLES[style], BIKE_PX)
+        return _checked(rom, BIKE_PX)
 
-    def reward(self, look: str, kind: int, size: int) -> SpriteRom:
+    def reward(self, look: str, kind: int) -> SpriteRom:
         fn = art.REWARD_LOOKS[look][kind]
-        return self._generated(f"reward-{fn.__name__[7:].replace('_', '-')}-{size}", fn, size)
+        name = f"reward-{fn.__name__[7:].replace('_', '-')}-{REWARD_PX}"
+        return _checked(self._generated(name, fn, REWARD_PX), REWARD_PX)
 
     def _generated(self, name, fn, size):
         def make():

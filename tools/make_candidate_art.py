@@ -1,6 +1,8 @@
 """Write the Look Prototype's candidate art as PNGs into assets/candidates/.
 
-The PNGs are starting points to edit. The viewer loads an edited PNG in
+Art is written at the agreed native sizes only: 32 x 32 Bikes and 16 x 16
+Rewards, using 000 for transparency and 0F0 as the tint key. The PNGs are
+starting points to edit. The viewer loads an edited PNG in
 place of the generated art with the same name. Existing files are kept
 unless --force is given.
 
@@ -18,6 +20,7 @@ sys.path.insert(0, os.path.join(ROOT, "prototipos", "tron_fpga"))
 
 from juego import art                   # noqa: E402
 from juego.rgb444 import expand         # noqa: E402
+from juego.sprites import BIKE_PX, REWARD_PX  # noqa: E402
 
 OUT = os.path.join(ROOT, "assets", "candidates")
 
@@ -39,17 +42,15 @@ def main() -> None:
     args = parser.parse_args()
     os.makedirs(OUT, exist_ok=True)
     for style, fn in art.BIKE_STYLES.items():
-        for size in (16, 32, 64):
-            save(f"bike-{style}-{size}", size, fn(size), args.force)
+        save(f"bike-{style}-{BIKE_PX}", BIKE_PX, fn(BIKE_PX), args.force)
     done = set()
     for small, big in art.REWARD_LOOKS.values():
         for fn in (small, big):
             if fn in done:
                 continue
             done.add(fn)
-            for size in (4, 8, 16, 32):
-                name = fn.__name__[7:].replace("_", "-")
-                save(f"reward-{name}-{size}", size, fn(size), args.force)
+            name = fn.__name__[7:].replace("_", "-")
+            save(f"reward-{name}-{REWARD_PX}", REWARD_PX, fn(REWARD_PX), args.force)
 
 
 if __name__ == "__main__":

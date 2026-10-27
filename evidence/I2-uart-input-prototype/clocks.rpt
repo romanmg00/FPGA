@@ -1,0 +1,86 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Tue Oct 27 12:09:23 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_clocks -file /builds/uart-20261027-150541-280860/clocks.rpt
+| Design       : uart_input_board
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Clock Report
+
+
+Attributes
+  P: Propagated
+  G: Generated
+  A: Auto-derived
+  R: Renamed
+  V: Virtual
+  I: Inverted
+  S: Pin phase-shifted with Latency mode
+
+Clock                      Period(ns)    Waveform(ns)         Attributes  Sources
+board_clk                  10.000        {0.000 5.000}        P           {clk}
+game_clk                   16666802.000  {0.000 8333400.000}  P,G         {u_game_buf/O}
+clk_out1_uart_game_clock   200.000       {0.000 100.000}      P,G,A       {u_game_clock/inst/mmcm_adv_inst/CLKOUT0}
+clk_out1_uart_pixel_clock  11.982        {0.000 5.991}        P,G,A       {u_pix_clock/inst/mmcm_adv_inst/CLKOUT0}
+clkfbout_uart_game_clock   50.000        {0.000 25.000}       P,G,A       {u_game_clock/inst/mmcm_adv_inst/CLKFBOUT}
+clkfbout_uart_pixel_clock  40.000        {0.000 20.000}       P,G,A       {u_pix_clock/inst/mmcm_adv_inst/CLKFBOUT}
+
+
+====================================================
+Generated Clocks
+====================================================
+
+Generated Clock     : game_clk
+Master Source       : game_toggle_reg/C
+Master Clock        : clk_out1_uart_game_clock
+Divide By           : 83334
+Generated Sources   : {u_game_buf/O}
+
+Generated Clock     : clk_out1_uart_game_clock
+Master Source       : u_game_clock/inst/mmcm_adv_inst/CLKIN1
+Master Clock        : board_clk
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 95.000 190.000}
+Generated Sources   : {u_game_clock/inst/mmcm_adv_inst/CLKOUT0}
+
+Generated Clock     : clk_out1_uart_pixel_clock
+Master Source       : u_pix_clock/inst/mmcm_adv_inst/CLKIN1
+Master Clock        : board_clk
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 0.991 1.982}
+Generated Sources   : {u_pix_clock/inst/mmcm_adv_inst/CLKOUT0}
+
+Generated Clock     : clkfbout_uart_game_clock
+Master Source       : u_game_clock/inst/mmcm_adv_inst/CLKIN1
+Master Clock        : board_clk
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 20.000 40.000}
+Generated Sources   : {u_game_clock/inst/mmcm_adv_inst/CLKFBOUT}
+
+Generated Clock     : clkfbout_uart_pixel_clock
+Master Source       : u_pix_clock/inst/mmcm_adv_inst/CLKIN1
+Master Clock        : board_clk
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 15.000 30.000}
+Generated Sources   : {u_pix_clock/inst/mmcm_adv_inst/CLKFBOUT}
+
+
+
+====================================================
+User Uncertainty
+====================================================
+
+
+
+====================================================
+User Jitter
+====================================================
+
+
