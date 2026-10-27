@@ -7,7 +7,9 @@ For the preserved PR #2 game, see [the comparison guide](../README.md).
 
 `tron_fpga` is a PC version of the game built around the planned Nexys A7 hardware. `model/` is written as the HDL blocks it stands for (see [Game Model](#game-model)). The game-clock domain holds the Turn and Step units, Round/Match control and scoring. The fast domain holds the Arena memory and its controller with Reward placement, and the input capture. A mailbox connects the two, and the Scoreboard has parts in both domains. The viewer package `juego/` draws 1280 × 800 frames in RGB444 with ROM-style sprites and fonts, and estimates block RAM use. The Reward LFSR is the prototype's own candidate: the agreement leaves the generator, its seed and its placement schedule to be selected, so the HDL should not copy it until that decision is made. The folder was imported as `prototipos/look/` and renamed on 20 October 2026; "Look Prototype" remains the name of its L1 objective in the Development Plan.
 
-The viewer starts on the `core` style preset, which draws only what the agreed core build draws. The other presets show extras, which come after the core.
+The viewer starts on the `synthwave` style preset to bring back the preserved PR #2 appearance: sunset and stars, neon grid and Walls, pulsing Trails and Rewards, synth Bikes, neon HUD, Crash rings/flash and scanlines. It keeps the current model, agreed 16 px Cells, native 32 px Bikes and 16 px Rewards, 64 px HUD band and white border. The old sprite halos are omitted because their `080` dim-tint key is excluded from the agreed sprite format.
+
+This is a PC presentation choice. Those effects and the HUD remain extras after the FPGA core; it does not expand the agreed implementation scope. **Shift+M** selects `core` directly from startup for the plain core view. **M** cycles all four styles without restarting the Match.
 
 ## Quick start
 
@@ -73,7 +75,7 @@ Launch the package with `-m juego`; running `juego/app.py` directly does not set
 6. The first Player to reach the Points Goal wins; otherwise, losing the last of three Lives loses. Press **Space** or **Enter** after the Match to start a new one.
 7. Press **P** to pause (`SW0`), **Backspace** to reset (`CPU_RESETN`), or **Esc** to quit. In fullscreen, the first **Esc** returns to windowed mode.
 
-The side panel shows the phase, Points, Lives, the Points Goal and the eight Scoreboard digits. The `core` preset has no on-screen HUD, because the agreement puts it after the core; press **H** to show it. **Tab** cycles its pages or hides it, **M** changes the style preset, and **F11** toggles fullscreen. The complete controls are below.
+The side panel shows the phase, Points, Lives, the Points Goal and the eight Scoreboard digits. The default `synthwave` preset also shows the on-screen HUD; press **H** to hide it. The `core` preset has no on-screen HUD, because the agreement puts it after the core. **Tab** cycles the panel's pages or hides it, **M** changes the style preset, and **F11** toggles fullscreen. The complete controls are below.
 
 ## Troubleshooting
 
@@ -96,7 +98,7 @@ python -m unittest discover -s tests
 
 `tests/test_scenarios.py` replays the 12 M2 scenarios in `scenarios/` and compares each with its expected Step log; see [Scenarios and Step logs](#scenarios-and-step-logs).
 
-`tests/test_look_limits.py` runs headless. It checks sampled frames from every preset for RGB444 and the handout's white border, including Crash frames and Bikes on the edge Cells, which overlap the border by 2 px. It also checks that pulse stripes are clearly brighter than both Player Trails, and that every preset fits the BRAM and Arena-clear budgets. Keyboard tests check how keys become button samples and UART bytes, that reset drops keys pressed before it in the same frame, and that Turns and Start pressed during Pause are dropped. Sprites must be at their native size and use only the core keys.
+`tests/test_look_limits.py` runs headless. It checks sampled frames from every preset for RGB444 and the handout's white border, including Crash frames and Bikes on the edge Cells, which overlap the border by 2 px. It also checks that pulse stripes are clearly brighter than both Player Trails, and that every preset fits the BRAM and Arena-clear budgets. Keyboard tests check how keys become button samples and UART bytes, that reset drops keys pressed before it in the same frame, and that Turns and Start pressed during Pause are dropped. Changing styles, HUD visibility and palette during Play must preserve the Match state and Arena contents tick by tick against the headless model. Sprites must be at their native size and use only the core keys.
 
 ## Scenarios and Step logs
 

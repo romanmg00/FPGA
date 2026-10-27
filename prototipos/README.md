@@ -28,8 +28,9 @@ create the environment and install dependencies.
 
 Click a window to control it: **Space/Enter** starts, **arrows** control P1,
 **WASD** control P2, **P** pauses, and **Esc** quits. The games have independent
-state. The older game starts with its synthwave appearance; the newer one starts
-with its core preset. **M** cycles presets.
+state. Both games start with the synthwave appearance. The newer one retains the
+agreed layout and rules, and omits the older sprites' legacy glow key. In the
+newer game, **Shift+M** selects the plain `core` view from startup. **M** cycles presets.
 
 The older source is pinned to PR #2 merge `0a8ef4bbafcdf09db847bcc7f966acf2249582eb`.
 Its art is preserved in `assets/tron-pr2/`, independent of the newer assets.

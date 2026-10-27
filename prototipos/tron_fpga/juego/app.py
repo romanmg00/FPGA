@@ -24,7 +24,7 @@ from model.params import (GAME_HZ, MIN_STEP_TICKS, SCREEN_H, SCREEN_W, STEP_TICK
 from model.turn_unit import DOWN, LEFT, RIGHT, UP
 
 from . import budget, fx
-from .candidates import AXES, PALETTES, PRESETS, LookConfig, cycle
+from .candidates import AXES, DEFAULT_PRESET, PALETTES, PRESETS, LookConfig, cycle
 from .font import ICON_ROM_BITS
 from .hud import digit_font
 from .render import SIZE, FrameRenderer
@@ -53,12 +53,12 @@ class App:
         self.sprites = SpriteLibrary(ASSETS)
         self.axes = [(k, f, self.sprites.bike_styles() if f == "bike_style" else ch)
                      for k, f, ch in AXES]
-        self.look = LookConfig()
+        self.preset = DEFAULT_PRESET
+        self.look = replace(LookConfig(), **PRESETS[self.preset])
         self.rules = RuleParams()
         self.paused = False                     # SW0
         self.goal_sw = 0                        # {SW15, SW14}
         self.page = 0
-        self.preset = "core"
         self.show_cells = False
         self.fullscreen = False
         self.message = ""

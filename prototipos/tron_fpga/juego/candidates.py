@@ -1,12 +1,14 @@
 """Visual candidates for the viewer, and their defaults.
 
 Geometry is not a candidate: Cells, sprite sizes and the 64 px HUD band are
-the agreed working layout (model/params.py). The default "core" preset
-draws only what the agreed core build draws: plain background, Walls,
+the agreed working layout (model/params.py). LookConfig describes the "core"
+preset, which draws only what the agreed core build draws: plain background, Walls,
 Trails, Rewards and Bikes, with P1 cyan and P2 orange. Everything else
 (the on-screen HUD, animated backgrounds, grid lines, glow-style effects,
 scanlines, spinning or pulsing Rewards, the Crash ring and flash) comes
 after the core in the agreed scope.
+The viewer starts in "synthwave" to match the preserved PR #2 appearance;
+that presentation choice does not change the agreed FPGA core scope.
 """
 
 from dataclasses import dataclass, replace
@@ -95,6 +97,8 @@ PRESETS = {
                     reward_anim="still", font="seg", crash="blink", crt="off",
                     bike_fx="none"),
 }
+
+DEFAULT_PRESET = "synthwave"
 
 
 def cycle(config: LookConfig, field: str, choices: tuple, step: int = 1) -> LookConfig:

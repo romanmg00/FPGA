@@ -23,7 +23,7 @@ from juego.app import App  # noqa: E402
 from juego.art import BIKE_STYLES, REWARD_LOOKS  # noqa: E402
 from juego.candidates import PALETTES, PRESETS  # noqa: E402
 from juego.rgb444 import TINT_KEY, TRANSPARENT, expand  # noqa: E402
-from model import CRASH, IDLE, PLAY, BoardInputs, RuleParams  # noqa: E402
+from model import CRASH, IDLE, PLAY, BoardInputs, Game, RuleParams  # noqa: E402
 from model.arena_map import EMPTY, HEAD_P1, TRAIL_P1, TRAIL_P2  # noqa: E402
 from model.input_batch import BTN_OF  # noqa: E402
 from model.params import BORDER_PX, SW_PAUSE  # noqa: E402
@@ -151,6 +151,30 @@ class KeyboardAdapterTests(unittest.TestCase):
         inputs = self.events(app, pygame.K_UP)                    # after resuming
         self.assertEqual(inputs.btn, (BTN_OF[UP],))
 
+    def test_style_changes_preserve_the_running_match_and_arena(self):
+        app = App()
+        app.rules = RuleParams(fixed_seed=True)
+        app._new_game()
+        reference = Game(app.rules)
+        game = app.game
+        # Change the presentation during Play, then follow both games through
+        # the same head-on Crash. Every tick must retain the reference state.
+        for tick in range(135):
+            if tick == 30:
+                self.assertEqual(game.phase, PLAY)
+                app.next_preset(1)
+                app.change_axis("H", 1)
+                app.change_axis("3", 1)
+            if tick == 60:
+                app.next_preset(-1)
+            inputs = BoardInputs.keys(start=(tick == 0))
+            app.game.tick(inputs)
+            reference.tick(inputs)
+            self.assertIs(app.game, game)
+            self.assertEqual(app.game.snapshot(), reference.snapshot(), f"tick {tick}")
+            self.assertEqual(app.game.grid.words, reference.grid.words, f"tick {tick}")
+        self.assertEqual(game.phase, CRASH)
+
 
 class FormatAndBudgetTests(unittest.TestCase):
     def test_every_look_fits_bram_and_blanking_without_flags(self):
@@ -170,6 +194,7 @@ class FormatAndBudgetTests(unittest.TestCase):
 
     def test_core_preset_uses_no_extras(self):
         app = App()
+        app.next_preset(-1)                                     # synthwave -> core
         self.assertEqual(app.preset, "core")
         self.assertEqual(app.checks()[4], [])
         self.assertEqual(app.look.hud, "off")                     # the HUD follows the core
