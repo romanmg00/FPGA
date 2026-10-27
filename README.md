@@ -37,6 +37,8 @@ Las versiones anteriores de este README y del contrato están en
 - [`docs/design/`](docs/design/): plan de VGA y sprites, y las prácticas de código
   del curso.
 - [`docs/domain/`](docs/domain/): glosario (Cell, Step, Trail, Reward…) y mecánicas.
+- [Comparar los dos prototipos de Alan](prototipos/README.md): PR #2 en
+  `prototipos/tron/fpga/` y el modelo nuevo en `prototipos/tron_fpga/`.
 - `prototipos/tron_fpga/`: el Tron de Alan modelado sobre el hardware del Nexys A7
   (reglas en `model/` por bloques de hardware, visor `juego/` con pygame-ce, pruebas
   y métricas). Usa su propio entorno virtual; ver

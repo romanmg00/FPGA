@@ -20,6 +20,7 @@ Paths are relative to the repository root.
 | `docs/agents/` | Instructions for AI agents: issue tracker, triage labels, domain docs. The root `AGENTS.md` and `CLAUDE.md` point here |
 | `proyecto_final/` | Hardware: interface contract, SystemVerilog, testbenches |
 | `prototipos/tron_fpga/` | Local Python prototype modelled on the hardware blocks (the Look Prototype, renamed from `prototipos/look/`): model (`model/`, headless), viewer (`juego/`, pygame-ce), tests and metrics. Revised to the agreed specification on 21 October 2026 and restructured into the planned HDL blocks with M2 scenarios and Step logs on 27 October; choosing it as the shared model remains open |
+| `prototipos/tron/fpga/` | Preserved PR #2 comparison game, with frozen art in `assets/tron-pr2/`; [launch both](../prototipos/README.md) |
 | `prototipos/` (others) | Roman's prototypes and launcher, including the `tron/` viewer |
 | `tools/` | Host-side scripts, such as candidate-art generation and `png2coe.py` |
 | `assets/` | Sprite art (`.png`) and generated `.coe` files |

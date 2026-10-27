@@ -134,7 +134,7 @@ class App:
             except Exception:
                 pass
         pygame.init()
-        pygame.display.set_caption("CS-256 Tron - Look Prototype (L1)")
+        pygame.display.set_caption("CS-256 Tron - FPGA model (PR #4)")
         self.ui_font = pygame.font.SysFont("consolas,menlo,monospace", 14)
         self.ui_bold = pygame.font.SysFont("consolas,menlo,monospace", 14, bold=True)
         desk_w, desk_h = pygame.display.get_desktop_sizes()[0]

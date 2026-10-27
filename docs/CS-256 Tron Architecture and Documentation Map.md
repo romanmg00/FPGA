@@ -23,6 +23,13 @@ tags:
 
 This note identifies which document owns each kind of project fact, how the current architecture is divided, and where agreement-to-implementation work is tracked. It does not add architecture decisions.
 
+**Prototype comparison, 27 October 2026:** `prototipos/tron/fpga/` preserves the
+PR #2 game and its historical rules. `prototipos/tron_fpga/` contains the newer
+PR #4 model; its proposed interfaces are described in
+[[CS-256 Tron Game Model Hardware Map]]. See [launch instructions](../prototipos/README.md).
+The legacy implementation references below describe the PR #2 baseline, now at
+`prototipos/tron/fpga/`; they are not a verification report for the newer model.
+
 ## Authority and status
 
 1. **Course requirements and TA instructions** govern the assignment and architecture. The course repository is read-only reference material for this project.
