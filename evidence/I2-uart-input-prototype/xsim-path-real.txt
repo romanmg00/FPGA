@@ -1,0 +1,5 @@
+Time resolution is 1 ps
+PATH_ORDER real_ratio=1 commands=7 first_latency_ns=66649293 PASS
+PASS uart_input_path_tb real_ratio=1 clk_hz=83455882
+$finish called at time : 600000123676 ps : File "/builds/uart-20261027-150541-280860/source/uart_input_path_tb.sv" Line 94
+INFO: xsimkernel Simulation Memory Usage: 278844 KB (Peak: 336116 KB), Simulation CPU Usage: 16870 ms

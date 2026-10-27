@@ -1,0 +1,30 @@
+#!/bin/bash -p
+# CS256_FIXED_CONTAINER_LAUNCHER: root-owned; execute only in the recorded container.
+set -euo pipefail
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+unset BASH_ENV ENV CDPATH
+readonly container_id='@CONTAINER_ID@'
+readonly container_uid='@CONTAINER_UID@'
+readonly container_gid='@CONTAINER_GID@'
+case "${1:-}" in
+    start)
+        [[ $# == 1 ]] || exit 2
+        exec /usr/bin/docker start "$container_id"
+        ;;
+    status)
+        [[ $# == 1 ]] || exit 2
+        exec /usr/bin/docker inspect --format '{{.Name}} {{.State.Status}}' "$container_id"
+        ;;
+    exec)
+        shift
+        [[ $# -gt 0 ]] || exit 2
+        # no_new_privs blocks the container's pre-existing passwordless sudo.
+        # No daemon flags, mounts, container selection, or host commands are accepted.
+        exec /usr/bin/docker exec -i --user "$container_uid:$container_gid" \
+            --workdir /builds --env HOME=/home/vivado --env USER=vivado \
+            --env LOGNAME=vivado "$container_id" \
+            /usr/bin/setpriv --no-new-privs -- \
+            /bin/bash --noprofile --norc -c 'exec "$@"' cs256-vivado "$@"
+        ;;
+    *) printf 'Usage: cs256-vivado {start|status|exec COMMAND [ARG...]}\n' >&2; exit 2 ;;
+esac

@@ -1,0 +1,102 @@
+Vivado 2025.2, part xc7a100tcsg324-1
+All matching installed definitions: xilinx.com:ip:axi_uart16550:2.0 xilinx.com:ip:axi_uartlite:2.0
+
+IP xilinx.com:ip:axi_uartlite:2.0
+Property                         Type     Read-only  Value
+ALLOWED_SIM_MODELS               string*  true       rtl
+BASE_BOARD_PART                  string   true       
+BOARD                            string   true       
+BOARD_CONNECTIONS                string   true       
+CLASS                            string   true       ip
+CONFIG.ACLK.FREQ_HZ              string   false      100000000
+CONFIG.ACLK.INSERT_VIP           string   false      0
+CONFIG.ARESETN.INSERT_VIP        string   false      0
+CONFIG.C_BAUDRATE                string   false      9600
+CONFIG.C_DATA_BITS               string   false      8
+CONFIG.C_ODD_PARITY              string   false      0
+CONFIG.C_S_AXI_ACLK_FREQ_HZ      string   false      100000000
+CONFIG.C_S_AXI_ACLK_FREQ_HZ_d    string   false      100
+CONFIG.C_USE_PARITY              string   false      0
+CONFIG.Component_Name            string   true       inspect_axi_uartlite
+CONFIG.PARITY                    string   false      No_Parity
+CONFIG.S_AXI.INSERT_VIP          string   false      0
+CONFIG.UARTLITE_BOARD_INTERFACE  string   false      Custom
+CONFIG.USE_BOARD_FLOW            string   false      false
+CORE_REVISION                    long     true       39
+DELIVERED_TARGETS                string*  true       instantiation_template
+DESIGN_TOOL_CONTEXTS             string*  true       HDL IPI Sysgen
+IPDEF                            string   true       xilinx.com:ip:axi_uartlite:2.0
+IP_CORE_CONTAINER                string   true       
+IP_DIR                           string   true       /builds/uart-20261027-150541-280860/catalog/inspect_axi_uartlite
+IP_FILE                          string   true       /builds/uart-20261027-150541-280860/catalog/inspect_axi_uartlite/inspect_axi_uartlite.xci
+IS_BD_CONTEXT                    bool     true       0
+IS_BOARD_AWARE                   bool     true       1
+IS_LOCKED                        bool     true       0
+KNOWN_TARGETS                    string*  true       instantiation_template synthesis simulation implementation example changelog
+NAME                             string   true       inspect_axi_uartlite
+PART                             string   true       xc7a100tcsg324-1
+SELECTED_SIM_MODEL               enum     false      rtl
+STALE_TARGETS                    string*  true       
+SUPPORTED_TARGETS                string*  true       instantiation_template synthesis simulation implementation example changelog
+SUPPORTS_MODREF                  bool     true       1
+SW_VERSION                       string   true       2025.2
+UNSUPPORTED_SIMULATORS           string*  true       
+USED_LICENSE_KEYS                string*  true       
+USER_LOCKED                      bool     false      0
+Component XML: /tools/2025.2/data/ip/xilinx/axi_uartlite_v2_0/component.xml
+S_AXI <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm" spirit:version="1.0"/>
+ACLK <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock" spirit:version="1.0"/>
+ARESETN <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="reset" spirit:version="1.0"/>
+INTERRUPT <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt" spirit:version="1.0"/>
+UART <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="uart" spirit:version="1.0"/>
+
+IP xilinx.com:ip:axi_uart16550:2.0
+Property                        Type     Read-only  Value
+ALLOWED_SIM_MODELS              string*  true       rtl
+BASE_BOARD_PART                 string   true       
+BOARD                           string   true       
+BOARD_CONNECTIONS               string   true       
+CLASS                           string   true       ip
+CONFIG.ACLK.INSERT_VIP          string   false      0
+CONFIG.ARESETN.INSERT_VIP       string   false      0
+CONFIG.BASE_USER                string   false      1
+CONFIG.C_EXTERNAL_XIN_CLK_HZ    string   false      25000000
+CONFIG.C_EXTERNAL_XIN_CLK_HZ_d  string   false      25
+CONFIG.C_HAS_EXTERNAL_RCLK      string   false      0
+CONFIG.C_HAS_EXTERNAL_XIN       string   false      0
+CONFIG.C_IS_A_16550             string   false      16550
+CONFIG.C_S_AXI_ACLK_FREQ_HZ     string   false      100000000
+CONFIG.C_S_AXI_ACLK_FREQ_HZ_d   string   false      100
+CONFIG.C_USE_MODEM_PORTS        string   false      1
+CONFIG.C_USE_USER_PORTS         string   false      1
+CONFIG.Component_Name           string   true       inspect_axi_uart16550
+CONFIG.S_AXI.INSERT_VIP         string   false      0
+CONFIG.UART_BOARD_INTERFACE     string   false      Custom
+CONFIG.USE_BOARD_FLOW           string   false      false
+CORE_REVISION                   long     true       39
+DELIVERED_TARGETS               string*  true       instantiation_template
+DESIGN_TOOL_CONTEXTS            string*  true       HDL IPI Sysgen
+IPDEF                           string   true       xilinx.com:ip:axi_uart16550:2.0
+IP_CORE_CONTAINER               string   true       
+IP_DIR                          string   true       /builds/uart-20261027-150541-280860/catalog/inspect_axi_uart16550
+IP_FILE                         string   true       /builds/uart-20261027-150541-280860/catalog/inspect_axi_uart16550/inspect_axi_uart16550.xci
+IS_BD_CONTEXT                   bool     true       0
+IS_BOARD_AWARE                  bool     true       1
+IS_LOCKED                       bool     true       0
+KNOWN_TARGETS                   string*  true       instantiation_template synthesis simulation implementation example changelog
+NAME                            string   true       inspect_axi_uart16550
+PART                            string   true       xc7a100tcsg324-1
+SELECTED_SIM_MODEL              enum     false      rtl
+STALE_TARGETS                   string*  true       
+SUPPORTED_TARGETS               string*  true       instantiation_template synthesis simulation implementation example changelog
+SUPPORTS_MODREF                 bool     true       1
+SW_VERSION                      string   true       2025.2
+UNSUPPORTED_SIMULATORS          string*  true       
+USED_LICENSE_KEYS               string*  true       
+USER_LOCKED                     bool     false      0
+Component XML: /tools/2025.2/data/ip/xilinx/axi_uart16550_v2_0/component.xml
+INTERRUPT <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt" spirit:version="1.0"/>
+ACLK <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock" spirit:version="1.0"/>
+ARESETN <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="reset" spirit:version="1.0"/>
+S_AXI <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm" spirit:version="1.0"/>
+UART <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="uart" spirit:version="1.0"/>

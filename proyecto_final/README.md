@@ -37,6 +37,7 @@ del segundo Clocking Wizard más un divisor, como pidieron los TAs
 
 ## Archivos
 
+- `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasan Icarus y XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
 - `counters_tb.sv`: testbench de los contadores
 - `vga_out.sv`: sync, blanking y `curr_x`/`curr_y` (`tick_60hz` todavía en 0)

@@ -1,0 +1,10 @@
+requested_pixel_hz=83460000
+achieved_pixel_hz=83455882.35294117
+rtl_clk_hz=83455882
+clocks_per_bit=724
+receiver_baud=115270.55573610659
+receiver_error_percent=0.061246298703632185
+game_base_hz=5000000.0
+game_half_cycles=41667
+game_hz=59.99952000383997
+reset_hold_cycles=500004

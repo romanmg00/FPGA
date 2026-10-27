@@ -1,0 +1,279 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Tue Oct 27 12:09:23 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_bus_skew -file /builds/uart-20261027-150541-280860/bus-skew.rpt
+| Design       : uart_input_board
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Bus Skew Report
+
+Table of Contents
+-----------------
+1. Bus Skew Report Summary
+2. Bus Skew Report Per Constraint
+
+1. Bus Skew Report Summary
+--------------------------
+
+Id  Position  From                            To                              Corner  Requirement(ns)  Actual(ns)  Slack(ns)
+--  --------  ------------------------------  ------------------------------  ------  ---------------  ----------  ---------
+1   5         [get_cells {{u_path/u_fifo/wr_gray_reg[0]} {u_path/u_fifo/wr_gray_reg[1]} {u_path/u_fifo/wr_gray_reg[2]} {u_path/u_fifo/wr_gray_reg[3]} {u_path/u_fifo/wr_gray_reg[4]} {u_path/u_fifo/wr_gray_reg[5]} {u_path/u_fifo/wr_gray_reg[6]}}]
+                                              [get_cells -hier -regexp {.*u_fifo/wr_gray_sync1_reg\[[0-9]+\]}]
+                                                                              Slow             11.982       0.847     11.135
+2   7         [get_cells {{u_path/u_fifo/rd_gray_reg[0]} {u_path/u_fifo/rd_gray_reg[1]} {u_path/u_fifo/rd_gray_reg[2]} {u_path/u_fifo/rd_gray_reg[3]} {u_path/u_fifo/rd_gray_reg[4]} {u_path/u_fifo/rd_gray_reg[5]} {u_path/u_fifo/rd_bin_reg[6]}}]
+                                              [get_cells -hier -regexp {.*u_fifo/rd_gray_sync1_reg\[[0-9]+\]}]
+                                                                              Slow             11.982       0.875     11.107
+
+
+2. Bus Skew Report Per Constraint
+---------------------------------
+
+Id: 1
+set_bus_skew -from [get_cells {{u_path/u_fifo/wr_gray_reg[0]} {u_path/u_fifo/wr_gray_reg[1]} {u_path/u_fifo/wr_gray_reg[2]} {u_path/u_fifo/wr_gray_reg[3]} {u_path/u_fifo/wr_gray_reg[4]} {u_path/u_fifo/wr_gray_reg[5]} {u_path/u_fifo/wr_gray_reg[6]}}] -to [get_cells -hier -regexp {.*u_fifo/wr_gray_sync1_reg\[[0-9]+\]}] 11.982
+Requirement: 11.982ns
+Endpoints: 7
+
+From Clock            To Clock              Endpoint Pin                    Reference Pin                   Corner  Actual(ns)  Slack(ns)
+--------------------  --------------------  ------------------------------  ------------------------------  ------  ----------  ---------
+clk_out1_uart_pixel_clock
+                      game_clk              u_path/u_fifo/wr_gray_sync1_reg[1]/D
+                                                                            u_path/u_fifo/wr_gray_sync1_reg[4]/D
+                                                                                                            Slow         0.847     11.135
+
+
+Slack (MET) :             11.135ns  (requirement - actual skew)
+  Endpoint Source:        u_path/u_fifo/wr_gray_reg[1]/C
+                            (rising edge-triggered cell FDRE clocked by clk_out1_uart_pixel_clock)
+  Endpoint Destination:   u_path/u_fifo/wr_gray_sync1_reg[1]/D
+                            (rising edge-triggered cell FDRE clocked by game_clk)
+  Reference Source:       u_path/u_fifo/wr_gray_reg[4]/C
+                            (rising edge-triggered cell FDRE clocked by clk_out1_uart_pixel_clock)
+  Reference Destination:  u_path/u_fifo/wr_gray_sync1_reg[4]/D
+                            (rising edge-triggered cell FDRE clocked by game_clk)
+  Path Type:              Bus Skew (Max at Slow Process Corner)
+  Requirement:            11.982ns
+  Endpoint Relative Delay:   -0.937ns
+  Reference Relative Delay:  -3.125ns
+  Relative CRPR:              1.340ns
+  Actual Bus Skew:            0.847ns  (Endpoint Relative Delay - Reference Relative Delay - Relative CRPR)
+
+Endpoint path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_out1_uart_pixel_clock rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.482     1.482 r  u_board_ibuf/O
+                         net (fo=2, routed)           1.233     2.715    u_pix_clock/inst/clk_in1
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.070    -4.355 r  u_pix_clock/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.719    -2.636    u_pix_clock/inst/clk_out1_uart_pixel_clock
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.096    -2.540 r  u_pix_clock/inst/clkout1_buf/O
+                         net (fo=80, routed)          1.720    -0.820    u_path/u_fifo/clk_out1
+    SLICE_X1Y63          FDRE                                         r  u_path/u_fifo/wr_gray_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X1Y63          FDRE (Prop_fdre_C_Q)         0.419    -0.401 r  u_path/u_fifo/wr_gray_reg[1]/Q
+                         net (fo=1, routed)           0.628     0.228    u_path/u_fifo/wr_gray[1]
+    SLICE_X2Y63          FDRE                                         r  u_path/u_fifo/wr_gray_sync1_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock game_clk rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.411     1.411 r  u_board_ibuf/O
+                         net (fo=2, routed)           1.302     2.713    u_game_clock/inst/clk_in1
+    MMCME2_ADV_X1Y1      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.338    -4.624 r  u_game_clock/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.639    -2.985    u_game_clock/inst/clk_out1_uart_game_clock
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    -2.894 r  u_game_clock/inst/clkout1_buf/O
+                         net (fo=39, routed)          1.501    -1.393    clk_game_base
+    SLICE_X53Y96         FDRE (Prop_fdre_C_Q)         0.367    -1.026 r  game_toggle_reg/Q
+                         net (fo=2, routed)           0.650    -0.376    game_toggle
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    -0.285 r  u_game_buf/O
+                         net (fo=41, routed)          1.597     1.313    u_path/u_fifo/clk_game
+    SLICE_X2Y63          FDRE                                         r  u_path/u_fifo/wr_gray_sync1_reg[1]/C
+                         clock pessimism              0.071     1.383    
+    SLICE_X2Y63          FDRE (Setup_fdre_C_D)       -0.218     1.165    u_path/u_fifo/wr_gray_sync1_reg[1]
+  -------------------------------------------------------------------
+                         data arrival                           0.228    
+                         clock arrival                          1.165    
+  -------------------------------------------------------------------
+                         relative delay                        -0.937    
+
+Reference path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_out1_uart_pixel_clock rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.411     1.411 r  u_board_ibuf/O
+                         net (fo=2, routed)           1.162     2.573    u_pix_clock/inst/clk_in1
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.324    -4.751 r  u_pix_clock/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.639    -3.112    u_pix_clock/inst/clk_out1_uart_pixel_clock
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    -3.021 r  u_pix_clock/inst/clkout1_buf/O
+                         net (fo=80, routed)          1.600    -1.420    u_path/u_fifo/clk_out1
+    SLICE_X1Y63          FDRE                                         r  u_path/u_fifo/wr_gray_reg[4]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X1Y63          FDRE (Prop_fdre_C_Q)         0.367    -1.053 r  u_path/u_fifo/wr_gray_reg[4]/Q
+                         net (fo=1, routed)           0.244    -0.809    u_path/u_fifo/wr_gray[4]
+    SLICE_X1Y65          FDRE                                         r  u_path/u_fifo/wr_gray_sync1_reg[4]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock game_clk rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.482     1.482 r  u_board_ibuf/O
+                         net (fo=2, routed)           1.380     2.862    u_game_clock/inst/clk_in1
+    MMCME2_ADV_X1Y1      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.085    -4.223 r  u_game_clock/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.719    -2.503    u_game_clock/inst/clk_out1_uart_game_clock
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096    -2.407 r  u_game_clock/inst/clkout1_buf/O
+                         net (fo=39, routed)          1.623    -0.784    clk_game_base
+    SLICE_X53Y96         FDRE (Prop_fdre_C_Q)         0.456    -0.328 r  game_toggle_reg/Q
+                         net (fo=2, routed)           0.732     0.404    game_toggle
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.096     0.500 r  u_game_buf/O
+                         net (fo=41, routed)          1.716     2.216    u_path/u_fifo/clk_game
+    SLICE_X1Y65          FDRE                                         r  u_path/u_fifo/wr_gray_sync1_reg[4]/C
+                         clock pessimism             -0.071     2.146    
+    SLICE_X1Y65          FDRE (Hold_fdre_C_D)         0.170     2.316    u_path/u_fifo/wr_gray_sync1_reg[4]
+  -------------------------------------------------------------------
+                         data arrival                          -0.809    
+                         clock arrival                          2.316    
+  -------------------------------------------------------------------
+                         relative delay                        -3.125    
+
+
+
+Id: 2
+set_bus_skew -from [get_cells {{u_path/u_fifo/rd_gray_reg[0]} {u_path/u_fifo/rd_gray_reg[1]} {u_path/u_fifo/rd_gray_reg[2]} {u_path/u_fifo/rd_gray_reg[3]} {u_path/u_fifo/rd_gray_reg[4]} {u_path/u_fifo/rd_gray_reg[5]} {u_path/u_fifo/rd_bin_reg[6]}}] -to [get_cells -hier -regexp {.*u_fifo/rd_gray_sync1_reg\[[0-9]+\]}] 11.982
+Requirement: 11.982ns
+Endpoints: 7
+
+From Clock            To Clock              Endpoint Pin                    Reference Pin                   Corner  Actual(ns)  Slack(ns)
+--------------------  --------------------  ------------------------------  ------------------------------  ------  ----------  ---------
+game_clk              clk_out1_uart_pixel_clock
+                                            u_path/u_fifo/rd_gray_sync1_reg[1]/D
+                                                                            u_path/u_fifo/rd_gray_sync1_reg[5]/D
+                                                                                                            Slow         0.875     11.107
+
+
+Slack (MET) :             11.107ns  (requirement - actual skew)
+  Endpoint Source:        u_path/u_fifo/rd_gray_reg[1]/C
+                            (rising edge-triggered cell FDRE clocked by game_clk)
+  Endpoint Destination:   u_path/u_fifo/rd_gray_sync1_reg[1]/D
+                            (rising edge-triggered cell FDRE clocked by clk_out1_uart_pixel_clock)
+  Reference Source:       u_path/u_fifo/rd_gray_reg[5]/C
+                            (rising edge-triggered cell FDRE clocked by game_clk)
+  Reference Destination:  u_path/u_fifo/rd_gray_sync1_reg[5]/D
+                            (rising edge-triggered cell FDRE clocked by clk_out1_uart_pixel_clock)
+  Path Type:              Bus Skew (Max at Slow Process Corner)
+  Requirement:            11.982ns
+  Endpoint Relative Delay:    4.846ns
+  Reference Relative Delay:   2.654ns
+  Relative CRPR:              1.316ns
+  Actual Bus Skew:            0.875ns  (Endpoint Relative Delay - Reference Relative Delay - Relative CRPR)
+
+Endpoint path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock game_clk rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.482     1.482 r  u_board_ibuf/O
+                         net (fo=2, routed)           1.380     2.862    u_game_clock/inst/clk_in1
+    MMCME2_ADV_X1Y1      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.085    -4.223 r  u_game_clock/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.719    -2.503    u_game_clock/inst/clk_out1_uart_game_clock
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096    -2.407 r  u_game_clock/inst/clkout1_buf/O
+                         net (fo=39, routed)          1.623    -0.784    clk_game_base
+    SLICE_X53Y96         FDRE (Prop_fdre_C_Q)         0.456    -0.328 r  game_toggle_reg/Q
+                         net (fo=2, routed)           0.732     0.404    game_toggle
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.096     0.500 r  u_game_buf/O
+                         net (fo=41, routed)          1.718     2.218    u_path/u_fifo/clk_game
+    SLICE_X5Y62          FDRE                                         r  u_path/u_fifo/rd_gray_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X5Y62          FDRE (Prop_fdre_C_Q)         0.419     2.637 r  u_path/u_fifo/rd_gray_reg[1]/Q
+                         net (fo=1, routed)           0.594     3.231    u_path/u_fifo/rd_gray[1]
+    SLICE_X0Y60          FDRE                                         r  u_path/u_fifo/rd_gray_sync1_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_out1_uart_pixel_clock rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.411     1.411 r  u_board_ibuf/O
+                         net (fo=2, routed)           1.162     2.573    u_pix_clock/inst/clk_in1
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.324    -4.751 r  u_pix_clock/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.639    -3.112    u_pix_clock/inst/clk_out1_uart_pixel_clock
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    -3.021 r  u_pix_clock/inst/clkout1_buf/O
+                         net (fo=80, routed)          1.603    -1.417    u_path/u_fifo/clk_out1
+    SLICE_X0Y60          FDRE                                         r  u_path/u_fifo/rd_gray_sync1_reg[1]/C
+                         clock pessimism              0.071    -1.347    
+    SLICE_X0Y60          FDRE (Setup_fdre_C_D)       -0.268    -1.615    u_path/u_fifo/rd_gray_sync1_reg[1]
+  -------------------------------------------------------------------
+                         data arrival                           3.231    
+                         clock arrival                         -1.615    
+  -------------------------------------------------------------------
+                         relative delay                         4.846    
+
+Reference path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock game_clk rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.411     1.411 r  u_board_ibuf/O
+                         net (fo=2, routed)           1.302     2.713    u_game_clock/inst/clk_in1
+    MMCME2_ADV_X1Y1      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.338    -4.624 r  u_game_clock/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.639    -2.985    u_game_clock/inst/clk_out1_uart_game_clock
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    -2.894 r  u_game_clock/inst/clkout1_buf/O
+                         net (fo=39, routed)          1.501    -1.393    clk_game_base
+    SLICE_X53Y96         FDRE (Prop_fdre_C_Q)         0.367    -1.026 r  game_toggle_reg/Q
+                         net (fo=2, routed)           0.650    -0.376    game_toggle
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    -0.285 r  u_game_buf/O
+                         net (fo=41, routed)          1.595     1.311    u_path/u_fifo/clk_game
+    SLICE_X4Y64          FDRE                                         r  u_path/u_fifo/rd_gray_reg[5]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X4Y64          FDRE (Prop_fdre_C_Q)         0.367     1.678 r  u_path/u_fifo/rd_gray_reg[5]/Q
+                         net (fo=1, routed)           0.256     1.934    u_path/u_fifo/rd_gray[5]
+    SLICE_X3Y64          FDRE                                         r  u_path/u_fifo/rd_gray_sync1_reg[5]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_out1_uart_pixel_clock rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.482     1.482 r  u_board_ibuf/O
+                         net (fo=2, routed)           1.233     2.715    u_pix_clock/inst/clk_in1
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.070    -4.355 r  u_pix_clock/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.719    -2.636    u_pix_clock/inst/clk_out1_uart_pixel_clock
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.096    -2.540 r  u_pix_clock/inst/clkout1_buf/O
+                         net (fo=80, routed)          1.720    -0.820    u_path/u_fifo/clk_out1
+    SLICE_X3Y64          FDRE                                         r  u_path/u_fifo/rd_gray_sync1_reg[5]/C
+                         clock pessimism             -0.071    -0.890    
+    SLICE_X3Y64          FDRE (Hold_fdre_C_D)         0.170    -0.720    u_path/u_fifo/rd_gray_sync1_reg[5]
+  -------------------------------------------------------------------
+                         data arrival                           1.934    
+                         clock arrival                         -0.720    
+  -------------------------------------------------------------------
+                         relative delay                         2.654    
+
+
+

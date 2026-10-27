@@ -1,0 +1,3 @@
+FIFO_FULL capacity=64 rejected=16 ordered drain PASS
+PASS uart_async_fifo_tb accepted=6212 read=5956 rejected=3165 seed=0x0256cafe
+/home/alan/.t3/worktrees/FPGA/t3-73d434d7/proyecto_final/prototypes/uart_input/uart_async_fifo_tb.sv:132: $finish called at 145760900 (1ps)

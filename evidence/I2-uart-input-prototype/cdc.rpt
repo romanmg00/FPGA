@@ -1,0 +1,76 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Tue Oct 27 12:09:23 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_cdc -details -file /builds/uart-20261027-150541-280860/cdc.rpt
+| Design       : uart_input_board
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+CDC Report
+
+ID      Severity  Count  Description
+------  --------  -----  ----------------------------------------------
+CDC-3   Info          7  1-bit synchronized with ASYNC_REG property
+CDC-6   Warning       2  Multi-bit synchronized with ASYNC_REG property
+CDC-15  Warning       3  Clock enable controlled CDC structure detected
+
+Source Clock: input port clock
+Destination Clock: clk_out1_uart_game_clock
+CDC Type: No Common Primary Clock
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)  Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  -------------  --------------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  cpu_resetn     u_button_sync/stage1_reg/D
+
+Source Clock: clk_out1_uart_game_clock
+Destination Clock: clk_out1_uart_pixel_clock
+CDC Type: No Common Period
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)     Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  ----------------  ------------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  reset_hold_reg/C  u_reset_pix/stage1_reg/D
+
+Source Clock: game_clk
+Destination Clock: clk_out1_uart_pixel_clock
+CDC Type: No Common Period
+
+Row  ID     Severity  Description                                     Depth  Exception                Source (From)                     Destination (To)
+---  -----  --------  ----------------------------------------------  -----  -----------------------  --------------------------------  --------------------------------------
+  1  CDC-6  Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_path/u_fifo/rd_gray_reg[5:0]/C  u_path/u_fifo/rd_gray_sync1_reg[5:0]/D
+  2  CDC-3  Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_path/u_fifo/rd_bin_reg[6]/C     u_path/u_fifo/rd_gray_sync1_reg[6]/D
+  3  CDC-3  Info      1-bit synchronized with ASYNC_REG property          2  False Path               u_path/u_fifo/rd_up_reg/C         u_path/u_fifo/rd_up_sync1_reg/D
+
+Source Clock: input port clock
+Destination Clock: clk_out1_uart_pixel_clock
+CDC Type: No Common Primary Clock
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)  Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  -------------  -----------------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  uart_rx_pin    u_path/u_rx_sync/stage1_reg/D
+
+Source Clock: clk_out1_uart_game_clock
+Destination Clock: game_clk
+CDC Type: No Common Period
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)     Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  ----------------  -------------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  reset_hold_reg/C  u_reset_game/stage1_reg/D
+
+Source Clock: clk_out1_uart_pixel_clock
+Destination Clock: game_clk
+CDC Type: No Common Period
+
+Row  ID      Severity  Description                                     Depth  Exception                Source (From)                               Destination (To)
+---  ------  --------  ----------------------------------------------  -----  -----------------------  ------------------------------------------  --------------------------------------
+  1  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_path/u_fifo/memory_reg_0_63_0_2/RAMA/CLK  u_path/u_fifo/rd_data_reg[0]/D
+  2  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_path/u_fifo/memory_reg_0_63_0_2/RAMB/CLK  u_path/u_fifo/rd_data_reg[1]/D
+  3  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_path/u_fifo/memory_reg_0_63_0_2/RAMC/CLK  u_path/u_fifo/rd_data_reg[2]/D
+  4  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_path/u_fifo/wr_gray_reg[6:0]/C            u_path/u_fifo/wr_gray_sync1_reg[6:0]/D
+  5  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  False Path               u_path/u_fifo/wr_up_reg/C                   u_path/u_fifo/wr_up_sync1_reg/D
+

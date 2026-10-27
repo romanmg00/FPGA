@@ -24,8 +24,12 @@ Las versiones anteriores de este README y del contrato están en
 
 ## Documentación y decisiones (Documentation and decisions)
 
-- [`docs/README.md`](docs/README.md): índice de la documentación, orden de lectura y
-  autoridad.
+Empieza por el **[índice de documentación (`docs/README.md`)](docs/README.md)**:
+incluye el orden de lectura, la autoridad de cada fuente y un
+[índice de referencias](docs/README.md#reference-index) para consultar las prácticas
+de código FPGA, los planes de diseño, los contratos, las herramientas, las pruebas
+y los documentos históricos antes de trabajar.
+
 - [`docs/decisions/`](docs/decisions/): la especificación acordada y el registro de
   decisiones del 20 de octubre, **bloqueados** (no se editan; sus SHA-256 están en
   [`docs/decisions/README.md`](docs/decisions/README.md)). Donde este README o el
@@ -34,8 +38,9 @@ Las versiones anteriores de este README y del contrato están en
   [0002](docs/adr/0002-follow-ta-divided-game-clock.md) fija el reloj de juego de
   ~60 Hz (segundo Clocking Wizard más un divisor), como pidieron los TAs. Las nuevas
   decisiones del equipo van como ADR 0003 en adelante.
-- [`docs/design/`](docs/design/): plan de VGA y sprites, y las prácticas de código
-  del curso.
+- [Diseño y prácticas FPGA](docs/README.md#fpga-design-and-verification-planning):
+  **CS-256 Official FPGA Coding Practices**, plan de VGA y sprites, investigación
+  UART y resultados del prototipo; el índice distingue guía, propuestas y evidencia.
 - [`docs/domain/`](docs/domain/): glosario (Cell, Step, Trail, Reward…) y mecánicas.
 - `prototipos/tron_fpga/`: el Tron de Alan modelado sobre el hardware del Nexys A7
   (reglas en `model/` por bloques de hardware, visor `juego/` con pygame-ce, pruebas

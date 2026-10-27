@@ -1,0 +1,22 @@
+RX_SWEEP rate=-3% phase=0 bytes=256 PASS
+RX_SWEEP rate=-3% phase=1 bytes=256 PASS
+RX_SWEEP rate=-3% phase=2 bytes=256 PASS
+RX_SWEEP rate=-3% phase=3 bytes=256 PASS
+RX_SWEEP rate=-2% phase=0 bytes=256 PASS
+RX_SWEEP rate=-2% phase=1 bytes=256 PASS
+RX_SWEEP rate=-2% phase=2 bytes=256 PASS
+RX_SWEEP rate=-2% phase=3 bytes=256 PASS
+RX_SWEEP rate=0% phase=0 bytes=256 PASS
+RX_SWEEP rate=0% phase=1 bytes=256 PASS
+RX_SWEEP rate=0% phase=2 bytes=256 PASS
+RX_SWEEP rate=0% phase=3 bytes=256 PASS
+RX_SWEEP rate=2% phase=0 bytes=256 PASS
+RX_SWEEP rate=2% phase=1 bytes=256 PASS
+RX_SWEEP rate=2% phase=2 bytes=256 PASS
+RX_SWEEP rate=2% phase=3 bytes=256 PASS
+RX_SWEEP rate=3% phase=0 bytes=256 PASS
+RX_SWEEP rate=3% phase=1 bytes=256 PASS
+RX_SWEEP rate=3% phase=2 bytes=256 PASS
+RX_SWEEP rate=3% phase=3 bytes=256 PASS
+PASS uart_rx_tb bytes=5132 commands=211 checks=33 framing_errors=1 clk_hz=83333333
+/home/alan/.t3/worktrees/FPGA/t3-73d434d7/proyecto_final/prototypes/uart_input/uart_rx_tb.sv:137: $finish called at 448298105116 (1ps)

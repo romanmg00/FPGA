@@ -1,0 +1,34 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Tue Oct 27 12:09:24 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_utilization -hierarchical -file /builds/uart-20261027-150541-280860/utilization-hierarchical.rpt
+| Design       : uart_input_board
+| Device       : xc7a100tcsg324-1
+| Speed File   : -1
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------------+-----------------+------------+------------+---------+------+-----+--------+--------+------------+
+|       Instance       |      Module     | Total LUTs | Logic LUTs | LUTRAMs | SRLs | FFs | RAMB36 | RAMB18 | DSP Blocks |
++----------------------+-----------------+------------+------------+---------+------+-----+--------+--------+------------+
+| uart_input_board     |           (top) |        100 |         96 |       4 |    0 | 156 |      0 |      0 |          0 |
+|   (uart_input_board) |           (top) |          7 |          7 |       0 |    0 |  42 |      0 |      0 |          0 |
+|   u_path             | uart_input_path |         88 |         84 |       4 |    0 | 108 |      0 |      0 |          0 |
+|     u_fifo           | uart_async_fifo |         42 |         38 |       4 |    0 |  68 |      0 |      0 |          0 |
++----------------------+-----------------+------------+------------+---------+------+-----+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

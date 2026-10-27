@@ -27,7 +27,7 @@ tags:
 
 # CS-256 UART Input Path Research
 
-Research checked **27 October 2026**. **Source fact** identifies published evidence; **Project application/proposal** identifies engineering interpretation. All new interfaces, encodings and implementation choices below are **proposals**, not team decisions or verified hardware. No HDL was implemented or simulated for this note.
+Research checked **27 October 2026**. **Source fact** identifies published evidence; **Project application/proposal** identifies engineering interpretation. All new interfaces, encodings and implementation choices below are **proposals**, not team decisions or verified hardware. No HDL was implemented or simulated when this research note was written. The later [UART input experiment and findings](CS-256%20UART%20Input%20Prototype%20Findings.md) record portable tests and the separate status of Vivado/IP Catalog verification; they do not accept these proposals as team decisions.
 
 ## Summary and recommended block chain
 

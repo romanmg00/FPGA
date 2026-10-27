@@ -1,0 +1,33 @@
+Recorded observations, 2026-10-27 (not a combined raw process log).
+
+slang 12.1.0: core and benches elaborate with 0 errors, 20 numeric-conversion warnings.
+Board wrapper: 0 syntax diagnostics; vendor clock/buffer modules not elaborated.
+bash -n: run.sh and run_iverilog.sh pass.
+Tcl info complete: run.tcl returns 1 (lexical structure only, not command validation).
+
+Python model/viewer suite:
+cwd: prototipos/tron_fpga
+command: SDL_AUDIODRIVER=dummy SDL_VIDEODRIVER=dummy /home/alan/.venvs/cs256-tron/bin/python -m unittest discover -s tests
+Ran 49 tests in 8.754s
+OK
+pygame-ce 2.5.8 (SDL 2.32.10, Python 3.12.15)
+Sandbox startup also emitted three 'Failed to create stream fd: Operation not permitted' lines.
+Earlier system-Python run: 41 tests, 1 import error because NumPy was absent.
+Earlier audio-enabled venv attempt: interrupted after stalling; not a passing run.
+
+Initial Vivado/Docker access, before the approved unattended setup:
+docker ps: permission denied accessing /var/run/docker.sock.
+sudo -n docker ps: sudo: interactive authentication is required.
+Private credential request: timed out.
+Vivado, IP Catalog GUI, synthesis, implementation: not executed at that stage.
+
+Final state after the user's explicit approval and one-time administrator setup:
+sudo -n -k /usr/local/sbin/cs256-vivado status: running.
+sudo -n -k /usr/local/sbin/cs256-vivado exec id: UID/GID 1000 (vivado).
+NoNewPrivs: 1. In-container sudo elevation: denied as intended.
+Launcher: root:root 0755. Sudo policy: root:root 0440.
+One-use administrator credential file: removed after installation.
+Final complete Vivado run: /builds/uart-20261027-150541-280860, process exit 0.
+Four XSim runs passed at clk_hz=83455882, with distinct fast/real ratio checks.
+Routed acceptance, bitstream, native IP Catalog screenshots: see retained evidence.
+Native GUI and isolated Xvfb server: closed; temporary X11 cookie removed.

@@ -1,0 +1,3 @@
+PATH_ORDER real_ratio=0 commands=7 first_latency_ns=382631 PASS
+PASS uart_input_path_tb real_ratio=0 clk_hz=83333333
+/home/alan/.t3/worktrees/FPGA/t3-73d434d7/proyecto_final/prototypes/uart_input/uart_input_path_tb.sv:94: $finish called at 17300763800 (1ps)

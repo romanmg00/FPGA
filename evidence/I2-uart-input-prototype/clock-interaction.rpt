@@ -1,0 +1,31 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Tue Oct 27 12:09:23 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_clock_interaction -file /builds/uart-20261027-150541-280860/clock-interaction.rpt
+| Design       : uart_input_board
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Clock Interaction Report
+
+Clock Interaction Table
+-----------------------
+
+                                                      WNS                                 TNS Failing  TNS Total    WNS Path         Clock-Pair           Inter-Clock              
+From Clock                 To Clock                   Clock Edges       WNS(ns)  TNS(ns)    Endpoints    Endpoints  Requirement(ns)  Classification       Constraints              
+-------------------------  -------------------------  -----------  ------------  -------  -----------  -----------  ---------------  -------------------  -----------------------  
+clk_out1_uart_game_clock   clk_out1_uart_game_clock   rise - rise        195.81     0.00            0           92           200.00  Clean                Timed                    
+clk_out1_uart_game_clock   clk_out1_uart_pixel_clock                                                0            1                   Ignored              False Path               
+clk_out1_uart_game_clock   game_clk                                                                 0            1                   Ignored              False Path               
+clk_out1_uart_pixel_clock  clk_out1_uart_pixel_clock  rise - rise          7.34     0.00            0          198            11.98  Clean                Timed                    
+clk_out1_uart_pixel_clock  game_clk                   rise - rise         10.39     0.00            0           11            11.98  Ignored              Max Delay Datapath Only  
+game_clk                   clk_out1_uart_pixel_clock  rise - rise         10.70     0.00            0            8            11.98  Ignored              Max Delay Datapath Only  
+game_clk                   game_clk                   rise - rise   16666796.00     0.00            0           90      16666802.00  Clean                Timed                    
+
+
