@@ -2,7 +2,6 @@
 
 TRANSPARENT = 0x000      # sprite tips / handout step 7: black is see-through
 TINT_KEY = 0x0F0         # replaced by the Player (or Reward) colour
-DIM_TINT_KEY = 0x080     # replaced by half the tint: glow halos (L2 proposal)
 NEAR_BLACK = 0x111       # art uses this where it needs a visible black
 
 

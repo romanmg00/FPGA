@@ -1,12 +1,13 @@
-"""Headless Game Model: the Tron rules in hardware-block structure.
+"""Headless Game Model: the agreed Tron rules in hardware-block structure.
 
 No graphics imports here. See CS-256 Tron Development Plan, Phases > Game Model.
 """
 
-from .game import CRASH, MATCH_OVER, READY, RUNNING, FrameInputs, Game
-from .params import ArenaGeometry, HudReserve, RuleParams
+from .game import CRASH, IDLE, MATCH_OVER, PLAY, READY, Game, TickInputs
+from .params import GEOMETRY, ArenaGeometry, RuleParams
+from .scoring import DRAW
 
 __all__ = [
-    "Game", "FrameInputs", "ArenaGeometry", "HudReserve", "RuleParams",
-    "READY", "RUNNING", "CRASH", "MATCH_OVER",
+    "Game", "TickInputs", "ArenaGeometry", "GEOMETRY", "RuleParams",
+    "IDLE", "PLAY", "CRASH", "READY", "MATCH_OVER", "DRAW",
 ]

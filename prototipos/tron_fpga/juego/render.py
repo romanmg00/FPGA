@@ -1,22 +1,24 @@
 """Draws one 1280 x 800 frame from a Game snapshot (FPGA limits 1, 3, 5).
 
 Fixed layer order, bottom to top, as drawcon will compose it:
-sky -> stars -> sun -> grid lines -> Walls -> HUD area -> 10 px border ->
-Trails -> Rewards -> Bikes -> crash ring -> HUD, then one colour stage on
-the result (crash flash, scanlines). Every layer depends only on the pixel
-position, a frame counter and the game state. The finished frame is forced
-to RGB444 as a final check.
+sky -> stars -> sun -> grid lines -> Walls -> HUD band -> Trails ->
+Rewards -> Bikes -> crash ring -> HUD (optional) -> 10 px white border, then one colour
+stage on the result (crash flash, scanlines) that leaves the border alone.
+The border is on top, as the contract requires: a 32 px Bike centred on an
+edge Cell reaches 2 px into it. Every layer depends only on the pixel
+position, a video frame counter and the game state. The finished frame is
+forced to RGB444 as a final check.
 """
 
 import pygame
 
-from model import CRASH, RUNNING
-from model.arena import TRAIL_P1, TRAIL_P2
+from model import CRASH, PLAY
+from model.arena import player_of
 from model.params import BORDER_PX, SCREEN_H, SCREEN_W
-from model.steering import DOWN, LEFT, RIGHT, UP
+from model.steering import DOWN, RIGHT, UP
 
 from . import fx
-from .hud import BLINK_FRAMES, HudRenderer
+from .hud import BLINK_TICKS, HudRenderer
 from .rgb444 import expand, halve, lerp
 
 SIZE = (SCREEN_W, SCREEN_H)
@@ -26,28 +28,22 @@ FLASH_FRAMES = 4
 PULSE_LEVELS = (0.6, 0.8, 1.0, 0.8)
 
 
-def sprite_origin(cell, cell_px, size, heading, anchor):
-    """Top-left pixel of a size x size sprite placed on a Cell.
+def sprite_origin(cell, cell_px, size):
+    """Top-left pixel of a size x size sprite centred on a Cell (agreed:
+    a 32 px Bike on a 16 px Cell starts at cx * 16 - 8)."""
+    return (cell[0] * cell_px + cell_px // 2 - size // 2,
+            cell[1] * cell_px + cell_px // 2 - size // 2)
 
-    centre: the sprite is centred on the Cell (VGA plan: head*8 - 12).
-    nose:   the sprite's front edge lines up with the Cell's leading edge.
-    """
-    cx = cell[0] * cell_px + cell_px // 2 - size // 2
-    cy = cell[1] * cell_px + cell_px // 2 - size // 2
-    if anchor == "nose":
-        if heading == UP:
-            cy = cell[1] * cell_px
-        elif heading == DOWN:
-            cy = cell[1] * cell_px + cell_px - size
-        elif heading == LEFT:
-            cx = cell[0] * cell_px
-        elif heading == RIGHT:
-            cx = cell[0] * cell_px + cell_px - size
-    return cx, cy
+
+def draw_border(frame, colour) -> None:
+    b = BORDER_PX
+    for r in ((0, 0, SCREEN_W, b), (0, SCREEN_H - b, SCREEN_W, b),
+              (0, 0, b, SCREEN_H), (SCREEN_W - b, 0, b, SCREEN_H)):
+        frame.fill(colour, r)
 
 
 class FrameRenderer:
-    def __init__(self, geom, look, palette, sprites, bike_rom, reward_roms):
+    def __init__(self, geom, look, palette, bike_rom, reward_roms):
         self.geom = geom
         self.look = look
         self.pal = palette
@@ -80,7 +76,7 @@ class FrameRenderer:
         for y in range(g.y0, g.y1):
             for x in range(g.x0, g.x1):
                 code = grid.read(x, y)
-                if code in (TRAIL_P1, TRAIL_P2):
+                if player_of(code) is not None:
                     self._draw_cell(x, y, code)
 
     def _clear_trails(self):
@@ -94,9 +90,10 @@ class FrameRenderer:
         self.trails.fill((0, 0, 0), r)
         if self.pulse:
             self.shine_src.fill((0, 0, 0), r)
-        if code not in (TRAIL_P1, TRAIL_P2):
+        player = player_of(code)               # Trail and head Cells
+        if player is None:
             return
-        col = self.pal["p1"] if code == TRAIL_P1 else self.pal["p2"]
+        col = self.pal["p1"] if player == 0 else self.pal["p2"]
         style = self.look.trail
         edge = max(1, c // 8)
         if style == "inset":
@@ -129,28 +126,26 @@ class FrameRenderer:
         self._draw_rewards(frame, snap, ph)
 
         crashing = snap["phase"] == CRASH
-        blink_off = (snap["phase_frames"] // BLINK_FRAMES) % 2 == 1
-        bike_fx = self.look.bike_fx
-        for i in (0, 1):
+        blink_off = (snap["phase_ticks"] // BLINK_TICKS) % 2 == 1
+        for i in (0, 1) if snap["heads"] else ():   # no Bikes before the first Start
             if crashing and snap["crashed"][i] and blink_off:
                 continue
             heading = snap["headings"][i]
             tint = self.pal["p1"] if i == 0 else self.pal["p2"]
             rom = self.bike_rom
-            pos = sprite_origin(snap["heads"][i], c, rom.size, heading, self.look.anchor)
-            if bike_fx == "streaks" and snap["phase"] == RUNNING:
+            pos = sprite_origin(snap["heads"][i], c, rom.size)
+            if self.look.bike_fx == "streaks" and snap["phase"] == PLAY:
                 self._draw_streaks(frame, pos, rom.size, heading, tint)
-            dim = None
-            if bike_fx != "none":                 # halo breathes with the phase
-                dim = lerp(halve(halve(tint)), lerp(halve(tint), tint, 0.5), PULSE_LEVELS[ph])
-            frame.blit(rom.surface(heading, tint, dim), pos)
+            frame.blit(rom.surface(heading, tint), pos)
 
         crash_fx = self.look.crash
         if crashing and crash_fx != "blink":
             self._draw_rings(frame, snap)
 
-        self.hud.draw(frame, self.look, self.pal, snap)
-        flash = (crashing and crash_fx == "ring+flash" and snap["phase_frames"] < FLASH_FRAMES)
+        if self.look.hud == "on":
+            self.hud.draw(frame, self.look, self.pal, snap, self.geom.hud_px)
+        draw_border(frame, expand(self.pal["border"]))
+        flash = (crashing and crash_fx == "ring+flash" and snap["phase_ticks"] < FLASH_FRAMES)
         fx.finish(frame, flash, self.look.crt == "scanlines")
         self.frame += 1
 
@@ -188,12 +183,12 @@ class FrameRenderer:
             tint = self.pal["reward_small"] if kind == 0 else self.pal["reward_big"]
             if anim == "pulse":
                 tint = lerp(halve(tint), tint, PULSE_LEVELS[ph])
-            frame.blit(rom.surface(heading, tint), sprite_origin(cell, c, rom.size, UP, "centre"))
+            frame.blit(rom.surface(heading, tint), sprite_origin(cell, c, rom.size))
 
     def _draw_rings(self, frame, snap):
         """Square shockwaves from each crashed Bike's Cell."""
         c = self.geom.cell_px
-        t = snap["phase_frames"]
+        t = snap["phase_ticks"]
         b = BORDER_PX                         # rings stay inside the white border
         frame.set_clip(pygame.Rect(b, b, SCREEN_W - 2 * b, SCREEN_H - 2 * b))
         self._ring_cells(frame, snap, c, t)
@@ -214,7 +209,7 @@ class FrameRenderer:
     def draw_cell_overlay(self, frame, snap) -> None:
         """Debug only (not part of the image): the Cells the rules use."""
         c = self.geom.cell_px
-        for head in snap["heads"]:
+        for head in snap["heads"] or ():
             pygame.draw.rect(frame, (255, 255, 255), (head[0] * c, head[1] * c, c, c), 1)
         for cell in snap["rewards"]:
             if cell is not None:

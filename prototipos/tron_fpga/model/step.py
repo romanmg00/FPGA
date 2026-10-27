@@ -1,17 +1,15 @@
 """Step controller (hardware block G1/G2): read, check, then write.
 
-Both Bikes' next Cells are read and checked before either Trail is written,
-so the two Bikes move at the same time and neither has priority. A Bike
-that Crashes stays where it was; the other Bike still completes its move
-(and any Reward it drives into) in the same Step.
+Both Bikes' target Cells are read and checked before either is written, so
+the two Bikes move at the same time and neither has priority. A Bike that
+Crashes stays on its last valid head Cell; the other Bike still completes
+its move (and any Reward it drives into) in the same Step.
 """
 
 from dataclasses import dataclass
 
-from .arena import REWARD_SLOT0, TRAIL_P1, TRAIL_P2, ArenaGrid, is_blocking, is_reward
+from .arena import HEAD, REWARD_SLOT0, TRAIL, ArenaGrid, is_blocking, is_reward
 from .steering import next_cell
-
-TRAIL_CODE = (TRAIL_P1, TRAIL_P2)
 
 
 @dataclass
@@ -45,6 +43,7 @@ def run_step(bikes: list, grid: ArenaGrid) -> StepResult:
             collected.append(None)
             continue
         collected.append(seen[i] - REWARD_SLOT0 if is_reward(seen[i]) else None)
-        grid.write(nxt[i][0], nxt[i][1], TRAIL_CODE[i])
+        grid.write(b.head[0], b.head[1], TRAIL[i])     # old head joins the Trail
+        grid.write(nxt[i][0], nxt[i][1], HEAD[i])
         b.head = nxt[i]
     return StepResult(crashed, head_on, tuple(collected))

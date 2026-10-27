@@ -6,7 +6,7 @@ type: note
 subject: CS-256
 status: active
 created_at: "2026-10-20T14:38:28"
-updated_at: "2026-10-20T19:33:29"
+updated_at: "2026-10-21T14:20:24"
 term: 2026-fall
 sources:
   - "[[CS-256 Tron Agreed Specification 2026-10-20]]"
@@ -45,7 +45,7 @@ Start with the project [README](README.md), then read the agreed specification a
 | Video | Requested 83.46 MHz pixel clock produces the 1280 × 800 raster; frame refresh is approximately 60 Hz. Keep output-aligned coordinates and read sprite memory early by its actual latency. | Roman | Course baseline and team agreement; generated clock, actual ROM latency, edge alignment, and board timing still need evidence. |
 | Arena and memory service | Fast controller is the Arena write owner; it services slow-game requests and returns results. Both Bike targets are read before either move is committed. | Alan | Service boundary is selected. Exact fast clock, arbitration, coherent transfer protocol, bounds, reset/Pause behavior, and render snapshots remain unverified engineering work. `pixclk` is not locked as the Arena service clock. |
 | Inputs | P1 uses board direction buttons; P2 uses browser WASD over 115200-baud, 8N1 USB-UART. Preserve keyboard/UART order and sampled board-event order. | Alan | Input choice is agreed. Enter's wire encoding, receiver clock, debounce policy, and CDC implementation remain to be completed. |
-| Shared rules model | One headless rules model in the team repository serves both PC viewers and HDL scenarios. | Alan coordinates; both members integrate and cross-test | Model migration location/base and adapters are not selected; existing local and remote models remain legacy inputs. |
+| Shared rules model | One headless rules model in the team repository serves both PC viewers and HDL scenarios. | Alan coordinates; both members integrate and cross-test | Model migration location/base and adapters are not selected. `prototipos/tron_fpga/model/` follows the agreed rules (21 October 2026); Roman's `prototipos/tron/` model remains a legacy input. |
 | Physical Scoreboard | Eight digits show synchronized P2-left and P1-right Points/Lives banks continuously | Alan | Mapping and 3-second view timing are agreed. P/L glyphs, integration, and board visibility need verification. |
 | Cross-cutting contract | Both members define game/service/render interfaces, review timing/CDC, and test the other member's blocks | Roman and Alan | Ownership is agreed; register ownership and transaction fields must be captured in the reconciled team contract. |
 
@@ -68,8 +68,8 @@ Start with the project [README](README.md), then read the agreed specification a
 | [[CS-256 VGA and Sprite Design Plan]] | Design plan; Roman leads video, team reviews | Raster, output-aligned pixels, sprite prefetch, test plan, and design work packages | Course handout, sprite tips, agreed spec. Update accepted design links and add evidence only after actual checks. |
 | [[CS-256 Official FPGA Coding Practices]] | Source-backed engineering guidance; team-maintained | AMD/vendor constraints, proposed interfaces, implementation checks | Official manuals and product guides. Distinguish sourced guidance, project arithmetic, selected decisions, and unverified proposals. |
 | [[CS-256 Tron Development Plan]] | Tentative work plan; Alan coordinates | Existing objective IDs, owners, proposed sequencing, and evidence checks | Specification and progress evidence. Update staging as work changes; keep 15/23 November targets flexible and course dates fixed. |
-| [Prototype README](../prototipos/tron_fpga/README.md) | Current local-implementation guide; local code owner | How to run and inspect the legacy local viewer/model | `prototipos/tron_fpga/` source. Update when that code changes; keep its behavior separate from the selected contract until migration. |
-| `prototipos/tron_fpga/model/` | Current local implementation; code owner per repository | Actual local Python model behavior | Source code is authoritative only for this implementation. Reconcile during migration; its tests do not verify the agreed target. |
+| [Prototype README](../prototipos/tron_fpga/README.md) | Current local-implementation guide; local code owner | How to run and inspect the local viewer/model, and which of its choices the agreement leaves open | `prototipos/tron_fpga/` source. Update when that code changes; keep its prototype choices separate from the selected contract. |
+| `prototipos/tron_fpga/model/` | Current local implementation; code owner per repository | Actual local Python model behavior | Source code is authoritative only for this implementation. Its tests check the agreed rules and `game_pkg` constants in Python; they do not verify HDL, and the model is not yet the selected shared model. |
 | [Prototype metrics](../prototipos/tron_fpga/metrics/latest.md) | Historical generated evidence, 17 October; code-generated | PC viewer measurements and hardware estimates for the local prototype | Metrics script and CSV; regenerate only for a new measurement run. Not HDL or board evidence. |
 | [[CS-256 Tron Integration Comparison]] | Archived snapshot; team-maintained history | Pre-meeting comparison against remote commit `f5cb82c…` | Meeting preparation. Do not treat its recommendations or “Already agreed” labels as current. A current remote review must be recorded separately. |
 | [[CS-256 TA Email - Game Clock]] | Archived superseded draft; preserved | Historical frame-enable approval request | Closed by the reported strict-architecture instruction and ADR 0002; no TA permission is pending. |
@@ -87,8 +87,8 @@ The objective identifiers below already exist in [[CS-256 Tron Development Plan#
 
 | Agreed area | Existing work IDs | Current implementation / evidence | Remaining work |
 |---|---|---|---|
-| Turns, movement, simultaneous collision, Trails | G1/G2 | Local `prototipos/tron_fpga/model/step.py` and `steering.py` are legacy implementation; local tests exercise that behavior only | Migrate one model; implement Roman's assigned HDL blocks; cross-test agreed edge cases and record Step-log evidence. |
-| Match/Round lifecycle, Lives, scoring, Rewards | G3/G4/G5 | Local model remains incompatible in its Points goal, cap, Reward values, Survival Bonus, timing, and PRNG choices | Implement the locked order and full legal final-Step total; choose and verify PRNG, seed advancement, and bounded placement service. |
+| Turns, movement, simultaneous collision, Trails | G1/G2 | Local `prototipos/tron_fpga/model/step.py` and `steering.py` follow the agreed rules and Arena codes; local tests cover the agreed edge cases in Python only | Migrate one model; implement Roman's assigned HDL blocks; cross-test agreed edge cases and record Step-log evidence. |
+| Match/Round lifecycle, Lives, scoring, Rewards | G3/G4/G5 | Local model implements the agreed goal, values, victory order and phases; its PRNG and synchronous placement are prototype choices, not the selected sequence | Implement the locked order and full legal final-Step total; choose and verify PRNG, seed advancement, and bounded placement service. |
 | Arena storage and service boundary | A1/A2/X1 | No Arena HDL or agreed service implementation exists in this repository yet; plan and guidance contain proposals | Reconcile the contract; establish one write owner, coherent requests/results/snapshots, and measured service/reset/Pause behavior. |
 | Video and sprite memory | V1–V4/P2/P3 | VGA plan and local viewer are design/PC references; no target HDL evidence is recorded here | Verify generated clocks, actual ROM latency, early reads, boundaries, RGB/sync alignment, synthesis, and board lock. |
 | Inputs and physical Scoreboard | I1–I4/X2 | The plan specifies intended checks; local GUI controls are not the target board/UART implementation | Finish Enter encoding, ordered command transfer, P/L glyphs, board checks, and timing/CDC evidence. |

@@ -43,9 +43,8 @@ HW_COST = {                # short enough for one panel line each
     "scanlines": "y[0] ? c - c/4 : c",
     "Reward pulse": "4-entry tint table per kind",
     "Reward spin": "Heading = frame[4:3] (address)",
-    "glow halo": "key 080 -> tint/2 (proposal)",
-    "Bike glow pulse": "4-entry dim-tint table per Player",
     "speed streaks": "rect compares vs head + Heading",
+    "HUD": "box compares + font/icon ROM",
     "neon digits": "ghost = segment-area compares",
     "chrome digits": "row LUT 2 x 16 x 12 b",
 }
@@ -118,8 +117,9 @@ STAR_HASH = _star_hash()
 
 
 def build_base(geom, look, pal, ph) -> pygame.Surface:
-    """Everything below the Trails: sky, stars, sun, grid, Walls, HUD area,
-    the handout's white border. `ph` is the animation phase."""
+    """Everything below the Trails: sky, stars, sun, grid, Walls, HUD band,
+    the handout's white border (the renderer draws it again on top).
+    `ph` is the animation phase."""
     a = np.empty((W, H, 3), np.uint8)
     a[:] = _rgb(pal["wall"])
     c = geom.cell_px
@@ -159,15 +159,7 @@ def build_base(geom, look, pal, ph) -> pygame.Surface:
     if look.wall == "neon":
         _neon_wall(a, x0, y0, x1, y1, pal)
 
-    hud, hud_bg = geom.hud, _rgb(pal["hud_bg"])
-    if hud.top:
-        a[:, :hud.top] = hud_bg
-    if hud.bottom:
-        a[:, H - hud.bottom:] = hud_bg
-    if hud.left:
-        a[:hud.left, :] = hud_bg
-    if hud.right:
-        a[W - hud.right:, :] = hud_bg
+    a[:, :geom.hud_px] = _rgb(pal["hud_bg"])
     b, white = BORDER_PX, _rgb(pal["border"])
     a[:, :b] = white
     a[:, H - b:] = white
@@ -275,7 +267,7 @@ def finish(surface: pygame.Surface, flash: bool, scanlines: bool) -> None:
     del inside, p
 
 
-def active(look, halo: bool) -> list:
+def active(look) -> list:
     """HW_COST keys of the effects the look uses, in layer order."""
     on = []
     if look.bg != "plain":
@@ -290,10 +282,6 @@ def active(look, halo: bool) -> list:
         on.append("neon Wall")
     if look.trail in ("neon", "pulse"):
         on.append(look.trail + " Trail")
-    if halo:
-        on.append("glow halo")
-        if look.bike_fx != "none":
-            on.append("Bike glow pulse")
     if look.bike_fx == "streaks":
         on.append("speed streaks")
     if look.reward_anim != "still":
@@ -302,8 +290,10 @@ def active(look, halo: bool) -> list:
         on.append("crash ring")
     if look.crash == "ring+flash":
         on.append("flash")
-    if look.font in ("neon", "chrome"):
-        on.append(look.font + " digits")
+    if look.hud == "on":
+        on.append("HUD")
+        if look.font in ("neon", "chrome"):
+            on.append(look.font + " digits")
     if look.crt == "scanlines":
         on.append("scanlines")
     return on
@@ -318,10 +308,9 @@ def lut_items(look, glyph_h: int) -> list:
         rows.append(("Sun row LUT", 20, SUN_R + SUN_RISE if look.grid == "floor" else 2 * SUN_R + 1))
     if look.grid == "floor":                      # 1/d 16 b + 4 phase line bits + colour 12 b
         rows.append(("Floor row LUT", 32, H // 2))
-    pulses = ((4 if look.grid == "neon" else 0) + (8 if look.reward_anim == "pulse" else 0)
-              + (8 if look.bike_fx != "none" else 0))
+    pulses = (4 if look.grid == "neon" else 0) + (8 if look.reward_anim == "pulse" else 0)
     if pulses:
         rows.append(("Pulse colour table", 12, pulses))
-    if look.font == "chrome":                     # one bank per Player
+    if look.hud == "on" and look.font == "chrome":    # one bank per Player
         rows.append(("Chrome row LUT", 12, 2 * glyph_h))
     return rows

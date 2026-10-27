@@ -19,7 +19,7 @@ Paths are relative to the repository root.
 | `docs/references/` | Nexys A7 research report, vendor datasheets (`datasheets/`), and official documentation links |
 | `docs/agents/` | Instructions for AI agents: issue tracker, triage labels, domain docs. The root `AGENTS.md` and `CLAUDE.md` point here |
 | `proyecto_final/` | Hardware: interface contract, SystemVerilog, testbenches |
-| `prototipos/tron_fpga/` | Legacy local Python prototype modelled on the hardware blocks (the Look Prototype, renamed from `prototipos/look/`): model (`model/`, headless), viewer (`juego/`, pygame-ce), tests and metrics; shared-model migration and target Step logs remain open |
+| `prototipos/tron_fpga/` | Local Python prototype modelled on the hardware blocks (the Look Prototype, renamed from `prototipos/look/`): model (`model/`, headless), viewer (`juego/`, pygame-ce), tests and metrics. Revised to the agreed specification on 21 October 2026; choosing it as the shared model, and target Step logs, remain open |
 | `prototipos/` (others) | Roman's prototypes and launcher, including the `tron/` viewer |
 | `tools/` | Host-side scripts, such as candidate-art generation and `png2coe.py` |
 | `assets/` | Sprite art (`.png`) and generated `.coe` files |
@@ -34,7 +34,7 @@ Create new folders, such as `evidence/` for report evidence named `<ObjectiveID>
 2. Read [[CS-256 Tron Agreed Specification 2026-10-20]] for the locked baseline and [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] for decision provenance. The pre-meeting comparison later in the decision note is historical.
 3. Use [[CS-256 Tron Game Mechanics]] as a topic index and [[CS-256 Tron Glossary]] for terms; neither replaces the specification.
 4. Read accepted ADRs and the relevant design guidance. [ADR 0002](adr/0002-follow-ta-divided-game-clock.md) is the accepted game-clock decision; ADR 0001 is superseded.
-5. Read implementation notes alongside the actual code. The local prototype and the last reviewed remote snapshot predate the agreement; neither is evidence that the selected rules are implemented.
+5. Read implementation notes alongside the actual code. The last reviewed remote snapshot predates the agreement. `prototipos/tron_fpga/` was revised to the agreed rules on 21 October 2026; its tests check that Python model only, not HDL or board behavior.
 6. Check verification plans and recorded evidence before claiming a feature works. [[CS-256 Tron Development Plan]] is tentative planning, not an implementation report.
 
 ## Team

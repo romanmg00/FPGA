@@ -1,5 +1,11 @@
 """Look Prototype viewer (objective L1), playable on the Game Model (M1).
 
+The PC loop runs at 60 fps and gives the model one game-clock tick per
+frame, standing in for the ~60 Hz divided game clock (ADR 0002). Keyboard
+keys stand in for the board: arrows for P1's buttons, WASD for P2's
+browser UART controller, Space/Enter for Start, P for SW0, T for
+{SW15, SW14} and Backspace for CPU_RESETN.
+
 Run from prototipos/tron_fpga/:  python -m juego
 """
 
@@ -10,34 +16,30 @@ from dataclasses import replace
 
 import pygame
 
-from model import FrameInputs, Game, RuleParams, ArenaGeometry
-from model.params import SCREEN_H, SCREEN_W
+from model import DRAW, Game, RuleParams, TickInputs
+from model.params import GAME_HZ, SCREEN_H, SCREEN_W, STEP_TICKS, goal_from_switches
 from model.steering import DOWN, LEFT, RIGHT, UP
 
 from . import budget, fx
-from .candidates import AXES, GEOMETRY_FIELDS, PALETTES, PRESETS, LookConfig, cycle, hud_reserve
+from .candidates import AXES, PALETTES, PRESETS, LookConfig, cycle
 from .font import ICON_ROM_BITS
-from .hud import backing_boxes, digit_font
+from .hud import digit_font
 from .render import SIZE, FrameRenderer
-from .rgb444 import DIM_TINT_KEY
 from .sprites import SpriteLibrary
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # prototipos/tron_fpga/
 ASSETS = os.path.join(os.path.dirname(os.path.dirname(HERE)), "assets")   # repository root
 OUT = os.path.join(HERE, "out")
 
-FPS = 60                     # stands in for the 59.998 Hz frame_tick
-FRAME_HZ = 83.46e6 / (1680 * 828)
+FPS = 60                     # one game-clock tick per PC frame
 PANEL_W = 380
 
 P1_KEYS = {pygame.K_UP: UP, pygame.K_RIGHT: RIGHT, pygame.K_DOWN: DOWN, pygame.K_LEFT: LEFT}
 P2_KEYS = {pygame.K_w: UP, pygame.K_d: RIGHT, pygame.K_s: DOWN, pygame.K_a: LEFT}
 START_KEYS = (pygame.K_SPACE, pygame.K_RETURN)
 AXIS_KEYS = {pygame.K_1: "1", pygame.K_2: "2", pygame.K_3: "3", pygame.K_4: "4",
-             pygame.K_5: "5", pygame.K_6: "6", pygame.K_7: "7", pygame.K_8: "8",
-             pygame.K_9: "9", pygame.K_0: "0", pygame.K_f: "F", pygame.K_h: "H",
-             pygame.K_b: "B", pygame.K_n: "N", pygame.K_r: "R", pygame.K_x: "X",
-             pygame.K_c: "C", pygame.K_v: "V"}
+             pygame.K_5: "5", pygame.K_h: "H", pygame.K_f: "F", pygame.K_b: "B", pygame.K_n: "N",
+             pygame.K_r: "R", pygame.K_x: "X", pygame.K_c: "C", pygame.K_v: "V"}
 PANEL_PAGES = ("look", "bram", "effects", None)  # Tab cycles; None hides the panel
 
 OK, WARN, BAD, DIM, TEXT = (120, 220, 120), (240, 200, 80), (255, 90, 90), (140, 140, 160), (230, 230, 240)
@@ -50,9 +52,10 @@ class App:
                      for k, f, ch in AXES]
         self.look = LookConfig()
         self.rules = RuleParams()
-        self.paused = False
+        self.paused = False                     # SW0
+        self.goal_sw = 0                        # {SW15, SW14}
         self.page = 0
-        self.preset = "synthwave"
+        self.preset = "core"
         self.show_cells = False
         self.fullscreen = False
         self.message = ""
@@ -60,30 +63,24 @@ class App:
 
     # --- configuration ---------------------------------------------------
     def _new_game(self):
-        self.geom = ArenaGeometry(self.look.cell_px, hud_reserve(self.look.hud, self.look.digit_px))
-        self.game = Game(self.geom, self.rules)
+        self.game = Game(self.rules)
+        self.geom = self.game.geom
         self._new_renderer()
 
     def _new_renderer(self):
         look = self.look
-        self.bike_rom = self.sprites.bike(look.bike_style, look.bike_px)
-        reward_px = look.reward_px(self.bike_rom.size)
-        self.reward_roms = tuple(self.sprites.reward(look.reward_look, k, reward_px)
-                                 for k in (0, 1))
+        self.bike_rom = self.sprites.bike(look.bike_style)
+        self.reward_roms = tuple(self.sprites.reward(look.reward_look, k) for k in (0, 1))
         self.renderer = FrameRenderer(self.geom, look, PALETTES[look.palette],
-                                      self.sprites, self.bike_rom, self.reward_roms)
+                                      self.bike_rom, self.reward_roms)
         self.renderer.redraw_all(self.game.grid)
 
     def change_axis(self, key, step):
         for k, field, choices in self.axes:
             if k == key:
                 self.look = cycle(self.look, field, choices, step)
-                if field in GEOMETRY_FIELDS:
-                    self._new_game()
-                    self.message = "Arena changed: new Match"
-                else:
-                    self._new_renderer()
-                    self.message = ""
+                self._new_renderer()
+                self.message = ""
                 return
 
     def next_preset(self, step):
@@ -94,17 +91,21 @@ class App:
         self.message = f"Preset: {self.preset}"
 
     def change_speed(self, delta):
-        k = max(1, min(30, self.rules.frames_per_step + delta))
-        self.rules = replace(self.rules, frames_per_step=k)
+        """Playtest tuning only; the first build keeps STEP_TICKS."""
+        k = max(1, min(30, self.rules.step_ticks + delta))
+        self.rules = replace(self.rules, step_ticks=k)
         self.game.rules = self.rules
 
     # --- checks for the panel ---------------------------------------------
     def checks(self):
-        """(budget rows, flags needing a fix before lockdown, notes)."""
+        """(budget rows, RAMB18 total, clear time, flags: breaks the agreed
+        format or an FPGA limit, notes: extras and estimates)."""
         font = digit_font(self.look)
         distinct = {id(r): r for r in self.reward_roms}.values()     # shared ROM counts once
+        hud = self.look.hud == "on"
         rows = budget.items(self.geom, self.bike_rom.size, [r.size for r in distinct],
-                            font, ICON_ROM_BITS, fx.lut_items(self.look, font.glyph_h))
+                            font if hud else None, ICON_ROM_BITS if hud else 0,
+                            fx.lut_items(self.look, font.glyph_h))
         flags, notes = [], []
         clear = budget.clear_us(self.geom)
         if clear > budget.BLANK_US:
@@ -116,31 +117,10 @@ class App:
         if total18 > 2 * budget.RAMB36_TOTAL:
             flags.append("BRAM over the XC7A100T total")
         flags += self.bike_rom.problems + [p for r in self.reward_roms for p in r.problems]
-        if not font.scale_is_power_of_two:
-            notes.append(f"Digits x{font.scale}: scale needs counters, not a bit slice")
-        if self.look.hud == "corners":
-            covered = self._covered_cells(font)
-            flags.append(f"HUD hides {covered} Arena Cells: needs a rule")
-        if max(r.size for r in self.reward_roms) > self.geom.cell_px:
-            notes.append("Reward > Cell: neighbours can overlap")
-        if self.bike_rom.size != self.look.bike_px:
-            notes.append(f"PNG Bike is {self.bike_rom.size} px (size axis ignored)")
-        if self.uses_halo():
-            flags.append("Dim tint key 080: not in limit 3 yet")
+        extras = fx.active(self.look)           # includes the HUD, which follows the core
+        if extras:
+            notes.append(f"{len(extras)} extra effect(s): after the core")
         return rows, total18, clear, flags, notes
-
-    def uses_halo(self) -> bool:
-        return any(DIM_TINT_KEY in r.words for r in (self.bike_rom,) + self.reward_roms)
-
-    def _covered_cells(self, font):
-        g, c = self.geom, self.geom.cell_px
-        cells = set()
-        for box in backing_boxes(self.look.hud, font):
-            for y in range(box.top // c, (box.bottom - 1) // c + 1):
-                for x in range(box.left // c, (box.right - 1) // c + 1):
-                    if g.in_interior(x, y):
-                        cells.add((x, y))
-        return len(cells)
 
     # --- main loop ----------------------------------------------------------
     def run(self):
@@ -196,20 +176,27 @@ class App:
                 else:
                     return None
             elif k in P1_KEYS:
-                turns[0].append(P1_KEYS[k])
+                if not self.paused:             # steering is ignored in Pause
+                    turns[0].append(P1_KEYS[k])
             elif k in P2_KEYS:
-                turns[1].append(P2_KEYS[k])
+                if not self.paused:
+                    turns[1].append(P2_KEYS[k])
             elif k in START_KEYS:
-                start = True
+                start = start or not self.paused
             elif k in AXIS_KEYS:
                 self.change_axis(AXIS_KEYS[k], -1 if ev.mod & pygame.KMOD_SHIFT else 1)
             elif k == pygame.K_m:
                 self.next_preset(-1 if ev.mod & pygame.KMOD_SHIFT else 1)
             elif k == pygame.K_p:
                 self.paused = not self.paused
+            elif k == pygame.K_t:
+                self.goal_sw = (self.goal_sw + 1) & 3
+                self.message = (f"SW15:14 = {self.goal_sw:02b}: goal "
+                                f"{goal_from_switches(self.goal_sw)} from the next Match")
             elif k == pygame.K_BACKSPACE:
-                self.game.power_up()
-                self.message = "Hard reset (CPU_RESETN)"
+                self.game.reset()               # requests before the reset are dropped
+                turns, start = ([], []), False
+                self.message = "Reset (CPU_RESETN)"
             elif k == pygame.K_RIGHTBRACKET:
                 self.change_speed(-1)
             elif k == pygame.K_LEFTBRACKET:
@@ -222,8 +209,8 @@ class App:
                 self._toggle_fullscreen()
             elif k == pygame.K_F12:
                 self._screenshot()
-        return FrameInputs(turns=(tuple(turns[0]), tuple(turns[1])), start=start,
-                           paused=self.paused)
+        return TickInputs(turns=(tuple(turns[0]), tuple(turns[1])), start=start,
+                          paused=self.paused, goal_sw=self.goal_sw)
 
     def _toggle_fullscreen(self):
         self.fullscreen = not self.fullscreen
@@ -235,8 +222,8 @@ class App:
     def _screenshot(self):
         os.makedirs(OUT, exist_ok=True)
         lk = self.look
-        name = (f"L1-{lk.hud}-c{lk.cell_px}-b{self.bike_rom.size}-{lk.bike_style.replace(':', '_')}"
-                f"-{lk.reward_look}-{lk.palette}-{lk.trail}-{time.strftime('%Y%m%d-%H%M%S')}.png")
+        name = (f"L1-{self.preset}-{lk.bike_style.replace(':', '_')}-{lk.reward_look}"
+                f"-{lk.palette}-{lk.trail}-{time.strftime('%Y%m%d-%H%M%S')}.png")
         path = os.path.join(OUT, name)
         pygame.image.save(self.last_frame, path)
         self.message = "Saved " + os.path.relpath(path, HERE)
@@ -272,6 +259,11 @@ class App:
         line(f"{state}   Round {snap['round']}  Step {snap['step']}", OK if not self.paused else WARN)
         line(f"P1 {snap['points'][0]:2d} pts {snap['lives'][0]} lives   "
              f"P2 {snap['points'][1]:2d} pts {snap['lives'][1]} lives")
+        result = snap["result"]
+        outcome = "" if result is None else "  Draw" if result == DRAW else f"  P{result + 1} wins"
+        line(f"Goal {snap['goal']}  (T: SW15:14 = {self.goal_sw:02b}){outcome}")
+        sb = snap["scoreboard"]
+        line(f"Scoreboard  {sb[:4]} {sb[4:]}")
         line(f"view {scale * 100:.0f}%   {fps:4.1f} fps", DIM)
         y += 6
         rows, total18, clear, flags, notes = self.checks()
@@ -287,12 +279,14 @@ class App:
                 line(f"{k} {field[:9]:<9} {value[:10]}", x=y_col)
             y = top + 17 * half + 6
             line("ARENA AND SPEED", bold=True)
-            line(f" {g.width} x {g.height} Cells, Wall {g.wall_cells} Cell(s)")
-            steps = FRAME_HZ / rules.frames_per_step
-            line(f" [ ]  K = {rules.frames_per_step} frames/Step = {steps:.1f} Steps/s")
+            line(f" {g.width} x {g.height} Cells of {g.cell_px} px, {g.hud_px} px HUD band")
+            steps = GAME_HZ / rules.step_ticks
+            tuned = "" if rules.step_ticks == STEP_TICKS else f"  (agreed {STEP_TICKS})"
+            line(f" [ ]  {rules.step_ticks} ticks/Step = {steps:.1f} Steps/s{tuned}",
+                 TEXT if not tuned else WARN)
             line(f"      {steps * g.cell_px:.0f} px/s, crosses Arena in {g.width / steps:.1f} s")
             y += 6
-            line("NEEDS FIXING BEFORE LOCKDOWN", bold=True)
+            line("OUTSIDE THE AGREED FORMAT OR LIMITS", bold=True)
             if not flags:
                 line(" none", OK)
             for f in flags:
@@ -311,7 +305,8 @@ class App:
                  OK if clear <= budget.BLANK_US else BAD)
         else:
             line("EFFECTS AND THEIR HARDWARE", bold=True)
-            for name in fx.active(lk, self.uses_halo()):
+            line(" (all extras: after the core)", DIM)
+            for name in fx.active(lk):
                 line(f" {name:<13}{fx.HW_COST[name]}")
         if self.message:
             y += 6
@@ -321,7 +316,7 @@ class App:
             return                                  # window too short for the key help
         y = footer
         line("P1 arrows  P2 WASD  Start Space/Enter", DIM)
-        line("P pause  Backspace reset  G Cells  M preset", DIM)
+        line("P pause  T goal  Backspace reset  G Cells  M preset", DIM)
         line("Tab panel page  F11 fullscreen  F12 shot", DIM)
         line("Esc quit", DIM)
 

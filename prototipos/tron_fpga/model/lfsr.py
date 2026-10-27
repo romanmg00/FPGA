@@ -19,6 +19,12 @@ class Lfsr:
             raise ValueError("LFSR seed must be non-zero")
         self.state = seed & MASK
 
+    def mix(self, value: int) -> None:
+        """XOR in Start-timing entropy; a result of zero keeps the old state."""
+        mixed = (self.state ^ value) & MASK
+        if mixed:
+            self.state = mixed
+
     def shift(self) -> None:
         fb = 0
         for t in TAPS:
