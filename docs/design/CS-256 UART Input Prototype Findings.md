@@ -115,6 +115,12 @@ failed to import `test_look_limits` because system Python lacked NumPy; the
 documented environment resolved that dependency. An audio-enabled attempt
 stalled and was interrupted; the dummy-driver run completed successfully.
 
+After integrating PR #4's hardware-block model, `analyze.py` uses `InputBatch`,
+`TurnUnit` and `BoardInputs`, and waits for the model's mailbox/phase transitions.
+The counterexamples remain the same. The 49-test result and retained model-analysis
+file above describe the earlier model snapshot; the script's current source hash
+differs from the historical experiment manifest. No UART RTL changed for this adaptation.
+
 - Heading RIGHT, requests UP then LEFT: preserving order retains UP; collapsing
   to the latest raw request retains RIGHT and loses the valid UP.
 - A Start delivered during Crash is ignored and leaves the model waiting in

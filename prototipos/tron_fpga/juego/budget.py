@@ -7,9 +7,8 @@ numbers. No pygame here.
 
 from dataclasses import dataclass
 
-from model.arena import CELL_BITS
+from model.params import CELL_BITS, RANDOM_DRAWS
 from model.lfsr import SHIFTS_PER_DRAW
-from model.rewards import RANDOM_DRAWS
 
 PIXEL_HZ = 83.46e6                 # handout pixel clock
 BLANK_LINES = 28                   # vcount 827 and 0..26: full blank lines

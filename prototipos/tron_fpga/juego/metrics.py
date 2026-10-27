@@ -22,9 +22,9 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 import numpy as np  # noqa: E402
 import pygame  # noqa: E402
 
-from model import RuleParams, TickInputs  # noqa: E402
+from model import BoardInputs, RuleParams  # noqa: E402
 from model.params import BORDER_PX  # noqa: E402
-from model.steering import DOWN, LEFT, RIGHT, UP  # noqa: E402
+from model.turn_unit import DOWN, LEFT, RIGHT, UP  # noqa: E402
 
 from . import budget, fx  # noqa: E402
 from .candidates import PRESETS, LookConfig  # noqa: E402
@@ -75,8 +75,9 @@ def measure(app, look) -> dict:
     for f in range(WARMUP + FRAMES):
         p1, p2 = SCRIPT.get(f - WARMUP, (None, None))
         turns = ((p1,), (p2,)) if p1 is not None else ((), ())
+        inputs = BoardInputs.keys(p1=turns[0], p2=turns[1], start=(f == 0))
         t0 = time.perf_counter()
-        app.game.tick(TickInputs(turns=turns, start=(f == 0)))
+        app.game.tick(inputs)
         app.renderer.update_cells(app.game.grid)
         app.renderer.draw(frame, app.game.snapshot())
         dt = (time.perf_counter() - t0) * 1000

@@ -1,20 +1,18 @@
 """Reward placement (hardware block G4).
 
-1. Up to RANDOM_DRAWS candidates come from LFSR draws: cx is the low 7 bits
-   of the word, cy the next 6 bits. The first whose Arena word is EMPTY
-   wins; the HUD band, Walls and padding hold WALL, Bikes and Trails their
-   own codes. This is rejection sampling, so no modulo circuit is needed.
-2. If every draw was occupied, scan the Arena in address order, starting
+1. Up to RANDOM_DRAWS candidates come from LFSR draws: x is the low x_bits
+   of the word, y the next y_bits. The first whose grid word is EMPTY wins
+   (Walls, HUD area and stride padding all hold WALL). This is rejection
+   sampling, so no modulo circuit is needed.
+2. If every draw was occupied, scan the grid in address order, starting
    after the last candidate and wrapping, and take the first EMPTY Cell.
-3. If there is no EMPTY Cell at all, the slot stays absent (None) until the
-   next Round, as agreed. Trails never free a Cell during a Round, so a
-   retry could not succeed.
+3. If there is no EMPTY Cell at all, the slot stays empty (None) until the
+   next Round. Trails never free a Cell during a Round, so a retry could
+   not succeed. (🔵 proposal: the mechanics note says three Rewards at all
+   times, which a full Arena cannot satisfy.)
 
-This search is the prototype's candidate, not the selected HDL schedule:
-the agreement leaves the generator and placement service to be chosen, and
-lets a replacement stay absent while the hardware searches. The model
-places synchronously inside the Step, so it never shows that absence.
-Worst case per placement: RANDOM_DRAWS * 32 shifts plus one read per word.
+The HDL must follow the same order so Step logs match. Worst case per
+placement: RANDOM_DRAWS * 32 shifts plus one read per grid word.
 """
 
 from .arena import EMPTY, REWARD_SLOT0, ArenaGrid
@@ -36,7 +34,7 @@ def find_empty_cell(grid: ArenaGrid, lfsr: Lfsr):
     size = g.stride_w * g.stride_h
     last = grid.address(x, y)
     for k in range(1, size + 1):
-        a = (last + k) & (size - 1)
+        a = (last + k) % size
         x, y = a & x_mask, a >> g.x_bits
         if grid.read(x, y) == EMPTY:
             return x, y

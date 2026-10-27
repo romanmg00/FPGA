@@ -33,6 +33,10 @@ bash proyecto_final/prototypes/uart_input/run_iverilog.sh /tmp/cs256-uart-new-ru
 python3 proyecto_final/prototypes/uart_input/analyze.py
 ```
 
+The retained manifests and `model-analysis.json` describe the experiment snapshot.
+After PR #4 integration, `analyze.py` was adapted to the new hardware-block model
+API; its current hash differs from the manifest. The UART RTL is unchanged.
+
 The receiver test's `+reset_only` argument skips the large baud sweep for focused
 debugging; the retained `rx.txt` is the complete sweep, not that shorter run.
 The FIFO intentionally discards four full queues at coordinated reset; its
