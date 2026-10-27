@@ -63,14 +63,14 @@ Polaridad, según el handout: `hsync` vale 0 durante las cuentas 0–135 y `vsyn
 
 ## 3. Señales internas entre bloques
 
-Los anchos de video salen de los contadores de la diapositiva 7: `hcnt` llega a 1679, que necesita 11 bits, y `vcnt` llega a 827, que cabe en 10 bits.
+Los anchos de video salen de los contadores de la diapositiva 7: `hcnt` llega a 1679, que necesita 11 bits, y `vcnt` llega a 827, que cabría en 10. Roman y Alan acordaron (2026-10-26) usar 11 bits para los dos contadores y las dos coordenadas, para que todas las señales de posición tengan el mismo ancho y evitar errores al conectarlas.
 
 **Video** (dominio `clk_pix`)
 
 | Señal | De → A | Ancho | Nota |
 | --- | --- | --- | --- |
 | `clk_pix` | Clocking Wizard → video y memoria | 1 | 83.46 MHz |
-| `curr_x`, `curr_y` | `vga_out` → `drawcon` | 11 / 10 | Píxel de salida (0–1279, 0–799), alineado con la salida como en el handout |
+| `curr_x`, `curr_y` | `vga_out` → `drawcon` | 11 / 11 | Píxel de salida (0–1279, 0–799), alineado con la salida como en el handout |
 | `draw_r`, `draw_g`, `draw_b` | `drawcon` → `vga_out` | 4 c/u | Color del píxel. Las ROM se leen con anticipación según la **latencia real** que genere Vivado (los 2 ciclos del curso son un ejemplo) |
 
 **Juego** (dominio `clk_juego`)
@@ -121,7 +121,7 @@ module vga_out (
     input  logic        rst,
     input  logic [3:0]  draw_r, draw_g, draw_b,
     output logic [10:0] curr_x,
-    output logic [9:0]  curr_y,
+    output logic [10:0] curr_y,
     output logic        tick_60hz,   // pendiente: con ADR 0002 el juego usa clk_juego
     output logic [3:0]  pix_r, pix_g, pix_b,
     output logic        hsync, vsync
