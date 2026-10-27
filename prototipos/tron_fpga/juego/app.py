@@ -2,9 +2,10 @@
 
 The PC loop runs at 60 fps and gives the model one game-clock tick per
 frame, standing in for the ~60 Hz divided game clock (ADR 0002). Keyboard
-keys stand in for the board: arrows for P1's buttons, WASD for P2's
-browser UART controller, Space/Enter for Start, P for SW0, T for
-{SW15, SW14} and Backspace for CPU_RESETN.
+keys stand in for the board, and reach the model as board inputs: arrows
+are P1's button samples, WASD are the browser controller's UART bytes,
+Space is BTNC and Enter the UART Start byte 0x0D, P is SW0, T steps
+{SW15, SW14} and Backspace is CPU_RESETN.
 
 Run from prototipos/tron_fpga/:  python -m juego
 """
@@ -16,9 +17,11 @@ from dataclasses import replace
 
 import pygame
 
-from model import DRAW, Game, RuleParams, TickInputs
-from model.params import GAME_HZ, SCREEN_H, SCREEN_W, STEP_TICKS, goal_from_switches
-from model.steering import DOWN, LEFT, RIGHT, UP
+from model import DRAW, BoardInputs, Game, RuleParams
+from model.input_batch import BTN_OF, BTN_START, UART_KEY
+from model.params import (GAME_HZ, MIN_STEP_TICKS, SCREEN_H, SCREEN_W, STEP_TICKS, SW_GOAL_LSB,
+                          SW_PAUSE, goal_from_switches)
+from model.turn_unit import DOWN, LEFT, RIGHT, UP
 
 from . import budget, fx
 from .candidates import AXES, PALETTES, PRESETS, LookConfig, cycle
@@ -36,7 +39,7 @@ PANEL_W = 380
 
 P1_KEYS = {pygame.K_UP: UP, pygame.K_RIGHT: RIGHT, pygame.K_DOWN: DOWN, pygame.K_LEFT: LEFT}
 P2_KEYS = {pygame.K_w: UP, pygame.K_d: RIGHT, pygame.K_s: DOWN, pygame.K_a: LEFT}
-START_KEYS = (pygame.K_SPACE, pygame.K_RETURN)
+START_KEYS = {pygame.K_SPACE: "btn", pygame.K_RETURN: "uart"}   # BTNC, UART 0x0D
 AXIS_KEYS = {pygame.K_1: "1", pygame.K_2: "2", pygame.K_3: "3", pygame.K_4: "4",
              pygame.K_5: "5", pygame.K_h: "H", pygame.K_f: "F", pygame.K_b: "B", pygame.K_n: "N",
              pygame.K_r: "R", pygame.K_x: "X", pygame.K_c: "C", pygame.K_v: "V"}
@@ -92,7 +95,7 @@ class App:
 
     def change_speed(self, delta):
         """Playtest tuning only; the first build keeps STEP_TICKS."""
-        k = max(1, min(30, self.rules.step_ticks + delta))
+        k = max(MIN_STEP_TICKS, min(30, self.rules.step_ticks + delta))
         self.rules = replace(self.rules, step_ticks=k)
         self.game.rules = self.rules
 
@@ -159,8 +162,8 @@ class App:
         pygame.quit()
 
     def _events(self):
-        turns = ([], [])
-        start = False
+        """This frame's keys as board inputs, in the order they were pressed."""
+        btn, uart = [], bytearray()
         for ev in pygame.event.get():
             if ev.type == pygame.QUIT:
                 return None
@@ -175,14 +178,17 @@ class App:
                     self._toggle_fullscreen()
                 else:
                     return None
+            elif self.paused and (k in P1_KEYS or k in P2_KEYS or k in START_KEYS):
+                pass                            # SW0 was up when this key was pressed
             elif k in P1_KEYS:
-                if not self.paused:             # steering is ignored in Pause
-                    turns[0].append(P1_KEYS[k])
+                btn.append(BTN_OF[P1_KEYS[k]])  # one debounced button sample
             elif k in P2_KEYS:
-                if not self.paused:
-                    turns[1].append(P2_KEYS[k])
+                uart += UART_KEY[P2_KEYS[k]]
             elif k in START_KEYS:
-                start = start or not self.paused
+                if START_KEYS[k] == "btn":
+                    btn.append(BTN_START)
+                else:
+                    uart.append(0x0D)
             elif k in AXIS_KEYS:
                 self.change_axis(AXIS_KEYS[k], -1 if ev.mod & pygame.KMOD_SHIFT else 1)
             elif k == pygame.K_m:
@@ -195,7 +201,7 @@ class App:
                                 f"{goal_from_switches(self.goal_sw)} from the next Match")
             elif k == pygame.K_BACKSPACE:
                 self.game.reset()               # requests before the reset are dropped
-                turns, start = ([], []), False
+                btn, uart = [], bytearray()
                 self.message = "Reset (CPU_RESETN)"
             elif k == pygame.K_RIGHTBRACKET:
                 self.change_speed(-1)
@@ -209,8 +215,8 @@ class App:
                 self._toggle_fullscreen()
             elif k == pygame.K_F12:
                 self._screenshot()
-        return TickInputs(turns=(tuple(turns[0]), tuple(turns[1])), start=start,
-                          paused=self.paused, goal_sw=self.goal_sw)
+        sw = self.goal_sw << SW_GOAL_LSB | int(self.paused) << SW_PAUSE
+        return BoardInputs(tuple(btn), bytes(uart), sw)
 
     def _toggle_fullscreen(self):
         self.fullscreen = not self.fullscreen
@@ -255,7 +261,7 @@ class App:
             y += 17
 
         line("LOOK PROTOTYPE  L1", bold=True)
-        state = snap["phase"] + ("  [PAUSED]" if self.paused else "")
+        state = snap["phase_name"] + ("  [PAUSED]" if self.paused else "")
         line(f"{state}   Round {snap['round']}  Step {snap['step']}", OK if not self.paused else WARN)
         line(f"P1 {snap['points'][0]:2d} pts {snap['lives'][0]} lives   "
              f"P2 {snap['points'][1]:2d} pts {snap['lives'][1]} lives")

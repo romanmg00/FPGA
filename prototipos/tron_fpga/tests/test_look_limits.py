@@ -23,10 +23,11 @@ from juego.app import App  # noqa: E402
 from juego.art import BIKE_STYLES, REWARD_LOOKS  # noqa: E402
 from juego.candidates import PALETTES, PRESETS  # noqa: E402
 from juego.rgb444 import TINT_KEY, TRANSPARENT, expand  # noqa: E402
-from model import CRASH, PLAY, RuleParams, TickInputs  # noqa: E402
-from model.arena import EMPTY, HEAD_P1, TRAIL_P1, TRAIL_P2  # noqa: E402
-from model.params import BORDER_PX  # noqa: E402
-from model.steering import DOWN, LEFT, RIGHT, UP  # noqa: E402
+from model import CRASH, IDLE, PLAY, BoardInputs, RuleParams  # noqa: E402
+from model.arena_map import EMPTY, HEAD_P1, TRAIL_P1, TRAIL_P2  # noqa: E402
+from model.input_batch import BTN_OF  # noqa: E402
+from model.params import BORDER_PX, SW_PAUSE  # noqa: E402
+from model.turn_unit import DOWN, LEFT, RIGHT, UP  # noqa: E402
 
 
 def luminance(rgb):
@@ -37,7 +38,7 @@ def luminance(rgb):
 class Viewer:
     """An App driven tick by tick without a window."""
 
-    def __init__(self, preset="core", step_ticks=1):
+    def __init__(self, preset="core", step_ticks=4):
         self.app = App()
         self.app.look = replace(self.app.look, **PRESETS[preset])
         self.app.rules = RuleParams(step_ticks=step_ticks, crash_ticks=40, fixed_seed=True)
@@ -45,9 +46,13 @@ class Viewer:
         self.frame = pygame.Surface((1280, 800), 0, 32)
 
     def tick(self, p1=(), start=False):
-        app = self.app
-        app.game.tick(TickInputs(turns=(tuple(p1), ()), start=start))
+        self.app.game.tick(BoardInputs.keys(p1=p1, start=start))
         return self.draw()
+
+    def start(self):
+        self.tick(start=True)
+        while self.app.game.phase != PLAY:
+            self.tick()
 
     def draw(self):
         app = self.app
@@ -67,7 +72,7 @@ class FrameLimitTests(unittest.TestCase):
         for preset in PRESETS:
             v = Viewer(preset)
             self.assert_frame_ok(v.draw(), f"{preset} waiting for Start")
-            v.tick(start=True)
+            v.start()
             v.tick(p1=[UP])
             while v.app.game.phase != CRASH:       # P1 drives into the top Wall
                 a = v.tick()
@@ -81,26 +86,27 @@ class FrameLimitTests(unittest.TestCase):
         g = Viewer().app.geom
         for preset in PRESETS:
             v = Viewer(preset)
-            v.tick(start=True)
+            v.start()
             game = v.app.game
             for cell, heading in (((g.x0, 30), LEFT), ((g.x1 - 1, 30), RIGHT),
                                   ((40, g.y1 - 1), DOWN)):
-                b = game.bikes[0]
-                game.grid.write(*b.head, EMPTY)
+                game.grid.write(*game.step.head[0], EMPTY)      # testbench force
                 game.grid.write(*cell, HEAD_P1)
-                b.head, b.heading, b.pending = cell, heading, heading
+                game.step.head = (cell, game.step.head[1])
+                game.step.shown = (heading, game.step.shown[1])
+                game._latch_render()
                 self.assert_frame_ok(v.draw(), f"{preset} Bike at {cell}")
 
     def test_pulse_stripes_are_clearly_brighter_on_both_trails(self):
         v = Viewer("synthwave", step_ticks=4)
-        v.tick(start=True)
+        v.start()
         for _ in range(60):                    # 15 Steps, before the Bikes meet
             a = v.tick()
         self.assertEqual(v.app.game.phase, PLAY)
         game, c = v.app.game, v.app.geom.cell_px
         pal = PALETTES[v.app.look.palette]
         for i, (code, colour) in enumerate(((TRAIL_P1, pal["p1"]), (TRAIL_P2, pal["p2"]))):
-            hx, hy = game.bikes[i].head
+            hx, hy = game.step.head[i]
             best = 0.0
             for y in range(game.geom.y0, game.geom.y1):
                 for x in range(game.geom.x0, game.geom.x1):
@@ -124,21 +130,26 @@ class KeyboardAdapterTests(unittest.TestCase):
     def test_reset_drops_requests_queued_before_it(self):
         app = App()
         inputs = self.events(app, pygame.K_SPACE, pygame.K_UP, pygame.K_BACKSPACE)
-        self.assertFalse(inputs.start)
-        self.assertEqual(inputs.turns, ((), ()))
-        app.game.tick(inputs)
-        self.assertEqual(app.game.phase, "IDLE")
+        self.assertEqual((inputs.btn, inputs.uart), ((), b""))
+        for _ in range(5):
+            app.game.tick(inputs)
+        self.assertEqual(app.game.phase, IDLE)
+
+    def test_keys_become_board_samples_and_uart_bytes(self):
+        app = App()
+        inputs = self.events(app, pygame.K_UP, pygame.K_LEFT, pygame.K_a, pygame.K_w,
+                             pygame.K_SPACE, pygame.K_RETURN)
+        self.assertEqual(inputs.btn, (BTN_OF[UP], BTN_OF[LEFT], 1 << 4))
+        self.assertEqual(inputs.uart, b"aw\r")
 
     def test_steering_and_start_while_paused_do_not_survive_resume(self):
         app = App()
-        app.game.tick(TickInputs(start=True))
         self.events(app, pygame.K_p)                              # pause
         inputs = self.events(app, pygame.K_UP, pygame.K_w, pygame.K_SPACE, pygame.K_p)
-        self.assertFalse(inputs.paused)
-        self.assertEqual(inputs.turns, ((), ()))
-        self.assertFalse(inputs.start)
+        self.assertFalse(inputs.sw >> SW_PAUSE & 1)
+        self.assertEqual((inputs.btn, inputs.uart), ((), b""))
         inputs = self.events(app, pygame.K_UP)                    # after resuming
-        self.assertEqual(inputs.turns, ((UP,), ()))
+        self.assertEqual(inputs.btn, (BTN_OF[UP],))
 
 
 class FormatAndBudgetTests(unittest.TestCase):

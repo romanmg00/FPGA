@@ -13,9 +13,9 @@ forced to RGB444 as a final check.
 import pygame
 
 from model import CRASH, PLAY
-from model.arena import player_of
+from model.arena_map import player_of
 from model.params import BORDER_PX, SCREEN_H, SCREEN_W
-from model.steering import DOWN, RIGHT, UP
+from model.turn_unit import DOWN, RIGHT, UP
 
 from . import fx
 from .hud import BLINK_TICKS, HudRenderer

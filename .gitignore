@@ -5,6 +5,8 @@ __pycache__/
 # Salidas de Vivado / Quartus
 *.jou
 *.log
+# Logs esperados de los escenarios (M2): sí se suben
+!prototipos/tron_fpga/scenarios/*.log
 .Xil/
 db/
 incremental_db/

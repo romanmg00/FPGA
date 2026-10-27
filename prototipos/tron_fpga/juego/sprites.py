@@ -10,7 +10,7 @@ import os
 
 import pygame
 
-from model.steering import DOWN, LEFT, RIGHT, UP
+from model.turn_unit import DOWN, LEFT, RIGHT, UP
 
 from . import art
 from .rgb444 import TINT_KEY, TRANSPARENT, expand, quantize

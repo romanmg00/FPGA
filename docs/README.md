@@ -12,14 +12,14 @@ Paths are relative to the repository root.
 | `docs/adr/` | Architecture decision records, numbered `0001-slug.md`. ADR 0001 is superseded, ADR 0002 is accepted; later team decisions start at 0003 |
 | `docs/CS-256 Tron Architecture and Documentation Map.md` | Document authority, status, owners, update triggers, and traceability |
 | `docs/domain/` | Glossary (canonical game vocabulary; use these terms in notes, code comments, and the report) and Game Mechanics (derived index of the locked rules) |
-| `docs/design/` | VGA and Sprite Design Plan; Official FPGA Coding Practices (manufacturer guidance; superseded clock and pixel-pipeline comparisons are marked historical) |
+| `docs/design/` | VGA and Sprite Design Plan; Game Model Hardware Map (draft); Official FPGA Coding Practices (manufacturer guidance; superseded clock and pixel-pipeline comparisons are marked historical) |
 | `docs/plan/` | Development Plan (calendar, freezes, scope tiers, work list, verification approach) and the Repository Merge Plan |
 | `docs/reviews/` | Opus 5.5 Architecture and Integration Review (read its parent-review reservations before adopting recommendations), Documentation Control Review, and the archived Integration Comparison |
 | `docs/history/` | Game Overview (whiteboard concept), superseded TA game-clock email draft, and the import commit map |
 | `docs/references/` | Nexys A7 research report, vendor datasheets (`datasheets/`), and official documentation links |
 | `docs/agents/` | Instructions for AI agents: issue tracker, triage labels, domain docs. The root `AGENTS.md` and `CLAUDE.md` point here |
 | `proyecto_final/` | Hardware: interface contract, SystemVerilog, testbenches |
-| `prototipos/tron_fpga/` | Local Python prototype modelled on the hardware blocks (the Look Prototype, renamed from `prototipos/look/`): model (`model/`, headless), viewer (`juego/`, pygame-ce), tests and metrics. Revised to the agreed specification on 21 October 2026; choosing it as the shared model, and target Step logs, remain open |
+| `prototipos/tron_fpga/` | Local Python prototype modelled on the hardware blocks (the Look Prototype, renamed from `prototipos/look/`): model (`model/`, headless), viewer (`juego/`, pygame-ce), tests and metrics. Revised to the agreed specification on 21 October 2026 and restructured into the planned HDL blocks with M2 scenarios and Step logs on 27 October; choosing it as the shared model remains open |
 | `prototipos/` (others) | Roman's prototypes and launcher, including the `tron/` viewer |
 | `tools/` | Host-side scripts, such as candidate-art generation and `png2coe.py` |
 | `assets/` | Sprite art (`.png`) and generated `.coe` files |
@@ -34,7 +34,7 @@ Create new folders, such as `evidence/` for report evidence named `<ObjectiveID>
 2. Read [[CS-256 Tron Agreed Specification 2026-10-20]] for the locked baseline and [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] for decision provenance. The pre-meeting comparison later in the decision note is historical.
 3. Use [[CS-256 Tron Game Mechanics]] as a topic index and [[CS-256 Tron Glossary]] for terms; neither replaces the specification.
 4. Read accepted ADRs and the relevant design guidance. [ADR 0002](adr/0002-follow-ta-divided-game-clock.md) is the accepted game-clock decision; ADR 0001 is superseded.
-5. Read implementation notes alongside the actual code. The last reviewed remote snapshot predates the agreement. `prototipos/tron_fpga/` was revised to the agreed rules on 21 October 2026; its tests check that Python model only, not HDL or board behavior.
+5. Read implementation notes alongside the actual code. The last reviewed remote snapshot predates the agreement. `prototipos/tron_fpga/` was revised to the agreed rules on 21 October 2026 and to the planned HDL block structure on 27 October 2026; its tests check that Python model only, not HDL or board behavior.
 6. Check verification plans and recorded evidence before claiming a feature works. [[CS-256 Tron Development Plan]] is tentative planning, not an implementation report.
 
 ## Team

@@ -1,8 +1,8 @@
 # CS-256 Tron FPGA prototype (`tron_fpga`)
 
-> **Implementation status, 21 October 2026:** the headless model in `model/` and the viewer in `juego/` follow [[CS-256 Tron Agreed Specification 2026-10-20]], [ADR 0002](../../docs/adr/0002-follow-ta-divided-game-clock.md) and the FPGA limits in [[CS-256 Official FPGA Coding Practices]]. Its constants use the names of `game_pkg` in the [interface contract](../../proyecto_final/Contrato%20de%20interfaces%20game_top%20(CS%20256).md), and a test checks them against it. The passing tests show that this Python model behaves as specified; they are not HDL, timing or board evidence. Where the shared rules model will live, and which prototype it starts from, is still open in the contract, so this is not yet the selected shared model.
+> **Implementation status, 27 October 2026:** the headless model in `model/` and the viewer in `juego/` follow [[CS-256 Tron Agreed Specification 2026-10-20]], [ADR 0002](../../docs/adr/0002-follow-ta-divided-game-clock.md) and the FPGA limits in [[CS-256 Official FPGA Coding Practices]]. Its constants use the names of `game_pkg` in the [interface contract](../../proyecto_final/Contrato%20de%20interfaces%20game_top%20(CS%20256).md), and a test checks them against it. Since 27 October the model has one module per planned HDL block, two clock domains and an explicit slow/fast mailbox, as described in [[CS-256 Tron Game Model Hardware Map]]. Where the agreement leaves that interface open, the model follows the review's recommended architecture, which the team has **not** adopted yet. The passing tests show that this Python model behaves as specified; they are not HDL, timing or board evidence. Where the shared rules model will live, and which prototype it starts from, is still open in the contract, so this is not yet the selected shared model.
 
-`tron_fpga` is a PC version of the game built around the planned Nexys A7 hardware. `model/` splits the rules into the hardware blocks: the Arena memory, the Turn latch and Step controller, Round/Match control, scoring, Reward placement and the physical Scoreboard view. The viewer package `juego/` draws 1280 × 800 frames in RGB444 with ROM-style sprites and fonts, and estimates block RAM use. The Reward LFSR is the prototype's own candidate: the agreement leaves the generator, its seed and its placement schedule to be selected, so the HDL should not copy it until that decision is made. The folder was imported as `prototipos/look/` and renamed on 20 October 2026; "Look Prototype" remains the name of its L1 objective in the Development Plan.
+`tron_fpga` is a PC version of the game built around the planned Nexys A7 hardware. `model/` is written as the HDL blocks it stands for (see [Game Model](#game-model)). The game-clock domain holds the Turn and Step units, Round/Match control and scoring. The fast domain holds the Arena memory and its controller with Reward placement, and the input capture. A mailbox connects the two, and the Scoreboard has parts in both domains. The viewer package `juego/` draws 1280 × 800 frames in RGB444 with ROM-style sprites and fonts, and estimates block RAM use. The Reward LFSR is the prototype's own candidate: the agreement leaves the generator, its seed and its placement schedule to be selected, so the HDL should not copy it until that decision is made. The folder was imported as `prototipos/look/` and renamed on 20 October 2026; "Look Prototype" remains the name of its L1 objective in the Development Plan.
 
 The viewer starts on the `core` style preset, which draws only what the agreed core build draws. The other presets show extras, which come after the core.
 
@@ -64,8 +64,8 @@ Launch the package with `-m juego`; running `juego/app.py` directly does not set
 
 1. Click the game window so it receives keyboard input.
 2. Press **T** to choose the Points Goal if you want more than 10. It stands in for `{SW15, SW14}` and applies from the next Match.
-3. Press **Space** or **Enter** to start. One press prepares the Arena, both Bikes and three Rewards, then releases the first Round.
-4. Player 1 uses the **arrow keys** (the board's direction buttons); Player 2 uses **W/A/S/D** (the browser UART controller). Bikes move automatically; these keys request Turns.
+3. Press **Space** (the board's BTNC) or **Enter** (the browser controller's Start byte) to start. One press prepares the Arena, both Bikes and three Rewards, then releases the first Round.
+4. Player 1 uses the **arrow keys** (the board's direction buttons); Player 2 uses **W/A/S/D** (the browser UART controller). Bikes move automatically; these keys request Turns. As in the hardware design, a key reaches the game two game-clock ticks (about 33 ms) after it is pressed.
 5. Avoid Walls, Trails and the other Bike, and collect Rewards for Points. After a Crash, the crashed Bike blinks for about 2 seconds. Then press **Space** or **Enter** to start the next Round.
 6. The first Player to reach the Points Goal wins; otherwise, losing the last of three Lives loses. Press **Space** or **Enter** after the Match to start a new one.
 7. Press **P** to pause (`SW0`), **Backspace** to reset (`CPU_RESETN`), or **Esc** to quit. In fullscreen, the first **Esc** returns to windowed mode.
@@ -89,9 +89,25 @@ Run both test suites from `prototipos/tron_fpga/`:
 python -m unittest discover -s tests
 ```
 
-`tests/test_model.py` checks the model against the agreed specification. It compares the constants with `game_pkg` in the interface contract, then checks the Arena layout and codes and Step collisions, including Head-on and swap Crashes and each Wall. It also covers Turns and same-sample ties, the Round and Match phases, Rewards and the Survival Bonus, the Points Goal and simultaneous finishes, Pause, reset and the Scoreboard view. A long random game checks that Rewards stay on playable Cells and that the Arena codes and Points stay consistent.
+`tests/test_model.py` checks the model against the agreed specification. It compares the constants with `game_pkg` in the interface contract. Block tests drive `step_resolve`, `turn_unit`, `input_batch`, the mailbox, `arena_ctrl` and the Scoreboard through their ports, like module testbenches. System tests drive the whole model with board inputs. They cover the Arena layout and codes, Step collisions including Head-on and swap Crashes and each Wall, Turns and same-sample ties, and the tick timing of inputs and Steps. They also cover the Round and Match phases, Rewards and the Survival Bonus, the Points Goal and simultaneous finishes, Pause during an open Step, reset and the Scoreboard view. A long random game checks that Rewards stay on playable Cells and that the Arena codes and Points stay consistent.
 
-`tests/test_look_limits.py` runs headless. It checks sampled frames from every preset for RGB444 and the handout's white border, including Crash frames and Bikes on the edge Cells, which overlap the border by 2 px. It also checks that pulse stripes are clearly brighter than both Player Trails, and that every preset fits the BRAM and Arena-clear budgets. Keyboard tests check that reset drops keys pressed before it in the same frame, and that Turns and Start pressed during Pause do not apply after resuming. Sprites must be at their native size and use only the core keys. The scenario files, Step logs and HDL log comparison of M2 are separate work.
+`tests/test_scenarios.py` replays the 12 M2 scenarios in `scenarios/` and compares each with its expected Step log; see [Scenarios and Step logs](#scenarios-and-step-logs).
+
+`tests/test_look_limits.py` runs headless. It checks sampled frames from every preset for RGB444 and the handout's white border, including Crash frames and Bikes on the edge Cells, which overlap the border by 2 px. It also checks that pulse stripes are clearly brighter than both Player Trails, and that every preset fits the BRAM and Arena-clear budgets. Keyboard tests check how keys become button samples and UART bytes, that reset drops keys pressed before it in the same frame, and that Turns and Start pressed during Pause are dropped. Sprites must be at their native size and use only the core keys.
+
+## Scenarios and Step logs
+
+`scenarios/` holds the 12 scenarios of [[CS-256 Tron Development Plan#Step-log comparison]], `NN-name.txt`, each with the model's expected Step log, `NN-name.log`. A scenario lists board inputs by game-clock tick, as button samples, UART bytes, switch levels and resets. It can also set rule parameters, such as moved start Cells. The format is described in `model/scenario.py`, and the log fields in `model/steplog.py`.
+
+From `prototipos/tron_fpga/`:
+
+```sh
+python -m model.scenario scenarios/04-head-on-same-cell.txt > model.log   # replay one scenario
+python ../../tools/steplog_diff.py scenarios/04-head-on-same-cell.log hdl.log
+python -m scenarios.build        # regenerate all scenarios and logs (about 20 s)
+```
+
+`steplog_diff.py` prints the first differing line and its fields; `--ignore tick` compares Step outcomes without their tick numbers. Scenarios 8, 9 and 12 come from seeded bot play: `scenarios/build.py` searches deterministically until the run shows the scenario's case. When the model's behavior changes on purpose, rebuild, review the log changes and commit them together.
 
 ## Controls
 
@@ -99,12 +115,12 @@ python -m unittest discover -s tests
 |---|---|
 | Arrows | P1 Turn requests (board buttons) |
 | W / A / S / D | P2 Turn requests (browser UART controller) |
-| Space / Enter | Start |
+| Space / Enter | Start: Space is BTNC, Enter the UART byte `0x0D` |
 | P | Toggle the Pause switch `SW0`; Turns and Start pressed while paused are dropped |
 | T | Step the Points Goal switches `{SW15, SW14}`: 10, 20, 30, 40; applies at the next new Match |
 | Backspace | Reset (`CPU_RESETN`): back to waiting for Start; keys pressed earlier in the same frame are dropped |
 | H | Show or hide the on-screen HUD (an extra, after the core) |
-| `[` / `]` | More / fewer game-clock ticks per Step (slower / faster), 1–30; the agreed value is 6 |
+| `[` / `]` | More / fewer game-clock ticks per Step (slower / faster), 4–30, from the next Step; the agreed value is 6, and 4 is the shortest Step the READ2/COMMIT round trip allows |
 | G | Toggle the debug Cell overlay |
 | M / Shift+M | Next / previous style preset: `core`, `synthwave`, `outrun`, `classic` |
 | Tab | Cycle the panel in windowed mode: look page, BRAM page, effects page, hidden |
@@ -211,46 +227,51 @@ Art must be square and point UP. The viewer converts PNG channels to RGB444: bla
 
 ## Game Model
 
-`model/` has no graphics imports. `Game.tick()` is one tick of the ~60 Hz divided game clock; the viewer calls it once per PC frame and draws from `Game.snapshot()`. The model checks state at tick and Step boundaries, not per clock cycle.
+`model/` has no graphics imports. Each file stands for one planned HDL block; [[CS-256 Tron Game Model Hardware Map]] gives the full map, the tick timing and the open choices.
 
-| Module | Work-list objectives | Responsibility |
+| File | HDL block | Domain |
 |---|---|---|
-| `params.py` | A1/A2, G1–G5 | `game_pkg` constants: geometry, Arena layout, rule values, start Cells, Points/Lives widths; `RuleParams` for tests and playtest tuning |
-| `arena.py` | A1/A2 | 8192 × 4-bit Arena, `{cy, cx}` addressing, Cell codes, clear, reads and writes |
-| `steering.py` | G1 | Heading codes, Pending Turn latch, same-sample tie order, unsigned next Cell |
-| `step.py` | G1/G2, A2 | Both Bikes' reads, Crash checks, then Trail and head writes |
-| `game.py` | G3; connects G1–G5 and A1/A2 | Match/Round phases, Start, Pause, reset, Step cadence, Lives and the order of each Step |
-| `scoring.py` | G5 | Victory and Draw evaluation |
-| `rewards.py`, `lfsr.py` | G4 | Prototype placement search and LFSR |
-| `scoreboard.py` | I4 | The eight-digit Points/Lives view and its 3-second timer |
-| `__init__.py` | M1 | Public package exports |
+| `params.py` | `game_pkg.sv` constants; `RuleParams` stands for module parameters | — |
+| `turn_unit.py` | `turn_unit` (G1): Heading and Pending Turn | game |
+| `step_unit.py` | `step_unit` and `step_resolve` (G1/G2): the READ2/COMMIT Step | game |
+| `score_unit.py` | `score_unit` (G5): Points, Lives, result | game |
+| `game_top.py` | `match_ctrl` (G3) and the `game_top` wiring of both domains | both |
+| `seg7.py` | Scoreboard page timer and `seg7_driver` glyphs (I4) | both |
+| `mailbox.py` | `cmd_mailbox` (X1), proposal | both |
+| `arena_ctrl.py`, `reward_place.py`, `lfsr.py` | `arena_ctrl` (A2) with Reward placement (G4) | fast |
+| `arena_map.py` | `arena_map` 8192 × 4-bit BRAM (A1) | fast |
+| `input_batch.py` | `btn_debounce`, UART decoder, `input_batch` (I1–I3) | fast |
+| `steplog.py`, `scenario.py` | Step-log format and scenario runner (M2) | — |
+
+`Game.tick(BoardInputs(btn, uart, sw))` is one tick of the ~60 Hz divided game clock; the viewer calls it once per PC frame. `btn` lists debounced button samples as `btn[4:0]` masks, `uart` holds the bytes from the browser controller and `sw` gives the switch levels. `Game.reset()` is `CPU_RESETN`, and `BoardInputs.keys(...)` is a shorthand for tests. The viewer draws from `Game.snapshot()`, the state the fast domain latched after the edge, and from the Arena memory, as `drawcon` will. The model is exact at tick level, not per clock cycle.
 
 ### Agreed behavior implemented here
 
 - **Arena:** 16 px Cells, 80 × 50 on screen, padded to 128 × 64 words of 4 bits at address `{cy[5:0], cx[6:0]}`. Rows `cy` 0–3 are the HUD band; Walls are `cy` 4 and 49 and `cx` 0 and 79; the playable area is `cx` 1–78 × `cy` 5–48. Clearing writes `1` (Wall) to every non-playable word, padding included, and `0` elsewhere. Codes: `0` empty, `1` Wall, `2`/`3` P1 Trail/head, `4`/`5` P2 Trail/head, `6` Crash, `7` reserved, `8`/`9`/`10` Reward slots 0/1/2.
 - **Movement:** one Cell every 6 ticks. P1 starts at (20, 27) heading RIGHT and P2 at (59, 27) heading LEFT. A Bike keeps one Pending Turn, the last valid request against its current Heading; reversals and same-Heading requests are ignored without cancelling it. Requests arrive in order; a set of Headings from one board sample is resolved UP > RIGHT > DOWN > LEFT. Steering is ignored outside Play.
-- **Steps:** both target Cells are read before either is written. Any code other than empty or a Reward is a Crash, so Walls, both Trails and the other Bike's head Cell are fatal; same-target and swapping moves Crash both. A surviving Bike turns its old head into Trail and writes its new head. A crashed Bike stays on its last valid head Cell and loses one Life.
+- **Steps:** both target Cells are read before either is written: a launch issues READ2, the outcome registers two ticks later, and the writes go to the Arena controller as one COMMIT. Any code other than empty or a Reward is a Crash, so Walls, both Trails and the other Bike's head Cell are fatal; same-target and swapping moves Crash both. A surviving Bike turns its old head into Trail and writes its new head. A crashed Bike stays on its last valid head Cell and loses one Life.
 - **Points:** Rewards are worth +1, +1 and +3, and the survivor of a single Crash gets +3. In each Step the model resolves moves and Crashes, awards Rewards and the Survival Bonus, then evaluates victory. There is no cap: the full total is kept (at most 45, which fits 6 bits).
 - **Match result:** the first to reach or exceed the goal wins; if both do in one Step, higher Points wins and equal Points is a Draw. Otherwise losing the final Life loses; if both lose it in one Step, Points decide the same way.
-- **Phases:** `IDLE` (power-up and reset) waits for Start. Start captures the goal from `{SW15, SW14}`, resets Points and Lives, prepares the Arena, both Bikes and all three Rewards, and enters `PLAY` directly. A Crash freezes play for 120 ticks (`CRASH`), ignoring Start and Turns. After a non-final Crash the next Round is prepared and `READY` waits for a fresh Start. A Match-ending Crash keeps the result, still shows the display, then enters `MATCH_OVER`; reaching the goal without a Crash enters it directly. Start in `MATCH_OVER` begins a new Match. These names map to the contract's proposed `G_IDLE`, `G_PLAY`, `G_CRASH`, `G_READY` and `G_MATCH`.
+- **Phases:** `IDLE` (power-up and reset) waits for Start. Start captures the goal from `{SW15, SW14}`, resets Points and Lives and issues PREPARE (`PREP`), which clears the Arena and places both Bikes and all three Rewards; when it is done the Round enters `PLAY`, with no second press. A Crash freezes play for 120 ticks (`CRASH`), ignoring Start and Turns. After a non-final Crash the next Round is prepared and `READY` waits for a fresh Start. A Match-ending Crash keeps the result, still shows the display, then enters `MATCH_OVER`; reaching the goal without a Crash enters it directly. Start in `MATCH_OVER` begins a new Match. These names map to the contract's proposed `G_IDLE`, `G_PLAY`, `G_CRASH`, `G_READY` and `G_MATCH`; `PREP` is this model's proposed `G_PREP`.
 - **Pause and reset:** `SW0` freezes game state, game timers and steering; the Scoreboard view keeps cycling. Reset clears the Arena and returns to `IDLE`.
 - **Scoreboard:** `P2nnP1nn` for Points and `L2nnL1nn` for Lives, switching together every 180 ticks; a new Match starts on Points.
-- **Rewards:** three independent slots, all placed before a Round is released, only on empty playable Cells. A collected Reward is replaced in the same Step, in ascending slot order. If the Arena has no empty Cell, the slot stays absent until the next Round.
+- **Rewards:** three independent slots, all placed before a Round is released, only on empty playable Cells. A collected Reward is replaced inside the Step's COMMIT, in ascending slot order. If the Arena has no empty Cell, the slot stays absent until the next Round.
 
 ### Prototype choices the agreement leaves open
 
-These are this model's working choices, not team decisions. Change them when the team selects otherwise, in the model and the contract together.
+These are this model's working choices, mostly the Opus 5.5 review's recommended architecture, not team decisions. [[CS-256 Tron Game Model Hardware Map#Choices the model makes (proposals)]] lists each with its source. Change them when the team selects otherwise, in the model, the contract and the scenarios together.
 
-- **Reward generator and placement:** 32-bit Fibonacci LFSR (bits 31, 21, 1, 0), 32 shifts per draw. Up to 64 random draws, taking `cx` from the low 7 bits and `cy` from the next 6; the first empty Cell wins. If all fail, the model scans in address order after the last candidate. Placement completes inside the Step, so the agreed temporary absence while hardware searches never appears.
-- **Seed:** reset loads the default seed. In normal play, each new-Match Start XORs the count of game ticks since power-up into the LFSR, so Start timing changes the sequence. `RuleParams(fixed_seed=True)` instead restarts every Match from `seed`, for repeatable tests.
-- **Start while paused** is ignored, because Pause freezes game state.
+- **Service boundary (X1):** a stable-payload mailbox with one command outstanding (PREPARE, READ2, COMMIT). Every fast-to-slow bus passes one capture register, so inputs and switch changes reach the game two ticks after they arrive, and a Step resolves two ticks after its launch.
+- **Inputs:** per-tick axis latches. P1's button samples and P2's UART bytes (`w a s d` either case; `0x20` and `0x0D` for Start) are compressed to one `{V, H}` pair per Player each tick.
+- **Reward generator and placement:** 32-bit Fibonacci LFSR (bits 31, 21, 1, 0), 32 shifts per draw. Up to 64 random draws, taking `cx` from the low 7 bits and `cy` from the next 6; the first empty Cell wins. If all fail, the controller scans in address order after the last candidate. A COMMIT finishes its placements in microseconds, so the agreed temporary absence while hardware searches appears only in a full Arena.
+- **Seed:** reset loads the default seed. In normal play, each new-Match Start XORs the game-domain tick counter into the LFSR, so Start timing changes the sequence. `RuleParams(fixed_seed=True)` instead restarts every Match from `seed`, for repeatable tests and scenarios.
+- **Start** is ignored while paused or while a command is outstanding; Pause holds a Step waiting for its codes until resuming. Input capture drops a Start pressed outside a wait state and a Turn pressed outside running play when it arrives, so neither leaks into the next phase through the 2-tick pipeline.
 - **Before the first Start** the Arena holds only Walls and no Bikes are shown.
 - **Code `6` (Crash)** is defined but not written; a crashed Bike's Cell keeps its head code.
-- **Same-Step timing:** Turns, Start and the Step all take effect on the tick they are given. The transfer latency through the fast Arena service and the input CDC (X1) is not modelled; when that interface is designed, the model must reproduce any added ticks.
 
 ### Remaining gaps
 
 - The team has not chosen where the shared model lives or its migration base; Roman's `prototipos/tron/` still has its own rules. Viewers should import one model and keep no rule code.
-- No Step-log writer, scenario files or log-diff script exist yet (M2).
-- The PRNG, seed capture and placement service need a team decision before HDL work (Reward placement, G4).
+- The X1 mailbox, the input batch, `G_PREP` and the PRNG, seed capture and placement service need a team decision before HDL work; record it in ADR 0003 and the contract.
+- The model does not show per-cycle latency, debounce, UART bit timing, the 7-segment scan or the vertical-blanking snapshot commit; HDL testbenches must cover those.
 - The viewer's optional HUD is a candidate for the post-core HUD (H2). The panel's Scoreboard text stands in for the board's 7-segment display.
