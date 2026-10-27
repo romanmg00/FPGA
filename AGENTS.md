@@ -21,6 +21,12 @@ The current team-rule authority is [CS-256 Tron Agreed Specification 2026-10-20]
 
 Before changing implementation or architecture, read the relevant course handout, accepted ADR, and design notes, then inspect the actual code. Mark unverified proposals as proposals and keep implementation evidence separate from decision status.
 
+## HDL language
+
+Write all FPGA code, including testbenches, in SystemVerilog with the `.sv` extension; do not add `.v` or VHDL files. Follow the conventions in section 1 of the interface contract: `logic`, `snake_case`, one module per file named after the module, no array ports (so Icarus Verilog also compiles it), and a synchronous active-high `rst`.
+
+## Toolchain
+
 Synthesis and simulation run on the remote Vivado workstation, or on `alan-desktop` once its Vivado install is finished. Vivado Lab on a member's laptop only programs the board and reads ILA captures. See the Toolchain section of [docs/README.md](docs/README.md).
 
 ## Agent skills
