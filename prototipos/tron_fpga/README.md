@@ -93,11 +93,28 @@ and game timers stay frozen; video animation and the Scoreboard page timer
 continue. Turns and Start pressed while paused are dropped. A pause during the
 Crash display keeps that display's timer frozen as before.
 
-These viewer screens add no game phases. Their opaque panels and monochrome
-8×8 bitmap glyphs use integer scaling and RGB444 colours. The HUD and white
-border remain visible. The budget includes a proposed 32-glyph, 2048-bit text
-ROM; there is no system-font or alpha-blending dependency inside the game
-image. This is PC rendering evidence, not implemented or verified FPGA screens.
+Both screens use the current design's palette, so in `synthwave` they match the
+sunset scene instead of covering it:
+
+- **Welcome:** the sky, sun, grid and neon Wall stay visible. TRON sits above the
+  sun, shaded with the sun's colours and its widening cut stripes, over a
+  neon-pink drop shadow. The Start prompt and controls sit in a black band below
+  the sun, edged with the neon Wall's tube. The prompt swaps between white and
+  neon pink every 32 video frames.
+- **Pause:** the Arena below the HUD drops to half level, (`n >> 1`) per 4-bit
+  channel, so the frozen Trails and Bikes stay readable. PAUSED and the resume
+  instructions sit in one neon band near the top of the Arena, clear of the
+  middle row where both Bikes start.
+
+These viewer screens add no game phases. They are built from opaque rectangles,
+monochrome 8×8 bitmap glyphs at integer scales and RGB444 colours. The title
+shading is one proposed 56 × 13-bit row LUT: a 12-bit colour plus a cut bit for
+each eighth of a glyph row. The drop shadow is a second read of the glyph ROM at
+an offset. The Pause dim is a fixed shift of the colour composed so far, like
+the crash flash's `c/2 + 7`, not a blend of two layers. The HUD and white border
+remain visible. The budget includes the proposed 32-glyph, 2048-bit text ROM and
+the title LUT. Nothing in the game image depends on system fonts or alpha
+blending. This is PC rendering evidence, not implemented or verified FPGA screens.
 
 ## Troubleshooting
 
@@ -120,7 +137,7 @@ python -m unittest discover -s tests
 
 `tests/test_scenarios.py` replays the 12 M2 scenarios in `scenarios/` and compares each with its expected Step log; see [Scenarios and Step logs](#scenarios-and-step-logs).
 
-`tests/test_look_limits.py` runs headless. It checks sampled frames from every preset for RGB444 and the handout's white border, including Crash frames and Bikes on the edge Cells, which overlap the border by 2 px. It also checks that pulse stripes are clearly brighter than both Player Trails, and that every preset fits the BRAM and Arena-clear budgets. Keyboard tests check the desktop-only player swap through both input paths and actual model movement, Enter as BTNC, Space as UART Start, reset dropping earlier keys in the same frame, and Turns/Start being dropped during Pause. Design cycling and drawing during Play must preserve Match state and Arena contents tick by tick against a separate headless model. All selectable designs retain the HUD, and removed customization keys cannot alter them. Sprites must be at their native size and use only the core keys.
+`tests/test_look_limits.py` runs headless. It checks sampled frames from every preset for RGB444 and the handout's white border, including Crash frames and Bikes on the edge Cells, which overlap the border by 2 px. It also checks that pulse stripes are clearly brighter than both Player Trails, and that every preset fits the BRAM and Arena-clear budgets. Keyboard tests check the desktop-only player swap through both input paths and actual model movement, Enter as BTNC, Space as UART Start, reset dropping earlier keys in the same frame, and Turns/Start being dropped during Pause. Design cycling and drawing during Play must preserve Match state and Arena contents tick by tick against a separate headless model. All selectable designs retain the HUD, and removed customization keys cannot alter them. Sprites must be at their native size and use only the core keys. The welcome screen may change only its title and band, and the pause screen must halve the composed RGB444 Arena colour outside its band, before the final crash-flash and scanline stages; both must disappear on Start or resume.
 
 ## Scenarios and Step logs
 
@@ -201,7 +218,7 @@ The legacy candidate checks are in [[CS-256 Tron Development Plan#Historical lim
 | 2: RGB444 | The finished game image is reduced to 4 bits per channel. The PC panel is outside that image. |
 | 3: sprite format | Bikes are 32 × 32 (1024 words) and Rewards 16 × 16 (256 words), pointing UP. ROM address rotation gives four Headings; `000` is transparent and `0F0` is tinted. Sprites are not scaled or alpha blended. Other sizes are flagged. |
 | 4: Cell side | 16 px, fixed by the agreement. The Arena address is `{cy[5:0], cx[6:0]}`. |
-| 5: pixel position and state, fixed layers | The renderer models sky → stars → sun → grid lines → Walls → HUD band → Trails → Rewards → Bikes → crash ring → welcome/Pause screen → HUD → 10 px white border. The border is on top, so a 32 px Bike centred on an edge Cell does not cover it. A final colour stage applies crash flash, then scanlines, skipping the border, then outputs RGB444. PC surfaces cache the drawing; the HDL uses no framebuffer. |
+| 5: pixel position and state, fixed layers | The renderer models sky → stars → sun → grid lines → Walls → HUD band → Trails → Rewards → Bikes → crash ring → welcome/Pause screen (Pause first halves the colour composed so far) → HUD → 10 px white border. The border is on top, so a 32 px Bike centred on an edge Cell does not cover it. A final colour stage applies crash flash, then scanlines, skipping the border, then outputs RGB444. PC surfaces cache the drawing; the HDL uses no framebuffer. |
 | 6: BRAM and Arena-clear budget | Live estimates cover two Bike ROMs, each distinct Reward ROM, the 8192 × 4-bit Arena, the digit font and HUD icons when the HUD is shown, and effect tables from `fx.lut_items`. Arena clear assumes one write per pixel clock over all 8192 words. |
 
 BRAM counts use RAMB18 halves: 270 halves = 135 RAMB36 blocks = 4,860 Kb on the XC7A100T. Rows show instance counts, total bits in Kb and estimated halves. `LUT?` marks ROMs of at most 2,048 bits per instance that may use LUTs instead. These are estimates; the Block Memory Generator summary and synthesis report decide the actual mapping. All current viewer designs include the digit font and HUD icons in their estimates.
@@ -231,13 +248,15 @@ Every effect here is an extra: the agreement puts the HUD, glow, scanlines and a
 | HUD | Points digits, Life pips and a state icon in the 64 px band | Box comparators plus the digit font and icon ROMs |
 | neon digits | Lit segments over faint unlit segments | Ghost from segment-area comparators |
 | chrome digits | Row shading with a dark centre split | Row LUT, 2 × 16 × 12 bits |
-| Welcome/Pause | Start/control instructions or Pause/resume instructions over the Arena | Panel comparators plus 32 × 8 × 8-bit monochrome glyph ROM (proposal) |
+| Welcome/Pause | Start/control instructions or Pause/resume instructions in neon-edged bands over the scene | Band comparators plus 32 × 8 × 8-bit monochrome glyph ROM (proposal) |
+| screen title | TRON or PAUSED in the sun's colours and cut stripes, over a neon drop shadow | Row LUT, 56 × 13 bits; second glyph ROM read for the shadow (proposal) |
+| Pause dim | Arena at half level while paused | Box compare; `n >> 1` per 4-bit channel |
 
 Pulse Trail stripe pixels take `c/4 + 12` per channel, near white for any Player colour; a fixed add was invisible on cyan because its green and blue channels were already 15.
 
 The neon digit ghost is the union of the segment rectangles, using comparators on glyph x/y in hardware. It does not need a second ROM read.
 
-`fx.lut_items` adds the active sky gradient, sun row, floor row, pulse colour and chrome row tables to the BRAM budget. Small tables may become LUT ROM; the synthesis report decides the mapping.
+`fx.lut_items` adds the screen text font and title row LUT, and the active sky gradient, sun row, floor row, pulse colour and chrome row tables to the BRAM budget. Small tables may become LUT ROM; the synthesis report decides the mapping.
 
 ## Art workflow
 

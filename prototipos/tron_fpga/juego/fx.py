@@ -14,7 +14,7 @@ import pygame
 from model.params import BORDER_PX, SCREEN_H, SCREEN_W
 
 from .rgb444 import expand, halve, lerp
-from .screens import SCREEN_FONT_BITS
+from .screens import SCREEN_FONT_BITS, TITLE_LUT_WIDTH, TITLE_ROWS
 
 W, H = SCREEN_W, SCREEN_H
 XS = np.arange(W, dtype=np.int32)[:, None]      # surfarray indexing is [x, y]
@@ -32,6 +32,8 @@ STRIPE_PERIOD = 64         # px along x+y between pulse stripes on Trails
 
 HW_COST = {                # short enough for one panel line each
     "Welcome/Pause": "boxes + 32x8x8-bit text ROM",
+    "screen title": "row LUT 56x13 b + 2nd ROM read",
+    "Pause dim": "box compare, c/2 per channel",
     "sky": "row LUT 50x12 b, index y[9:4]",
     "stars": "hash, 3 const mults (shift/add)",
     "sunset": "row LUT: half-width + colour",
@@ -271,7 +273,7 @@ def finish(surface: pygame.Surface, flash: bool, scanlines: bool) -> None:
 
 def active(look) -> list:
     """HW_COST keys of the effects the look uses, in layer order."""
-    on = ["Welcome/Pause"]
+    on = ["Welcome/Pause", "screen title", "Pause dim"]
     if look.bg != "plain":
         on.append("sky")
     if look.bg in ("stars", "sunset"):
@@ -303,7 +305,8 @@ def active(look) -> list:
 
 def lut_items(look, glyph_h: int) -> list:
     """(name, width, depth) of the effect tables, for the BRAM budget."""
-    rows = [("Screen text font", 1, SCREEN_FONT_BITS)]
+    rows = [("Screen text font", 1, SCREEN_FONT_BITS),
+            ("Screen title row LUT", TITLE_LUT_WIDTH, TITLE_ROWS)]
     if look.bg != "plain":
         rows.append(("Sky gradient LUT", 12, H // SKY_BAND))
     if look.bg == "sunset":                       # half-width 8 b + colour 12 b

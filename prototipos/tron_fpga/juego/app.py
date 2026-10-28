@@ -294,7 +294,7 @@ class App:
             line("EFFECTS AND THEIR HARDWARE", bold=True)
             line(" (all extras: after the core)", DIM)
             for name in fx.active(lk):
-                line(f" {name:<13}{fx.HW_COST[name]}")
+                line(f"{name:<13} {fx.HW_COST[name]}")
         if self.message:
             y += 6
             line(self.message, WARN)

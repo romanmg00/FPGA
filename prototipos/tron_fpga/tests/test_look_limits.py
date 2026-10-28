@@ -18,11 +18,11 @@ import pygame  # noqa: E402
 pygame.init()
 pygame.display.set_mode((1, 1))
 
-from juego import budget  # noqa: E402
+from juego import budget, screens  # noqa: E402
 from juego.app import App  # noqa: E402
 from juego.art import BIKE_STYLES, REWARD_LOOKS  # noqa: E402
 from juego.candidates import PALETTES, PRESETS  # noqa: E402
-from juego.rgb444 import TINT_KEY, TRANSPARENT, expand  # noqa: E402
+from juego.rgb444 import TINT_KEY, TRANSPARENT, expand, halve, lerp  # noqa: E402
 from model import CRASH, IDLE, PLAY, BoardInputs, Game, RuleParams  # noqa: E402
 from model.arena_map import EMPTY, HEAD_P1, TRAIL_P1, TRAIL_P2  # noqa: E402
 from model.input_batch import BTN_OF  # noqa: E402
@@ -82,40 +82,117 @@ class FrameLimitTests(unittest.TestCase):
                 if v.app.game.phase_ticks in (1, 11):
                     self.assert_frame_ok(a, f"{preset} crash")
 
-    def test_welcome_is_visible_until_one_start_and_does_not_cover_the_hud(self):
+    def screen_pair(self, v, snap):
+        """The same video frame drawn with and without the screen layer."""
+        r = v.app.renderer
+        frame_no = r.frame
+        shown = v.draw()
+        r.frame = frame_no
+        draw, r.screens.draw = r.screens.draw, lambda *args: None
+        try:
+            r.draw(v.frame, snap)
+        finally:
+            r.screens.draw = draw
+        return shown, pygame.surfarray.array3d(v.frame)
+
+    @staticmethod
+    def colours(a, y0, y1):
+        """RGB triples on the even rows y0..y1 inside the Arena's x range;
+        odd rows are left out because the scanline stage dims them."""
+        rows = a[16:1264, y0 + (y0 & 1):y1:2].reshape(-1, 3)
+        return {tuple(int(c) for c in rgb) for rgb in np.unique(rows, axis=0)}
+
+    def assert_title_drawn(self, a, title, pal, what):
+        y, scale = title
+        rows = screens.title_rows(pal)
+        shown = self.colours(a, y, y + 7 * scale + scale // 4)
+        self.assertIn(expand(pal["sun_hi"]), shown, f"{what}: title top row")
+        self.assertIn(expand(pal["wall_line"]), shown, f"{what}: title shadow")
+        # LUT entry t starts at pixel row t * scale / 8; take a cut on an even row.
+        cut_y = next(y + t * scale // 8 for t, r in enumerate(rows)
+                     if r is None and (y + t * scale // 8) % 2 == 0)
+        lit = {expand(r) for r in rows if r is not None}
+        self.assertFalse(self.colours(a, cut_y, cut_y + 1) & lit, f"{what}: title cut stripe")
+
+    def assert_no_screen(self, v):
+        shown, bare = self.screen_pair(v, v.app.game.snapshot())
+        np.testing.assert_array_equal(shown, bare)
+
+    def test_welcome_is_visible_until_one_start_and_keeps_the_scene(self):
         for preset in PRESETS:
             with self.subTest(preset=preset):
                 v = Viewer(preset)
-                waiting = v.draw()
                 game = v.app.game
                 self.assertEqual(game.phase, IDLE)
                 self.assertIsNone(game.snapshot()["heads"])
-                colour = expand(PALETTES[v.app.look.palette]["p1"])
-                self.assertEqual(tuple(waiting[256, 176]), colour)
+                waiting, bare = self.screen_pair(v, game.snapshot())
                 self.assert_frame_ok(waiting, f"{preset} welcome")
+                pal = PALETTES[v.app.look.palette]
+                band_y, band_h = screens.WELCOME_BAND
+                self.assertEqual(tuple(waiting[640, band_y]), expand(pal["wall_line"]))
+                # Only the title, its subtitle and the band cover the scene.
+                changed = (waiting != bare).any(axis=2).any(axis=0).nonzero()[0]
+                title_y, scale = screens.WELCOME_TITLE
+                allowed = set(range(title_y, title_y + 7 * scale + scale // 4)) | set(range(236, 250))
+                allowed |= set(range(band_y - 2, band_y + band_h + 2))
+                self.assertLessEqual(set(changed.tolist()), allowed)
+                self.assertFalse((waiting[:, :64] != bare[:, :64]).any())    # HUD untouched
+                self.assert_title_drawn(waiting, screens.WELCOME_TITLE, pal, f"{preset} welcome")
+                controls = self.colours(waiting, band_y + 102, band_y + 116)
+                self.assertLessEqual({expand(pal["p1"]), expand(pal["p2"]), expand(pal["hud_fg"])},
+                                     controls, f"{preset} controls")
+                self.assertIn(expand(pal["hud_fg"]), self.colours(waiting, band_y + 74, band_y + 88))
+                r = v.app.renderer
+                for frame_no, key in ((31, "hud_fg"), (32, "wall_line"), (63, "wall_line"), (64, "hud_fg")):
+                    r.frame = frame_no
+                    prompt = self.colours(v.draw(), band_y + 22, band_y + 50)
+                    self.assertIn(expand(pal[key]), prompt, f"{preset} prompt at frame {frame_no}")
+                    other = "wall_line" if key == "hud_fg" else "hud_fg"
+                    if pal[other] != pal[key]:
+                        self.assertNotIn(expand(pal[other]), prompt, f"{preset} prompt at frame {frame_no}")
                 v.start()                    # one Start, no menu confirmation
-                running = v.draw()
                 self.assertEqual(game.phase, PLAY)
-                self.assertNotEqual(tuple(running[256, 176]), colour)
-                # The central ready icon intentionally disappears on Start.
-                np.testing.assert_array_equal(waiting[:256, :64], running[:256, :64])
-                np.testing.assert_array_equal(waiting[1024:, :64], running[1024:, :64])
+                self.assert_no_screen(v)
+
+    def test_screen_title_shading_follows_the_sun(self):
+        pal = PALETTES["synthwave"]
+        rows = screens.title_rows(pal)
+        self.assertEqual(len(rows), screens.TITLE_ROWS)
+        self.assertEqual(rows[0], pal["sun_hi"])
+        last = max(i for i, r in enumerate(rows) if r is not None)
+        self.assertEqual(rows[last], lerp(pal["sun_hi"], pal["sun_lo"], last / (screens.TITLE_ROWS - 1)))
+        self.assertTrue(all(r is not None for r in rows[:screens.TITLE_ROWS // 2]))
+        self.assertIn(None, rows[screens.TITLE_ROWS // 2:])          # sun-style cuts below
 
     def test_pause_screen_follows_model_pause_and_preserves_the_match(self):
         for preset in PRESETS:
             with self.subTest(preset=preset):
                 v = Viewer(preset)
                 v.start()
+                for _ in range(12):
+                    v.tick(p1=[UP])
                 game = v.app.game
                 for _ in range(4):
                     game.tick(BoardInputs.keys(paused=True))
                 before = game.snapshot()
                 self.assertTrue(before["paused"])
                 memory = bytes(game.grid.words)
-                paused = v.draw()
-                colour = expand(PALETTES[v.app.look.palette]["p1"])
-                self.assertEqual(tuple(paused[256, 176]), colour)
+                paused, bare = self.screen_pair(v, dict(before, paused=False))
                 self.assert_frame_ok(paused, f"{preset} pause")
+                pal = PALETTES[v.app.look.palette]
+                band_y, band_h = screens.PAUSE_BAND
+                self.assertEqual(tuple(paused[640, band_y]), expand(pal["wall_line"]))
+                # Outside the band the Arena is the same image at half level;
+                # even rows avoid the scanline stage, which comes after.
+                g = v.app.geom
+                rows = [y for y in range(g.hud_px, 790, 2)
+                        if not band_y - 2 <= y < band_y + band_h + 2]
+                x0, x1 = BORDER_PX, 1280 - BORDER_PX
+                np.testing.assert_array_equal(paused[x0:x1, rows], (bare[x0:x1, rows] // 17 >> 1) * 17)
+                self.assertFalse((paused[:, :64] != bare[:, :64]).any())     # HUD untouched
+                self.assert_title_drawn(paused, screens.PAUSE_TITLE, pal, f"{preset} pause")
+                self.assertIn(expand(pal["hud_fg"]), self.colours(paused, 192, 206))
+                self.assertIn(expand(halve(pal["hud_fg"])), self.colours(paused, 216, 230))
                 for _ in range(185):
                     game.tick(BoardInputs.keys(p1=(UP,), p2=(DOWN,), start=True, paused=True))
                 after = game.snapshot()
@@ -127,7 +204,7 @@ class FrameLimitTests(unittest.TestCase):
                     game.tick(BoardInputs())
                 self.assertFalse(game.snapshot()["paused"])
                 self.assertEqual(game.phase, PLAY)
-                self.assertNotEqual(tuple(v.draw()[256, 176]), colour)
+                self.assert_no_screen(v)
 
     def test_bikes_on_edge_cells_stay_under_the_white_border(self):
         g = Viewer().app.geom
@@ -249,9 +326,10 @@ class KeyboardAdapterTests(unittest.TestCase):
 class FormatAndBudgetTests(unittest.TestCase):
     def test_screen_text_rom_is_included_in_the_hardware_estimate(self):
         app = App()
-        row = next((r for r in app.checks()[0] if r.name == "Screen text font"), None)
-        self.assertIsNotNone(row)
-        self.assertEqual((row.width, row.depth), (1, 32 * 8 * 8))
+        rows = {r.name: r for r in app.checks()[0]}
+        self.assertEqual((rows["Screen text font"].width, rows["Screen text font"].depth), (1, 32 * 8 * 8))
+        title = rows["Screen title row LUT"]
+        self.assertEqual((title.width, title.depth), (13, 56))
 
     def test_every_look_fits_bram_and_blanking_without_flags(self):
         app = App()
