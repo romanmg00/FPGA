@@ -38,7 +38,8 @@ provide evidence.
 
 [ADR 0003](../adr/0003-step-transaction-mailbox-and-render-codes.md) records
 Roman's selected READ2/COMMIT, mailbox, fast-clock, Crash-code, shown-Heading
-and prototype directions. It remains **proposed pending Alan's confirmation**.
+and prototype directions. Its remaining choices are **proposed pending Alan's confirmation**;
+the shared-model base was separately accepted in [ADR 0004](../adr/0004-shared-headless-model-base.md).
 The interview must account for that recorded position rather than treating
 Roman's position as unknown. The mailbox's two-tick timing remains a model
 assumption and design target, subject to the stated evidence gate.
@@ -62,9 +63,10 @@ The initial round separates an outstanding model choice from staging already
 settled by the specification. Later questions depend on answers and research;
 do not silently settle them.
 
-- Q1, open: adopt `prototipos/tron_fpga/model/` as the shared rules-model base,
-  with both PC viewers consuming it, or select another base. ADR 0003 item 6
-  records Roman's preference for this prototype; Alan's confirmation remains open.
+- Q1, confirmed: adopt `prototipos/tron_fpga/model/` as the shared rules-model
+  base for both viewers and SystemVerilog verification, retaining the freedom
+  to revise unverified hardware timing assumptions. See ADR 0004. Adapting
+  the other viewer remains implementation work.
   - Then establish which model behavior is normative and which timing details
     remain proposals that may change with hardware evidence.
 - Q2, settled by existing authority: implement the agreed core first, then the
@@ -87,7 +89,13 @@ do not silently settle them.
 
 ## Confirmed answers
 
-Alan has not yet answered the model/interface design questions. The user did
+Alan confirmed Q1 on 28 October 2026: this headless model is the shared base;
+unverified hardware timing assumptions may change. Other interface questions
+remain open. The user also requested welcome and pause screens before further
+HDL design. These are desktop-viewer additions driven by existing model state,
+not a new Start press, countdown, game phase, or accepted FPGA screen design.
+
+The user did
 authorize appearance integration, verification and push, followed by the ADR
 wording corrections and resumption of the interview. That work authorization
 does not accept ADR 0003 or its proposed hardware choices. Record design answers

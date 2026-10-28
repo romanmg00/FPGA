@@ -16,7 +16,7 @@ review_status: unreviewed
 
 # Step transaction, mailbox crossing and render codes
 
-On 27 October 2026 Roman reviewed the interface choices in [[CS-256 Tron Game Model Hardware Map#Choices the model makes (proposals)]] (PR #4) and accepted the items below. **Status: proposed** until Alan confirms them; then set `status: accepted` and record the outcome in the interface contract.
+On 27 October 2026 Roman reviewed the interface choices in [[CS-256 Tron Game Model Hardware Map#Choices the model makes (proposals)]] (PR #4) and accepted the items below. **Status: proposed** until Alan confirms the remaining choices; then record the accepted scope in the interface contract. Item 6 was separately confirmed on 28 October in [ADR 0004](0004-shared-headless-model-base.md); that confirmation does not accept the remaining items.
 
 ## Proposed decisions
 
@@ -25,7 +25,7 @@ On 27 October 2026 Roman reviewed the interface choices in [[CS-256 Tron Game Mo
 3. **Fast clock is `clk_pix`.** The Arena BRAM (both ports), `arena_ctrl` and the fast side of the mailbox run on `clk_pix` (review §5.2). `drawcon` reads Arena port B with no further clock crossing.
 4. **Crash code 6 is written (review E6).** COMMIT writes code 6 at a crashed Bike's last valid head Cell. This reverses the model's current choice (Hardware Map, "Crash code 6"); the model, `params.py` and the scenario logs must be updated to match.
 5. **Displayed Heading (review §5.7).** Sprites show the Heading of the last committed Step, so a Bike's sprite turns when it moves, not when the Turn is pressed.
-6. **Prototype folders.** `prototipos/tron/fpga/` may stay; Alan's `prototipos/tron_fpga/` is the prototype the team will use going forward.
+6. **Prototype folders — accepted separately in ADR 0004.** `prototipos/tron/fpga/` stays preserved; `prototipos/tron_fpga/model/` is the selected shared rules-model base. Viewer adapters remain to be completed.
 
 ## Left open
 

@@ -7,8 +7,8 @@ How project agents use the game vocabulary, decisions, architecture records, and
 1. Read the [documentation README](../README.md) and [[CS-256 Tron Architecture and Documentation Map]] for the authority order and document statuses.
 2. Read [[CS-256 Tron Agreed Specification 2026-10-20]] for the locked team baseline. Use [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] for decision provenance; the older comparison below that record is historical.
 3. Use [[CS-256 Tron Glossary]] for terms and [[CS-256 Tron Game Mechanics]] as a short topic index. The specification owns the rule details.
-4. Read the accepted ADRs relevant to the task. ADR 0002 records the divided game clock; ADR 0001 is superseded. A plan or technical recommendation is not an accepted decision.
-5. Inspect the actual source code for current implementation behavior. `prototipos/tron_fpga/model/` follows the locked agreement since 21 October 2026, but it is not yet the selected shared model; the team-repository snapshot described in the meeting record has not been reconciled.
+4. Read the accepted ADRs relevant to the task. ADR 0002 records the divided game clock; [ADR 0004](../adr/0004-shared-headless-model-base.md) selects the shared model base. ADR 0001 is superseded; the remaining choices in ADR 0003 are proposed. A plan or technical recommendation is not an accepted decision.
+5. Inspect the actual source code for current implementation behavior. ADR 0004 selects `prototipos/tron_fpga/model/` as the base; check the viewer adapters and verification evidence separately. Selection does not establish completed migration, accepted hardware interfaces or model/HDL equivalence.
 
 Course requirements and the TAs' strict-architecture instruction take precedence over team decisions. The selected remote interface contract is authoritative for implementation interfaces after reconciliation; stale contract text does not override the locked baseline. Keep decision status, review status, and implementation/verification evidence distinct.
 
@@ -25,7 +25,9 @@ docs/
 │   └── CS-256 Tron Game Mechanics.md                    # derived index
 └── adr/
     ├── 0001-pixel-clock-with-frame-enable.md            # superseded
-    └── 0002-follow-ta-divided-game-clock.md             # accepted
+    ├── 0002-follow-ta-divided-game-clock.md             # accepted
+    ├── 0003-step-transaction-mailbox-and-render-codes.md # remaining choices proposed
+    └── 0004-shared-headless-model-base.md               # accepted
 ```
 
 ## Use the glossary and surface conflicts

@@ -82,6 +82,53 @@ class FrameLimitTests(unittest.TestCase):
                 if v.app.game.phase_ticks in (1, 11):
                     self.assert_frame_ok(a, f"{preset} crash")
 
+    def test_welcome_is_visible_until_one_start_and_does_not_cover_the_hud(self):
+        for preset in PRESETS:
+            with self.subTest(preset=preset):
+                v = Viewer(preset)
+                waiting = v.draw()
+                game = v.app.game
+                self.assertEqual(game.phase, IDLE)
+                self.assertIsNone(game.snapshot()["heads"])
+                colour = expand(PALETTES[v.app.look.palette]["p1"])
+                self.assertEqual(tuple(waiting[256, 176]), colour)
+                self.assert_frame_ok(waiting, f"{preset} welcome")
+                v.start()                    # one Start, no menu confirmation
+                running = v.draw()
+                self.assertEqual(game.phase, PLAY)
+                self.assertNotEqual(tuple(running[256, 176]), colour)
+                # The central ready icon intentionally disappears on Start.
+                np.testing.assert_array_equal(waiting[:256, :64], running[:256, :64])
+                np.testing.assert_array_equal(waiting[1024:, :64], running[1024:, :64])
+
+    def test_pause_screen_follows_model_pause_and_preserves_the_match(self):
+        for preset in PRESETS:
+            with self.subTest(preset=preset):
+                v = Viewer(preset)
+                v.start()
+                game = v.app.game
+                for _ in range(4):
+                    game.tick(BoardInputs.keys(paused=True))
+                before = game.snapshot()
+                self.assertTrue(before["paused"])
+                memory = bytes(game.grid.words)
+                paused = v.draw()
+                colour = expand(PALETTES[v.app.look.palette]["p1"])
+                self.assertEqual(tuple(paused[256, 176]), colour)
+                self.assert_frame_ok(paused, f"{preset} pause")
+                for _ in range(185):
+                    game.tick(BoardInputs.keys(p1=(UP,), p2=(DOWN,), start=True, paused=True))
+                after = game.snapshot()
+                for key in ("phase", "phase_ticks", "heads", "headings", "points", "lives", "rewards", "step"):
+                    self.assertEqual(after[key], before[key], f"{preset} paused {key}")
+                self.assertEqual(bytes(game.grid.words), memory)
+                self.assertNotEqual(after["scoreboard"], before["scoreboard"])
+                for _ in range(4):
+                    game.tick(BoardInputs())
+                self.assertFalse(game.snapshot()["paused"])
+                self.assertEqual(game.phase, PLAY)
+                self.assertNotEqual(tuple(v.draw()[256, 176]), colour)
+
     def test_bikes_on_edge_cells_stay_under_the_white_border(self):
         g = Viewer().app.geom
         for preset in PRESETS:
@@ -200,6 +247,12 @@ class KeyboardAdapterTests(unittest.TestCase):
 
 
 class FormatAndBudgetTests(unittest.TestCase):
+    def test_screen_text_rom_is_included_in_the_hardware_estimate(self):
+        app = App()
+        row = next((r for r in app.checks()[0] if r.name == "Screen text font"), None)
+        self.assertIsNotNone(row)
+        self.assertEqual((row.width, row.depth), (1, 32 * 8 * 8))
+
     def test_every_look_fits_bram_and_blanking_without_flags(self):
         app = App()
         for preset in PRESETS:

@@ -3,7 +3,7 @@
 This is the newer model from PR #4, source commit `628430196aea57bb5b2cd2554ee89e1bcfccd126`.
 For the preserved PR #2 game, see [the comparison guide](../README.md).
 
-> **Implementation status, 27 October 2026:** the headless model in `model/` and the viewer in `juego/` follow [[CS-256 Tron Agreed Specification 2026-10-20]], [ADR 0002](../../docs/adr/0002-follow-ta-divided-game-clock.md) and the FPGA limits in [[CS-256 Official FPGA Coding Practices]]. Its constants use the names of `game_pkg` in the [interface contract](../../proyecto_final/Contrato%20de%20interfaces%20game_top%20(CS%20256).md), and a test checks them against it. Since 27 October the model has one module per planned HDL block, two clock domains and an explicit slow/fast mailbox, as described in [[CS-256 Tron Game Model Hardware Map]]. Where the agreement leaves that interface open, the model follows the review's recommended architecture, which the team has **not** adopted yet. The passing tests show that this Python model behaves as specified; they are not HDL, timing or board evidence. Where the shared rules model will live, and which prototype it starts from, is still open in the contract, so this is not yet the selected shared model.
+> **Implementation status, 28 October 2026:** the headless model in `model/` and the viewer in `juego/` follow [[CS-256 Tron Agreed Specification 2026-10-20]], [ADR 0002](../../docs/adr/0002-follow-ta-divided-game-clock.md) and the FPGA limits in [[CS-256 Official FPGA Coding Practices]]. Its constants use the names of `game_pkg` in the [interface contract](../../proyecto_final/Contrato%20de%20interfaces%20game_top%20(CS%20256).md), and a test checks them against it. Since 27 October the model has one module per planned HDL block, two clock domains and an explicit slow/fast mailbox, as described in [[CS-256 Tron Game Model Hardware Map]]. Where the agreement leaves that interface open, the model follows the review's recommended architecture, which the team has **not** adopted yet. The passing tests show that this Python model behaves as specified; they are not HDL, timing or board evidence. [ADR 0004](../../docs/adr/0004-shared-headless-model-base.md) selects this headless model as the shared base. Adapting the other viewer remains incomplete; hardware timing assumptions may change with evidence.
 
 `tron_fpga` is a PC version of the game built around the planned Nexys A7 hardware. `model/` is written as the HDL blocks it stands for (see [Game Model](#game-model)). The game-clock domain holds the Turn and Step units, Round/Match control and scoring. The fast domain holds the Arena memory and its controller with Reward placement, and the input capture. A mailbox connects the two, and the Scoreboard has parts in both domains. The viewer package `juego/` draws 1280 × 800 frames in RGB444 with ROM-style sprites and fonts, and estimates block RAM use. The Reward LFSR is the prototype's own candidate: the agreement leaves the generator, its seed and its placement schedule to be selected, so the HDL should not copy it until that decision is made. The folder was imported as `prototipos/look/` and renamed on 20 October 2026; "Look Prototype" remains the name of its L1 objective in the Development Plan.
 
@@ -78,6 +78,26 @@ Launch the package with `-m juego`; running `juego/app.py` directly does not set
 7. Press **P** to pause (`SW0`), **Backspace** to reset (`CPU_RESETN`), or **Esc** to quit. In fullscreen, the first **Esc** returns to windowed mode.
 
 The side panel shows the phase, Points, Lives, the Points Goal, the eight Scoreboard digits, the design's final/test-only status and the desktop-to-hardware input mapping. **Tab** cycles the panel's pages or hides it, **M** changes the design, and **F11** toggles fullscreen. The in-game HUD remains visible in every design. The complete controls are below.
+
+### Welcome and pause screens
+
+The welcome screen shows TRON, Start instructions and the desktop controls while
+the model waits for its first Start or after reset. Enter simulates BTNC; Space
+supplies UART Start. One press prepares and starts the Match, with no extra menu
+confirmation or countdown.
+
+The pause screen follows the model's synchronized Pause state, so it appears
+after the same modeled switch delay as gameplay freezing. **P** toggles simulated
+SW0; SW0 down resumes the existing Match. Bikes, Trails, Rewards, Points, Lives
+and game timers stay frozen; video animation and the Scoreboard page timer
+continue. Turns and Start pressed while paused are dropped. A pause during the
+Crash display keeps that display's timer frozen as before.
+
+These viewer screens add no game phases. Their opaque panels and monochrome
+8×8 bitmap glyphs use integer scaling and RGB444 colours. The HUD and white
+border remain visible. The budget includes a proposed 32-glyph, 2048-bit text
+ROM; there is no system-font or alpha-blending dependency inside the game
+image. This is PC rendering evidence, not implemented or verified FPGA screens.
 
 ## Troubleshooting
 
@@ -181,7 +201,7 @@ The legacy candidate checks are in [[CS-256 Tron Development Plan#Historical lim
 | 2: RGB444 | The finished game image is reduced to 4 bits per channel. The PC panel is outside that image. |
 | 3: sprite format | Bikes are 32 × 32 (1024 words) and Rewards 16 × 16 (256 words), pointing UP. ROM address rotation gives four Headings; `000` is transparent and `0F0` is tinted. Sprites are not scaled or alpha blended. Other sizes are flagged. |
 | 4: Cell side | 16 px, fixed by the agreement. The Arena address is `{cy[5:0], cx[6:0]}`. |
-| 5: pixel position and state, fixed layers | The renderer models sky → stars → sun → grid lines → Walls → HUD band → Trails → Rewards → Bikes → crash ring → HUD (when shown) → 10 px white border. The border is on top, so a 32 px Bike centred on an edge Cell does not cover it. A final colour stage applies crash flash, then scanlines, skipping the border, then outputs RGB444. PC surfaces cache the drawing; the HDL uses no framebuffer. |
+| 5: pixel position and state, fixed layers | The renderer models sky → stars → sun → grid lines → Walls → HUD band → Trails → Rewards → Bikes → crash ring → welcome/Pause screen → HUD → 10 px white border. The border is on top, so a 32 px Bike centred on an edge Cell does not cover it. A final colour stage applies crash flash, then scanlines, skipping the border, then outputs RGB444. PC surfaces cache the drawing; the HDL uses no framebuffer. |
 | 6: BRAM and Arena-clear budget | Live estimates cover two Bike ROMs, each distinct Reward ROM, the 8192 × 4-bit Arena, the digit font and HUD icons when the HUD is shown, and effect tables from `fx.lut_items`. Arena clear assumes one write per pixel clock over all 8192 words. |
 
 BRAM counts use RAMB18 halves: 270 halves = 135 RAMB36 blocks = 4,860 Kb on the XC7A100T. Rows show instance counts, total bits in Kb and estimated halves. `LUT?` marks ROMs of at most 2,048 bits per instance that may use LUTs instead. These are estimates; the Block Memory Generator summary and synthesis report decide the actual mapping. All current viewer designs include the digit font and HUD icons in their estimates.
@@ -211,6 +231,7 @@ Every effect here is an extra: the agreement puts the HUD, glow, scanlines and a
 | HUD | Points digits, Life pips and a state icon in the 64 px band | Box comparators plus the digit font and icon ROMs |
 | neon digits | Lit segments over faint unlit segments | Ghost from segment-area comparators |
 | chrome digits | Row shading with a dark centre split | Row LUT, 2 × 16 × 12 bits |
+| Welcome/Pause | Start/control instructions or Pause/resume instructions over the Arena | Panel comparators plus 32 × 8 × 8-bit monochrome glyph ROM (proposal) |
 
 Pulse Trail stripe pixels take `c/4 + 12` per channel, near white for any Player colour; a fixed add was invisible on cyan because its green and blue channels were already 15.
 
@@ -272,7 +293,7 @@ These are this model's working choices, mostly the Opus 5.5 review's recommended
 
 ### Remaining gaps
 
-- The team has not chosen where the shared model lives or its migration base; Roman's `prototipos/tron/` still has its own rules. Viewers should import one model and keep no rule code.
+- ADR 0004 selects `prototipos/tron_fpga/model/` as the shared base. Roman's `prototipos/tron/` still needs its adapter; both viewers must consume the same rules implementation.
 - The X1 mailbox, the input batch, `G_PREP` and the PRNG, seed capture and placement service need a team decision before HDL work; record it in ADR 0003 and the contract.
 - The model does not show per-cycle latency, debounce, UART bit timing, the 7-segment scan or the vertical-blanking snapshot commit; HDL testbenches must cover those.
 - The viewer's optional HUD is a candidate for the post-core HUD (H2). The panel's Scoreboard text stands in for the board's 7-segment display.

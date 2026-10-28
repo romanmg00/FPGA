@@ -19,7 +19,7 @@ Paths are relative to the repository root.
 | `docs/references/` | Nexys A7 research report, vendor datasheets (`datasheets/`), and official documentation links |
 | `docs/agents/` | Instructions for AI agents: issue tracker, triage labels, domain docs. The root `AGENTS.md` and `CLAUDE.md` point here |
 | `proyecto_final/` | Hardware: interface contract, SystemVerilog, testbenches |
-| `prototipos/tron_fpga/` | Local Python prototype modelled on the hardware blocks (the Look Prototype, renamed from `prototipos/look/`): model (`model/`, headless), viewer (`juego/`, pygame-ce), tests and metrics. Revised to the agreed specification on 21 October 2026 and restructured into the planned HDL blocks with M2 scenarios and Step logs on 27 October; choosing it as the shared model remains open |
+| `prototipos/tron_fpga/` | Local Python prototype modelled on the hardware blocks (the Look Prototype, renamed from `prototipos/look/`): model (`model/`, headless), viewer (`juego/`, pygame-ce), tests and metrics. Revised to the agreed specification on 21 October 2026 and restructured into the planned HDL blocks with M2 scenarios and Step logs on 27 October; its headless model was selected as the shared base on 28 October in [ADR 0004](adr/0004-shared-headless-model-base.md); the other viewer adapter remains to be implemented |
 | `prototipos/tron/fpga/` | Preserved PR #2 comparison game, with frozen art in `assets/tron-pr2/`; [launch both](../prototipos/README.md) |
 | `prototipos/` (others) | Roman's prototypes and launcher, including the `tron/` viewer |
 | `tools/` | Host-side scripts for candidate-art generation, VGA cycle modelling and desktop Vivado access |
@@ -54,6 +54,7 @@ Use this index to return to the relevant source before future work. The architec
 | [Team Decisions, 20 October](decisions/CS-256%20Tron%20Team%20Decisions%202026-10-20.md#live-decision-record) | Locked decision provenance; the comparison following the live record is historical. |
 | [Locked-record integrity and old paths](decisions/README.md) | SHA-256 values, tags and relocation map. Never edit the files in this folder. |
 | [ADR 0002: divided game clock](adr/0002-follow-ta-divided-game-clock.md) | Accepted second-Clocking-Wizard/divider architecture and its game/service/render boundary. |
+| [ADR 0004: shared model base](adr/0004-shared-headless-model-base.md) | Accepted selection of `prototipos/tron_fpga/model/`; other viewer adapters and hardware timing validation remain work to complete. |
 | [Glossary](domain/CS-256%20Tron%20Glossary.md) | Canonical vocabulary for notes, code comments, issues and reports. |
 | [Game Mechanics](domain/CS-256%20Tron%20Game%20Mechanics.md) | Topic links into the locked specification; a derived index. |
 
@@ -74,7 +75,7 @@ Use this index to return to the relevant source before future work. The architec
 |---|---|
 | [Hardware README](../proyecto_final/README.md) | Current HDL files, bring-up progress and simulation entry points. |
 | [Interface contract](../proyecto_final/Contrato%20de%20interfaces%20game_top%20%28CS%20256%29.md) | SystemVerilog conventions, module interfaces, shared constants and ownership. Unsettled interfaces are marked **Pendiente**; reconcile with the course and locked baseline before implementation. |
-| [Alan's hardware-modelled Tron guide](../prototipos/tron_fpga/README.md) | Separate pygame-ce environment, viewer controls, tests, art workflow and headless model. Revised to the agreement, but not yet selected as the shared model. |
+| [Alan's hardware-modelled Tron guide](../prototipos/tron_fpga/README.md) | Separate pygame-ce environment, viewer controls, tests, art workflow and headless model. Selected as the shared model base in [ADR 0004](adr/0004-shared-headless-model-base.md); viewer migration remains incomplete. |
 | [Prototype comparison guide](../prototipos/README.md) and [preserved PR #2 game](../prototipos/tron/fpga/README.md) | Launch the preserved game and newer hardware-block model side by side; the preserved rules remain historical. |
 | [Preserved prototype metrics](../prototipos/tron/fpga/metrics/latest.md) | Historical PC-viewer measurements for the PR #2 comparison copy; not HDL or board evidence. |
 | [Roman's prototype instructions](../README.md#prototipos-en-python) | Launcher, pygame environment and `prototipos/tron/` viewer controls. Check each prototype's own behavior against the agreement. |

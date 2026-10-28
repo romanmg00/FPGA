@@ -12,9 +12,9 @@ del segundo Clocking Wizard más un divisor, como pidieron los TAs
   Las interfaces que la especificación deja abiertas están marcadas como pendientes
 - Diseño de video y sprites: [plan de VGA y sprites](../docs/design/CS-256%20VGA%20and%20Sprite%20Design%20Plan.md)
   y [prácticas de código del curso](../docs/design/CS-256%20Official%20FPGA%20Coding%20Practices.md)
-- Modelo de referencia: el equipo eligió **un solo modelo de reglas sin gráficos** en
-  el repositorio. Mientras se migra, `../prototipos/tron/` y `../prototipos/tron_fpga/model/`
-  son puntos de partida y todavía siguen las reglas anteriores
+- Modelo de referencia: [ADR 0004](../docs/adr/0004-shared-headless-model-base.md)
+  selecciona `../prototipos/tron_fpga/model/` como base compartida. Falta adaptar
+  el otro visor; la selección no valida los supuestos de timing/CDC del prototipo.
 - Presentación del curso: `cs256-project1-fall26.pdf`
 - Pines: `../nexys-a7-100t-master.xdc`
 - Versiones anteriores de este README y del contrato: [`deprecated/`](deprecated/)

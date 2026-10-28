@@ -2,7 +2,7 @@
 
 Fixed layer order, bottom to top, as drawcon will compose it:
 sky -> stars -> sun -> grid lines -> Walls -> HUD band -> Trails ->
-Rewards -> Bikes -> crash ring -> HUD (optional) -> 10 px white border, then one colour
+Rewards -> Bikes -> crash ring -> welcome/Pause screen -> HUD -> 10 px white border, then one colour
 stage on the result (crash flash, scanlines) that leaves the border alone.
 The border is on top, as the contract requires: a 32 px Bike centred on an
 edge Cell reaches 2 px into it. Every layer depends only on the pixel
@@ -20,6 +20,7 @@ from model.turn_unit import DOWN, RIGHT, UP
 from . import fx
 from .hud import BLINK_TICKS, HudRenderer
 from .rgb444 import expand, halve, lerp
+from .screens import ScreenRenderer
 
 SIZE = (SCREEN_W, SCREEN_H)
 RING_SPEED = 6             # px per frame
@@ -50,6 +51,7 @@ class FrameRenderer:
         self.bike_rom = bike_rom
         self.reward_roms = reward_roms        # (small kind, big kind)
         self.hud = HudRenderer()
+        self.screens = ScreenRenderer()
         animated = look.grid in ("neon", "floor") or look.bg in ("stars", "sunset")
         phases = range(fx.PHASES) if animated else (0,)
         self.bases = [fx.build_base(geom, look, palette, p) for p in phases]
@@ -142,6 +144,7 @@ class FrameRenderer:
         if crashing and crash_fx != "blink":
             self._draw_rings(frame, snap)
 
+        self.screens.draw(frame, snap, self.pal)
         if self.look.hud == "on":
             self.hud.draw(frame, self.look, self.pal, snap, self.geom.hud_px)
         draw_border(frame, expand(self.pal["border"]))

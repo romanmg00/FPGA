@@ -22,9 +22,11 @@ tags:
 
 # CS-256 Tron Game Model Hardware Map
 
-The Python model in `prototipos/tron_fpga/model/` now has one module per planned HDL block. Each module has the registers and ports that block will have, and the two clock domains meet at an explicit mailbox. This note maps each module to its HDL block and gives the tick-level timing. It also lists the interface choices the model had to make where the agreement leaves the design open.
+The Python model in `prototipos/tron_fpga/model/` now has one module per planned HDL block. Each module models candidate registers and interfaces; the two simulated clock domains meet at an explicit mailbox. Hardware ports and timing still require definition and verification. This note maps each module to its HDL block and gives the tick-level timing. It also lists the interface choices the model had to make where the agreement leaves the design open.
 
 **Status.** The rules are the [[CS-256 Tron Agreed Specification 2026-10-20]]. The slow/fast boundary (X1), the input batch and the Step transaction follow the recommended architecture in [[CS-256 Tron Opus 5.5 Architecture and Integration Review#5. Recommended architecture]]. That architecture is a **proposal**: Roman and Alan have not adopted it, and the review's own [[CS-256 Tron Opus 5.5 Architecture and Integration Review#Parent review and adoption limits|adoption limits]] apply. Passing Python tests show that this model is self-consistent and follows the agreed rules. They are not HDL, timing, CDC or board evidence. Once the team decides, record the choices in a new ADR (0003 onward) and in the interface contract.
+
+[ADR 0004](../adr/0004-shared-headless-model-base.md) selects this headless model as the shared base. That decision does not accept the proposed service, input or render interfaces below.
 
 ## Module map
 
