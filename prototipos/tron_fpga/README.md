@@ -106,6 +106,16 @@ sunset scene instead of covering it:
   instructions sit in one neon band near the top of the Arena, clear of the
   middle row where both Bikes start.
 
+> **Desktop playtest text only.** The screen text names PC keys: DESKTOP
+> PLAYTEST, PRESS ENTER TO START, ENTER BTNC / SPACE UART START, P OR SW0 DOWN
+> TO RESUME and P1 WASD / P2 ARROWS / P PAUSE. The Player keys are also the
+> desktop's swapped ones. This text is fine for the PC prototype but must not
+> go into the FPGA build. On the board, per [[CS-256 Tron Agreed Specification 2026-10-20#Start, Crash display, Pause and reset]],
+> Start is BTNC or Space/Enter on the UART controller, SW0 pauses, P1 steers
+> with the board's direction buttons and P2 uses WASD over UART. Board screen
+> text has not been designed. The strings are grouped in `DESKTOP_TEXT` in
+> `juego/screens.py`.
+
 These viewer screens add no game phases. They are built from opaque rectangles,
 monochrome 8×8 bitmap glyphs at integer scales and RGB444 colours. The title
 shading is one proposed 56 × 13-bit row LUT: a 12-bit colour plus a cut bit for

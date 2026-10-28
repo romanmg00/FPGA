@@ -56,6 +56,19 @@ GLYPHS = {
     "2": (14, 17, 1, 2, 4, 8, 31),
 }
 
+# DESKTOP PLAYTEST ONLY: these lines name PC keys (Enter, Space, P, WASD,
+# arrows) and the desktop's swapped Player keys. Do not copy them into the
+# FPGA build. On the board, per the agreed specification, Start is BTNC or
+# Space/Enter on the UART controller, SW0 pauses, P1 steers with the board's
+# direction buttons and P2 with WASD over UART. Board screen text is not
+# designed yet.
+DESKTOP_TEXT = {
+    "subtitle": "DESKTOP PLAYTEST",
+    "start": "PRESS ENTER TO START",
+    "start_keys": "ENTER BTNC   SPACE UART START",
+    "resume": "P OR SW0 DOWN TO RESUME",
+}
+
 # (y, scale) of each screen's title, and (y, height) of its neon band.
 WELCOME_TITLE = (104, 16)
 WELCOME_BAND = (616, 136)
@@ -148,15 +161,16 @@ class ScreenRenderer:
             dim(frame, self.arena)
             self._band(frame, *PAUSE_BAND, pal)
             self._title(frame, "PAUSED", *PAUSE_TITLE, pal)
-            self._line(frame, [("P OR SW0 DOWN TO RESUME", white)], 192, 2)
+            self._line(frame, [(DESKTOP_TEXT["resume"], white)], 192, 2)
             self._line(frame, [("GAME STATE HELD", halve(white))], 216, 2)
             return
         self._title(frame, "TRON", *WELCOME_TITLE, pal)
-        self._line(frame, [("DESKTOP PLAYTEST", pal["wall_line"])], 236, 2)
+        self._line(frame, [(DESKTOP_TEXT["subtitle"], pal["wall_line"])], 236, 2)
         y = WELCOME_BAND[0]
         self._band(frame, *WELCOME_BAND, pal)
         prompt = white if (video_frame // BLINK_FRAMES) % 2 == 0 else pal["wall_line"]
-        self._line(frame, [("PRESS ENTER TO START", prompt)], y + 22, 4)
-        self._line(frame, [("ENTER BTNC   SPACE UART START", white)], y + 74, 2)
+        self._line(frame, [(DESKTOP_TEXT["start"], prompt)], y + 22, 4)
+        self._line(frame, [(DESKTOP_TEXT["start_keys"], white)], y + 74, 2)
+        # Desktop playtest only, like DESKTOP_TEXT: desktop keys, Players swapped.
         self._line(frame, [("P1", p1), (" WASD   ", white), ("P2", p2),
                            (" ARROWS   P PAUSE", white)], y + 102, 2)

@@ -94,6 +94,11 @@ unverified hardware timing assumptions may change. Other interface questions
 remain open. The user also requested welcome and pause screens before further
 HDL design. These are desktop-viewer additions driven by existing model state,
 not a new Start press, countdown, game phase, or accepted FPGA screen design.
+Their text is desktop playtest text only: it names PC keys (Enter, Space, P,
+WASD, arrows) and the desktop's swapped Player keys. It must not be copied into
+the HDL. Board screen text, if any, still needs to be designed against the
+agreed controls: BTNC or UART Space/Enter for Start, SW0 for Pause, board
+direction buttons for P1 and UART WASD for P2.
 
 The user did
 authorize appearance integration, verification and push, followed by the ADR
