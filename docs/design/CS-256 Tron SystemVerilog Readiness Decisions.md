@@ -36,18 +36,41 @@ Keep the research's bridge, input, rendering and placement recommendations as
 proposals until the user selects their semantics and the relevant experiments
 provide evidence.
 
+[ADR 0003](../adr/0003-step-transaction-mailbox-and-render-codes.md) records
+Roman's selected READ2/COMMIT, mailbox, fast-clock, Crash-code, shown-Heading
+and prototype directions. It remains **proposed pending Alan's confirmation**.
+The interview must account for that recorded position rather than treating
+Roman's position as unknown. The mailbox's two-tick timing remains a model
+assumption and design target, subject to the stated evidence gate.
+
+## Appearance integration evidence
+
+On 28 October, commit `443555e` brought the previously reviewed synthwave
+startup change (`9a8a1f6`) onto `docs/systemverilog-readiness` and was pushed
+to origin before these documentation corrections. The full Python suite
+passed **72 tests**, including the scenario replays. A dummy-SDL smoke check
+rendered startup, running synthwave and core frames and exercised Start,
+preset/HUD changes, reset and clean exit through the desktop loop. Native
+sprite sizes, 16 px Cells, 64 px HUD band, six-tick cadence and absence of
+budget flags were checked. These are PC-model/viewer results, not hardware
+verification. The integration changed no model, scenarios, preserved PR2
+files or existing documentation under `docs/`.
+
 ## Decision tree
 
-The first round contains independent scope choices. Later questions depend on
-these answers and on the primary-source research; do not silently settle them.
+The initial round separates an outstanding model choice from staging already
+settled by the specification. Later questions depend on answers and research;
+do not silently settle them.
 
 - Q1, open: adopt `prototipos/tron_fpga/model/` as the shared rules-model base,
-  with both PC viewers consuming it, or select another base.
+  with both PC viewers consuming it, or select another base. ADR 0003 item 6
+  records Roman's preference for this prototype; Alan's confirmation remains open.
   - Then establish which model behavior is normative and which timing details
     remain proposals that may change with hardware evidence.
-- Q2, open: first HDL milestone implements the agreed core, with HUD and
-  synthwave extras staged later, or includes specified visual extras from the
-  start. The agreed final core scope remains unchanged.
+- Q2, settled by existing authority: implement the agreed core first, then the
+  HUD and visual extras, as specified in the locked specification's Scope and
+  tentative schedule section. The PC synthwave default does not revise FPGA
+  scope. Reopen this only if the user explicitly requests a staging change.
   - Then define the required render inputs, sprite assets, and milestone checks.
 - Research prerequisite, open: assess slow/fast command and response transfer,
   input transfer, reset/Pause handling, and service bounds.
@@ -64,8 +87,11 @@ these answers and on the primary-source research; do not silently settle them.
 
 ## Confirmed answers
 
-None yet. Record the user's answers here as they arrive. Distinguish Alan's
-chosen direction from team acceptance; do not infer Roman's agreement.
+Alan has not yet answered the model/interface design questions. The user did
+authorize appearance integration, verification and push, followed by the ADR
+wording corrections and resumption of the interview. That work authorization
+does not accept ADR 0003 or its proposed hardware choices. Record design answers
+here as they arrive and distinguish individual positions from team acceptance.
 
 ## Evidence needed after the interview
 
@@ -83,4 +109,6 @@ shared design. Record material architectural choices in ADR 0003 onward and
 reconcile the implementation contract. Keep any remaining proposal explicit.
 Define independent `.sv` testbenches, model/HDL scenario comparisons, and
 timing/CDC/DRC and board checks. Python tests alone cannot establish FPGA
-readiness. No HDL implementation or Git commit is part of this interview.
+readiness. Production HDL implementation remains outside this interview. The
+user separately authorized committing and pushing the appearance integration
+before the documentation corrections and further interview questions.
