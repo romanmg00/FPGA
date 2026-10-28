@@ -100,6 +100,19 @@ the HDL. Board screen text, if any, still needs to be designed against the
 agreed controls: BTNC or UART Space/Enter for Start, SW0 for Pause, board
 direction buttons for P1 and UART WASD for P2.
 
+Also on 28 October, Alan asked that the ADRs give a working prototype to
+develop on and adapt to hardware and testing evidence, rather than act as
+strict gates. He kept ADR 0003 item 2, the crossing, fully open, and asked for
+research on the other ADR 0003 items instead of a vote. Three research notes
+followed: [Step transaction and displayed Heading](CS-256%20Step%20Transaction%20and%20Displayed%20Heading%20Research.md),
+[fast clock](CS-256%20Fast%20Clock%20Domain%20Research.md) and
+[Crash code and Start while busy](CS-256%20Crash%20Code%20and%20Start%20While%20Busy%20Research.md).
+Their recommendations are recorded in ADR 0003 as proposed working defaults,
+and the workflow in the proposed [ADR 0005](../adr/0005-build-with-provisional-interfaces.md).
+Roman's agreement to both has not been recorded. How the display gets a
+consistent view of the Arena remains undecided; the board video prototype in
+`proyecto_final/` does not yet include Arena memory.
+
 The user did
 authorize appearance integration, verification and push, followed by the ADR
 wording corrections and resumption of the interview. That work authorization
