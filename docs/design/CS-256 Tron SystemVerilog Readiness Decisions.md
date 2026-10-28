@@ -36,13 +36,17 @@ Keep the research's bridge, input, rendering and placement recommendations as
 proposals until the user selects their semantics and the relevant experiments
 provide evidence.
 
-[ADR 0003](../adr/0003-step-transaction-mailbox-and-render-codes.md) records
-Roman's selected READ2/COMMIT, mailbox, fast-clock, Crash-code, shown-Heading
-and prototype directions. Its remaining choices are **proposed pending Alan's confirmation**;
-the shared-model base was separately accepted in [ADR 0004](../adr/0004-shared-headless-model-base.md).
-The interview must account for that recorded position rather than treating
-Roman's position as unknown. The mailbox's two-tick timing remains a model
-assumption and design target, subject to the stated evidence gate.
+**Historical position, before the 28 October revision:** on 27 October Roman
+reviewed the original [ADR 0003](../adr/0003-step-transaction-mailbox-and-render-codes.md)
+items and selected the READ2/COMMIT, mailbox, fast-clock, Crash-code,
+shown-Heading and prototype directions. Following Alan's request, ADR 0003 now
+records proposed working defaults, and Roman's agreement to that treatment is
+not yet recorded. The crossing remains fully open. The Python mailbox's
+two-tick response describes current model behavior; it is neither a selected
+HDL latency nor a required design target. The requirement is the agreed
+six-tick Step cadence, including service, response consumption, rearming and
+display publication. [ADR 0004](../adr/0004-shared-headless-model-base.md)
+separately accepts the shared-model base.
 
 ## Appearance integration evidence
 
