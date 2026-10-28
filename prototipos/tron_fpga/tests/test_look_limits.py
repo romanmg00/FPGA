@@ -38,7 +38,7 @@ def luminance(rgb):
 class Viewer:
     """An App driven tick by tick without a window."""
 
-    def __init__(self, preset="core", step_ticks=4):
+    def __init__(self, preset="classic", step_ticks=4):
         self.app = App()
         self.app.look = replace(self.app.look, **PRESETS[preset])
         self.app.rules = RuleParams(step_ticks=step_ticks, crash_ticks=40, fixed_seed=True)
@@ -129,7 +129,8 @@ class KeyboardAdapterTests(unittest.TestCase):
 
     def test_reset_drops_requests_queued_before_it(self):
         app = App()
-        inputs = self.events(app, pygame.K_SPACE, pygame.K_UP, pygame.K_BACKSPACE)
+        inputs = self.events(app, pygame.K_RETURN, pygame.K_w, pygame.K_UP,
+                             pygame.K_SPACE, pygame.K_BACKSPACE)
         self.assertEqual((inputs.btn, inputs.uart), ((), b""))
         for _ in range(5):
             app.game.tick(inputs)
@@ -139,16 +140,37 @@ class KeyboardAdapterTests(unittest.TestCase):
         app = App()
         inputs = self.events(app, pygame.K_UP, pygame.K_LEFT, pygame.K_a, pygame.K_w,
                              pygame.K_SPACE, pygame.K_RETURN)
-        self.assertEqual(inputs.btn, (BTN_OF[UP], BTN_OF[LEFT], 1 << 4))
-        self.assertEqual(inputs.uart, b"aw\r")
+        self.assertEqual(inputs.btn, (BTN_OF[LEFT], BTN_OF[UP], 1 << 4))
+        self.assertEqual(inputs.uart, b"wa ")
+
+    def test_enter_is_the_centre_board_button_and_space_is_uart_start(self):
+        app = App()
+        inputs = self.events(app, pygame.K_RETURN)
+        self.assertEqual((inputs.btn, inputs.uart), ((1 << 4,), b""))
+        inputs = self.events(app, pygame.K_SPACE)
+        self.assertEqual((inputs.btn, inputs.uart), ((), b" "))
+
+    def test_swapped_keys_steer_the_intended_players_through_the_model(self):
+        app = App()
+        app.game.tick(self.events(app, pygame.K_RETURN))
+        for _ in range(8):
+            app.game.tick(BoardInputs())
+        self.assertEqual(app.game.phase, PLAY)
+        app.game.tick(self.events(app, pygame.K_w, pygame.K_DOWN))
+        for _ in range(12):
+            app.game.tick(BoardInputs())
+        heads = app.game.snapshot()["heads"]
+        self.assertLess(heads[0][1], 27)   # WASD -> P1's button path
+        self.assertGreater(heads[1][1], 27)  # arrows -> P2's UART path
 
     def test_steering_and_start_while_paused_do_not_survive_resume(self):
         app = App()
         self.events(app, pygame.K_p)                              # pause
-        inputs = self.events(app, pygame.K_UP, pygame.K_w, pygame.K_SPACE, pygame.K_p)
+        inputs = self.events(app, pygame.K_UP, pygame.K_w, pygame.K_SPACE,
+                             pygame.K_RETURN, pygame.K_p)
         self.assertFalse(inputs.sw >> SW_PAUSE & 1)
         self.assertEqual((inputs.btn, inputs.uart), ((), b""))
-        inputs = self.events(app, pygame.K_UP)                    # after resuming
+        inputs = self.events(app, pygame.K_w)                     # after resuming
         self.assertEqual(inputs.btn, (BTN_OF[UP],))
 
     def test_style_changes_preserve_the_running_match_and_arena(self):
@@ -157,19 +179,20 @@ class KeyboardAdapterTests(unittest.TestCase):
         app._new_game()
         reference = Game(app.rules)
         game = app.game
+        frame = pygame.Surface((1280, 800), 0, 32)
         # Change the presentation during Play, then follow both games through
         # the same head-on Crash. Every tick must retain the reference state.
         for tick in range(135):
             if tick == 30:
                 self.assertEqual(game.phase, PLAY)
                 app.next_preset(1)
-                app.change_axis("H", 1)
-                app.change_axis("3", 1)
             if tick == 60:
                 app.next_preset(-1)
             inputs = BoardInputs.keys(start=(tick == 0))
             app.game.tick(inputs)
             reference.tick(inputs)
+            app.renderer.update_cells(app.game.grid)
+            app.renderer.draw(frame, app.game.snapshot())
             self.assertIs(app.game, game)
             self.assertEqual(app.game.snapshot(), reference.snapshot(), f"tick {tick}")
             self.assertEqual(app.game.grid.words, reference.grid.words, f"tick {tick}")
@@ -192,13 +215,30 @@ class FormatAndBudgetTests(unittest.TestCase):
         arena = next(r for r in app.checks()[0] if r.name.startswith("Arena"))
         self.assertEqual((arena.depth, arena.width), (8192, 4))
 
-    def test_core_preset_uses_no_extras(self):
+    def test_only_final_designs_and_temporary_classic_are_selectable(self):
         app = App()
-        app.next_preset(-1)                                     # synthwave -> core
-        self.assertEqual(app.preset, "core")
-        self.assertEqual(app.checks()[4], [])
-        self.assertEqual(app.look.hud, "off")                     # the HUD follows the core
-        self.assertFalse(any(r.name.startswith("Digit font") for r in app.checks()[0]))
+        self.assertEqual(app.preset, "classic")
+        self.assertEqual(set(PRESETS), {"classic", "synthwave", "outrun"})
+        self.assertEqual(set(PALETTES), {"classic", "synthwave", "outrun"})
+        seen = set()
+        for _ in range(3):
+            seen.add(app.preset)
+            self.assertEqual(app.look.hud, "on")
+            self.assertTrue(any(r.name.startswith("Digit font") for r in app.checks()[0]))
+            app.next_preset(1)
+        self.assertEqual(seen, set(PRESETS))
+        self.assertEqual(app.preset, "classic")
+        app.next_preset(-1)
+        self.assertEqual(app.preset, "outrun")
+
+    def test_removed_customization_keys_do_not_change_the_selected_design(self):
+        app = App()
+        look = app.look
+        pygame.event.clear()
+        for key in (pygame.K_1, pygame.K_3, pygame.K_h, pygame.K_b, pygame.K_c):
+            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=key, mod=0))
+        app._events()
+        self.assertEqual(app.look, look)
 
     def test_sprites_are_native_size_and_use_only_the_core_keys(self):
         app = App()

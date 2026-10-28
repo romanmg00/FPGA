@@ -26,11 +26,18 @@ With that environment activated on Linux/macOS, use `python -m juego` in each
 folder. See the [newer game's setup guide](tron_fpga/README.md#quick-start) to
 create the environment and install dependencies.
 
-Click a window to control it: **Space/Enter** starts, **arrows** control P1,
-**WASD** control P2, **P** pauses, and **Esc** quits. The games have independent
-state. Both games start with the synthwave appearance. The newer one retains the
-agreed layout and rules, and omits the older sprites' legacy glow key. In the
-newer game, **Shift+M** selects the plain `core` view from startup. **M** cycles presets.
+Click a window to control it. The preserved PR #2 game keeps **P1 arrows / P2 WASD**
+and its synthwave startup. The newer game temporarily uses **P1 WASD / P2 arrows**
+for desktop testing; **Enter** simulates BTNC and **Space** simulates UART Start.
+The newer game's FPGA ownership remains P1=board buttons, P2=browser UART.
+In both games **Space/Enter** starts, **P** pauses, and **Esc** quits.
+
+The newer game starts in **classic (TEST ONLY)** while programming. **M / Shift+M**
+cycles classic and the two **final visual designs, synthwave and outrun**.
+All three include the HUD; the core preset and individual customization controls
+are removed. The diagnostic panel labels the test settings and board-button
+equivalents. The newer game retains the agreed layout and rules and omits the
+older sprites' legacy glow key. Each game has independent state.
 
 The older source is pinned to PR #2 merge `0a8ef4bbafcdf09db847bcc7f966acf2249582eb`.
 Its art is preserved in `assets/tron-pr2/`, independent of the newer assets.

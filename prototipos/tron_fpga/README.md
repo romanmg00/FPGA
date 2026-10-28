@@ -7,9 +7,11 @@ For the preserved PR #2 game, see [the comparison guide](../README.md).
 
 `tron_fpga` is a PC version of the game built around the planned Nexys A7 hardware. `model/` is written as the HDL blocks it stands for (see [Game Model](#game-model)). The game-clock domain holds the Turn and Step units, Round/Match control and scoring. The fast domain holds the Arena memory and its controller with Reward placement, and the input capture. A mailbox connects the two, and the Scoreboard has parts in both domains. The viewer package `juego/` draws 1280 × 800 frames in RGB444 with ROM-style sprites and fonts, and estimates block RAM use. The Reward LFSR is the prototype's own candidate: the agreement leaves the generator, its seed and its placement schedule to be selected, so the HDL should not copy it until that decision is made. The folder was imported as `prototipos/look/` and renamed on 20 October 2026; "Look Prototype" remains the name of its L1 objective in the Development Plan.
 
-The viewer starts on the `synthwave` style preset to bring back the preserved PR #2 appearance: sunset and stars, neon grid and Walls, pulsing Trails and Rewards, synth Bikes, neon HUD, Crash rings/flash and scanlines. It keeps the current model, agreed 16 px Cells, native 32 px Bikes and 16 px Rewards, 64 px HUD band and white border. The old sprite halos are omitted because their `080` dim-tint key is excluded from the agreed sprite format.
+**Desktop playtest settings:** the viewer starts in `classic`, a **temporary programming/test view**, with the HUD and diagnostic panel visible. The final visual designs are **`synthwave` and `outrun`**, marked **FINAL DESIGN** in the panel. Classic is marked **TEST ONLY**. The `core` preset and the `softer`/`strong` palettes have been removed from this viewer.
 
-This is a PC presentation choice. Those effects and the HUD remain extras after the FPGA core; it does not expand the agreed implementation scope. **Shift+M** selects `core` directly from startup for the plain core view. **M** cycles all four styles without restarting the Match.
+**M / Shift+M** cycles complete designs: `classic` → `synthwave` → `outrun`, forwards/backwards without restarting the Match. Individual palette/art/effect cycling and HUD hiding are disabled so the selected designs stay intact. All three views show the HUD. Synthwave retains the PR #2 sunset/neon appearance; outrun uses its star background and racer Bikes. The old sprite halos are omitted because their `080` dim-tint key is excluded from the agreed sprite format.
+
+These are PC-viewer design selections and temporary test settings, not claims of implemented FPGA graphics. The agreed model, 16 px Cells, native 32 px Bikes and 16 px Rewards, 64 px HUD band, white border, and FPGA core-first staging remain unchanged. The gameplay core is still part of the project; only the viewer preset named `core` was removed.
 
 ## Quick start
 
@@ -69,13 +71,13 @@ Launch the package with `-m juego`; running `juego/app.py` directly does not set
 
 1. Click the game window so it receives keyboard input.
 2. Press **T** to choose the Points Goal if you want more than 10. It stands in for `{SW15, SW14}` and applies from the next Match.
-3. Press **Space** (the board's BTNC) or **Enter** (the browser controller's Start byte) to start. One press prepares the Arena, both Bikes and three Rewards, then releases the first Round.
-4. Player 1 uses the **arrow keys** (the board's direction buttons); Player 2 uses **W/A/S/D** (the browser UART controller). Bikes move automatically; these keys request Turns. As in the hardware design, a key reaches the game two game-clock ticks (about 33 ms) after it is pressed.
+3. Press **Enter** (simulated board BTNC) or **Space** (simulated UART Start byte `0x20`) to start. One press prepares the Arena, both Bikes and three Rewards, then releases the first Round.
+4. For **desktop testing only**, Player 1 uses **W/A/S/D**, which produces P1 board-button samples; Player 2 uses the **arrow keys**, which produces P2 UART direction bytes. Bikes move automatically; these keys request Turns. The prototype models two game-clock ticks of input delay (about 33 ms); actual hardware crossing timing still needs verification.
 5. Avoid Walls, Trails and the other Bike, and collect Rewards for Points. After a Crash, the crashed Bike blinks for about 2 seconds. Then press **Space** or **Enter** to start the next Round.
 6. The first Player to reach the Points Goal wins; otherwise, losing the last of three Lives loses. Press **Space** or **Enter** after the Match to start a new one.
 7. Press **P** to pause (`SW0`), **Backspace** to reset (`CPU_RESETN`), or **Esc** to quit. In fullscreen, the first **Esc** returns to windowed mode.
 
-The side panel shows the phase, Points, Lives, the Points Goal and the eight Scoreboard digits. The default `synthwave` preset also shows the on-screen HUD; press **H** to hide it. The `core` preset has no on-screen HUD, because the agreement puts it after the core. **Tab** cycles the panel's pages or hides it, **M** changes the style preset, and **F11** toggles fullscreen. The complete controls are below.
+The side panel shows the phase, Points, Lives, the Points Goal, the eight Scoreboard digits, the design's final/test-only status and the desktop-to-hardware input mapping. **Tab** cycles the panel's pages or hides it, **M** changes the design, and **F11** toggles fullscreen. The in-game HUD remains visible in every design. The complete controls are below.
 
 ## Troubleshooting
 
@@ -98,7 +100,7 @@ python -m unittest discover -s tests
 
 `tests/test_scenarios.py` replays the 12 M2 scenarios in `scenarios/` and compares each with its expected Step log; see [Scenarios and Step logs](#scenarios-and-step-logs).
 
-`tests/test_look_limits.py` runs headless. It checks sampled frames from every preset for RGB444 and the handout's white border, including Crash frames and Bikes on the edge Cells, which overlap the border by 2 px. It also checks that pulse stripes are clearly brighter than both Player Trails, and that every preset fits the BRAM and Arena-clear budgets. Keyboard tests check how keys become button samples and UART bytes, that reset drops keys pressed before it in the same frame, and that Turns and Start pressed during Pause are dropped. Changing styles, HUD visibility and palette during Play must preserve the Match state and Arena contents tick by tick against the headless model. Sprites must be at their native size and use only the core keys.
+`tests/test_look_limits.py` runs headless. It checks sampled frames from every preset for RGB444 and the handout's white border, including Crash frames and Bikes on the edge Cells, which overlap the border by 2 px. It also checks that pulse stripes are clearly brighter than both Player Trails, and that every preset fits the BRAM and Arena-clear budgets. Keyboard tests check the desktop-only player swap through both input paths and actual model movement, Enter as BTNC, Space as UART Start, reset dropping earlier keys in the same frame, and Turns/Start being dropped during Pause. Design cycling and drawing during Play must preserve Match state and Arena contents tick by tick against a separate headless model. All selectable designs retain the HUD, and removed customization keys cannot alter them. Sprites must be at their native size and use only the core keys.
 
 ## Scenarios and Step logs
 
@@ -118,42 +120,36 @@ python -m scenarios.build        # regenerate all scenarios and logs (about 20 s
 
 | Key | Action |
 |---|---|
-| Arrows | P1 Turn requests (board buttons) |
-| W / A / S / D | P2 Turn requests (browser UART controller) |
-| Space / Enter | Start: Space is BTNC, Enter the UART byte `0x0D` |
+| W / A / S / D | P1 Turn requests, simulated board buttons (desktop-only key swap) |
+| Arrows | P2 Turn requests, simulated UART direction bytes (desktop-only key swap) |
+| Enter | Start: simulated board BTNC |
+| Space | Start: simulated UART byte `0x20` |
 | P | Toggle the Pause switch `SW0`; Turns and Start pressed while paused are dropped |
 | T | Step the Points Goal switches `{SW15, SW14}`: 10, 20, 30, 40; applies at the next new Match |
 | Backspace | Reset (`CPU_RESETN`): back to waiting for Start; keys pressed earlier in the same frame are dropped |
-| H | Show or hide the on-screen HUD (an extra, after the core) |
 | `[` / `]` | More / fewer game-clock ticks per Step (slower / faster), 4–30, from the next Step; the agreed value is 6, and 4 is the shortest Step the READ2/COMMIT round trip allows |
 | G | Toggle the debug Cell overlay |
-| M / Shift+M | Next / previous style preset: `core`, `synthwave`, `outrun`, `classic` |
+| M / Shift+M | Next / previous design: `classic` (TEST ONLY), `synthwave` and `outrun` (FINAL DESIGN) |
 | Tab | Cycle the panel in windowed mode: look page, BRAM page, effects page, hidden |
 | F11 | Toggle fullscreen; 1:1 on the 1280 × 800 lab monitor, integer enlargement on larger displays |
 | F12 | Save the game image to `prototipos/tron_fpga/out/`, without the panel or debug overlay |
 | Esc | Leave fullscreen, or quit in windowed mode |
 
-Candidate keys cycle forward; hold Shift to go back. The panel shows each axis by its field name, shortened to fit. The first choice of each axis is the core look; the others are extras.
+### Hardware input equivalents
 
-| Key | Axis | Choices |
+The directional button names are **BTNU** (up), **BTND** (down), **BTNL** (left), **BTNR** (right), and **BTNC** (centre/Start). Their spatial layout matches the arrow directions. The temporary desktop bindings are:
+
+| Direction | P1 desktop key → board event | P2 desktop key → UART byte |
 |---|---|---|
-| 1 | Bike style (`bike_style`) | `cycle`, `arrow`, `racer`, `synth`, then any `png:<name>` found in the root `assets/` |
-| 2 | Reward look (`reward_look`) | `gem+star` (+1 gem, +3 star), `gem`, `orb`, `neon` (neon gem and star) |
-| 3 | Palette (`palette`) | `synthwave`, `outrun`, `classic`, `softer`, `strong` |
-| 4 | Trail look (`trail`) | `full`, `inset`, `core`, `neon`, `pulse` |
-| 5 | Grid lines (`grid`) | `off`, `32px`, `cell`, `neon`, `floor` |
-| H | On-screen HUD (`hud`) | `off`, `on` |
-| F | Digit font (`font`) | `seg`, `block`, `neon`, `chrome` |
-| B | Background (`bg`) | `plain`, `sky`, `stars`, `sunset` |
-| N | Wall look (`wall`) | `flat`, `neon` |
-| R | Reward animation (`reward_anim`) | `still`, `pulse`, `spin` |
-| X | Crash effect (`crash`) | `blink`, `ring`, `ring+flash` |
-| C | CRT effect (`crt`) | `off`, `scanlines` |
-| V | Bike effects (`bike_fx`) | `none`, `streaks` |
+| Up | W → BTNU | ↑ → `w` |
+| Down | S → BTND | ↓ → `s` |
+| Left | A → BTNL | ← → `a` |
+| Right | D → BTNR | → → `d` |
+| Start | Enter → BTNC | Space → `0x20` |
 
-The `core` preset uses the `classic` palette and the first choice of every other axis. `synthwave` pairs `synth` Bikes with neon effects, `outrun` pairs `racer` Bikes with `streaks`, and `classic` adds 32 px grid lines and the HUD to the core look. The three non-core presets show the HUD. Geometry is not a candidate: Cells, sprite sizes, the HUD band and the start Cells are the agreed working layout in `model/params.py`. Changing a look axis redraws the current state.
+**FPGA ownership is unchanged:** P1 uses the real board buttons; P2 uses browser W/A/S/D over UART. The arrow keys stand in for P2's UART controller only in this desktop test setup. The model still accepts UART Enter `0x0D` from the browser, even though desktop Enter now simulates BTNC. Buttons are already-debounced samples here; electrical debounce and UART bit timing are not simulated by desktop keys.
 
-The renderer's frame counter drives animation. `fx.phase` selects four phases of eight frames each. Changing any look axis or preset rebuilds the renderer and restarts animation. Pause freezes the game state, including the Crash display; ambient animation and the Scoreboard view keep running.
+The renderer's frame counter drives animation. `fx.phase` selects four phases of eight frames each. Changing a design rebuilds the renderer and restarts animation. Pause freezes game state, including the Crash display; ambient animation and the Scoreboard view keep running.
 
 See [Performance and hardware tracking](#performance-and-hardware-tracking) for measured frame times and renderer rebuild costs.
 
@@ -188,7 +184,7 @@ The legacy candidate checks are in [[CS-256 Tron Development Plan#Historical lim
 | 5: pixel position and state, fixed layers | The renderer models sky → stars → sun → grid lines → Walls → HUD band → Trails → Rewards → Bikes → crash ring → HUD (when shown) → 10 px white border. The border is on top, so a 32 px Bike centred on an edge Cell does not cover it. A final colour stage applies crash flash, then scanlines, skipping the border, then outputs RGB444. PC surfaces cache the drawing; the HDL uses no framebuffer. |
 | 6: BRAM and Arena-clear budget | Live estimates cover two Bike ROMs, each distinct Reward ROM, the 8192 × 4-bit Arena, the digit font and HUD icons when the HUD is shown, and effect tables from `fx.lut_items`. Arena clear assumes one write per pixel clock over all 8192 words. |
 
-BRAM counts use RAMB18 halves: 270 halves = 135 RAMB36 blocks = 4,860 Kb on the XC7A100T. Rows show instance counts, total bits in Kb and estimated halves. `LUT?` marks ROMs of at most 2,048 bits per instance that may use LUTs instead. These are estimates; the Block Memory Generator summary and synthesis report decide the actual mapping. The `core` preset, without the HUD, estimates 6 halves (2.2%).
+BRAM counts use RAMB18 halves: 270 halves = 135 RAMB36 blocks = 4,860 Kb on the XC7A100T. Rows show instance counts, total bits in Kb and estimated halves. `LUT?` marks ROMs of at most 2,048 bits per instance that may use LUTs instead. These are estimates; the Block Memory Generator summary and synthesis report decide the actual mapping. All current viewer designs include the digit font and HUD icons in their estimates.
 
 Arena clear is compared with 47,040 pixel clocks of vertical blanking: 28 lines × 1,680 clocks at 83.46 MHz, or 563.6 µs. At 16 px Cells the 8192-word clear takes about 98.2 µs. The panel lists anything that breaks the agreed sprite format or these budgets under *Outside the agreed format or limits*, and notes the number of extras in use. A worst-case Reward placement is estimated at about 123 µs (246 µs for two); see [[CS-256 Tron Development Plan#Open items]]. These figures are idealized and do not prove a feasible HDL service schedule.
 
@@ -226,7 +222,7 @@ The neon digit ghost is the union of the segment rectangles, using comparators o
 
 From the repository root, `python tools/make_candidate_art.py` writes the generated art at its native size into `assets/candidates/`: `bike-<style>-32.png` and `reward-<look>-16.png`. It keeps existing files; `--force` overwrites them. An edited PNG with the same name replaces generated art when the viewer next loads it. Restart the viewer after editing because ROMs are cached. Older 16/64 px Bike and 4/8/32 px Reward files in that folder are no longer loaded, and some still contain the legacy `080` key.
 
-Any `assets/bike-<name>.png` appears as Bike style `png:<name>` on restart. It must be 32 × 32; other sizes are flagged in the panel.
+The sprite library still supports `assets/bike-<name>.png` for development checks, but custom Bike styles are no longer exposed in the viewer's selected designs. Such art must be 32 × 32; other sizes are flagged by the library checks.
 
 Art must be square and point UP. The viewer converts PNG channels to RGB444: black `000` is transparent, green `0F0` is the Player/Reward tint key, and `111` gives visible black. In PNG RGB bytes these are `#000000`, `#00FF00` and `#111111`. The loader keeps the top four bits of each channel and treats alpha below 128 as transparent. Do not rely on partial alpha. There is no `080` dim key: a `#008800` pixel is drawn as dark green. The selected target uses native RGB444 `.coe` sprites; the planned L3 conversion/check is unfinished, and this viewer reads PNG rather than `.coe` files.
 
