@@ -26,6 +26,12 @@ On 28 October Alan asked for the technical items to be researched rather than de
 
 ## Working defaults
 
+**Cadence revision, 29 October 2026:** accepted [ADR 0006](0006-configurable-step-interval.md)
+replaces the six-tick selection deadline in items 1 and 2 with a fixed,
+configurable interval selected through hardware verification and playtesting,
+initially evaluating eight to ten game ticks. Other working defaults remain
+proposed; existing model timing below describes implementation, not the new policy.
+
 1. **Step transaction.** A Step reads both target Cells (READ2), resolves the outcome in the game clock domain with a combinational `step_resolve`, then writes the result (COMMIT). Both targets are read before either is written, so the Bikes move simultaneously and Head-on Crashes (same Cell or swap) need no priority. The resolver does not depend on the crossing; HDL tests drive it through a bridge with controllable delay.
    *Change if* a phase-swept service test shows that READ2 and COMMIT cannot finish and rearm within the agreed 6-tick Step. First improve the scheduling; then try one atomic Step in the fast domain that keeps the same resolver and game-domain scoring. Player priority is never the fix. Research: [[CS-256 Step Transaction and Displayed Heading Research#Item 1 — Step transaction]].
 2. **Mailbox crossing: fully open.** No protocol, port set, capture scheme, outstanding-command limit or response latency is selected. The Python model's stable-payload mailbox (one command outstanding, a `seq` number per command, 2 game ticks per command and for inputs, so a shortest Step of 4 ticks) stays as a replaceable model mechanism. These are model timings, not CDC safety or measured latency. Choose a crossing against the composed service and display schedule; it must sustain the agreed 6-tick Step, including reset, Pause, rearming and coherent publication.
