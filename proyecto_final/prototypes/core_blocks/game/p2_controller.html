@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- P2 controller for the Tron board build: sends W A S D, Space and Enter over
+     USB-UART at 115200 8N1 using Web Serial (Chrome or Edge, desktop).
+     PROVISIONAL test page; the contract's web page is Alan's (section 4).
+     The FPGA decodes w/a/s/d in either case as P2 Turns and 0x20/0x0D as Start
+     (uart_cmd_decode.sv); every other byte is ignored. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tron P2 controller</title>
+<style>
+  body { font: 16px system-ui, sans-serif; background: #111; color: #eee; margin: 2rem; }
+  button { font-size: 1rem; padding: .5rem 1rem; }
+  #status { margin: 1rem 0; color: #fa0; }
+  #log { font-family: monospace; color: #8cf; }
+  kbd { border: 1px solid #666; border-radius: 4px; padding: 0 .4em; }
+</style>
+</head>
+<body>
+<h1>Tron: P2 (orange)</h1>
+<p><button id="connect">Connect to the Nexys A7</button></p>
+<p id="status">Not connected. Choose the board's USB serial port.</p>
+<p>Keep this tab focused. <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> turn P2;
+<kbd>Space</kbd> or <kbd>Enter</kbd> is Start (for either Player).</p>
+<p id="log"></p>
+<script>
+const KEYS = { w: "w", a: "a", s: "s", d: "d", " ": " ", Enter: "\r" };
+let writer = null;
+const status = document.getElementById("status");
+const log = document.getElementById("log");
+
+document.getElementById("connect").addEventListener("click", async () => {
+  if (!("serial" in navigator)) { status.textContent = "This browser has no Web Serial; use Chrome or Edge."; return; }
+  try {
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: "none" });
+    writer = port.writable.getWriter();
+    status.textContent = "Connected.";
+  } catch (e) { status.textContent = "Could not open the port: " + e.message; }
+});
+
+document.addEventListener("keydown", async (ev) => {
+  const key = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key;
+  if (!(key in KEYS) || ev.repeat) return;
+  ev.preventDefault();
+  if (!writer) { status.textContent = "Connect first."; return; }
+  await writer.write(new TextEncoder().encode(KEYS[key]));
+  log.textContent = ("sent " + JSON.stringify(KEYS[key]) + "  " + log.textContent).slice(0, 120);
+});
+</script>
+</body>
+</html>

@@ -60,6 +60,7 @@ Wizard; en la tarjeta se probaron también las paredes y el reset repetido.
 
 ## Archivos
 
+- `prototypes/core_blocks/`: [bloques básicos y núcleo jugable provisionales](prototypes/core_blocks/README.md) (29 oct 2026). Pruebas por bloque, comparación con los 12 escenarios M2 del modelo y un bitstream `tron_top`; falta probarlo en la tarjeta. No seleccionan interfaces (ADR 0005). Usan su propia copia de `vga_out` con salidas combinacionales (`video/vga_out.sv`), que todavía no es la de `game_top`.
 - `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasa las pruebas de XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
 - `game_top.sv`: tope del diseño. Conecta el Clocking Wizard, el contador de `clk_juego`, los sincronizadores y los bloques de abajo
 - `position_logic.sv`: posición del bloque, en `clk_juego`

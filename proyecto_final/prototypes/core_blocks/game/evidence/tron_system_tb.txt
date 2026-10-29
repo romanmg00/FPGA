@@ -1,0 +1,55 @@
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+source xsim.dir/tron_system_tb/xsim_script.tcl
+Time resolution is 1 ps
+run -all
+ok: border pixel (5,5) white
+ok: border pixel (1275,400) white
+ok: Wall row cy=4 drawn
+ok: Wall row cy=49 drawn (above the border)
+ok: no Bike before Start
+ok: G_IDLE after reset
+ok: idle Scoreboard shows P200P100
+ok: phase 1 reached within 20 ticks
+ok: paused
+ok: 3 Steps taken
+ok: P1 moved right to (23,27)
+ok: P2 moved left to (56,27)
+ok: Pause freezes the Bikes
+ok: P1 sprite row at (23,27) heading 1: 32/32 opaque texels
+ok: P2 sprite row at (56,27) heading 3: 32/32 opaque texels
+ok: P1 start Cell is now Trail
+ok: P2 start Cell is now Trail
+ok: +3 Reward sprite row: 8/8 opaque texels
+ok: Scoreboard shows P200P100
+ok: running again
+ok: paused
+ok: P1 turned Up, now (24,24)
+ok: P2 turned Down, now (55,30)
+ok: P1 after the Turn sprite row at (24,24) heading 0: 14/14 opaque texels
+ok: P2 after the Turn sprite row at (55,30) heading 2: 14/14 opaque texels
+ok: running again
+ok: phase 2 reached within 180 ticks
+ok: only P2 Crashed
+ok: P2 lost one Life
+ok: P1 got the +3 Survival Bonus (Points 3)
+ok: P2 stays on its last valid Cell
+ok: paused
+ok: P2 Crash Cell: blinking sprite over its Crash Cell (f80)
+ok: Scoreboard shows L202L103
+ok: running again
+ok: phase 3 reached within 140 ticks
+ok: paused
+ok: next Round: P1 on its start Cell sprite row at (20,27) heading 1: 32/32 opaque texels
+ok: next Round: P2 on its start Cell sprite row at (59,27) heading 3: 32/32 opaque texels
+ok: old Crash Cell cleared
+ok: running again
+ok: phase 1 reached within 20 ticks
+ok: no late publish, no Step overrun
+PASS tron_system_tb
+$finish called at time : 304561269 ns : File "/builds/core-tron_system_tb-20261029-122759-880512/src/prototypes/core_blocks/game/tron_system_tb.sv" Line 260
+run: Time (s): cpu = 00:00:00.13 ; elapsed = 00:01:03 . Memory (MB): peak = 1386.219 ; gain = 8.004 ; free physical = 91136 ; free virtual = 124713
+exit
+INFO: xsimkernel Simulation Memory Usage: 286552 KB (Peak: 335112 KB), Simulation CPU Usage: 63920 ms
+INFO: [Common 17-206] Exiting xsim at Thu Oct 29 09:29:13 2026...
+/home/alan/.local/share/cs256-vivado/builds/core-tron_system_tb-20261029-122759-880512

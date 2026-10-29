@@ -1,0 +1,12 @@
+01-walls
+02-own-trail
+03-other-trail
+04-head-on-same-cell
+05-head-on-swap
+06-reversal-ignored
+07-two-inputs
+08-reward-respawn
+09-goal
+10-both-last-life
+11-new-match
+12-long-random

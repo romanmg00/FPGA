@@ -1,0 +1,12 @@
+01-walls.hdl.log: MATCH match: 91 lines
+02-own-trail.hdl.log: MATCH match: 5 lines
+03-other-trail.hdl.log: MATCH match: 27 lines
+04-head-on-same-cell.hdl.log: MATCH match: 20 lines
+05-head-on-swap.hdl.log: MATCH match: 21 lines
+06-reversal-ignored.hdl.log: MATCH match: 39 lines
+07-two-inputs.hdl.log: MATCH match: 29 lines
+08-reward-respawn.hdl.log: MATCH match: 47 lines
+09-goal.hdl.log: MATCH match: 1621 lines
+10-both-last-life.hdl.log: MATCH match: 63 lines
+11-new-match.hdl.log: MATCH match: 86 lines
+12-long-random.hdl.log: MATCH match: 1212 lines

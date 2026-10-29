@@ -1,0 +1,56 @@
+REPLAYED 01-walls ticks=1040
+REPLAYED 02-own-trail ticks=41
+REPLAYED 03-other-trail ticks=173
+REPLAYED 04-head-on-same-cell ticks=131
+REPLAYED 05-head-on-swap ticks=137
+REPLAYED 06-reversal-ignored ticks=245
+REPLAYED 07-two-inputs ticks=185
+REPLAYED 08-reward-respawn ticks=293
+REPLAYED 09-goal ticks=10226
+REPLAYED 10-both-last-life ticks=751
+REPLAYED 11-new-match ticks=892
+REPLAYED 12-long-random ticks=20011
+SUMMARY scenarios=12 log_lines=3261 N=16384 PHASE=7 WINDOW=12000
+PASS game_tb
+RESULT: PASS game_tb
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-032035-762877
+MATCH 01-walls                 match: 91 lines
+MATCH 02-own-trail             match: 5 lines
+MATCH 03-other-trail           match: 27 lines
+MATCH 04-head-on-same-cell     match: 20 lines
+MATCH 05-head-on-swap          match: 21 lines
+MATCH 06-reversal-ignored      match: 39 lines
+MATCH 07-two-inputs            match: 29 lines
+MATCH 08-reward-respawn        match: 47 lines
+MATCH 09-goal                  match: 1621 lines
+MATCH 10-both-last-life        match: 63 lines
+MATCH 11-new-match             match: 86 lines
+MATCH 12-long-random           match: 1212 lines
+REPLAYED 01-walls ticks=1040
+REPLAYED 02-own-trail ticks=41
+REPLAYED 03-other-trail ticks=173
+REPLAYED 04-head-on-same-cell ticks=131
+REPLAYED 05-head-on-swap ticks=137
+REPLAYED 06-reversal-ignored ticks=245
+REPLAYED 07-two-inputs ticks=185
+REPLAYED 08-reward-respawn ticks=293
+REPLAYED 09-goal ticks=10226
+REPLAYED 10-both-last-life ticks=751
+REPLAYED 11-new-match ticks=892
+REPLAYED 12-long-random ticks=20011
+SUMMARY scenarios=12 log_lines=3261 N=12000 PHASE=1 WINDOW=11000
+PASS game_tb
+RESULT: PASS game_tb
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-032035-762880
+MATCH 01-walls                 match: 91 lines
+MATCH 02-own-trail             match: 5 lines
+MATCH 03-other-trail           match: 27 lines
+MATCH 04-head-on-same-cell     match: 20 lines
+MATCH 05-head-on-swap          match: 21 lines
+MATCH 06-reversal-ignored      match: 39 lines
+MATCH 07-two-inputs            match: 29 lines
+MATCH 08-reward-respawn        match: 47 lines
+MATCH 09-goal                  match: 1621 lines
+MATCH 10-both-last-life        match: 63 lines
+MATCH 11-new-match             match: 86 lines
+MATCH 12-long-random           match: 1212 lines

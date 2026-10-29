@@ -1,0 +1,256 @@
+# Playable Tron core on the Nexys A7: provisional evidence, 29 October 2026
+
+Built by the orchestrator (Claude Opus 5.5) after the GPT-6.1 Sol builders hit
+their usage limit. Everything here is **provisional** under
+[ADR 0005](../../../../docs/adr/0005-build-with-provisional-interfaces.md)
+(proposed): it follows the working defaults of
+[ADR 0003](../../../../docs/adr/0003-step-transaction-mailbox-and-render-codes.md),
+and copies the model's choices where the agreement leaves the design open.
+Passing these benches and builds is **evidence**, not team agreement. The
+testbenches are the builder's checks, not the official other-owner benches of
+contract §7.
+
+**Status:** the core scope of the README's *Núcleo* is built and verified in
+simulation, and its bitstream meets routed timing. Not yet run on the board;
+section 5 is that check.
+
+## 1. What was built
+
+The full core game: movement, Turns with one Pending Turn, permanent Trails,
+Wall/Trail/Bike Crashes and Head-on draws, Rounds and Lives, three Rewards
+(+1, +1, +3) with replacement, the Survival Bonus, the Points Goal from
+`{SW15, SW14}`, Start from BTNC or UART Space/Enter, Pause on SW0, `CPU_RESETN`,
+the alternating 7-segment Scoreboard, and the VGA picture. The picture has
+**sprites from ROM**: 32 × 32 Bikes rotated by address and centred on their
+head Cells, 16 × 16 Rewards, a blinking crashed Bike, HUD Points bars and
+Lives squares, and the 10 px white border.
+
+| File | Domain | Owner (contract §4) | What it is |
+|---|---|---|---|
+| `game_core.sv` | `clk_juego` | Alan (match_ctrl, score) + Roman (Turns, Step) | `Game._game_edge` of `model/game_top.py`, register by register. Reuses `step/turn_unit`, `step/next_cell`, `step/step_resolve`, `score/score_unit`, `io/seg7_page` |
+| `arena_svc.sv` | `clk_pix` | Alan (A2, G4) | Only writer of `arena/arena_map` port A: CLEAR at reset, PREPARE, READ2, COMMIT (code 6 at a crashed head, ADR 0003 item 4), and the model's Reward search (32-bit LFSR, taps 31/21/1/0, 32 shifts per draw in one cycle, 64 draws, then a wrapping scan) |
+| `fast_core.sv` | `clk_pix` | Alan | Fast side of the mailbox, the input batch (axis latches gated by the snapshot phase) and the render/Scoreboard snapshot, including the displayed Headings |
+| `sprite_rom.sv` | `clk_pix` | Roman (sprite_rom) | One RGB444 ROM, 2-cycle read latency, initialized from the `.mem` twin of a `.coe` |
+| `drawcon_game.sv` | `clk_pix` | Roman (drawcon) | Design Plan Decision B: composes from the current `curr_x`/`curr_y`, and reads the Arena 1 position ahead and the sprite ROMs 2 positions ahead, from a full raster advance with line and frame wrap. Bike positions and Headings are latched once per frame, in vertical blanking |
+| `sprites/` | — | Roman (art) | `bike-synth-32`, `reward-neon-gem-16` (+1), `reward-neon-star-16` (+3): the synthwave final design's art, as `.coe` and `.mem`, made by `tools/png2coe.py` |
+| `reset_stretch.sv` | base clock | Alan | Holds the reset request for six game periods, so both domains reset together (review F7) |
+| `tron_system.sv` | both | Alan (game_top) | Everything below the clocks: debounce, UART receive and decode, the two cores, drawcon, `vga_out`, `seg7_driver`, debug LEDs |
+| `tron_top.sv`, `tron_top.xdc` | — | Alan | Two Clocking Wizards, `video/game_clk_div`, reset synchronizers, contract §2 pins plus `dp` |
+| `p2_controller.html` | host | Alan (web page) | Web Serial page: W A S D, Space, Enter at 115200 8N1 |
+
+Also reused: `proyecto_final/vga_out.sv` and `counters.sv` (Roman's, fixed as
+below), `prototypes/uart_input/uart_sync_2ff.sv`, `uart_rx.sv`,
+`uart_cmd_decode.sv`, `board/board_reset_sync.sv`, `io/btn_debounce.sv`,
+`io/seg7_driver.sv`.
+
+### Changes to existing code (29 October, at Alan's request)
+
+- **Roman's `vga_out.sv`.** It now drives `hsync`, `vsync` and `pix_*` with
+  assignments from the counters, as the handout does, so `curr_x`/`curr_y`
+  name the pixel on the pins in the same cycle (Decision B). Before, the
+  outputs were registered, so the pins showed each coordinate one cycle later
+  (`video/FINDINGS.md`).
+- **Roman's `vga_out_tb.sv`.** It prints `PASS vga_out_tb` or calls `$fatal`,
+  and compares the pixel in the same cycle. **`counters_tb.sv`** declares the
+  11-bit `vcnt` agreed on 26 October.
+- **`video/vga_out_check_tb.sv`.** It now checks everything against the
+  current raster; before, it mixed two contradictory references.
+- **`score/score_unit.sv`.** Reset loads Lives 3, so the idle Scoreboard shows
+  `L203L103` like the model's idle view. `score_directed_tb` was updated to
+  match.
+
+### The provisional crossing
+
+ADR 0003 item 2 is open. This build uses the model's **stable-payload mailbox**
+(`model/mailbox.py`), the mechanism the Step logs were generated with:
+
+- **Game to fast.** `game_core` changes `cmd_*` and the snapshot only on a
+  `clk_juego` edge and toggles `tick_tgl` on the same edge. `fast_core`
+  synchronizes `tick_tgl` with a 2-FF and latches the buses one cycle after
+  the synchronized edge (`tick_seen`). Each path is bounded at one `clk_pix`
+  period.
+- **Fast to game.** `rsp_*` and `batch_*` change only on `tick_seen`, or when a
+  command finishes within `WINDOW` cycles of it (2^18, about 3.1 ms). A
+  command that overruns publishes at the next `tick_seen` and lights LED 4.
+  `game_core` registers each bus once per edge, about 16.7 ms after it last
+  changed, and only uses the register at the following edge. So a command
+  issued at edge k is answered at k + 2, as in the model. A capture register
+  that did go metastable would still have a whole game period to settle
+  before use.
+- **Reset.** `reset_stretch` holds both domains in reset for six game periods,
+  so no mailbox sequence number survives.
+
+### Other choices and deviations
+
+- Crash code 6 is written (ADR 0003 item 4); the model keeps the head code.
+  The Step logs are unaffected, because both codes block.
+- `G_PREP = 5` and the input arrival gating follow the model (Hardware Map),
+  not the contract's state list.
+- The Reward LFSR, seed and schedule are the model's candidate, which the team
+  has not selected (E1). The board mixes in the Start tick
+  (`FIXED_SEED = 0`); the scenario bench uses the scenarios' fixed seeds.
+- CLEAR writes WALL on the HUD rows and the padding (the model's
+  `clear_word`); contract §6 says only WALL on the walls.
+- **Sprite memories are inferred block ROMs** loaded from `.mem` files with
+  `$readmemh`. The sprite tips build them with Block Memory Generator from the
+  `.coe`. The words are identical: `png2coe.py` matches the viewer's
+  `load_png` exactly. The 2-cycle latency is the tips' example. Swapping in the
+  IP only needs its generated latency to stay 2.
+- `vga_out`'s combinational outputs follow the handout but give a long
+  combinational path to the pins: `vcnt` register → drawcon → `vga_g[3]` takes
+  11.78 ns of the 11.98 ns budget. Registered outputs, Roman's original, are
+  electrically cleaner but need a contract where coordinates lead the pins by
+  one cycle. Roman should choose; if he keeps registered outputs, drawcon's
+  look-aheads each grow by one.
+- The on-screen score text (*Should*) and render coherence for mid-frame
+  Arena writes are not built. A Round's CLEAR can show as one torn frame.
+
+## 2. Source state and tools
+
+Vivado/XSim **2025.2** in the `cs256-vivado-ubuntu24` container, part
+`xc7a100tcsg324-1`. `evidence/sha256sum.txt` holds the hashes of every source,
+sprite file and script used for the final results below.
+
+## 3. Commands and results
+
+From the repository root; the runners need sandbox escalation for
+`sudo -n /usr/local/sbin/cs256-vivado`.
+
+```bash
+# Sprite art (only when the PNGs change)
+python3 tools/png2coe.py proyecto_final/prototypes/core_blocks/game/sprites \
+  assets/candidates/bike-synth-32.png assets/candidates/reward-neon-gem-16.png assets/candidates/reward-neon-star-16.png
+# Event files and model logs (only when the scenarios or the model change)
+(cd prototipos/tron_fpga && python3 ../../proyecto_final/prototypes/core_blocks/game/make_events.py)
+proyecto_final/prototypes/core_blocks/run_all.sh              # block benches, Roman's vga_out checks included
+proyecto_final/prototypes/core_blocks/game/run_game.sh        # 12 M2 scenarios vs the model
+proyecto_final/prototypes/core_blocks/game/run_system.sh      # end-to-end pins and sprite bench
+proyecto_final/prototypes/core_blocks/game/run_tron.sh        # bitstream and sign-off reports
+# Roman's own bench
+proyecto_final/prototypes/core_blocks/run_xsim.sh vga_out_tb vga_out_tb.sv vga_out.sv counters.sv
+```
+
+### Block regression (`run_all.sh`): 13/13 PASS
+
+On the final sources, including `vga_out_check_tb` against the fixed
+`vga_out`: two frames, 2 048 000 visible pixels, 0 sync, blanking,
+coordinate or colour mismatches. Roman's `vga_out_tb` passes on its own
+(`core-vga_out_tb-...` run of 29 October, 12:20).
+
+### M2 scenario replay (`game_tb`): all 12 match the model, `tick` included
+
+`game_tb` drives `game_core` + `fast_core` on two free-running clocks. Inputs
+enter at the board seams: one-cycle debounced button pulses, UART bytes
+through `uart_cmd_decode`, and raw switch levels into `game_core`'s
+synchronizers. It writes each Step log with `$fwrite`. `run_game.sh` compares
+each log with `tools/steplog_diff.py` and ignores no field. The Reward Cells
+come from `arena_svc`'s slot registers. The bench also fails on any late
+publish or Step overrun; there were none.
+
+| Run | N (fast cycles per tick) | PHASE | WINDOW | Result | Host artifact |
+|---|---:|---:|---:|---|---|
+| first | 10000 | 3 | 9000 | 12/12 MATCH, 3261 lines | `core-game_tb-20261029-004514-689574` |
+| phase sweep | 16384 | 7 | 12000 | 12/12 MATCH | `core-game_tb-20261029-032035-762877` |
+| phase sweep | 12000 | 1 | 11000 | 12/12 MATCH | `core-game_tb-20261029-032035-762880` |
+| final sources | 16384 | 3 | 12000 | 12/12 MATCH, 3261 lines | `core-game_tb-20261029-122036-870080` |
+
+### End-to-end pins and sprite bench (`tron_system_tb`): PASS, 43 checks
+
+Artifact `core-tron_system_tb-20261029-122759-880512`
+(`evidence/tron_system_tb.txt`). It sends serial 8N1 frames, presses bouncy
+buttons, and reads the VGA pins and the eight multiplexed 7-segment digits.
+Expectations come from the specification and the art, not from the model:
+
+- The idle screen (border, Walls, no Bikes) and the idle Scoreboard.
+- UART Start, both Bikes moving one Cell per Step, Trails, and Pause
+  freezing play.
+- **Sprite alignment.** Every opaque texel of a 32-pixel row through each
+  Bike matches the art read through the Design Plan's rotation rule, for
+  Headings Right, Left, Up and Down. A row of the +3 Reward matches too.
+- A Turn from a bouncy BTNU and from UART `s`.
+- A Wall Crash costing one Life and giving +3 to the survivor, then the
+  crashed Bike blinking over its Crash Cell.
+- The next Round back on the start Cells with the Crash Cell cleared, and a
+  BTNC Start.
+
+Scaling: `CLK_PIX_HZ = 1.152 MHz` (10 cycles per UART bit, 1 ms debounce =
+1152 cycles) and 40 000 `clk_pix` cycles per game tick; pixel checks run while
+paused.
+
+### Bitstream and routed sign-off (`run_tron.sh`)
+
+Final build: `/home/alan/.local/share/cs256-vivado/builds/tron-20261029-122928-881593/`.
+The bitstream `tron_top.bit` has its SHA-256 in `evidence/bitstream.sha256`.
+The short reports are in `evidence/tron-*`.
+
+| Check | Result |
+|---|---|
+| Achieved clocks (from the generated IP) | `clk_pix` 83 455 882.35 Hz; base 4 687 500 Hz; `clk_juego` = base / 78126 = 59.999 Hz |
+| Sprite ROM contents | Synthesis log: all three `.mem` files "read successfully" |
+| Setup / hold / pulse width | WNS +0.202 ns, WHS +0.028 ns, WPWS +0.027 ns, 0 failing endpoints; "All user specified timing constraints are met" |
+| Worst setup path | `vga_out` `vcnt` register → drawcon → `vga_g[3]` pad: 11.78 ns of the 11.982 ns output budget (combinational outputs, as the handout specifies). Internal `clk_pix` to `clk_pix` WNS is +2.30 ns (1610 endpoints) |
+| `check_timing` | `no_clock` 0, unconstrained internal endpoints 0, `no_output_delay` 0. `no_input_delay` 10 = the ten asynchronous pins, each false-pathed only to its first `ASYNC_REG` stage. The build script checks that, and `evidence/tron-cdc-endpoints.txt` lists the endpoints |
+| `report_cdc` | **Critical, `clk_pix` to `clk_juego`, 21 endpoints, Unknown.** These are exactly the mailbox and batch capture registers (`rsp_seq` 4, `rsp_code` 2 × 4, `batch_axes` 2 × 4, `batch_start` 1). Their safety rests on the quiet-window protocol above; that is the open ADR 0003 item 2 decision. Warning, `clk_juego` to `clk_pix`, 151 endpoints, **all Safe**. Every other row is Info: synchronized pins and the reset |
+| Methodology / DRC | TIMING-9 (Unknown CDC: the same 21 endpoints); SYNTH-6 (Arena BRAM output not registered). DRC: no violations |
+| Utilization | 1025 LUTs (1.62 %), 973 registers (0.77 %), 2.5 Block RAM tiles (Arena RAMB36 + three RAMB18 sprite ROMs), 2 MMCMs, 5 BUFGs |
+
+## 4. What the evidence shows, and what it does not
+
+- The composed HDL reproduces the model's 12 M2 Step logs exactly, at
+  several clock phases and game periods. That covers both clock domains, the
+  stable-payload mailbox, the Arena service with the model's Reward search,
+  and the input batch with arrival gating and the UART decoder. The Step
+  transaction of ADR 0003 item 1 holds the agreed 6-tick Step with the
+  model's 2-tick-per-command timing.
+- Through the board pins, in simulation: debounce, serial receive, Decision B
+  alignment for the Arena and the sprite ROMs, sprite rotation, and the
+  7-segment scan.
+- The design fits easily (1.62 % of the LUTs) and meets routed timing with
+  `clk_pix` as the fast clock (ADR 0003 item 3).
+- It does **not** prove CDC safety of the fast-to-game buses. That rests on the
+  quiet-window protocol, and Vivado reports them as an unknown CDC. A 2-FF
+  synchronizer there would add one game tick per command, and READ2 + COMMIT
+  would then fill the 6-tick Step with no slack (`datapath/FINDINGS.md`).
+- No board run yet: monitor lock and image, button feel, UART from the web
+  page, and repeated reset and Pause still need section 5.
+
+## 5. Board check (to run on `alan-legion`)
+
+`alan-legion` did not answer SSH from the desktop on 29 October, so this
+remains to be done with the board attached.
+
+1. Copy `tron_top.bit` from the final build folder in section 3 to the laptop
+   and check its SHA-256 against `evidence/bitstream.sha256`.
+2. Program from Vivado Lab's Tcl console:
+   `vivado_lab -mode batch -source program_board.tcl -tclargs /absolute/path/tron_top.bit`
+   (`../board/program_board.tcl`).
+3. Open `p2_controller.html` in Chrome or Edge, click **Connect** and choose
+   the board's USB serial port. Any 115200 8N1 terminal also works.
+
+Expected:
+
+- [ ] Stable 1280 × 800 image: 10 px white border, pink neon Wall ring, dark
+  HUD band on top, near-black Arena. LED 15 blinks about once per second (the
+  game clock runs). The Scoreboard reads `P2 00  P1 00` / `L2 03  L1 03`.
+- [ ] LEDs 2..0 show the phase: 000 idle, 001 play, 010 Crash, 011 ready,
+  100 Match over, 101 preparing.
+- [ ] BTNC (or Space on the page) starts: the cyan P1 Bike sprite on the left
+  points right, the orange P2 Bike on the right points left. They move one
+  Cell about every 0.1 s and leave Trails. Three Reward sprites appear: two
+  gems (+1) and one star (+3).
+- [ ] Direction buttons turn P1 and W A S D turn P2; each Bike sprite turns
+  with its Step. Reversals are ignored.
+- [ ] Collecting a Reward grows that Player's HUD bar; a new Reward appears.
+- [ ] A Crash blinks the crashed Bike for about 2 s, a HUD Life square
+  disappears, and the survivor gains 3. Then both Bikes are back on their
+  start Cells, waiting for Start.
+- [ ] Display: `P2 nn  P1 nn` and `L2 nn  L1 nn` alternate every ~3 s, with no
+  decimal points lit.
+- [ ] SW0 up freezes the game (LED 3 on, HUD band goes black); down resumes.
+- [ ] `{SW15, SW14}` at Start sets the goal (10, 20, 30, 40). Reaching it ends
+  the Match (phase 100); Start begins a new one.
+- [ ] `CPU_RESETN` returns to the idle screen, repeatedly. LED 4 (late publish)
+  stays off throughout.
+- [ ] Look for colour fringes at sprite and Cell edges: the combinational VGA
+  outputs use 11.78 of 11.98 ns. If they appear, that supports Roman's
+  registered-output variant (section 1).

@@ -1,0 +1,13 @@
+latches: 0
+| Design Timing Summary
+    WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+    -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+      7.758        0.000                      0                   52        0.338        0.000                      0                   52        5.491        0.000                       0                    30  
+
+| Slice LUTs*             |   42 |     0 |          0 |     63400 |  0.07 |
+| Slice Registers         |   30 |     0 |          0 |    126800 |  0.02 |
+| F7 Muxes                |    2 |     0 |          0 |     31700 | <0.01 |
+| Block RAM Tile |    0 |     0 |          0 |       135 |  0.00 |
+| DSPs      |    0 |     0 |          0 |       240 |  0.00 |
+RESULT: synthesized seg7_driver
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-synth-seg7_driver-20261029-000758-612140
