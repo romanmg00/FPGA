@@ -1,0 +1,43 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed Oct 28 21:04:35 2026
+# Process ID         : 38551
+# Current directory  : /builds/core-vga_out_check_tb-20261029-000430-601571
+# Command line       : xsim -log sim.log -mode tcl -source {xsim.dir/vga_out_check_tb/xsim_script.tcl}
+# Log file           : /builds/core-vga_out_check_tb-20261029-000430-601571/sim.log
+# Journal file       : /builds/core-vga_out_check_tb-20261029-000430-601571/xsim.jou
+# Running On         : 46a6ecb52e54
+# Platform           : ubuntu
+# Operating System   : Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+# Processor Detail   : Intel(R) Xeon(R) Gold 6230R CPU @ 2.10GHz
+# CPU Frequency      : 999.988 MHz
+# CPU Physical cores : 26
+# CPU Logical cores  : 52
+# Host memory        : 132266 MB
+# Swap memory        : 8589 MB
+# Total Virtual      : 140856 MB
+# Available Virtual  : 124472 MB
+#-----------------------------------------------------------
+source xsim.dir/vga_out_check_tb/xsim_script.tcl
+# xsim {vga_out_check_tb} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Coordinate mismatch output=(0,0) curr=(1,0)
+Coordinate mismatch output=(1,0) curr=(2,0)
+Coordinate mismatch output=(2,0) curr=(3,0)
+Coordinate mismatch output=(3,0) curr=(4,0)
+Two frames: pixels=2048000 sync_mismatches=3312 blank_mismatches=1600 coordinate_mismatches=2048000 delayed_raster_mismatches=0
+Fatal: vga_out violates output coordinate/raster alignment; see video/FINDINGS.md
+Time: 27820830 ns  Iteration: 0  Process: /vga_out_check_tb/Initial31_5  Scope: vga_out_check_tb  File: /builds/core-vga_out_check_tb-20261029-000430-601571/src/prototypes/core_blocks/video/vga_out_check_tb.sv Line: 65
+$finish called at time : 27820830 ns
+exit
+INFO: xsimkernel Simulation Memory Usage: 277372 KB (Peak: 334644 KB), Simulation CPU Usage: 3120 ms
+INFO: [Common 17-206] Exiting xsim at Wed Oct 28 21:04:41 2026...
+xelab.out:WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+RESULT: missing PASS vga_out_check_tb
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-vga_out_check_tb-20261029-000430-601571

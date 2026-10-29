@@ -1,0 +1,13 @@
+latches: 0
+| Design Timing Summary
+    WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+    -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+    209.609        0.000                      0                   33        0.338        0.000                      0                   33      106.166        0.000                       0                    17  
+
+| Slice LUTs*             |    7 |     0 |          0 |     63400 |  0.01 |
+| Slice Registers         |   17 |     0 |          0 |    126800 |  0.01 |
+| F7 Muxes                |    0 |     0 |          0 |     31700 |  0.00 |
+| Block RAM Tile |    0 |     0 |          0 |       135 |  0.00 |
+| DSPs      |    0 |     0 |          0 |       240 |  0.00 |
+RESULT: synthesized game_clk_div
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-synth-game_clk_div-20261029-000431-601730

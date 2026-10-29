@@ -1,0 +1,6 @@
+Initial run: /home/alan/.local/share/cs256-vivado/builds/core-board-20261029-002108-622830
+Both XSim benches passed; synthesis completed. Tcl stopped at external-pad
+set_max_delay -datapath_only because Vivado requires explicit -from endpoints.
+Corrected to -from [all_registers] (only register-to-pad paths affected).
+First corrected launch did not execute: automatic permission approval reviewer
+timed out. One allowed retry executed the corrected build.

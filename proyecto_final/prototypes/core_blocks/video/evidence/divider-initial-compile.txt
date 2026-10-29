@@ -1,0 +1,6 @@
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/builds/core-game_clk_div_tb-20261029-000431-601815/src/prototypes/core_blocks/game_pkg.sv" into library work
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/builds/core-game_clk_div_tb-20261029-000431-601815/src/prototypes/core_blocks/video/game_clk_div_tb.sv" into library work
+INFO: [VRFC 10-311] analyzing module game_clk_div_tb
+ERROR: [VRFC 10-4982] syntax error near 'small' [/builds/core-game_clk_div_tb-20261029-000431-601815/src/prototypes/core_blocks/video/game_clk_div_tb.sv:17]
+ERROR: [VRFC 10-8549] SystemVerilog keyword 'small' used in incorrect context [/builds/core-game_clk_div_tb-20261029-000431-601815/src/prototypes/core_blocks/video/game_clk_div_tb.sv:17]
+ERROR: [VRFC 10-8530] module 'game_clk_div_tb' is ignored due to previous errors [/builds/core-game_clk_div_tb-20261029-000431-601815/src/prototypes/core_blocks/video/game_clk_div_tb.sv:3]

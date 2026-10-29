@@ -1,0 +1,10 @@
+/home/alan/.local/share/cs256-vivado/builds/core-video-clocks-20261029-000432-602140/project/video_clocks.gen/sources_1/ip/video_pixel_clock/video_pixel_clock_clk_wiz.v
+  MMCME2_ADV
+    .DIVCLK_DIVIDE        (4),
+    .CLKFBOUT_MULT_F      (28.375),
+    .CLKOUT0_DIVIDE_F     (8.500),
+/home/alan/.local/share/cs256-vivado/builds/core-video-clocks-20261029-000432-602140/project/video_clocks.gen/sources_1/ip/video_game_clock/video_game_clock_clk_wiz.v
+  MMCME2_ADV
+    .DIVCLK_DIVIDE        (1),
+    .CLKFBOUT_MULT_F      (6.000),
+    .CLKOUT0_DIVIDE_F     (128.000),

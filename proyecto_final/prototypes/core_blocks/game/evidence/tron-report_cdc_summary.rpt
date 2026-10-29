@@ -1,0 +1,26 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Thu Oct 29 09:32:26 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_cdc -file /builds/tron-20261029-122928-881593/report_cdc_summary.rpt
+| Design       : tron_top
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+CDC Report
+
+Severity  Source Clock               Destination Clock          CDC Type                 Exceptions               Endpoints  Safe  Unsafe  Unknown  No ASYNC_REG  
+--------  -------------------------  -------------------------  -----------------------  -----------------------  ---------  ----  ------  -------  ------------  
+Critical  clk_out1_tron_pixel_clock  clk_juego                  No Common Period         Max Delay Datapath Only         21     0       0       21             0  
+Warning   clk_juego                  clk_out1_tron_pixel_clock  No Common Period         Max Delay Datapath Only        151   151       0        0             0  
+Info      clk_out1_tron_base_clock   clk_juego                  No Common Period         False Path                       1     1       0        0             0  
+Info      input port clock           clk_juego                  No Common Primary Clock  False Path                       3     3       0        0             0  
+Info      input port clock           clk_out1_tron_base_clock   No Common Primary Clock  False Path                       1     1       0        0             0  
+Info      clk_out1_tron_base_clock   clk_out1_tron_pixel_clock  No Common Phase          False Path                       1     1       0        0             0  
+Info      input port clock           clk_out1_tron_pixel_clock  No Common Primary Clock  False Path                       6     6       0        0             0  
+

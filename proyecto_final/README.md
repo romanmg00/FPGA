@@ -25,11 +25,11 @@ del segundo Clocking Wizard más un divisor, como pidieron los TAs
 - [x] **Paso 1b:** contador horizontal de 0 a 1679 (11 bits), en `counters.sv`
 - [x] **Paso 2:** contador vertical de 0 a 827, avanza cuando el horizontal da la
   vuelta, en `counters.sv`
-- [ ] **Paso 3:** `vga_out`. Ya tiene pulsos de sync, blanking y `curr_x`/`curr_y`, y
-  `vga_out_tb.sv` revisa el pulso de `hsync`, las 1680 cuentas por línea y el color
-  fuera del área visible. Falta correr y anotar el testbench en Icarus y en Vivado,
-  y decidir qué pasa con `tick_60hz` (hoy siempre vale 0): con el ADR 0002 el reloj
-  de juego sale del divisor, no de `vga_out`
+- [x] **Paso 3:** `vga_out` con pulsos de sync, blanking y `curr_x`/`curr_y`. El 29 oct
+  la sincronía y el color pasaron a ser combinacionales, como en el handout, para que
+  `curr_x`/`curr_y` coincidan con el píxel en los pines (Decisión B del plan de VGA).
+  `vga_out_tb.sv` y `prototypes/core_blocks/video/vga_out_check_tb.sv` pasan en XSim.
+  `tick_60hz` se queda en 0: con el ADR 0002 el reloj de juego sale del divisor
 - [ ] **Paso 4:** Clocking Wizard a 83.46 MHz y segundo reloj con divisor a ~60 Hz;
   imagen estable en la tarjeta con el borde blanco de 10 px
 - [ ] **Paso 5:** `drawcon` con la arena en colores planos; después, sprites desde ROM
@@ -38,6 +38,7 @@ del segundo Clocking Wizard más un divisor, como pidieron los TAs
 ## Archivos
 
 - `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasan Icarus y XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
+- `prototypes/core_blocks/`: [bloques básicos y núcleo jugable provisionales](prototypes/core_blocks/README.md) (29 oct 2026). Pruebas por bloque, comparación con los 12 escenarios M2 del modelo y un bitstream `tron_top` con timing cumplido; falta probarlo en la tarjeta. No seleccionan interfaces (ADR 0005).
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
 - `counters_tb.sv`: testbench de los contadores
 - `vga_out.sv`: sync, blanking y `curr_x`/`curr_y` (`tick_60hz` todavía en 0)

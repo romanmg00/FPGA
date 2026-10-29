@@ -1,0 +1,8 @@
+|arena_map   | mem_reg    | 8 K x 4(READ_FIRST)    | W | R | 8 K x 4(WRITE_FIRST)   |   | R | Port A and B     | 0      | 1      | 
+|arena_map   | mem_reg    | 8 K x 4(READ_FIRST)    | W | R | 8 K x 4(WRITE_FIRST)   |   | R | Port A and B     | 0      | 1      | 
+|1     |RAMB36E1 |     1|
+WARNING: [Timing 38-242] The property HD.CLK_SRC of clock port "clk" is not set. In out-of-context mode, this prevents timing estimation for clock delay/skew
+WARNING: [Vivado 12-1348] No Latch(s) found
+WARNING: [Vivado 12-180] No cells matched 'get_cells -hier -filter {PRIMITIVE_GROUP == BLOCKRAM || PRIMITIVE_GROUP == DMEM}'.
+# if {[llength $cells] != 1 || [get_property REF_NAME $cells] ne "RAMB36E1"} {
+#     error "Expected exactly one RAMB36E1"

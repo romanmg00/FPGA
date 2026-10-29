@@ -16,7 +16,6 @@ module vga_out_tb;
     time         final_vsync;
     time         last_vsync;
     integer      errors = 0;
-    logic        it_was_visible;
 
     //Initialize module
     vga_out dut (
@@ -46,11 +45,10 @@ module vga_out_tb;
         inicio_vsync = 64'b0;
         last_hsync = 64'b0;
         last_vsync = 64'b0;
-        it_was_visible = 1'b0;
         #10 rst = 1'b0;
         #30000000;
-        if (errors == 0) $display("PRUEBAS OK");
-        else $display("Errors: %0d", errors);
+        if (errors == 0) $display("PASS vga_out_tb");
+        else $fatal(1, "Errors: %0d", errors);
         $finish;
     end
 
@@ -97,11 +95,10 @@ module vga_out_tb;
         end    
     end
 
-    always @(posedge clk_pix) begin
-        if(curr_x < 1280 && curr_y < 800) it_was_visible <= 1'b1;
-        else it_was_visible <= 1'b0;
-
-        if (it_was_visible) begin
+    // Las salidas son combinacionales (handout): el color en los pines es el
+    // de curr_x/curr_y en el mismo ciclo. Se revisa a la mitad del ciclo.
+    always @(negedge clk_pix) if (~rst) begin
+        if (curr_x < 1280 && curr_y < 800) begin
             if (pix_r != draw_r || pix_g != draw_g || pix_b != draw_b) begin
                 if(errors < 20)begin
                     $display("ERROR: pix_* != draw_* at %0d, %0d", curr_x, curr_y);
@@ -117,6 +114,6 @@ module vga_out_tb;
             end
         end
     end
-  
+
 
 endmodule
