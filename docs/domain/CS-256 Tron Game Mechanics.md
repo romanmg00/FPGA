@@ -18,7 +18,7 @@ tags:
 
 # CS-256 Tron Game Mechanics
 
-This note is a short topic index for the locked team rules. The canonical rule details live in [[CS-256 Tron Agreed Specification 2026-10-20]]; [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] records how they were chosen. Course requirements and TA instructions take precedence over the team baseline. Since [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) the handout is general guidance, and that ADR overrides the locked records' second-Wizard and strict-handout provisions.
+This note is a short topic index for the locked team rules. The canonical rule details live in [[CS-256 Tron Agreed Specification 2026-10-20]]; [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] records how they were chosen. Course requirements and TA instructions take precedence over the team baseline. Since [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) the handout is general guidance, and that ADR overrides the locked records' second-Wizard and strict-handout provisions. [ADR 0007](../adr/0007-configurable-step-interval.md) supersedes the fixed six-tick movement cadence only.
 
 Use [[CS-256 Tron Glossary]] for domain terms. A rule agreement records intended behavior; it does not show that a prototype, HDL block, or remote contract implements or verifies it. See [[CS-256 Tron Architecture and Documentation Map]] for document status, implementation links, and evidence paths.
 
@@ -27,7 +27,7 @@ Use [[CS-256 Tron Glossary]] for domain terms. A rule agreement records intended
 | Topic | Canonical specification section |
 |---|---|
 | Match, Points Goal, scoring and simultaneous finishes | [[CS-256 Tron Agreed Specification 2026-10-20#Match, Points Goal and scoring]] |
-| Movement, Pending Turns, Trails and Crashes | [[CS-256 Tron Agreed Specification 2026-10-20#Movement, Turns and Crashes]] |
+| Movement, Pending Turns, Trails and Crashes | [[CS-256 Tron Agreed Specification 2026-10-20#Movement, Turns and Crashes]] · [ADR 0007: configurable Step interval](../adr/0007-configurable-step-interval.md) |
 | Reward slots, Survival Bonus and randomness | [[CS-256 Tron Agreed Specification 2026-10-20#Rewards and randomness]] |
 | Start, Round transitions, Crash display, Pause and reset | [[CS-256 Tron Agreed Specification 2026-10-20#Start, Crash display, Pause and reset]] |
 | Physical Scoreboard | [[CS-256 Tron Agreed Specification 2026-10-20#Physical Scoreboard]] |
@@ -49,7 +49,7 @@ Current rules: [[CS-256 Tron Agreed Specification 2026-10-20#Match, Points Goal 
 
 ### Movement
 
-Current rules: [[CS-256 Tron Agreed Specification 2026-10-20#Movement, Turns and Crashes]].
+Current rules: [[CS-256 Tron Agreed Specification 2026-10-20#Movement, Turns and Crashes]], with movement cadence revised by [ADR 0007](../adr/0007-configurable-step-interval.md).
 
 ### Trails and Crashes
 
