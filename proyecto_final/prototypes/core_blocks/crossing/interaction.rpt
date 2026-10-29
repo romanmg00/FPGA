@@ -1,0 +1,27 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Thu Oct 29 09:43:09 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_clock_interaction -file /builds/crossing-clock-probe-20261029-124232-970852/interaction.rpt
+| Design       : probe
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Synthesized
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Clock Interaction Report
+
+Clock Interaction Table
+-----------------------
+
+                                              WNS                                 TNS Failing  TNS Total    WNS Path         Clock-Pair           Inter-Clock     
+From Clock             To Clock               Clock Edges       WNS(ns)  TNS(ns)    Endpoints    Endpoints  Requirement(ns)  Classification       Constraints     
+---------------------  ---------------------  -----------  ------------  -------  -----------  -----------  ---------------  -------------------  --------------  
+clk_out1_probe_shared  game                   rise - rise   16654601.00     0.00            0            1       Unexpanded  No Common Period     Timed (unsafe)  
+clk_out2_probe_shared  clk_out2_probe_shared  rise - rise        176.22     0.00            0           35           180.44  Clean                Timed           
+game                   clk_out1_probe_shared  rise - rise          8.10     0.00            0            1       Unexpanded  No Common Period     Timed (unsafe)  
+
+
