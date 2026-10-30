@@ -287,6 +287,7 @@ class Game:
             "phase": rs["phase"],
             "phase_name": PHASE_NAMES[rs["phase"]],
             "phase_ticks": rs["phase_ticks"],
+            "paused": rs["paused"],
             "round": self.round_index,
             "step": self.step_count,
             "heads": list(rs["heads"]) if bikes else None,

@@ -22,9 +22,11 @@ tags:
 
 # CS-256 Tron Game Model Hardware Map
 
-The Python model in `prototipos/tron_fpga/model/` now has one module per planned HDL block. Each module has the registers and ports that block will have, and the two clock domains meet at an explicit mailbox. This note maps each module to its HDL block and gives the tick-level timing. It also lists the interface choices the model had to make where the agreement leaves the design open.
+The Python model in `prototipos/tron_fpga/model/` now has one module per planned HDL block. Each module models candidate registers and interfaces; the two simulated clock domains meet at an explicit mailbox. Hardware ports and timing still require definition and verification. This note maps each module to its HDL block and gives the tick-level timing. It also lists the interface choices the model had to make where the agreement leaves the design open.
 
 **Status.** The rules are the [[CS-256 Tron Agreed Specification 2026-10-20]]. The slow/fast boundary (X1), the input batch and the Step transaction follow the recommended architecture in [[CS-256 Tron Opus 5.5 Architecture and Integration Review#5. Recommended architecture]]. That architecture is a **proposal**: Roman and Alan have not adopted it, and the review's own [[CS-256 Tron Opus 5.5 Architecture and Integration Review#Parent review and adoption limits|adoption limits]] apply. Passing Python tests show that this model is self-consistent and follows the agreed rules. They are not HDL, timing, CDC or board evidence. Once the team decides, record the choices in a new ADR (0003 onward) and in the interface contract.
+
+[ADR 0004](../adr/0004-shared-headless-model-base.md) selects this headless model as the shared base. That decision does not accept the proposed service, input or render interfaces below.
 
 ## Module map
 
@@ -60,7 +62,7 @@ Times are game-clock edges. An input given with tick *t* means it arrived during
 | COMMIT done | seen at *k* + 4 | The next launch needs it, so `MIN_STEP_TICKS` = 4. The agreed 6 leaves two ticks of slack |
 | Crash display | from the outcome edge, `CRASH_TICKS` edges | Then PREPARE for the next Round, or G_MATCH if the Match is decided |
 
-With the agreed values, a Turn has to arrive at least two ticks before the launch edge, or it applies at the next Step. The per-Step state log is unaffected, but the first HDL build must reproduce these edges exactly for the logs to match.
+With the agreed values, a Turn has to arrive at least two ticks before the launch edge, or it applies at the next Step. These edges are the current model timing, not a hardware requirement. The HDL may differ where evidence calls for it; review each difference through the Step logs and independent checks rather than regenerating the logs to hide it ([ADR 0005](../adr/0005-build-with-provisional-interfaces.md), proposed).
 
 ## Choices the model makes (proposals)
 
@@ -76,7 +78,7 @@ With the agreed values, a Turn has to arrive at least two ticks before the launc
 | Reset | Both domains reset together and the controller clears to Walls; no Bikes or Rewards until Start. The HDL also needs a stretched reset or an epoch tag, which the model does not show | Review D5(iii), F7 |
 | Scoreboard while idle | Points 00 and Lives 03 | Review D5(iv) |
 | Reward generator | 32-bit LFSR advanced only per draw; 64 draws, then a wrapping scan; replacements in ascending slot order inside COMMIT. Seed: reset value `LFSR_SEED`; at each new Match, either reload it (fixed-seed parameter) or XOR in the game-domain tick counter captured at Start | Review E1, with the game-tick counter in place of a pixel-clock counter so that the model can reproduce it |
-| Crash code 6 | Not written; a crashed Bike's head Cell keeps its head code | This model, against review E6 |
+| Crash code 6 | Not written; a crashed Bike's head Cell keeps its head code | This model, against review E6. ADR 0003's working default is to write it; the model is not updated yet |
 | Displayed Heading | The Heading of the last committed Step, not the launched one, so a sprite turns when it moves | Review §5.7 |
 | Start Cells | A parameter (`starts`), the agreed Cells by default. Scenario 4 moves P2 to (58,27) for a same-Cell Head-on | Testbench parameter |
 | Seed capture | PREPARE carries `tick_cnt` as it was before the Start edge, as a capture register would | This model |
@@ -96,9 +98,13 @@ With the agreed values, a Turn has to arrive at least two ticks before the launc
 
 ## Decisions needed before HDL
 
-1. Adopt or change D2, D3 and D4 (the Step transaction, the crossing and the input batch), including where the 2-tick input latency comes from.
+Functional blocks can be built now against the working defaults in [ADR 0003](../adr/0003-step-transaction-mailbox-and-render-codes.md), as the proposed [ADR 0005](../adr/0005-build-with-provisional-interfaces.md) describes: `turn_unit`, `step_resolve`, `score_unit`, the Scoreboard, input decoding, and `arena_ctrl` behind a test bridge with controllable delay.
+
+Selecting the shared interfaces still needs these choices:
+
+1. The crossing (D3, ADR 0003 item 2, fully open), together with the input batch (D4) and where its latency comes from.
 2. Add `G_PREP` to the contract's states, or fold preparation into the other states.
 3. Accept or change the LFSR, seed capture and placement schedule (E1). The model and the HDL must use the same ones.
-4. Choose whether a Crash writes code 6 (E6), and how Start behaves while the mailbox is busy.
+4. How the display gets a consistent view of the Arena (undecided).
 
-Record the outcomes in ADR 0003 and the contract, then update `params.py` and the scenarios to match.
+Record selections in ADR 0003 onward and the contract, then update `params.py` and the scenarios to match.

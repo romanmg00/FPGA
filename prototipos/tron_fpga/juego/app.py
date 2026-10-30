@@ -2,9 +2,10 @@
 
 The PC loop runs at 60 fps and gives the model one game-clock tick per
 frame, standing in for the ~60 Hz divided game clock (ADR 0002). Keyboard
-keys stand in for the board, and reach the model as board inputs: arrows
-are P1's button samples, WASD are the browser controller's UART bytes,
-Space is BTNC and Enter the UART Start byte 0x0D, P is SW0, T steps
+keys are swapped for desktop testing only: WASD supplies P1's board-button
+samples and arrows supply P2's UART bytes. FPGA ownership is unchanged:
+P1 uses BTNU/BTND/BTNL/BTNR, P2 uses browser WASD over UART.
+Enter is BTNC and Space supplies UART Start byte 0x20, P is SW0, T steps
 {SW15, SW14} and Backspace is CPU_RESETN.
 
 Run from prototipos/tron_fpga/:  python -m juego
@@ -24,7 +25,7 @@ from model.params import (GAME_HZ, MIN_STEP_TICKS, SCREEN_H, SCREEN_W, STEP_TICK
 from model.turn_unit import DOWN, LEFT, RIGHT, UP
 
 from . import budget, fx
-from .candidates import AXES, PALETTES, PRESETS, LookConfig, cycle
+from .candidates import DEFAULT_PRESET, PALETTES, PRESETS, PRESET_STATUS, LookConfig
 from .font import ICON_ROM_BITS
 from .hud import digit_font
 from .render import SIZE, FrameRenderer
@@ -37,12 +38,9 @@ OUT = os.path.join(HERE, "out")
 FPS = 60                     # one game-clock tick per PC frame
 PANEL_W = 380
 
-P1_KEYS = {pygame.K_UP: UP, pygame.K_RIGHT: RIGHT, pygame.K_DOWN: DOWN, pygame.K_LEFT: LEFT}
-P2_KEYS = {pygame.K_w: UP, pygame.K_d: RIGHT, pygame.K_s: DOWN, pygame.K_a: LEFT}
-START_KEYS = {pygame.K_SPACE: "btn", pygame.K_RETURN: "uart"}   # BTNC, UART 0x0D
-AXIS_KEYS = {pygame.K_1: "1", pygame.K_2: "2", pygame.K_3: "3", pygame.K_4: "4",
-             pygame.K_5: "5", pygame.K_h: "H", pygame.K_f: "F", pygame.K_b: "B", pygame.K_n: "N",
-             pygame.K_r: "R", pygame.K_x: "X", pygame.K_c: "C", pygame.K_v: "V"}
+P1_KEYS = {pygame.K_w: UP, pygame.K_d: RIGHT, pygame.K_s: DOWN, pygame.K_a: LEFT}
+P2_KEYS = {pygame.K_UP: UP, pygame.K_RIGHT: RIGHT, pygame.K_DOWN: DOWN, pygame.K_LEFT: LEFT}
+START_KEYS = {pygame.K_RETURN: "btn", pygame.K_SPACE: "uart"}   # BTNC, UART 0x20
 PANEL_PAGES = ("look", "bram", "effects", None)  # Tab cycles; None hides the panel
 
 OK, WARN, BAD, DIM, TEXT = (120, 220, 120), (240, 200, 80), (255, 90, 90), (140, 140, 160), (230, 230, 240)
@@ -51,14 +49,12 @@ OK, WARN, BAD, DIM, TEXT = (120, 220, 120), (240, 200, 80), (255, 90, 90), (140,
 class App:
     def __init__(self):
         self.sprites = SpriteLibrary(ASSETS)
-        self.axes = [(k, f, self.sprites.bike_styles() if f == "bike_style" else ch)
-                     for k, f, ch in AXES]
-        self.look = LookConfig()
+        self.preset = DEFAULT_PRESET
+        self.look = replace(LookConfig(), **PRESETS[self.preset])
         self.rules = RuleParams()
         self.paused = False                     # SW0
         self.goal_sw = 0                        # {SW15, SW14}
         self.page = 0
-        self.preset = "core"
         self.show_cells = False
         self.fullscreen = False
         self.message = ""
@@ -78,20 +74,12 @@ class App:
                                       self.bike_rom, self.reward_roms)
         self.renderer.redraw_all(self.game.grid)
 
-    def change_axis(self, key, step):
-        for k, field, choices in self.axes:
-            if k == key:
-                self.look = cycle(self.look, field, choices, step)
-                self._new_renderer()
-                self.message = ""
-                return
-
     def next_preset(self, step):
         names = list(PRESETS)
         self.preset = names[(names.index(self.preset) + step) % len(names)]
         self.look = replace(self.look, **PRESETS[self.preset])
         self._new_renderer()
-        self.message = f"Preset: {self.preset}"
+        self.message = f"{self.preset}: {PRESET_STATUS[self.preset]}"
 
     def change_speed(self, delta):
         """Playtest tuning only; the first build keeps STEP_TICKS."""
@@ -188,9 +176,7 @@ class App:
                 if START_KEYS[k] == "btn":
                     btn.append(BTN_START)
                 else:
-                    uart.append(0x0D)
-            elif k in AXIS_KEYS:
-                self.change_axis(AXIS_KEYS[k], -1 if ev.mod & pygame.KMOD_SHIFT else 1)
+                    uart.append(0x20)
             elif k == pygame.K_m:
                 self.next_preset(-1 if ev.mod & pygame.KMOD_SHIFT else 1)
             elif k == pygame.K_p:
@@ -260,7 +246,7 @@ class App:
             self.screen.blit(surf, (x0 + 10 + x, y))
             y += 17
 
-        line("LOOK PROTOTYPE  L1", bold=True)
+        line("FPGA MODEL - PC PLAYTEST", bold=True)
         state = snap["phase_name"] + ("  [PAUSED]" if self.paused else "")
         line(f"{state}   Round {snap['round']}  Step {snap['step']}", OK if not self.paused else WARN)
         line(f"P1 {snap['points'][0]:2d} pts {snap['lives'][0]} lives   "
@@ -274,16 +260,11 @@ class App:
         y += 6
         rows, total18, clear, flags, notes = self.checks()
         if PANEL_PAGES[self.page] == "look":
-            line(f"CANDIDATES   M preset: {self.preset}", bold=True)
-            half = (len(self.axes) + 1) // 2
-            top = y
-            for n, (k, field, _) in enumerate(self.axes):
-                if n == half:
-                    y = top
-                y_col = 0 if n < half else 182
-                value = str(getattr(lk, field)).replace("png:", "")
-                line(f"{k} {field[:9]:<9} {value[:10]}", x=y_col)
-            y = top + 17 * half + 6
+            line(f"M STYLE: {self.preset} [{PRESET_STATUS[self.preset]}]", bold=True)
+            line("Final designs: synthwave / outrun", DIM)
+            line("Classic: temporary programming/test view", WARN)
+            line("All styles include the HUD", DIM)
+            y += 6
             line("ARENA AND SPEED", bold=True)
             line(f" {g.width} x {g.height} Cells of {g.cell_px} px, {g.hud_px} px HUD band")
             steps = GAME_HZ / rules.step_ticks
@@ -313,18 +294,21 @@ class App:
             line("EFFECTS AND THEIR HARDWARE", bold=True)
             line(" (all extras: after the core)", DIM)
             for name in fx.active(lk):
-                line(f" {name:<13}{fx.HW_COST[name]}")
+                line(f"{name:<13} {fx.HW_COST[name]}")
         if self.message:
             y += 6
             line(self.message, WARN)
-        footer = self.screen.get_height() - 4 * 17 - 8
+        footer = self.screen.get_height() - 7 * 17 - 8
         if y > footer:
             return                                  # window too short for the key help
         y = footer
-        line("P1 arrows  P2 WASD  Start Space/Enter", DIM)
-        line("P pause  T goal  Backspace reset  G Cells  M preset", DIM)
-        line("Tab panel page  F11 fullscreen  F12 shot", DIM)
-        line("Esc quit", DIM)
+        line("DESKTOP TEST CONTROLS (swapped)", DIM)
+        line("P1 W/A/S/D -> BTNU/BTNL/BTND/BTNR", DIM)
+        line("P2 arrows -> UART direction commands", DIM)
+        line("Enter BTNC | Space UART Start | P SW0", DIM)
+        line("T goal | Backspace reset | G Cells", DIM)
+        line("M/Shift+M style | Tab panel | F11 full", DIM)
+        line("F12 shot | Esc quit", DIM)
 
 
 def main():

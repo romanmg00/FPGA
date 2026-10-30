@@ -1,15 +1,12 @@
-"""Visual candidates for the viewer, and their defaults.
+"""Selected visual designs and temporary desktop-test defaults.
 
-Geometry is not a candidate: Cells, sprite sizes and the 64 px HUD band are
-the agreed working layout (model/params.py). The default "core" preset
-draws only what the agreed core build draws: plain background, Walls,
-Trails, Rewards and Bikes, with P1 cyan and P2 orange. Everything else
-(the on-screen HUD, animated backgrounds, grid lines, glow-style effects,
-scanlines, spinning or pulsing Rewards, the Crash ring and flash) comes
-after the core in the agreed scope.
+Synthwave and outrun are the final visual designs. Classic is a temporary
+test-only view with its HUD enabled, and is the default while programming.
+There is no core preset or live per-axis customization. Geometry and the
+FPGA core scope remain governed by the agreement, not these PC settings.
 """
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 from .rgb444 import halve
 
@@ -29,13 +26,9 @@ PALETTES = {
                    grid=0xF4A, grid_glow=0x302,
                    wall=0x001, wall_line=0x96F, reward_small=0xFF4, reward_big=0xAEF,
                    star=0xFFF, sun_hi=0xFE5, sun_lo=0xF26),
-    # The three L1 research-brief palettes (colour-vision checks UNVERIFIED).
+    # Temporary test palette; not a final visual design.
     "classic": dict(_BASE, bg=0x001, grid=0x112, wall=0x778,
                     reward_small=0xFF0, reward_big=0xF0F),
-    "softer": dict(_BASE, bg=0x011, grid=0x122, wall=0x899, p1=0x6EF, p2=0xF93,
-                   reward_small=0xFE4, reward_big=0xE6F, hud_fg=0xEEF, hud_bg=0x001),
-    "strong": dict(_BASE, bg=0x000, grid=0x111, wall=0x888, p1=0xAFF, p2=0xD60,
-                   reward_small=0xFF0, reward_big=0xFFF),
 }
 for _p in PALETTES.values():                 # fields older palettes leave out
     _p.setdefault("bg2", _p["bg"])
@@ -46,12 +39,12 @@ for _p in PALETTES.values():                 # fields older palettes leave out
 
 @dataclass(frozen=True)
 class LookConfig:
-    hud: str = "off"
+    hud: str = "on"
     bike_style: str = "cycle"
-    reward_look: str = "gem+star"
+    reward_look: str = "gem"
     palette: str = "classic"
     trail: str = "full"
-    grid: str = "off"
+    grid: str = "32px"
     font: str = "seg"
     bg: str = "plain"
     wall: str = "flat"
@@ -61,27 +54,9 @@ class LookConfig:
     bike_fx: str = "none"
 
 
-# key label, field, choices. bike_style choices are filled in at run time
-# because PNG art found in assets/ joins them.
-AXES = [
-    ("1", "bike_style", ()),
-    ("2", "reward_look", ("gem+star", "gem", "orb", "neon")),
-    ("3", "palette", tuple(PALETTES)),
-    ("4", "trail", ("full", "inset", "core", "neon", "pulse")),
-    ("5", "grid", ("off", "32px", "cell", "neon", "floor")),
-    ("H", "hud", ("off", "on")),
-    ("F", "font", ("seg", "block", "neon", "chrome")),
-    ("B", "bg", ("plain", "sky", "stars", "sunset")),
-    ("N", "wall", ("flat", "neon")),
-    ("R", "reward_anim", ("still", "pulse", "spin")),
-    ("X", "crash", ("blink", "ring", "ring+flash")),
-    ("C", "crt", ("off", "scanlines")),
-    ("V", "bike_fx", ("none", "streaks")),
-]
-
-# Style presets (key M). "core" is the LookConfig default; the others show extras.
+# M cycles complete designs; individual fields are not keyboard candidates.
 PRESETS = {
-    "core": {f: getattr(LookConfig(), f) for f in LookConfig.__dataclass_fields__},
+    "classic": {f: getattr(LookConfig(), f) for f in LookConfig.__dataclass_fields__},
     "synthwave": dict(hud="on", palette="synthwave", bg="sunset", grid="neon", wall="neon",
                       trail="pulse", bike_style="synth", reward_look="neon",
                       reward_anim="pulse", font="neon", crash="ring+flash", crt="scanlines",
@@ -90,14 +65,7 @@ PRESETS = {
                    trail="neon", bike_style="racer", reward_look="neon",
                    reward_anim="spin", font="chrome", crash="ring", crt="scanlines",
                    bike_fx="streaks"),
-    "classic": dict(hud="on", palette="classic", bg="plain", grid="32px", wall="flat",
-                    trail="full", bike_style="cycle", reward_look="gem",
-                    reward_anim="still", font="seg", crash="blink", crt="off",
-                    bike_fx="none"),
 }
 
-
-def cycle(config: LookConfig, field: str, choices: tuple, step: int = 1) -> LookConfig:
-    current = getattr(config, field)
-    i = choices.index(current) if current in choices else -1
-    return replace(config, **{field: choices[(i + step) % len(choices)]})
+PRESET_STATUS = {"classic": "TEST ONLY", "synthwave": "FINAL DESIGN", "outrun": "FINAL DESIGN"}
+DEFAULT_PRESET = "classic"

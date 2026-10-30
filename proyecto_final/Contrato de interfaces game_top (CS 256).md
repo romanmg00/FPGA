@@ -24,7 +24,7 @@ Dos motos de luz avanzan solas por una arena y dejan una estela permanente detr�
 
 Las motos (32 × 32) y los premios (16 × 16) se dibujan encima, como sprites desde ROM. Las motos van centradas en su celda de cabeza y el choque se decide por esa celda, no por el dibujo.
 
-**Modelo de referencia.** El equipo eligió **un solo modelo de reglas sin gráficos** en este repositorio, que usen los dos visores y los testbenches. Dónde vive y de cuál prototipo se parte está **pendiente**. Hasta entonces, `prototipos/tron/juego.py` y `prototipos/tron_fpga/model/` son puntos de partida: los dos siguen reglas anteriores y no son la referencia de este contrato.
+**Modelo de referencia.** [ADR 0004](../docs/adr/0004-shared-headless-model-base.md) selecciona `prototipos/tron_fpga/model/` como base del **único modelo de reglas sin gráficos** para ambos visores y la verificación SystemVerilog. Falta adaptar el visor de Roman para consumirlo. Las reglas acordadas siguen mandando; seleccionar la base no acepta los supuestos de timing/CDC del prototipo ni los demás puntos propuestos en ADR 0003.
 
 ## 1. Convenciones generales
 
@@ -329,4 +329,5 @@ Las metas del equipo son **tentativas** y se ajustan al avance: una versión par
 - [ ] Generador pseudoaleatorio, captura de la semilla y calendario de colocación de premios.
 - [ ] Código de Enter en la UART y el búfer de eventos.
 - [ ] Qué hacer con `tick_60hz` en `vga_out`.
-- [ ] Dónde vive el modelo de reglas compartido y de qué prototipo se parte.
+- [x] Base del modelo compartido: `prototipos/tron_fpga/model/` (ADR 0004).
+- [ ] Adaptar el otro visor al modelo compartido y verificar equivalencia.
