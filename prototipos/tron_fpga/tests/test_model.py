@@ -179,7 +179,7 @@ class StepResolveTests(unittest.TestCase):
     def test_head_on_same_cell_crashes_both(self):
         out = self.resolve(((40, 20), (41, 19)), (RIGHT, DOWN), (EMPTY, EMPTY))
         self.assertEqual((out.crashed, out.head_on), ((True, True), True))
-        self.assertEqual(out.writes, ())
+        self.assertEqual(out.writes, ((40, 20, arena_map.CRASH), (41, 19, arena_map.CRASH)))
 
     def test_head_on_swap_crashes_both(self):
         out = self.resolve(((40, 20), (41, 20)), (RIGHT, LEFT), (HEAD_P2, HEAD_P1))
@@ -193,7 +193,8 @@ class StepResolveTests(unittest.TestCase):
         out = self.resolve(((40, 20), (60, 20)), (RIGHT, LEFT), (WALL, REWARD_SLOT0 + 1))
         self.assertEqual(out.heads, ((40, 20), (59, 20)))
         self.assertEqual(out.collected, (None, 1))
-        self.assertEqual(out.writes, ((60, 20, TRAIL_P2), (59, 20, HEAD_P2)))
+        self.assertEqual(out.writes,
+                         ((40, 20, arena_map.CRASH), (60, 20, TRAIL_P2), (59, 20, HEAD_P2)))
 
 
 class TurnUnitTests(unittest.TestCase):
@@ -292,6 +293,17 @@ class MailboxTests(unittest.TestCase):
         game = started(RuleParams(step_ticks=params.MIN_STEP_TICKS, crash_ticks=8, fixed_seed=True))
         until(game, lambda g: g.phase == CRASH)            # no cadence overrun on the way
         self.assertEqual(game.step_count, 20)
+
+    def test_each_crossing_rejects_a_step_interval_it_cannot_sustain(self):
+        for crossing, shortest in (("mailbox", 4), ("qualified", 6), ("captured", 8)):
+            with self.subTest(crossing=crossing):
+                with self.assertRaises(ValueError):
+                    Game(RuleParams(step_ticks=shortest - 1), crossing=crossing)
+                game = Game(RuleParams(step_ticks=shortest, crash_ticks=8, fixed_seed=True),
+                            crossing=crossing)
+                tick(game, start=True)
+                until(game, lambda g: g.phase == CRASH)    # no cadence overrun on the way
+                self.assertEqual(game.step_count, 20)
 
 
 class ArenaCtrlTests(unittest.TestCase):
@@ -714,7 +726,8 @@ class LongGameTests(unittest.TestCase):
                     self.assertEqual(game.grid.read(*cell), REWARD_SLOT0 + slot)
             if game.phase != PREP:
                 for i, head in enumerate(game.step.head):
-                    self.assertEqual(game.grid.read(*head), arena_map.HEAD[i])
+                    code = arena_map.CRASH if game.crashed[i] else arena_map.HEAD[i]
+                    self.assertEqual(game.grid.read(*head), code)
             self.assertLessEqual(max(game.points), params.POINTS_MAX)
             self.assertTrue(all(0 <= n <= 3 for n in game.lives))
             if game.phase == PLAY:

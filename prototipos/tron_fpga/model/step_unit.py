@@ -13,14 +13,16 @@ PROPOSAL (review section 5.6, option D2-A), not yet agreed. A Step:
 
 Both targets are read before anything is written, so the two Bikes move at
 the same time and neither has priority. A crashed Bike stays on its last
-valid head Cell; the other Bike still completes its move, and any Reward it
-drives into, in the same Step. While paused, a Step waiting for its codes
+valid head Cell, which COMMIT overwrites with CELL_CRASH (ADR 0003 item 4);
+the other Bike still completes its move, and any Reward it drives into, in
+the same Step. The writes come in arena_svc's order: P1 old head, P1 target
+(survivor only), P2 old head, P2 target. While paused, a Step waiting for its codes
 does not resolve; a COMMIT already issued still completes.
 """
 
 from dataclasses import dataclass
 
-from .arena_map import HEAD, REWARD_SLOT0, TRAIL, is_blocking, is_reward
+from .arena_map import CRASH, HEAD, REWARD_SLOT0, TRAIL, is_blocking, is_reward
 from .turn_unit import next_cell
 
 S_IDLE, S_READ, S_COMMIT = 0, 1, 2
@@ -46,6 +48,7 @@ def step_resolve(heads, targets, codes) -> StepOutcome:
         if crashed[i]:
             new_heads.append(heads[i])
             collected.append(None)
+            writes.append((*heads[i], CRASH))           # code 6 blocks like a head
             continue
         collected.append(codes[i] - REWARD_SLOT0 if is_reward(codes[i]) else None)
         writes.append((*heads[i], TRAIL[i]))            # old head joins the Trail

@@ -1,7 +1,9 @@
 // game_tb: replays the 12 M2 scenarios through game_core + fast_core on two
-// independent clocks and writes each Step log in model/steplog.py format.
+// independent clocks and writes each Step log in model/steplog.py format,
+// plus an arena log: the CRC-32 (zlib) of all 8192 arena_map words at each
+// Step-log line (model/steplog.py arena_line).
 // Compare with: python3 tools/steplog_diff.py <name>.model.log <name>.hdl.log
-// (run_game.sh does this for every scenario).
+// and <name>.model.arena.log <name>.arena.hdl.log (run_game.sh does both).
 //
 // Inputs enter at the board-facing seams of fast_core: one-cycle debounced
 // button pulses, and UART bytes through uart_cmd_decode. Switch levels go to
@@ -113,9 +115,19 @@ module game_tb;
     function automatic string res(input logic [1:0] r);
         case (r) 2'd0: return "-"; 2'd1: return "P1"; 2'd2: return "P2"; default: return "draw"; endcase
     endfunction
+    // CRC-32 as zlib.crc32 (reflected, poly 0xEDB88320), one byte per 4-bit word,
+    // read straight from the RAM array: simulation only, no port B traffic.
+    function automatic logic [31:0] arena_crc();
+        logic [31:0] c = 32'hFFFF_FFFF;
+        for (int a = 0; a < (1 << ADDR_W); a++) begin
+            c ^= {28'd0, dut_fast.u_svc.u_ram.mem[a]};
+            for (int b = 0; b < 8; b++) c = c[0] ? (c >> 1) ^ 32'hEDB8_8320 : c >> 1;
+        end
+        return ~c;
+    endfunction
 
     // --- scenario replay -----------------------------------------------------
-    integer ev_f, log_f, ticks, end_tick, ev_tick, ev_kind, ev_val, r, total_lines, scenarios;
+    integer ev_f, log_f, arena_f, ticks, end_tick, ev_tick, ev_kind, ev_val, r, total_lines, scenarios;
     integer p1x, p1y, p1d, p2x, p2y, p2d, fx, late_total, overrun_total;
     string names[$], name, line;
 
@@ -168,6 +180,7 @@ module game_tb;
             sw = 0;
             r = $fscanf(ev_f, "%d %d %d", ev_tick, ev_kind, ev_val);
             log_f = $fopen({name, ".hdl.log"}, "w");
+            arena_f = $fopen({name, ".arena.hdl.log"}, "w");
             reset_both();
             repeat (N - 400) @(posedge clk);
             for (int tick = 1; tick <= end_tick; tick++) begin
@@ -187,10 +200,13 @@ module game_tb;
                         cell_text(slot0_valid, slot0_cell), cell_text(slot1_valid, slot1_cell),
                         cell_text(slot2_valid, slot2_cell), res(result));
                     $fdisplay(log_f, "%s", line);
+                    $fdisplay(arena_f, "tick=%0d round=%0d step=%0d arena=%08h", ticks, round_index,
+                        log_kind == 1 ? 0 : step_count, arena_crc());
                     total_lines++;
                 end
             end
             $fclose(log_f);
+            $fclose(arena_f);
             $fclose(ev_f);
             scenarios++;
             $display("REPLAYED %s ticks=%0d", name, end_tick);

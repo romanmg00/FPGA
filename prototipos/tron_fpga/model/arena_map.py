@@ -7,6 +7,8 @@ and leaves read latency to arena_ctrl's cycle count. A BRAM cannot be cleared
 by `rst`, so arena_ctrl clears it word by word.
 """
 
+import zlib
+
 from .params import (ADDR_W, CELL_BITS, CELL_CRASH, CELL_EMPTY, CELL_P1_HEAD, CELL_P1_TRAIL,
                      CELL_P2_HEAD, CELL_P2_TRAIL, CELL_RESERVED, CELL_REWARD0, CELL_WALL, CX_W,
                      GEOMETRY)
@@ -75,6 +77,12 @@ class ArenaMap:
     def write(self, x: int, y: int, code: int) -> None:
         self.words[address(x, y)] = code
         self.written.append((x, y))
+
+    def digest(self) -> int:
+        """CRC-32 (zlib) of the 8192 words in address order, one byte per word.
+        game_tb.sv computes the same value over arena_map's memory, so the
+        arena logs compare whole Arena images, not just the Step-log fields."""
+        return zlib.crc32(self.words)
 
     def clear(self) -> None:
         """Arena clear: every one of the 8192 words written once."""
