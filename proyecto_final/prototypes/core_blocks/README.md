@@ -23,6 +23,7 @@ agreement; the testbenches here are the builder's own checks, not the
 | `datapath/` | Round two: the Step transaction across two clocks, driven by a model trace |
 | `board/` | Round two: board test-pattern bitstream (clocks, Arena, drawcon) |
 | `game/` | The playable core: `tron_top` bitstream, M2 replay of the full HDL game, end-to-end pins bench, P2 web page and the board checklist |
+| `crossing/` | The game-fast crossing experiment (ADR 0003 item 2, ADR 0006): req/ack responses, `batch_fifo`, protocol benches, routed CDC comparison; also the research note's clock probe |
 
 ## Writing a block
 
@@ -87,12 +88,14 @@ Each folder's `FINDINGS.md` holds the commands, artifacts and limits.
   routed timing (WNS +0.202 ns on a VGA pad path, internal +2.30 ns;
   WHS +0.028 ns) using 1.62 % of the LUTs. **Not yet run on the board**: the
   checklist is in its section 5.
-- **Crossing risk** ([datapath/](datapath/FINDINGS.md), [game/](game/FINDINGS.md)):
-  the model's stable-payload mailbox works, but its 21 fast-to-game capture
-  registers are an unknown CDC in Vivado; their safety rests on a quiet-window
-  protocol. A conventional 2-FF on the `clk_juego` side would cost about one game
-  tick per command, and READ2 + COMMIT would fill the 6-tick Step exactly.
-  This is the input for ADR 0003 item 2.
+- **Crossing** ([crossing/](crossing/FINDINGS.md)): the model's stable-payload
+  mailbox works, but its 21 fast-to-game capture registers are an unknown CDC
+  in Vivado. Under ADR 0006 (8–10 ticks per Step), the "captured" variant
+  replaces them with a req/ack response captured on a synchronized toggle and
+  a Gray FIFO for input batches. It needs READ2 + COMMIT = 8 ticks, matches the
+  model at 8 and 10 ticks, and routes with **0 unknown CDC and no waiver**.
+  Inputs arrive 2 ticks later than with the mailbox. A 6-tick variant also
+  works but needs a 5-endpoint waiver. Input for ADR 0003 item 2.
 - **Fast clock** ([arena/](arena/FINDINGS.md)): `clk_pix` serves the Arena with large
   margin. CLEAR takes 8192 cycles, READ2 3 and COMMIT 2–4, against about
   1.39 M cycles per game tick; the 8192 × 4 Arena maps to one RAMB36E1.

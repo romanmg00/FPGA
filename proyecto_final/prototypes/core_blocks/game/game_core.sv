@@ -7,18 +7,38 @@
 // register, so the HDL Step log can be compared with the model's.
 //
 // PROVISIONAL (ADR 0005): every port. The crossing (ADR 0003 item 2) is
-// open; this core speaks the model's stable-payload mailbox:
-//   game -> fast  cmd_* and snap_* change only on a clk_juego edge, and
+// open; QUALIFIED selects one of two candidates:
+//   game -> fast  (both) cmd_* and snap_* change only on a clk_juego edge, and
 //                 tick_tgl toggles on every edge so the fast side can latch
 //                 them after a 2-FF synchronizer (fast_core).
-//   fast -> game  rsp_* and batch_* are published by the fast side only in a
-//                 bounded window after it sees tick_tgl. This core registers
-//                 them once per edge (rsp_cap/batch_cap) and uses the
-//                 captured copy at the following edge: a command issued at
-//                 edge k is answered at k + 2.
+//   fast -> game, QUALIFIED = 0: the model's stable-payload mailbox. rsp_* and
+//                 batch_* are published by the fast side only in a bounded
+//                 window after it sees tick_tgl. This core registers them
+//                 once per edge (cap_*) and uses the captured copy at the
+//                 following edge: a command issued at edge k is answered at
+//                 k + 2. Vivado reports the cap_* registers as unknown CDC.
+//   fast -> game, QUALIFIED = 1: two-phase req/ack (crossing/FINDINGS.md).
+//                 cmd_seq[0] is the request toggle; the fast side holds
+//                 rsp_code_* and echoes it on rsp_seq[0] once they are final.
+//                 Only rsp_seq[0] is synchronized (2-FF, ASYNC_REG); the held
+//                 codes are used directly, and only under that synchronized
+//                 qualification (idle), at edge k + 3. Every register a code
+//                 can change is written on each resolve (enable = resolve),
+//                 never held on a code-dependent condition, so the enable
+//                 stays synchronized. batch_* come from batch_fifo's
+//                 game-domain read register.
+//   QUALIFIED = 1, RSP_REG = 1 ("captured"): the held codes are first copied
+//                 into code_q, enabled only by a new synchronized toggle, and
+//                 the game uses code_q: answered at k + 4, so READ2 + COMMIT
+//                 take 8 ticks (ADR 0006: STEP_TICKS 8..10). No game register
+//                 then depends combinationally on a fast-domain word.
+// A Step launch that finds the last COMMIT unfinished is deferred, not
+// overlapped: it waits with step_cnt held and sets the sticky overrun flag.
 // sw_pause and sw_goal are raw pins: 2-FF synchronized here (model sw_sync).
 // Crash code 6 is written by the fast side's COMMIT (ADR 0003 item 4).
 module game_core #(
+    parameter bit     QUALIFIED   = 1'b0,
+    parameter bit     RSP_REG     = 1'b0,                    // QUALIFIED only: capture the codes first
     parameter integer STEP_TICKS  = game_pkg::STEP_TICKS,
     parameter integer CRASH_TICKS = game_pkg::CRASH_TICKS,
     parameter integer VIEW_TICKS  = game_pkg::SCORE_VIEW_TICKS
@@ -56,16 +76,17 @@ module game_core #(
     output logic [7:0]  round_index,
     output logic [15:0] step_count,
     output logic [1:0]  log_kind,                            // 1 Round prepared, 2 Step outcome, this edge
-    output logic        overrun                              // sticky: launch while a Step was open
+    output logic        overrun                              // sticky: a launch waited for the last COMMIT
 );
     import game_pkg::*;
     localparam logic [2:0] G_PREP = 3'd5;                    // model's preparation phase (Hardware Map)
     localparam logic [1:0] OP_PREPARE = 2'd1, OP_READ2 = 2'd2, OP_COMMIT = 2'd3;
     localparam logic [1:0] S_IDLE = 2'd0, S_READ = 2'd1, S_COMMIT = 2'd2;
 
-    // --- capture registers and synchronizers --------------------------------
-    logic [3:0] cap_seq, cap_code_p1, cap_code_p2, cap_axes_p1, cap_axes_p2;
-    logic       cap_start;
+    // --- fast -> game crossing and switch synchronizers ----------------------
+    logic       rsp_idle;                                    // the outstanding command is answered
+    logic [3:0] use_code_p1, use_code_p2, use_axes_p1, use_axes_p2;
+    logic       use_start;
     (* ASYNC_REG = "TRUE", SHREG_EXTRACT = "NO" *) logic pause_s1, pause_s2;
     (* ASYNC_REG = "TRUE", SHREG_EXTRACT = "NO" *) logic goal_lo_s1, goal_lo_s2, goal_hi_s1, goal_hi_s2;
     logic [31:0] tick_cnt;
@@ -78,7 +99,8 @@ module game_core #(
     logic        prep_match;
 
     // --- combinational view of this edge (model's pre-edge values) ----------
-    logic idle, running, launch, resolve, sw_paused, step_ready;
+    logic idle, running, step_due, launch, sw_paused, step_ready;
+    (* DIRECT_ENABLE = "yes" *) logic resolve;               // keep the qualification on CE pins
     logic start, start_new, start_release, prep_done, crash_done;
     logic [7:0] phase_ticks_inc;
     logic [1:0] heading_p1, heading_p2, pending_p1, pending_p2, chosen_p1, chosen_p2;
@@ -87,15 +109,55 @@ module game_core #(
     logic [1:0] slot_p1, slot_p2;
     logic goal_hit, prepare, prepare_new;
 
+    generate
+        if (QUALIFIED) begin : g_qualified
+            (* ASYNC_REG = "TRUE", SHREG_EXTRACT = "NO" *) logic rsp_meta, rsp_sync;
+            logic       rsp_tgl_q;                           // RSP_REG: toggle of the codes in code_q
+            logic [3:0] code_q_p1, code_q_p2;
+            always_ff @(posedge clk) begin
+                if (rst) begin rsp_meta <= 0; rsp_sync <= 0; rsp_tgl_q <= 0; end
+                else begin rsp_meta <= rsp_seq[0]; rsp_sync <= rsp_meta; rsp_tgl_q <= rsp_sync; end
+            end
+            always_ff @(posedge clk) begin                   // enable: a new synchronized toggle only
+                if (rst) begin code_q_p1 <= 0; code_q_p2 <= 0; end
+                else if (rsp_sync != rsp_tgl_q) begin code_q_p1 <= rsp_code_p1; code_q_p2 <= rsp_code_p2; end
+            end
+            always_comb begin
+                rsp_idle = (RSP_REG ? rsp_tgl_q : rsp_sync) == cmd_seq[0];
+                use_code_p1 = RSP_REG ? code_q_p1 : rsp_code_p1;
+                use_code_p2 = RSP_REG ? code_q_p2 : rsp_code_p2;
+                use_axes_p1 = batch_axes_p1; use_axes_p2 = batch_axes_p2; use_start = batch_start;
+            end
+        end else begin : g_mailbox
+            logic [3:0] cap_seq, cap_code_p1, cap_code_p2, cap_axes_p1, cap_axes_p2;
+            logic       cap_start;
+            always_ff @(posedge clk) begin                   // every edge, paused or not
+                if (rst) begin
+                    cap_seq <= 0; cap_code_p1 <= 0; cap_code_p2 <= 0;
+                    cap_axes_p1 <= 0; cap_axes_p2 <= 0; cap_start <= 0;
+                end else begin
+                    cap_seq <= rsp_seq; cap_code_p1 <= rsp_code_p1; cap_code_p2 <= rsp_code_p2;
+                    cap_axes_p1 <= batch_axes_p1; cap_axes_p2 <= batch_axes_p2; cap_start <= batch_start;
+                end
+            end
+            always_comb begin
+                rsp_idle = cap_seq == cmd_seq;
+                use_code_p1 = cap_code_p1; use_code_p2 = cap_code_p2;
+                use_axes_p1 = cap_axes_p1; use_axes_p2 = cap_axes_p2; use_start = cap_start;
+            end
+        end
+    endgenerate
+
     always_comb begin
         sw_paused = pause_s2;
-        idle      = cap_seq == cmd_seq;
+        idle      = rsp_idle;
         running   = phase == G_PLAY && !sw_paused;
-        launch    = running && step_cnt == 8'(STEP_TICKS - 1);
-        resolve   = state == S_READ && idle && !sw_paused;
         step_ready = state == S_IDLE || (state == S_COMMIT && idle);
+        step_due  = running && step_cnt == 8'(STEP_TICKS - 1);
+        launch    = step_due && step_ready;
+        resolve   = state == S_READ && idle && !sw_paused;
         phase_ticks_inc = (phase_ticks == 8'hFF) ? phase_ticks : phase_ticks + 8'd1;
-        start     = !sw_paused && cap_start && (phase == G_IDLE || phase == G_READY || phase == G_MATCH) && idle;
+        start     = !sw_paused && use_start && (phase == G_IDLE || phase == G_READY || phase == G_MATCH) && idle;
         start_new = start && (phase == G_IDLE || phase == G_MATCH);
         start_release = start && phase == G_READY;
         prep_done = !sw_paused && !start && phase == G_PREP && idle;
@@ -107,10 +169,10 @@ module game_core #(
         chosen_p1 = pending_p1;
         chosen_p2 = pending_p2;
         if (running) begin
-            if (heading_p1[0] && cap_axes_p1[3]) chosen_p1 = cap_axes_p1[2] ? DIR_DOWN : DIR_UP;
-            if (!heading_p1[0] && cap_axes_p1[1]) chosen_p1 = cap_axes_p1[0] ? DIR_LEFT : DIR_RIGHT;
-            if (heading_p2[0] && cap_axes_p2[3]) chosen_p2 = cap_axes_p2[2] ? DIR_DOWN : DIR_UP;
-            if (!heading_p2[0] && cap_axes_p2[1]) chosen_p2 = cap_axes_p2[0] ? DIR_LEFT : DIR_RIGHT;
+            if (heading_p1[0] && use_axes_p1[3]) chosen_p1 = use_axes_p1[2] ? DIR_DOWN : DIR_UP;
+            if (!heading_p1[0] && use_axes_p1[1]) chosen_p1 = use_axes_p1[0] ? DIR_LEFT : DIR_RIGHT;
+            if (heading_p2[0] && use_axes_p2[3]) chosen_p2 = use_axes_p2[2] ? DIR_DOWN : DIR_UP;
+            if (!heading_p2[0] && use_axes_p2[1]) chosen_p2 = use_axes_p2[0] ? DIR_LEFT : DIR_RIGHT;
         end
         // Goal reached by this outcome without a Crash (the only outcome where
         // the model reads the new result on the same edge without a Crash).
@@ -119,15 +181,15 @@ module game_core #(
     end
 
     turn_unit u_turn_p1 (.clk, .rst, .load(prepare), .load_heading(start_dir_p1),
-        .v_valid(cap_axes_p1[3]), .v_down(cap_axes_p1[2]), .h_valid(cap_axes_p1[1]), .h_left(cap_axes_p1[0]),
+        .v_valid(use_axes_p1[3]), .v_down(use_axes_p1[2]), .h_valid(use_axes_p1[1]), .h_left(use_axes_p1[0]),
         .apply(running), .launch, .heading(heading_p1), .pending(pending_p1));
     turn_unit u_turn_p2 (.clk, .rst, .load(prepare), .load_heading(start_dir_p2),
-        .v_valid(cap_axes_p2[3]), .v_down(cap_axes_p2[2]), .h_valid(cap_axes_p2[1]), .h_left(cap_axes_p2[0]),
+        .v_valid(use_axes_p2[3]), .v_down(use_axes_p2[2]), .h_valid(use_axes_p2[1]), .h_left(use_axes_p2[0]),
         .apply(running), .launch, .heading(heading_p2), .pending(pending_p2));
     next_cell u_next_p1 (.head(head_p1), .heading(chosen_p1), .target(next_p1));
     next_cell u_next_p2 (.head(head_p2), .heading(chosen_p2), .target(next_p2));
     step_resolve u_resolve (.head_p1, .head_p2, .target_p1, .target_p2,
-        .code_p1(cap_code_p1), .code_p2(cap_code_p2), .new_head_p1(new_p1), .new_head_p2(new_p2),
+        .code_p1(use_code_p1), .code_p2(use_code_p2), .new_head_p1(new_p1), .new_head_p2(new_p2),
         .crashed_p1(c1), .crashed_p2(c2), .head_on(ho), .collected_p1(slot_p1), .collected_p2(slot_p2));
     score_unit u_score (.clk, .rst, .new_match(start_new), .step_outcome(resolve),
         .goal_sel({goal_hi_s2, goal_lo_s2}), .crashed_p1(c1), .crashed_p2(c2),
@@ -139,8 +201,6 @@ module game_core #(
 
     always_ff @(posedge clk) begin
         if (rst) begin
-            cap_seq <= 0; cap_code_p1 <= 0; cap_code_p2 <= 0;
-            cap_axes_p1 <= 0; cap_axes_p2 <= 0; cap_start <= 0;
             pause_s1 <= 0; pause_s2 <= 0; goal_lo_s1 <= 0; goal_lo_s2 <= 0;
             goal_hi_s1 <= 0; goal_hi_s2 <= 0;
             tick_cnt <= 0; tick_tgl <= 0;
@@ -157,8 +217,6 @@ module game_core #(
             round_index <= 0; step_count <= 0; log_kind <= 0; overrun <= 0;
         end else begin
             // Every edge, paused or not
-            cap_seq <= rsp_seq; cap_code_p1 <= rsp_code_p1; cap_code_p2 <= rsp_code_p2;
-            cap_axes_p1 <= batch_axes_p1; cap_axes_p2 <= batch_axes_p2; cap_start <= batch_start;
             pause_s1 <= sw_pause; pause_s2 <= pause_s1;
             goal_lo_s1 <= sw_goal_lo; goal_lo_s2 <= goal_lo_s1;
             goal_hi_s1 <= sw_goal_hi; goal_hi_s2 <= goal_hi_s1;
@@ -187,25 +245,24 @@ module game_core #(
                                       slot_p1 == 2'd0 || slot_p2 == 2'd0};
                     step_count <= step_count + 1;
                     log_kind <= 2'd2;
-                    if (c1 || c2) begin
-                        phase <= G_CRASH; phase_ticks <= 0;
-                    end else if (goal_hit) begin
-                        phase <= G_MATCH; phase_ticks <= 0;
-                    end
+                    // A READ2 is only open in G_PLAY, so "no change" is G_PLAY:
+                    // written, not held, to keep the enable code-independent.
+                    phase <= (c1 || c2) ? G_CRASH : goal_hit ? G_MATCH : G_PLAY;
+                    if (c1 || c2 || goal_hit) phase_ticks <= 0;
                 end else if (state == S_COMMIT && idle) begin
                     state <= S_IDLE;
                 end
 
-                // Step launch (edge k)
+                // Step launch (edge k); deferred while the last COMMIT is open
+                if (step_due && !step_ready) overrun <= 1;
                 if (launch) begin
-                    if (!step_ready) overrun <= 1;
                     state <= S_READ;
                     target_p1 <= next_p1; target_p2 <= next_p2;
                     launched_p1 <= chosen_p1; launched_p2 <= chosen_p2;
                     cmd_op <= OP_READ2; cmd_seq <= cmd_seq + 1;
                     cmd_a_p1 <= next_p1; cmd_a_p2 <= next_p2;
                 end
-                if (running) step_cnt <= launch ? 8'd0 : step_cnt + 8'd1;
+                if (running && !(step_due && !step_ready)) step_cnt <= launch ? 8'd0 : step_cnt + 8'd1;
 
                 // match_ctrl
                 if (start_release) begin

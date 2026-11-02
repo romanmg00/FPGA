@@ -12,6 +12,9 @@
 // cycles, so pixel checks run while paused.
 module tron_system_tb;
     import game_pkg::*;
+    parameter bit QUALIFIED = 1'b0;
+    parameter bit RSP_REG = 1'b0;
+    parameter integer STEP_TICKS = game_pkg::STEP_TICKS;
     localparam integer TICK_CYCLES = 40000;
     localparam integer HZ = 1152000;                 // 10 cycles per UART bit at 115200
     localparam integer BIT = 10;
@@ -27,7 +30,7 @@ module tron_system_tb;
     always #6 clk_pix = !clk_pix;
     always #(TICK_CYCLES * 6 + 1) clk_juego = !clk_juego;
 
-    tron_system #(.CLK_PIX_HZ(HZ), .DEBOUNCE_MS(1), .WINDOW(TICK_CYCLES / 2), .FIXED_SEED(1'b1)) dut (
+    tron_system #(.QUALIFIED(QUALIFIED), .RSP_REG(RSP_REG), .STEP_TICKS(STEP_TICKS), .CLK_PIX_HZ(HZ), .DEBOUNCE_MS(1), .WINDOW(TICK_CYCLES / 2), .FIXED_SEED(1'b1)) dut (
         .clk_pix, .clk_juego, .rst_pix, .rst_game, .btn, .sw, .uart_rx,
         .vga_r, .vga_g, .vga_b, .vga_hs, .vga_vs, .seg, .an, .led);
 
@@ -82,6 +85,9 @@ module tron_system_tb;
     task automatic pause(input bit on);
         sw[0] = on;
         ticks(4);                                    // 2-FF in game_core + snapshot latch
+        // drawcon latches Bike positions once per frame (~35 ticks here): let a
+        // frame start after Pause so sprite checks see the paused positions.
+        if (on) @(posedge vga_vs);
         if (on) check(led[3] == 1'b1, "paused");
         else check(led[3] == 1'b0, "running again");
     endtask
@@ -199,7 +205,7 @@ module tron_system_tb;
         // Start from the web page (UART Space), then the Round runs.
         uart_send(8'h20);
         wait_phase(G_PLAY, 20);
-        ticks(6 * 3 + 2);
+        ticks(STEP_TICKS * 3 + 2);
         pause(1);
         k = dut.u_game.step_count;
         h1 = dut.u_game.head_p1; h2 = dut.u_game.head_p2;
@@ -220,7 +226,7 @@ module tron_system_tb;
         pause(0);
         press(BTN_U);
         uart_send("s");
-        ticks(6 * 3 + 4);
+        ticks(STEP_TICKS * 3 + 4);
         pause(1);
         h1 = dut.u_game.head_p1; h2 = dut.u_game.head_p2;
         check(h1[12:7] < 6'd27 && dut.u_game.shown_p1 == DIR_UP, $sformatf("P1 turned Up, now (%0d,%0d)", h1[6:0], h1[12:7]));
@@ -230,7 +236,7 @@ module tron_system_tb;
 
         // Run into the Walls: P2 reaches the bottom Wall first and Crashes.
         pause(0);
-        wait_phase(G_CRASH, 6 * 30);
+        wait_phase(G_CRASH, STEP_TICKS * 30);
         check(dut.u_game.crashed_p2 && !dut.u_game.crashed_p1, "only P2 Crashed");
         check(dut.u_game.lives_p2 == 2 && dut.u_game.lives_p1 == 3, "P2 lost one Life");
         check(dut.u_game.points_p1 >= 3, $sformatf("P1 got the +3 Survival Bonus (Points %0d)", dut.u_game.points_p1));

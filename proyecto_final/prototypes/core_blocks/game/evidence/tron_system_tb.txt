@@ -1,8 +1,3 @@
-VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
-VERSION_CODENAME=noble
-source xsim.dir/tron_system_tb/xsim_script.tcl
-Time resolution is 1 ps
-run -all
 ok: border pixel (5,5) white
 ok: border pixel (1275,400) white
 ok: Wall row cy=4 drawn
@@ -47,9 +42,5 @@ ok: running again
 ok: phase 1 reached within 20 ticks
 ok: no late publish, no Step overrun
 PASS tron_system_tb
-$finish called at time : 304561269 ns : File "/builds/core-tron_system_tb-20261029-122759-880512/src/prototypes/core_blocks/game/tron_system_tb.sv" Line 260
-run: Time (s): cpu = 00:00:00.13 ; elapsed = 00:01:03 . Memory (MB): peak = 1386.219 ; gain = 8.004 ; free physical = 91136 ; free virtual = 124713
-exit
-INFO: xsimkernel Simulation Memory Usage: 286552 KB (Peak: 335112 KB), Simulation CPU Usage: 63920 ms
-INFO: [Common 17-206] Exiting xsim at Thu Oct 29 09:29:13 2026...
-/home/alan/.local/share/cs256-vivado/builds/core-tron_system_tb-20261029-122759-880512
+RESULT: PASS tron_system_tb
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-tron_system_tb-20261029-232919-2007476

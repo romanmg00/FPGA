@@ -9,5 +9,5 @@ exec "$here/../run_xsim.sh" "$@" tron_system_tb \
     $p/step/turn_unit.sv $p/step/next_cell.sv $p/step/step_resolve.sv \
     $p/score/score_unit.sv $p/arena/arena_map.sv \
     prototypes/uart_input/uart_sync_2ff.sv prototypes/uart_input/uart_rx.sv prototypes/uart_input/uart_cmd_decode.sv \
-    $p/game/arena_svc.sv $p/game/fast_core.sv $p/game/game_core.sv \
+    $p/crossing/batch_fifo.sv $p/game/arena_svc.sv $p/game/fast_core.sv $p/game/game_core.sv \
     $p/game/sprite_rom.sv $p/game/drawcon_game.sv $p/game/tron_system.sv $p/game/tron_system_tb.sv

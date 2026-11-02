@@ -13,6 +13,9 @@ module game_tb;
     parameter integer N = 16384;          // fast cycles per game tick
     parameter integer PHASE = 3;          // extra ns per game half period (keeps clocks unrelated)
     parameter integer WINDOW = 12000;     // fast_core publish window, below N
+    parameter bit QUALIFIED = 1'b0;       // 1: req/ack crossing + batch_fifo (crossing/FINDINGS.md)
+    parameter bit RSP_REG = 1'b0;         // with QUALIFIED: capture the response codes ("captured")
+    parameter integer STEP_TICKS = game_pkg::STEP_TICKS;   // ADR 0006 evaluation
 
     logic clk = 0, clk_juego = 0, rst_fast = 1, rst_game = 1;
     always #5 clk = !clk;                                  // 100 MHz sim fast clock
@@ -32,7 +35,8 @@ module game_tb;
     logic tick_tgl, cmd_new_match, cmd_survive_p1, cmd_survive_p2;
     logic [1:0] cmd_op;
     logic [3:0] cmd_seq, rsp_seq, rsp_code_p1, rsp_code_p2, batch_axes_p1, batch_axes_p2;
-    logic batch_start;
+    logic batch_start, batch_wr, g_start, batch_overflow;
+    logic [3:0] g_axes_p1, g_axes_p2;
     logic [31:0] cmd_seed_mix;
     logic [12:0] cmd_a_p1, cmd_a_p2, cmd_b_p1, cmd_b_p2;
     logic [2:0] cmd_collected, phase, uart_cmd;
@@ -52,10 +56,10 @@ module game_tb;
     logic [3:0] b_rdata;
     logic slot0_valid, slot1_valid, slot2_valid, svc_busy, late_publish;
 
-    game_core dut_game (.clk(clk_juego), .rst(rst_game), .sw_pause(sw[0]), .sw_goal_lo(sw[14]),
+    game_core #(.QUALIFIED(QUALIFIED), .RSP_REG(RSP_REG), .STEP_TICKS(STEP_TICKS)) dut_game (.clk(clk_juego), .rst(rst_game), .sw_pause(sw[0]), .sw_goal_lo(sw[14]),
         .sw_goal_hi(sw[15]), .start_p1, .start_p2, .start_dir_p1(dir_p1), .start_dir_p2(dir_p2),
-        .rsp_seq, .rsp_code_p1, .rsp_code_p2, .batch_axes_p1, .batch_axes_p2, .batch_start,
-        .tick_tgl, .cmd_op, .cmd_seq, .cmd_new_match, .cmd_seed_mix, .cmd_a_p1, .cmd_a_p2,
+        .rsp_seq, .rsp_code_p1, .rsp_code_p2, .batch_axes_p1(g_axes_p1), .batch_axes_p2(g_axes_p2),
+        .batch_start(g_start), .tick_tgl, .cmd_op, .cmd_seq, .cmd_new_match, .cmd_seed_mix, .cmd_a_p1, .cmd_a_p2,
         .cmd_b_p1, .cmd_b_p2, .cmd_survive_p1, .cmd_survive_p2, .cmd_collected,
         .phase, .paused, .phase_ticks, .head_p1, .head_p2, .shown_p1, .shown_p2,
         .crashed_p1, .crashed_p2, .head_on, .points_p1, .points_p2, .points_goal,
@@ -63,20 +67,33 @@ module game_tb;
 
     uart_cmd_decode u_dec (.clk, .rst(rst_fast), .rx_valid, .rx_byte, .cmd(uart_cmd), .cmd_valid(uart_cmd_valid));
 
-    fast_core #(.WINDOW(WINDOW)) dut_fast (.clk, .rst(rst_fast), .seed, .fixed_seed, .tick_tgl,
+    fast_core #(.QUALIFIED(QUALIFIED), .WINDOW(WINDOW)) dut_fast (.clk, .rst(rst_fast), .seed, .fixed_seed, .tick_tgl,
         .cmd_op, .cmd_seq, .cmd_new_match, .cmd_seed_mix, .cmd_a_p1, .cmd_a_p2, .cmd_b_p1, .cmd_b_p2,
         .cmd_survive_p1, .cmd_survive_p2, .cmd_collected,
         .g_phase(phase), .g_paused(paused), .g_phase_ticks(phase_ticks),
         .g_head_p1(head_p1), .g_head_p2(head_p2), .g_shown_p1(shown_p1), .g_shown_p2(shown_p2), .g_crashed_p1(crashed_p1), .g_crashed_p2(crashed_p2),
         .g_points_p1(points_p1), .g_points_p2(points_p2), .g_lives_p1(lives_p1), .g_lives_p2(lives_p2),
         .g_page_lives(page_lives), .rsp_seq, .rsp_code_p1, .rsp_code_p2,
-        .batch_axes_p1, .batch_axes_p2, .batch_start, .btn_pulse, .uart_cmd_valid, .uart_cmd,
+        .batch_axes_p1, .batch_axes_p2, .batch_start, .batch_wr, .btn_pulse, .uart_cmd_valid, .uart_cmd,
         .snap_phase, .snap_paused, .snap_phase_ticks, .snap_head_p1, .snap_head_p2,
         .snap_shown_p1(), .snap_shown_p2(),
         .snap_crashed_p1, .snap_crashed_p2, .snap_points_p1, .snap_points_p2,
         .snap_lives_p1, .snap_lives_p2, .snap_page_lives, .tick_seen,
         .b_addr(13'd0), .b_rdata, .slot0_valid, .slot1_valid, .slot2_valid,
         .slot0_cell, .slot1_cell, .slot2_cell, .svc_busy, .late_publish);
+
+    generate
+        if (QUALIFIED) begin : g_batch_fifo
+            logic batch_valid_unused;
+            batch_fifo #(.W(9)) u_batch (.wclk(clk), .wrst(rst_fast), .wen(batch_wr),
+                .wdata({batch_start, batch_axes_p1, batch_axes_p2}), .overflow(batch_overflow),
+                .rclk(clk_juego), .rrst(rst_game), .rdata({g_start, g_axes_p1, g_axes_p2}),
+                .rvalid(batch_valid_unused));
+        end else begin : g_batch_direct
+            assign {g_start, g_axes_p1, g_axes_p2} = {batch_start, batch_axes_p1, batch_axes_p2};
+            assign batch_overflow = 1'b0;
+        end
+    endgenerate
 
     // --- Step-log formatting (model/steplog.py) ------------------------------
     function automatic string phase_name(input logic [2:0] p);
@@ -160,6 +177,7 @@ module game_tb;
                 repeat (N - 400) @(posedge clk);    // fast work for this tick is done
                 if (late_publish) late_total++;
                 if (overrun) overrun_total++;
+                if (batch_overflow) $fatal(1, "batch_fifo overflow in %s at tick %0d", name, ticks);
                 if (log_kind != 0) begin
                     line = $sformatf("tick=%0d round=%0d step=%0d phase=%s p1=%0d,%0d,%s p2=%0d,%0d,%s crash=%0d%0d points=%0d,%0d lives=%0d,%0d goal=%0d r0=%s r1=%s r2=%s result=%s",
                         ticks, round_index, log_kind == 1 ? 0 : step_count, phase_name(phase),
@@ -179,7 +197,8 @@ module game_tb;
         end
         if (overrun_total != 0) $fatal(1, "Step cadence overrun seen in %0d ticks", overrun_total);
         if (late_total != 0) $fatal(1, "late publish seen in %0d ticks", late_total);
-        $display("SUMMARY scenarios=%0d log_lines=%0d N=%0d PHASE=%0d WINDOW=%0d", scenarios, total_lines, N, PHASE, WINDOW);
+        $display("SUMMARY scenarios=%0d log_lines=%0d N=%0d PHASE=%0d WINDOW=%0d QUALIFIED=%0d RSP_REG=%0d STEP_TICKS=%0d",
+            scenarios, total_lines, N, PHASE, WINDOW, QUALIFIED, RSP_REG, STEP_TICKS);
         $display("PASS game_tb");
         $finish;
     end
