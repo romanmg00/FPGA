@@ -17,6 +17,12 @@ Back to the slow side. At each tick edge one capture register takes the
 response bus (`rsp_cap`). Logic reads `rsp_cap` at the following edge. A
 command issued at edge k is therefore answered at edge k + 2: STEP_LATENCY.
 
+Qualified crossing (`stages=2`, provisional experiment, see docs/design/
+CS-256 Game-Fast Crossing Research.md): the slow side reads the response
+only after the fast side's response toggle passes a 2-FF synchronizer, so a
+command issued at edge k is answered at edge k + 3. The payload is the same
+held bus; only the edge at which it may be used moves.
+
 The HDL also needs an epoch tag or an equivalent reset order so that a
 stale response cannot complete after CPU_RESETN (review F7). The model
 resets both domains together, so it has no epoch.
@@ -58,8 +64,17 @@ class Response:
 class Mailbox:
     cmd: Command = field(default_factory=Command)     # slow-side registers
     rsp_bus: Response = field(default_factory=Response)  # fast-side registers
-    rsp_cap: Response = field(default_factory=Response)  # slow-side capture register
+    stages: int = 1                                    # slow-side register stages before use
+    rsp_pipe: list = field(default_factory=list)       # slow-side capture register(s)
     fast_seq: int = 0                                  # last seq the fast side ran
+
+    def __post_init__(self):
+        self.rsp_pipe = [Response()] * self.stages
+
+    @property
+    def rsp_cap(self) -> Response:
+        """The response as the slow side may use it at the next edge."""
+        return self.rsp_pipe[-1]
 
     # --- slow side ---------------------------------------------------------
     def idle(self) -> bool:
@@ -73,8 +88,8 @@ class Mailbox:
         self.cmd = Command(op=op, seq=(self.cmd.seq + 1) & SEQ_MASK, **args)
 
     def capture(self) -> None:
-        """Tick edge: the capture register takes the response bus."""
-        self.rsp_cap = self.rsp_bus
+        """Tick edge: the capture register (or synchronizer) takes the response bus."""
+        self.rsp_pipe = [self.rsp_bus] + self.rsp_pipe[:-1]
 
     # --- fast side ---------------------------------------------------------
     def take(self):

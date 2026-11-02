@@ -153,11 +153,12 @@ publish or Step overrun; there were none.
 | phase sweep | 16384 | 7 | 12000 | 12/12 MATCH | `core-game_tb-20261029-032035-762877` |
 | phase sweep | 12000 | 1 | 11000 | 12/12 MATCH | `core-game_tb-20261029-032035-762880` |
 | final sources | 16384 | 3 | 12000 | 12/12 MATCH, 3261 lines | `core-game_tb-20261029-122036-870080` |
+| after the crossing work (section 6) | 16384 | 3 | 12000 | 12/12 MATCH, 3261 lines | `core-game_tb-20261029-232239-1926173` |
 
 ### End-to-end pins and sprite bench (`tron_system_tb`): PASS, 43 checks
 
-Artifact `core-tron_system_tb-20261029-122759-880512`
-(`evidence/tron_system_tb.txt`). It sends serial 8N1 frames, presses bouncy
+Artifact `core-tron_system_tb-20261029-232919-2007476` on the current sources
+(`evidence/tron_system_tb.txt`; first run `core-tron_system_tb-20261029-122759-880512`). It sends serial 8N1 frames, presses bouncy
 buttons, and reads the VGA pins and the eight multiplexed 7-segment digits.
 Expectations come from the specification and the art, not from the model:
 
@@ -179,7 +180,9 @@ paused.
 
 ### Bitstream and routed sign-off (`run_tron.sh`)
 
-Final build: `/home/alan/.local/share/cs256-vivado/builds/tron-20261029-122928-881593/`.
+Final build: `/home/alan/.local/share/cs256-vivado/builds/tron-20261029-233130-2009133/`
+(`run_tron.sh mailbox`, 6 ticks, `Performance_Explore`; section 6). The first
+build was `tron-20261029-122928-881593`, WNS +0.202 ns, 1025 LUTs.
 The bitstream `tron_top.bit` has its SHA-256 in `evidence/bitstream.sha256`.
 The short reports are in `evidence/tron-*`.
 
@@ -187,12 +190,12 @@ The short reports are in `evidence/tron-*`.
 |---|---|
 | Achieved clocks (from the generated IP) | `clk_pix` 83 455 882.35 Hz; base 4 687 500 Hz; `clk_juego` = base / 78126 = 59.999 Hz |
 | Sprite ROM contents | Synthesis log: all three `.mem` files "read successfully" |
-| Setup / hold / pulse width | WNS +0.202 ns, WHS +0.028 ns, WPWS +0.027 ns, 0 failing endpoints; "All user specified timing constraints are met" |
-| Worst setup path | `vga_out` `vcnt` register → drawcon → `vga_g[3]` pad: 11.78 ns of the 11.982 ns output budget (combinational outputs, as the handout specifies). Internal `clk_pix` to `clk_pix` WNS is +2.30 ns (1610 endpoints) |
+| Setup / hold / pulse width | WNS +0.296 ns, WHS +0.059 ns, WPWS +0.027 ns, 0 failing endpoints; "All user specified timing constraints are met" |
+| Worst setup path | `vga_out` `hcnt` register → drawcon → `vga_g[3]` pad: 11.69 ns of the 11.982 ns output budget (combinational outputs, as the handout specifies). Internal `clk_pix` to `clk_pix` WNS is +2.44 ns (1610 endpoints). With the default implementation strategy this path failed once (−0.361 ns), hence `Performance_Explore` |
 | `check_timing` | `no_clock` 0, unconstrained internal endpoints 0, `no_output_delay` 0. `no_input_delay` 10 = the ten asynchronous pins, each false-pathed only to its first `ASYNC_REG` stage. The build script checks that, and `evidence/tron-cdc-endpoints.txt` lists the endpoints |
 | `report_cdc` | **Critical, `clk_pix` to `clk_juego`, 21 endpoints, Unknown.** These are exactly the mailbox and batch capture registers (`rsp_seq` 4, `rsp_code` 2 × 4, `batch_axes` 2 × 4, `batch_start` 1). Their safety rests on the quiet-window protocol above; that is the open ADR 0003 item 2 decision. Warning, `clk_juego` to `clk_pix`, 151 endpoints, **all Safe**. Every other row is Info: synchronized pins and the reset |
 | Methodology / DRC | TIMING-9 (Unknown CDC: the same 21 endpoints); SYNTH-6 (Arena BRAM output not registered). DRC: no violations |
-| Utilization | 1025 LUTs (1.62 %), 973 registers (0.77 %), 2.5 Block RAM tiles (Arena RAMB36 + three RAMB18 sprite ROMs), 2 MMCMs, 5 BUFGs |
+| Utilization | 1052 LUTs (1.66 %), 973 registers (0.77 %), 2.5 Block RAM tiles (Arena RAMB36 + three RAMB18 sprite ROMs), 2 MMCMs, 5 BUFGs |
 
 ## 4. What the evidence shows, and what it does not
 
@@ -254,3 +257,34 @@ Expected:
 - [ ] Look for colour fringes at sprite and Cell edges: the combinational VGA
   outputs use 11.78 of 11.98 ns. If they appear, that supports Roman's
   registered-output variant (section 1).
+
+## 6. Update, 29 October 2026 (evening): crossing variants and ADR 0006
+
+The crossing experiment in [`../crossing/`](../crossing/FINDINGS.md) changed
+these sources. The defaults are unchanged: mailbox crossing, 6 ticks per Step.
+
+- `game_core`, `fast_core`, `tron_system` and `tron_top` take `QUALIFIED`,
+  `RSP_REG` and `STEP_TICKS`. `QUALIFIED = 1` with `RSP_REG = 1` is the
+  "captured" crossing. At `STEP_TICKS = 8`, the low end of the range ADR 0006
+  set, it routes with no unknown CDC. `run_tron.sh [mailbox|qualified|captured]
+  [STEP_TICKS]` builds any variant.
+- **Deferred launch** (all variants): a launch that finds the last COMMIT open
+  now waits and sets `overrun`, instead of launching over it (ADR 0006).
+- `phase` on a Step outcome is written, not held; `resolve` carries
+  `DIRECT_ENABLE`.
+- `run_tron.tcl` uses the `Performance_Explore` implementation strategy.
+- `tron_system_tb` follows `STEP_TICKS`, and `pause(1)` waits for a frame
+  start before sprite checks.
+- `run_xsim.sh` passes `--override_timeprecision`.
+
+None of this changes the mailbox's behaviour. All 12 scenarios still match
+`.model.log` (3261 lines); `tron_system_tb` passes 43 checks; the 13 block
+benches and Roman's `vga_out_tb` pass. The mailbox build has the same CDC
+picture as before: 21 Critical Unknown fast-to-game endpoints and 151 Safe in
+the other direction. Section 3 above has its timing. `evidence/` holds this
+build's reports, its bitstream hash and the regenerated `sha256sum.txt`.
+
+For the board check in section 5, program this build's `tron_top.bit`
+(SHA-256 in `evidence/bitstream.sha256`). To try the captured crossing on the
+board, use the `tron-captured-s8-…` bitstream from `../crossing/FINDINGS.md`;
+its LED 8 is the input-FIFO overflow flag and should stay off.

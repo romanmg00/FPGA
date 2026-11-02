@@ -1,0 +1,21 @@
+pin cpu_resetn -> u_reset/n_meta_reg
+pin btn[0] -> u_system/u_btn/buttons[0].sync_inst/meta_reg
+pin btn[1] -> u_system/u_btn/buttons[1].sync_inst/meta_reg
+pin btn[2] -> u_system/u_btn/buttons[2].sync_inst/meta_reg
+pin btn[3] -> u_system/u_btn/buttons[3].sync_inst/meta_reg
+pin btn[4] -> u_system/u_btn/buttons[4].sync_inst/meta_reg
+pin sw[0] -> u_system/u_game/pause_s1_reg
+pin sw[14] -> u_system/u_game/goal_lo_s1_reg
+pin sw[15] -> u_system/u_game/goal_hi_s1_reg
+pin uart_rx -> u_system/u_rx_sync/stage1_reg
+rst_req -> u_reset_pix/meta_reg u_reset_game/meta_reg
+game->fast and fast->game bounded at 11.982 ns datapath_only
+rsp toggle sync: u_system/u_game/g_qualified.rsp_meta_reg u_system/u_game/g_qualified.rsp_sync_reg
+wgray: u_system/g_batch_fifo.u_batch/wgray_reg[0] -> u_system/g_batch_fifo.u_batch/wgray_s1_reg[0]
+wgray: u_system/g_batch_fifo.u_batch/wgray_reg[1] -> u_system/g_batch_fifo.u_batch/wgray_s1_reg[1]
+wgray: u_system/g_batch_fifo.u_batch/wgray_reg[2] -> u_system/g_batch_fifo.u_batch/wgray_s1_reg[2]
+wgray: u_system/g_batch_fifo.u_batch/wgray_reg[3] -> u_system/g_batch_fifo.u_batch/wgray_s1_reg[3]
+rgray: u_system/g_batch_fifo.u_batch/rgray_reg[0] -> u_system/g_batch_fifo.u_batch/rgray_s1_reg[0]
+rgray: u_system/g_batch_fifo.u_batch/rgray_reg[1] -> u_system/g_batch_fifo.u_batch/rgray_s1_reg[1]
+rgray: u_system/g_batch_fifo.u_batch/rgray_reg[2] -> u_system/g_batch_fifo.u_batch/rgray_s1_reg[2]
+rgray: u_system/g_batch_fifo.u_batch/rgray_reg[3] -> u_system/g_batch_fifo.u_batch/rgray_s1_reg[3]

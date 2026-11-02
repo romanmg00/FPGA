@@ -38,7 +38,7 @@ sudo -n "$launcher" exec bash -c '
     srcs=(src/prototypes/core_blocks/game_pkg.sv)
     for f in "$@"; do srcs+=("src/$f"); done
     xvlog -sv "${srcs[@]}" > xvlog.out 2>&1 || { cat xvlog.out; exit 1; }
-    xelab -debug typical --timescale 1ns/1ps --override_timeunit "${gen[@]}" "$bench" -s "$bench" > xelab.out 2>&1 || { cat xelab.out; exit 1; }
+    xelab -debug typical --timescale 1ns/1ps --override_timeunit --override_timeprecision "${gen[@]}" "$bench" -s "$bench" > xelab.out 2>&1 || { cat xelab.out; exit 1; }
     xsim "$bench" -runall -log sim.log > /dev/null 2>&1 || true
     cat sim.log
     grep -E "WARNING: \[(VRFC|XSIM)" xvlog.out xelab.out || true

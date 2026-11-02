@@ -3,7 +3,10 @@
 Run from prototipos/tron_fpga/ (headless; no pygame needed):
     python3 ../../proyecto_final/prototypes/core_blocks/game/make_events.py
 
-Writes game/scenarios/<name>.events and <name>.model.log. The scenario is
+Writes game/scenarios/<name>.events and <name>.model.log (mailbox crossing,
+the scenario's own Step interval), plus <name>.<crossing>-s<N>.log for the
+provisional crossings of crossing/FINDINGS.md at the Step intervals of
+ADR 0006 (VARIANTS below). The scenario is
 parsed by the model's own parser, so the bench and the model replay the same
 inputs. Event file, whitespace-separated integers:
     line 1: seed fixed_seed p1_cx p1_cy p1_dir p2_cx p2_cy p2_dir end_tick
@@ -21,6 +24,9 @@ from model.scenario import BTN_BITS, parse, run  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent
 SCENARIOS = pathlib.Path("scenarios")
+# (crossing, Step interval) pairs; "captured" needs at least 8 ticks.
+VARIANTS = [("mailbox", 8), ("mailbox", 10), ("qualified", 6), ("qualified", 8),
+            ("qualified", 10), ("captured", 8), ("captured", 10)]
 
 
 def events(sc):
@@ -53,6 +59,9 @@ def main() -> int:
         lines.append("-1 0 0")
         (out / f"{path.stem}.events").write_text("\n".join(lines) + "\n")
         (out / f"{path.stem}.model.log").write_text("\n".join(run(sc)) + "\n")
+        for crossing, step in VARIANTS:
+            log = run(sc, crossing=crossing, step_ticks=step)
+            (out / f"{path.stem}.{crossing}-s{step}.log").write_text("\n".join(log) + "\n")
         names.append(path.stem)
     (out / "manifest.txt").write_text("\n".join(names) + "\n")
     print(f"wrote {len(names)} scenarios to {out}")

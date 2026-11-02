@@ -10,14 +10,21 @@
 //                 the same clk_juego edge as tick_tgl, so they are stable
 //                 before the synchronizer's second stage (constrain each path
 //                 with set_max_delay -datapath_only below one clk_pix period).
-// Crossings out of this module, all into game_core capture registers:
+// Crossings out of this module (QUALIFIED = 0), into game_core capture registers:
 //   rsp_*, batch_*  change only (a) on tick_seen, or (b) when a command
 //                 finishes within WINDOW cycles after tick_seen. game_core
 //                 samples them on the next clk_juego edge, about 1.39 M
 //                 clk_pix cycles after tick_seen, so they are quiet at every
 //                 sampling edge. A command that overruns the window publishes
 //                 at the next tick_seen instead and sets late_publish.
+// QUALIFIED = 1 (two-phase req/ack, crossing/FINDINGS.md): a response is
+//   published as soon as its command finishes; rsp_seq[0] is the ack toggle
+//   that game_core synchronizes, and rsp_code_* stay held until the next
+//   command, which game_core issues only after using them. late_publish then
+//   only flags a command that took more than WINDOW cycles. batch_* go to
+//   batch_fifo, written on batch_wr (the cycle after tick_seen).
 module fast_core #(
+    parameter bit     QUALIFIED = 1'b0,
     parameter integer WINDOW = 1 << 18              // ~3.1 ms at 83.46 MHz (model SERVICE_WINDOW)
 ) (
     input  logic        clk, rst,
@@ -46,6 +53,7 @@ module fast_core #(
     output logic [3:0]  rsp_code_p1, rsp_code_p2,
     output logic [3:0]  batch_axes_p1, batch_axes_p2,
     output logic        batch_start,
+    output logic        batch_wr,                   // batch_* were just published (batch_fifo write)
     // inputs, already in clk_pix
     input  logic [4:0]  btn_pulse,                  // {C, R, L, D, U} one-cycle press pulses
     input  logic        uart_cmd_valid,
@@ -125,7 +133,10 @@ module fast_core #(
             // Publish inside the quiet window, else at the next tick_seen.
             if (svc_done && in_flight) begin
                 in_flight <= 0;
-                if (win_cnt != WIN && !tick_seen) begin
+                if (QUALIFIED) begin
+                    rsp_seq <= fast_seq; rsp_code_p1 <= svc_code_p1; rsp_code_p2 <= svc_code_p2;
+                    if (win_cnt == WIN) late_publish <= 1;
+                end else if (win_cnt != WIN && !tick_seen) begin
                     rsp_seq <= fast_seq; rsp_code_p1 <= svc_code_p1; rsp_code_p2 <= svc_code_p2;
                 end else begin
                     pend_publish <= 1; late_publish <= 1;
@@ -194,9 +205,10 @@ module fast_core #(
     always_ff @(posedge clk) begin
         if (rst) begin
             lat_p1 <= 0; lat_p2 <= 0; lat_start <= 0;
-            batch_axes_p1 <= 0; batch_axes_p2 <= 0; batch_start <= 0;
+            batch_axes_p1 <= 0; batch_axes_p2 <= 0; batch_start <= 0; batch_wr <= 0;
         end else begin
             lat_p1 <= nxt_p1; lat_p2 <= nxt_p2; lat_start <= nxt_start;
+            batch_wr <= tick_seen;
             if (tick_seen) begin
                 batch_axes_p1 <= lat_p1; batch_axes_p2 <= lat_p2; batch_start <= lat_start;
             end

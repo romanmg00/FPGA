@@ -20,7 +20,7 @@ Run a scenario and print its Step log:
 """
 
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from .game_top import BoardInputs, Game
 from .params import BTN_C, BTN_D, BTN_L, BTN_R, BTN_U, DEFAULT_STARTS, RuleParams
@@ -73,10 +73,14 @@ def parse(text: str) -> Scenario:
     return sc
 
 
-def run(sc: Scenario, game=None) -> list:
-    """Replay `sc` and return its Step log lines."""
+def run(sc: Scenario, game=None, crossing: str = "mailbox", step_ticks=None) -> list:
+    """Replay `sc` and return its Step log lines. `step_ticks` overrides the
+    scenario's Step interval (ADR 0006 evaluation)."""
     log = []
-    game = game or Game(sc.rules(), steplog=log.append)
+    rules = sc.rules()
+    if step_ticks is not None:
+        rules = replace(rules, step_ticks=step_ticks)
+    game = game or Game(rules, steplog=log.append, crossing=crossing)
     game.steplog = log.append
     sw = 0
     for tick in range(1, sc.end + 1):

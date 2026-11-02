@@ -1,11 +1,11 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
-| Date         : Thu Oct 29 09:32:26 2026
+| Date         : Thu Oct 29 20:34:39 2026
 | Host         : 46a6ecb52e54 running 64-bit Ubuntu"
 VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
 VERSION_CODENAME=noble
-| Command      : report_cdc -details -file /builds/tron-20261029-122928-881593/report_cdc.rpt
+| Command      : report_cdc -details -file /builds/tron-20261029-233130-2009133/report_cdc.rpt
 | Design       : tron_top
 | Device       : 7a100t-csg324
 | Speed File   : -1  PRODUCTION 1.23 2018-06-13
@@ -34,13 +34,13 @@ Destination Clock: clk_juego
 CDC Type: No Common Period
 
 Row  ID     Severity  Description                      Depth  Exception                Source (From)                             Destination (To)
----  -----  --------  -------------------------------  -----  -----------------------  ----------------------------------------  --------------------------------------
-  1  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/batch_axes_p1_reg[3:0]/C  u_system/u_game/cap_axes_p1_reg[3:0]/D
-  2  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/batch_axes_p2_reg[3:0]/C  u_system/u_game/cap_axes_p2_reg[3:0]/D
-  3  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[3:0]/C    u_system/u_game/cap_code_p1_reg[3:0]/D
-  4  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[3:0]/C    u_system/u_game/cap_code_p2_reg[3:0]/D
-  5  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/rsp_seq_reg[3:0]/C        u_system/u_game/cap_seq_reg[3:0]/D
-  6  CDC-1  Critical  1-bit unknown CDC circuitry          0  Max Delay Datapath Only  u_system/u_fast/batch_start_reg/C         u_system/u_game/cap_start_reg/D
+---  -----  --------  -------------------------------  -----  -----------------------  ----------------------------------------  ------------------------------------------------
+  1  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/batch_axes_p1_reg[3:0]/C  u_system/u_game/g_mailbox.cap_axes_p1_reg[3:0]/D
+  2  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/batch_axes_p2_reg[3:0]/C  u_system/u_game/g_mailbox.cap_axes_p2_reg[3:0]/D
+  3  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[3:0]/C    u_system/u_game/g_mailbox.cap_code_p1_reg[3:0]/D
+  4  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[3:0]/C    u_system/u_game/g_mailbox.cap_code_p2_reg[3:0]/D
+  5  CDC-4  Critical  Multi-bit unknown CDC circuitry      0  Max Delay Datapath Only  u_system/u_fast/rsp_seq_reg[3:0]/C        u_system/u_game/g_mailbox.cap_seq_reg[3:0]/D
+  6  CDC-1  Critical  1-bit unknown CDC circuitry          0  Max Delay Datapath Only  u_system/u_fast/batch_start_reg/C         u_system/u_game/g_mailbox.cap_start_reg/D
 
 Source Clock: input port clock
 Destination Clock: clk_juego
