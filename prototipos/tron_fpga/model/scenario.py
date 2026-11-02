@@ -24,6 +24,7 @@ from dataclasses import dataclass, field, replace
 
 from .game_top import BoardInputs, Game
 from .params import BTN_C, BTN_D, BTN_L, BTN_R, BTN_U, DEFAULT_STARTS, RuleParams
+from .steplog import arena_line
 from .turn_unit import HEADING_LETTERS
 
 BTN_BITS = {"U": BTN_U, "D": BTN_D, "L": BTN_L, "R": BTN_R, "C": BTN_C}
@@ -73,15 +74,23 @@ def parse(text: str) -> Scenario:
     return sc
 
 
-def run(sc: Scenario, game=None, crossing: str = "mailbox", step_ticks=None) -> list:
+def run(sc: Scenario, game=None, crossing: str = "mailbox", step_ticks=None,
+        arena_log=None) -> list:
     """Replay `sc` and return its Step log lines. `step_ticks` overrides the
-    scenario's Step interval (ADR 0006 evaluation)."""
+    scenario's Step interval (ADR 0006 evaluation). If `arena_log` is a list,
+    each Step-log line also appends an arena-log line (steplog.arena_line)."""
     log = []
     rules = sc.rules()
     if step_ticks is not None:
         rules = replace(rules, step_ticks=step_ticks)
-    game = game or Game(rules, steplog=log.append, crossing=crossing)
-    game.steplog = log.append
+    game = game or Game(rules, crossing=crossing)
+
+    def on_line(line):
+        log.append(line)
+        if arena_log is not None:
+            arena_log.append(arena_line(line, game.grid))
+
+    game.steplog = on_line
     sw = 0
     for tick in range(1, sc.end + 1):
         btn, uart = [], bytearray()

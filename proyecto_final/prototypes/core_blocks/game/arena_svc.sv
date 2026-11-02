@@ -9,7 +9,7 @@
 //   READ2    read both target Cells, then report their codes.
 //   COMMIT   per surviving Bike: old head -> Trail, target -> Head; per
 //            crashed Bike: CELL_CRASH at its last valid head (ADR 0003
-//            item 4, which the model does not do yet). Then replace each
+//            item 4; the model does the same). Then replace each
 //            collected slot in ascending order.
 // After rst the service clears the Arena once (Walls only, no Rewards).
 //

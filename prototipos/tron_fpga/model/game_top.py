@@ -55,6 +55,9 @@ START_PHASES = (G_IDLE, G_READY, G_MATCH)
 TICK_MASK = (1 << 32) - 1
 # Slow-side register stages before a fast->game value is used: (response, input batch)
 CROSSING_STAGES = {"mailbox": (1, 1), "qualified": (2, 3), "captured": (3, 3)}
+# Shortest Step interval each crossing sustains: a Step's COMMIT is seen done at
+# k + 2 * (response stages + 1), and the next launch may come no earlier.
+MIN_STEP_TICKS_BY_CROSSING = {c: 2 * (rsp + 1) for c, (rsp, _) in CROSSING_STAGES.items()}
 
 
 @dataclass(frozen=True)
@@ -89,9 +92,15 @@ class BoardInputs:
 class Game:
     def __init__(self, rules: RuleParams = RuleParams(), steplog=None, crossing: str = "mailbox"):
         """`steplog`, if given, is called with each Step-log line (see steplog.py).
-        `crossing` is "mailbox" (ADR 0003 working default) or "qualified"."""
+        `crossing` is "mailbox" (ADR 0003 working default), "qualified" or
+        "captured"; each has a shortest Step interval (MIN_STEP_TICKS_BY_CROSSING)."""
         if crossing not in CROSSING_STAGES:
             raise ValueError(f"unknown crossing {crossing!r}")
+        self.crossing = crossing
+        self.min_step_ticks = MIN_STEP_TICKS_BY_CROSSING[crossing]
+        if rules.step_ticks < self.min_step_ticks:
+            raise ValueError(f"step_ticks={rules.step_ticks} is too short for the {crossing} "
+                             f"crossing: it needs at least {self.min_step_ticks}")
         self.rsp_stages, self.batch_stages = CROSSING_STAGES[crossing]
         self.geom = GEOMETRY
         self.rules = rules
@@ -160,7 +169,8 @@ class Game:
         launch = running and self.step_cnt == self.step_period - 1
         resolve = self.step.codes_ready(idle, paused)
         if launch and not self.step.ready(idle):
-            raise RuntimeError("Step cadence overrun: the last COMMIT is not done")
+            raise RuntimeError(f"Step cadence overrun: the last COMMIT is not done (the "
+                               f"{self.crossing} crossing needs step_ticks >= {self.min_step_ticks})")
 
         # Capture registers and synchronizers
         self.batch_pipe = [self.batch_bus] + self.batch_pipe[:-1]

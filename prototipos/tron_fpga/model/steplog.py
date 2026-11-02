@@ -55,3 +55,15 @@ def format_line(game, kind: str = "step") -> str:
 
 def parse_line(line: str) -> dict:
     return dict(item.split("=", 1) for item in line.split())
+
+
+def arena_line(step_line: str, grid) -> str:
+    """The arena-log line for a Step-log line: its tick, round and step, and the
+    CRC-32 of the whole Arena after that edge's command (grid.digest()).
+
+        tick=31 round=1 step=4 arena=5d0a91c3
+
+    The Step log shows heads and Reward slots; this catches every other
+    Arena difference, such as the code left at a crashed head."""
+    f = parse_line(step_line)
+    return f"tick={f['tick']} round={f['round']} step={f['step']} arena={grid.digest():08x}"

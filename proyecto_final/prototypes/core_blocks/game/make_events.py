@@ -6,7 +6,9 @@ Run from prototipos/tron_fpga/ (headless; no pygame needed):
 Writes game/scenarios/<name>.events and <name>.model.log (mailbox crossing,
 the scenario's own Step interval), plus <name>.<crossing>-s<N>.log for the
 provisional crossings of crossing/FINDINGS.md at the Step intervals of
-ADR 0006 (VARIANTS below). The scenario is
+ADR 0006 (VARIANTS below). Each Step log has an arena log beside it,
+<name>.<ref>.arena.log: one CRC-32 of the whole Arena per Step-log line
+(model/steplog.py arena_line), which game_tb.sv also writes. The scenario is
 parsed by the model's own parser, so the bench and the model replay the same
 inputs. Event file, whitespace-separated integers:
     line 1: seed fixed_seed p1_cx p1_cy p1_dir p2_cx p2_cy p2_dir end_tick
@@ -58,10 +60,12 @@ def main() -> int:
         lines += [f"{t} {k} {v}" for t, k, v in events(sc)]
         lines.append("-1 0 0")
         (out / f"{path.stem}.events").write_text("\n".join(lines) + "\n")
-        (out / f"{path.stem}.model.log").write_text("\n".join(run(sc)) + "\n")
-        for crossing, step in VARIANTS:
-            log = run(sc, crossing=crossing, step_ticks=step)
-            (out / f"{path.stem}.{crossing}-s{step}.log").write_text("\n".join(log) + "\n")
+        for crossing, step in [("mailbox", None)] + VARIANTS:
+            ref = "model" if step is None else f"{crossing}-s{step}"
+            arena = []
+            log = run(sc, crossing=crossing, step_ticks=step, arena_log=arena)
+            (out / f"{path.stem}.{ref}.log").write_text("\n".join(log) + "\n")
+            (out / f"{path.stem}.{ref}.arena.log").write_text("\n".join(arena) + "\n")
         names.append(path.stem)
     (out / "manifest.txt").write_text("\n".join(names) + "\n")
     print(f"wrote {len(names)} scenarios to {out}")

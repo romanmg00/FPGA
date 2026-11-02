@@ -288,3 +288,34 @@ For the board check in section 5, program this build's `tron_top.bit`
 (SHA-256 in `evidence/bitstream.sha256`). To try the captured crossing on the
 board, use the `tron-captured-s8-…` bitstream from `../crossing/FINDINGS.md`;
 its LED 8 is the input-FIFO overflow flag and should stay off.
+
+## 7. Update, 2 November 2026: crash code in the model, whole-Arena check
+
+- **The model now writes CELL_CRASH** (ADR 0003 item 4), in `arena_svc`'s
+  write order (P1 old head, P1 target if it survives, P2 old head, P2 target).
+  The deviation "the model keeps the head code" in section 1 no longer holds.
+  The Step logs are unchanged, as predicted; three model test expectations
+  changed, and the PC viewer colours a crash Cell from the snapshot.
+- **Arena logs.** `make_events.py` writes `<name>.<ref>.arena.log` beside
+  every reference Step log: one line per Step-log line with the CRC-32
+  (`zlib.crc32`) of all 8192 Arena words after that edge's command.
+  `game_tb.sv` computes the same CRC from `arena_map`'s memory (simulation
+  only) into `<name>.arena.hdl.log`, and `run_game.sh` diffs both logs.
+- **The model rejects an impossible Step interval** for its crossing at
+  construction (mailbox 4, qualified 6, captured 8 ticks), instead of
+  failing later with a cadence overrun.
+
+| Run | Step logs | Arena logs | Host artifact |
+|---|---|---|---|
+| Captured, 8 ticks, before these changes (old check only) | 12/12 MATCH, 1597 lines | — | `core-game_tb-20261102-124145-3476214` |
+| Mailbox, 6 ticks | 12/12 MATCH, 3261 lines | **12/12 MATCH** | `core-game_tb-20261102-124735-3483103` |
+| Captured, 8 ticks | 12/12 MATCH, 1597 lines | **12/12 MATCH** | `core-game_tb-20261102-124737-3483350` |
+
+Negative check: arena logs generated from the model *without* the crash-code
+write differ from the mailbox run's HDL arena logs in all 12 scenarios, each
+at its first Crash, although their Step logs match. The Step-log comparison
+alone could not see that difference.
+
+After these runs the only source change was a comment in `arena_svc.sv`.
+The qualified variant and the 10-tick intervals were not rerun with the
+arena check.
