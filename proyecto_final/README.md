@@ -25,18 +25,20 @@ del segundo Clocking Wizard más un divisor, como pidieron los TAs
 - [x] **Paso 1b:** contador horizontal de 0 a 1679 (11 bits), en `counters.sv`
 - [x] **Paso 2:** contador vertical de 0 a 827, avanza cuando el horizontal da la
   vuelta, en `counters.sv`
-- [ ] **Paso 3:** `vga_out` ya tiene pulsos de sync, blanking y `curr_x`/`curr_y`, y
-  `vga_out_tb.sv` revisa el pulso de `hsync`, las 1680 cuentas por línea y el color
-  fuera del área visible. Pasa en XSim dentro de `build_game_top.tcl`. Falta anotar el
-  resultado en Icarus y decidir qué pasa con `tick_60hz` (hoy siempre vale 0): con el
-  ADR 0002 el reloj de juego sale del divisor, no de `vga_out`
-- [ ] **Paso 4:** ya están el Clocking Wizard (se piden 83.46 MHz y se logran
-  83,455,882 Hz), el segundo Wizard con el divisor a ~60 Hz y la imagen estable en la
-  tarjeta. Falta el borde blanco de 10 px: hoy las paredes blancas son de 16 px y están
-  debajo de la franja del HUD, que llega en gris hasta la orilla de la pantalla
-- [ ] **Paso 5:** `drawcon` ya dibuja paredes, HUD, bloque y fondo en colores planos.
-  Faltan la arena y los sprites desde ROM (`.coe` RGB444, motos de 32x32 y premios de
-  16x16)
+- [x] **Paso 3a:** `vga_out` con pulsos de sync, blanking y `curr_x`/`curr_y`. `vga_out_tb.sv`
+  revisa el pulso de `hsync`, las 1680 cuentas por línea y el color fuera del área visible,
+  y pasa en XSim dentro de `build_game_top.tcl`
+- [ ] **Paso 3b:** decidir qué pasa con `tick_60hz`, que hoy siempre vale 0 y nadie usa: quitar
+  el puerto o hacerlo un pulso por cuadro. Con el ADR 0002 el reloj de juego sale del
+  divisor, no de `vga_out`
+- [x] **Paso 4a:** Clocking Wizard (se piden 83.46 MHz y se logran 83,455,882 Hz), segundo
+  Wizard con el divisor a ~60 Hz e imagen estable en la tarjeta
+- [ ] **Paso 4b:** borde blanco de 10 px en la franja del HUD, que hoy llega en gris hasta la
+  orilla: las 10 filas de arriba y las 10 columnas de cada lado. Abajo de `y = 64`, las
+  paredes de 16 px ya lo cubren
+- [x] **Paso 5a:** `drawcon` con paredes, HUD, bloque y fondo en colores planos
+- [ ] **Paso 5b:** `drawcon` lee de `arena_map` lo que hay en cada celda
+- [ ] **Paso 5c:** sprites desde ROM (`.coe` RGB444, motos de 32x32 y premios de 16x16)
 
 ## Hito: bloque en movimiento (revisión del 5 de noviembre)
 
