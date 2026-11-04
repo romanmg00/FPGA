@@ -77,7 +77,8 @@ wait_on_run impl_1
 if {[get_property PROGRESS [get_runs impl_1]] ne "100%"} {error "implementation failed"}
 open_run impl_1
 
-# Regla de docs/design/CS-256 Vivado IP Inventory.md: los Wizards son IP generada por Vivado.
+# Revision de estructura: hay un MMCM en cada Wizard. No prueba que sean IP generada:
+# un modulo escrito a mano alrededor de un MMCME2_ADV tambien pasa.
 foreach inst {u_clk u_clk1} {
     set mmcm [get_cells -hierarchical -filter "REF_NAME == MMCME2_ADV && NAME =~ $inst/*"]
     if {[llength $mmcm] != 1} {error "$inst debe ser un Clocking Wizard generado; se encontro: $mmcm"}
