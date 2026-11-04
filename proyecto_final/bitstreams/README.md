@@ -4,12 +4,12 @@ Los bitstreams van aquí para llevarlos a la revisión con el TA y poder repetir
 
 ## `game_top_fixes.bit`
 
-`v4/moving-block-fixes` con las correcciones de PR 11. **Este es el probado en la tarjeta, pero ya no coincide con el código actual:** viene de `a8827e1`, donde con todos los switches abajo el bloque es cian. Ahora el bloque se queda negro, como en PR 11, así que con todos los switches abajo no se ve. Este archivo se reemplaza cuando el build nuevo pase la prueba en la tarjeta.
+El bitstream para mostrar: `v4/moving-block-fixes` con las correcciones de PR 11. **Este es el probado en la tarjeta.**
 
 | | |
 |---|---|
-| SHA-256 | `e3b324cc79eaac91554048e09a3c6999a15ed069b0214ea7cf4f73196bfb49c2` |
-| Fuente | Commit `a8827e1`: los archivos del diseño son idénticos byte por byte a los de este build |
+| SHA-256 | `3553e9b59d4fef5fb14bfc71150346fb48029372c6e88cf090a0a1ea3ef9e511` |
+| Fuente | Commit `9b78418`: los archivos del diseño, el script y los testbenches son idénticos byte por byte a los de este build |
 | Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` |
 | Herramienta | Vivado 2025.2, 4 de noviembre de 2026 |
 | Parte | `xc7a100tcsg324-1` |
@@ -24,16 +24,19 @@ Nexys A7 serial `210292B1820D`, programada por JTAG (DONE en alto). Observó Ala
 
 | Prueba | Esperado | Resultado |
 |---|---|---|
-| Arranque con todos los switches abajo | HUD gris, paredes blancas, bloque cian en (320, 432) | Pasa |
-| Subir `SW0`–`SW11` | El bloque cambia de color | Pasa |
-| Los cuatro botones de dirección | Se mueve y se detiene en cada pared | Pasa |
-| CPU_RESET, varias veces | Negro mientras se presiona; el bloque regresa a (320, 432) | Pasa |
+| Arranque con todos los switches abajo | HUD gris y paredes blancas; el bloque es negro y no se ve | Pasa |
+| Subir `SW0`–`SW11` | El bloque aparece en (320, 432) con ese color | Pasa |
+| CPU_RESET | El bloque regresa a (320, 432) | Pasa |
 | BTNC | El bloque va al centro, (632, 392) | Pasa |
+
+Las paredes se probaron en la tarjeta con el build anterior (`e3b324cc…`, de `a8827e1`), junto con CPU_RESET varias veces. Entre ese build y este solo cambió el color del bloque con todos los switches abajo, en `drawcon.sv`. Este build no se volvió a probar en las paredes ni con reset repetido.
+
+**Para la demostración: hay que subir algún switch de `SW0`–`SW11`.** Con todos abajo el bloque no se ve.
 
 ### Simulación y reportes
 
 - **Testbenches:** `vga_out_tb`, `position_logic_tb` y `game_top_tb` pasan. Son pruebas de quien hizo el código, no las oficiales del contrato (sección 7). Usan `sim_clocks/`, relojes ideales, así que no prueban los Wizards.
-- **Temporización con el diseño ya ruteado:** setup +5.215 ns, hold +0.121 ns, ancho de pulso +2.991 ns. 0 registros sin reloj, 0 extremos internos sin restricción y 0 relojes múltiples.
+- **Temporización con el diseño ya ruteado:** setup +5.657 ns, hold +0.122 ns, ancho de pulso +2.991 ns. 0 registros sin reloj, 0 extremos internos sin restricción y 0 relojes múltiples.
 - **DRC:** sin violaciones. **Metodología:** solo `TIMING-9`, por el cruce de abajo.
 - **Log de construcción:** sin warnings.
 
