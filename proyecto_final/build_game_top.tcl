@@ -8,26 +8,42 @@ proc emit {path text} {set f [open $path w]; puts $f $text; close $f}
 file mkdir $out
 emit $out/version.txt [version]
 
-# Un testbench pasa solo si xsim termina bien y su log nuevo tiene la marca, sin errores.
-# Se borra la carpeta antes de correrlo, para que nunca cuente un log de una corrida vieja.
-proc run_bench {top marker files} {
-    global out
-    set dir $out/tests/$top
+# Un build nuevo nunca hereda el resultado de otro que uso la misma carpeta.
+file delete -force $out/game_top.bit $out/BUILD_COMPLETE.txt $out/tests/PASS.txt
+
+# Los testbenches corren al mismo tiempo, cada uno con su carpeta y su propio xsim, junto a
+# la sintesis y la implementacion. Requiere sh, asi que este script es para Linux.
+set benches {}
+proc start_bench {name top marker files {xsim_args ""}} {
+    global benches out
+    set dir $out/tests/$name
     file delete -force $dir
     file mkdir $dir
+    set quoted {}
+    foreach file $files {lappend quoted "'$file'"}
+    set run "xvlog -sv [join $quoted] && xelab -debug off --timescale 1ns/1ps $top -s $top && xsim $top -runall -log sim.log $xsim_args"
     set was [pwd]
     cd $dir
-    exec xvlog -sv {*}$files >@stdout 2>@stdout
-    exec xelab -debug off --timescale 1ns/1ps $top -s $top >@stdout 2>@stdout
-    set failed [catch {exec xsim $top -runall -log sim.log >@stdout 2>@stdout} result]
+    set pipe [open |[list sh -c "($run) > run.log 2>&1"] r]
     cd $was
-    if {$failed} {error "xsim failed: $top (see $dir/sim.log): $result"}
-    if {![file exists $dir/sim.log]} {error "Testbench wrote no log: $top"}
-    set f [open $dir/sim.log]; set log [read $f]; close $f
-    if {![string match "*$marker*" $log] || [regexp -nocase {fatal:|error:|FAIL } $log]} {
-        error "Testbench failed: $top (see $dir/sim.log)"
+    lappend benches [list $name $marker $dir $pipe]
+}
+# Un testbench pasa solo si su proceso termina bien y su log nuevo tiene la marca, sin errores.
+# La carpeta se borra antes de correrlo, para que nunca cuente un log de una corrida vieja.
+proc wait_benches {} {
+    global benches out
+    set failed {}
+    foreach bench $benches {
+        lassign $bench name marker dir pipe
+        set ok 0
+        if {![catch {close $pipe}] && [file exists $dir/sim.log]} {
+            set f [open $dir/sim.log]; set log [read $f]; close $f
+            set ok [expr {[string match "*$marker*" $log] && ![regexp -nocase {fatal:|error:|FAIL } $log]}]
+        }
+        if {$ok} {puts "OK $name"} else {lappend failed $name}
     }
-    puts "OK $top"
+    if {[llength $failed]} {error "Testbenches failed: $failed (see $out/tests/<name>/run.log)"}
+    emit $out/tests/PASS.txt "All testbenches passed"
 }
 # Regla de docs/design/CS-256 Vivado IP Inventory.md: los Wizards son IP generada por Vivado.
 # Primera revision: ningun archivo del diseno define un modulo con el nombre de un Wizard.
@@ -43,14 +59,18 @@ proc check_no_handwritten_ip {files} {
 set design [list $here/counters.sv $here/vga_out.sv $here/drawcon.sv $here/sync_2ff.sv \
     $here/board_reset_sync.sv $here/position_logic.sv $here/game_top.sv]
 check_no_handwritten_ip $design
-run_bench sync_2ff_tb "PASS sync_2ff_tb" [list $here/sync_2ff_tb.sv $here/sync_2ff.sv]
-run_bench board_reset_sync_tb "PASS board_reset_sync_tb" [list $here/board_reset_sync_tb.sv $here/board_reset_sync.sv]
-run_bench vga_out_tb "PRUEBAS OK" [list $here/vga_out_tb.sv $here/vga_out.sv $here/counters.sv]
-run_bench position_logic_tb "PASS position_logic_tb" [list $here/position_logic_tb.sv $here/position_logic.sv]
-run_bench game_top_tb "PASS game_top_tb" [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_clocks/clk_wiz_1.sv] $design]
-emit $out/tests/PASS.txt "All testbenches passed"
-if {$mode eq "sim"} {exit}
+start_bench sync_2ff_tb sync_2ff_tb "PASS sync_2ff_tb" [list $here/sync_2ff_tb.sv $here/sync_2ff.sv]
+start_bench board_reset_sync_tb board_reset_sync_tb "PASS board_reset_sync_tb" [list $here/board_reset_sync_tb.sv $here/board_reset_sync.sv]
+start_bench vga_out_tb vga_out_tb "PRUEBAS OK" [list $here/vga_out_tb.sv $here/vga_out.sv $here/counters.sv]
+start_bench position_logic_tb position_logic_tb "PASS position_logic_tb" [list $here/position_logic_tb.sv $here/position_logic.sv]
+foreach scenario {colours moves_x moves_y resets_short reset_long btnc} {
+    start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
+        [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_clocks/clk_wiz_1.sv] $design] \
+        "-testplusarg scenario=$scenario"
+}
 
+proc build_bitstream {} {
+global here out design
 create_project game_top $out/project -part xc7a100tcsg324-1
 set_property target_language Verilog [current_project]
 
@@ -120,7 +140,8 @@ report_exceptions -ignored -file $out/exceptions_ignored.rpt
 report_cdc -details -file $out/report_cdc.rpt
 check_timing -verbose -file $out/check_timing.rpt
 report_timing_summary -delay_type min_max -report_unconstrained -file $out/timing_summary.rpt
-# El bitstream solo se publica en OUT_DIR si pasa todo. Sin game_top.bit no hay build valido.
+# El bitstream solo se publica en OUT_DIR si pasa todo, al final del script. Sin game_top.bit
+# no hay build valido.
 # Las entradas asincronas (false path) y las salidas VGA no llevan retardo a proposito;
 # cualquier otra cosa sin reloj o sin restriccion detiene el build.
 set f [open $out/check_timing.rpt]; set checks [read $f]; close $f
@@ -132,6 +153,16 @@ if {![regexp {There are 0 input ports with no input delay specified} $checks]} {
 }
 set f [open $out/timing_summary.rpt]; set timing [read $f]; close $f
 if {![string match {*All user specified timing constraints are met.*} $timing]} {error "routed timing failed"}
+close_project
+}
+
+# Se espera a los testbenches aunque falle el build, para que ninguno siga corriendo en la
+# carpeta despues de terminar, y se reportan los dos errores.
+set build_failed [catch {if {$mode ne "sim"} {build_bitstream}} build_error]
+set bench_failed [catch {wait_benches} bench_error]
+if {$build_failed && $bench_failed} {puts $bench_error}
+if {$build_failed} {error $build_error}
+if {$bench_failed} {error $bench_error}
+if {$mode eq "sim"} {exit}
 file copy $out/project/game_top.runs/impl_1/game_top.bit $out/game_top.bit
 emit $out/BUILD_COMPLETE.txt "All testbenches pass; routed timing met; game_top.bit written. Read the reports for sign-off."
-close_project

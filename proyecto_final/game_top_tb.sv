@@ -1,6 +1,9 @@
 // Builder's own check of game_top, mostly from its pins, with sim_clocks/ in place of
 // the Wizards; not the official bench of contract section 7. It does not test the
 // Wizards themselves, lock behaviour, or a CPU_RESET shorter than one clk_juego period.
+// Each scenario starts from power-up, so the build runs them at the same time, each in its
+// own simulator: xsim game_top_tb -runall -testplusarg scenario=moves_x
+// Without +scenario they all run one after another in one simulation.
 `timescale 1ns/1ps
 module game_top_tb;
     localparam int H_TOTAL = 1680, V_TOTAL = 828;
@@ -13,6 +16,7 @@ module game_top_tb;
     logic hs, vs;
     int rises_in_reset = 0;
     realtime last_rise = 0;
+    string scenario = "all";
 
     game_top dut (.clk, .cpu_resetn, .sw, .btn, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs));
     always #5 clk = ~clk;
@@ -127,31 +131,68 @@ module game_top_tb;
         check_frame($sformatf("after a reset of %0d ms", hold_ms), 320, 432, sw);
     endtask
 
+    task automatic colours();
+        sw = 12'hF00; #1ms;
+        check_frame("red switches", 320, 432, 12'hF00);
+        sw = 12'h0A5; #1ms;
+        check_frame("mixed switches", 320, 432, 12'h0A5);
+    endtask
+
+    task automatic moves_x();
+        sw = 12'hFFF; #1ms;
+        move("right", 5'b01000,  1,  0, 12'hFFF);
+        move("left",  5'b00100, -1,  0, 12'hFFF);
+    endtask
+
+    task automatic moves_y();
+        sw = 12'hFFF; #1ms;
+        move("down",  5'b00010,  0,  1, 12'hFFF);
+        move("up",    5'b00001,  0, -1, 12'hFFF);
+    endtask
+
+    task automatic resets_short();
+        sw = 12'hFFF; #1ms;
+        reset_test(50);
+        reset_test(100);
+    endtask
+
+    task automatic reset_long();
+        sw = 12'hFFF; #1ms;
+        reset_test(500);
+    endtask
+
+    task automatic btnc();
+        sw = 12'hFFF; #1ms;
+        btn = 5'b10000; #60ms; btn = 5'b0; #40ms;
+        check_frame("BTNC centres the block", 632, 392, 12'hFFF);
+    endtask
+
     initial begin
+        void'($value$plusargs("scenario=%s", scenario));
         #1 if (dut.blkpos_x !== 11'd320 || dut.blkpos_y !== 11'd432)
             fail($sformatf("power-up position is (%0d,%0d)", dut.blkpos_x, dut.blkpos_y));
         #1ms;
         check_frame("power-up, all switches down: block black", 320, 432, 12'h000);
 
-        sw = 12'hF00; #1ms;
-        check_frame("red switches", 320, 432, 12'hF00);
-        sw = 12'h0A5; #1ms;
-        check_frame("mixed switches", 320, 432, 12'h0A5);
-        sw = 12'hFFF; #1ms;
+        case (scenario)
+            "colours":      colours();
+            "moves_x":      moves_x();
+            "moves_y":      moves_y();
+            "resets_short": resets_short();
+            "reset_long":   reset_long();
+            "btnc":         btnc();
+            "all": begin
+                colours();
+                moves_x();
+                moves_y();
+                resets_short();
+                reset_long();
+                btnc();
+            end
+            default: fail($sformatf("unknown scenario %s", scenario));
+        endcase
 
-        move("right", 5'b01000,  1,  0, 12'hFFF);
-        move("left",  5'b00100, -1,  0, 12'hFFF);
-        move("down",  5'b00010,  0,  1, 12'hFFF);
-        move("up",    5'b00001,  0, -1, 12'hFFF);
-
-        reset_test(50);
-        reset_test(100);
-        reset_test(500);
-
-        btn = 5'b10000; #60ms; btn = 5'b0; #40ms;
-        check_frame("BTNC centres the block", 632, 392, 12'hFFF);
-
-        $display("PASS game_top_tb");
+        $display("PASS game_top_tb %s", scenario);
         $finish;
     end
 endmodule
