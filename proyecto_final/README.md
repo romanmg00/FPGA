@@ -25,26 +25,48 @@ del segundo Clocking Wizard más un divisor, como pidieron los TAs
 - [x] **Paso 1b:** contador horizontal de 0 a 1679 (11 bits), en `counters.sv`
 - [x] **Paso 2:** contador vertical de 0 a 827, avanza cuando el horizontal da la
   vuelta, en `counters.sv`
-- [ ] **Paso 3:** `vga_out`. Ya tiene pulsos de sync, blanking y `curr_x`/`curr_y`, y
+- [ ] **Paso 3:** `vga_out` ya tiene pulsos de sync, blanking y `curr_x`/`curr_y`, y
   `vga_out_tb.sv` revisa el pulso de `hsync`, las 1680 cuentas por línea y el color
-  fuera del área visible. Falta correr y anotar el testbench en Icarus y en Vivado,
-  y decidir qué pasa con `tick_60hz` (hoy siempre vale 0): con el ADR 0002 el reloj
-  de juego sale del divisor, no de `vga_out`
-- [ ] **Paso 4:** Clocking Wizard a 83.46 MHz y segundo reloj con divisor a ~60 Hz;
-  imagen estable en la tarjeta con el borde blanco de 10 px
-- [ ] **Paso 5:** `drawcon` con la arena en colores planos; después, sprites desde ROM
-  (`.coe` RGB444, motos de 32x32 y premios de 16x16)
+  fuera del área visible. Pasa en XSim dentro de `build_game_top.tcl`. Falta anotar el
+  resultado en Icarus y decidir qué pasa con `tick_60hz` (hoy siempre vale 0): con el
+  ADR 0002 el reloj de juego sale del divisor, no de `vga_out`
+- [ ] **Paso 4:** ya están el Clocking Wizard (se piden 83.46 MHz y se logran
+  83,455,882 Hz), el segundo Wizard con el divisor a ~60 Hz y la imagen estable en la
+  tarjeta. Falta el borde blanco de 10 px: hoy las paredes blancas son de 16 px y están
+  debajo de la franja del HUD, que llega en gris hasta la orilla de la pantalla
+- [ ] **Paso 5:** `drawcon` ya dibuja paredes, HUD, bloque y fondo en colores planos.
+  Faltan la arena y los sprites desde ROM (`.coe` RGB444, motos de 32x32 y premios de
+  16x16)
+
+## Hito: bloque en movimiento (revisión del 5 de noviembre)
+
+`game_top` muestra un bloque de 16x16 que se mueve con los botones y se detiene en las
+paredes. CPU_RESET lo regresa a (320, 432) y BTNC lo lleva al centro, (632, 392). Su
+color sale de `SW0`–`SW11`: **con todos abajo es negro y no se ve.**
+
+El bitstream probado, los resultados en la tarjeta y los límites están en
+[`bitstreams/README.md`](bitstreams/README.md). Los ajustes de `clk_wiz_1` son deducidos
+y falta que Roman los confirme.
 
 ## Archivos
 
 - `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasan Icarus y XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
-- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`
-- `bitstreams/`: bitstreams probados y lo que se comprobó de cada uno
-- `sim_clocks/`: relojes ideales **solo para simulación**. La síntesis usa siempre la IP que genera Vivado; ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
+- `game_top.sv`: tope del diseño. Conecta los Wizards, el divisor de `clk_juego`, los sincronizadores y los bloques de abajo
+- `position_logic.sv`: posición del bloque, en `clk_juego`
+- `drawcon.sv`: color de cada píxel
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
-- `counters_tb.sv`: testbench de los contadores
 - `vga_out.sv`: sync, blanking y `curr_x`/`curr_y` (`tick_60hz` todavía en 0)
-- `vga_out_tb.sv`: testbench de `vga_out`
+- `sync_2ff.sv`: sincronizador de 2 flip-flops para botones y switches
+- `board_reset_sync.sv`: lleva CPU_RESET a cada dominio de reloj
+- `game_top.xdc`: pines y configuración de la tarjeta para `game_top`
+- `game_top_timing.xdc`: reloj generado de `clk_juego` y excepciones de temporización; solo para implementación
+- `ip/clk_wiz_0/clk_wiz_0.xci`: IP del reloj de píxel para el proyecto de Roman; `build_game_top.tcl` no lo lee y genera el Wizard. Ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
+- `game_top_tb.sv`: revisa `game_top` desde sus pines, con 6 escenarios
+- `position_logic_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
+- `sim_clocks/`: relojes ideales **solo para simulación**. La síntesis usa siempre la IP que genera Vivado; ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
+- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`
+- `bitstreams/`: bitstreams probados y lo que se comprobó de cada uno
+- `prototypes/vga_106mhz/`: experimento a 106.5 MHz, fuera del hito; conserva el error del reset de PR 11
 - `Contrato de interfaces game_top (CS 256).md`: contrato del equipo
 - `cs256-project1-fall26.pdf`: presentación del proyecto
 - `deprecated/`: versiones anteriores de este README y del contrato, solo como referencia

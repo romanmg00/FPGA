@@ -48,6 +48,8 @@ Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la m
 
 - **CPU_RESET muy corto.** Con un pulso de menos de unos 17 ms, en simulación se reinicia el video pero el bloque se queda donde estaba, porque puede no llegar un flanco de `clk_juego` (5, 10 y 15 ms fallan; 17 y 35 ms pasan). Se corrige alargando el reset, lo que cambia el hardware y pide otro build y otra prueba en la tarjeta.
 - **Tearing.** `blkpos` sigue cruzando directo de `clk_juego` a `clk_pix`, sin un cruce explícito (X1), así que el bloque se puede ver cortado. Las 12 filas críticas de `report_cdc` y `TIMING-9` son este cruce: la restricción limita el retardo, pero no lo hace seguro.
+- **Testbench colgado.** Ningún testbench tiene límite de tiempo real. Si uno se cuelga, `build_game_top.tcl` no publica el bitstream, pero tampoco termina con error.
+- **Diagonales.** Se prueban en `position_logic_tb`, pero no en `game_top_tb`, así que un error de conexión que afecte solo a las diagonales no se detecta.
 - **Salidas VGA.** No tienen retardo de salida, porque el monitor no da una especificación de tiempos. No se inventó una.
 - **`clk_wiz_1` encadenado.** Sigue saliendo de `clk_pix` como en PR 11; se discute en el issue 10.
 - **Botones.** Se leen a 60 Hz: una pulsación de menos de unos 17 ms se puede perder.
