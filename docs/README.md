@@ -12,7 +12,7 @@ Paths are relative to the repository root.
 | `docs/adr/` | Architecture decision records, numbered `0001-slug.md`. ADR 0001 is superseded; ADRs 0002 and 0004 are accepted; ADRs 0003 (working defaults) and 0005 (building against them) are proposed |
 | `docs/CS-256 Tron Architecture and Documentation Map.md` | Document authority, status, owners, update triggers, and traceability |
 | `docs/domain/` | Glossary (canonical game vocabulary; use these terms in notes, code comments, and the report) and Game Mechanics (derived index of the locked rules) |
-| `docs/design/` | VGA and Sprite Design Plan; Game Model Hardware Map (draft); Official FPGA Coding Practices (manufacturer guidance; superseded clock and pixel-pipeline comparisons are marked historical); UART input research and [prototype findings](design/CS-256%20UART%20Input%20Prototype%20Findings.md), including Icarus/XSim, routed timing/CDC and native IP Catalog evidence; research notes for ADR 0003 on the [Step transaction and displayed Heading](design/CS-256%20Step%20Transaction%20and%20Displayed%20Heading%20Research.md), the [fast clock](design/CS-256%20Fast%20Clock%20Domain%20Research.md) and [Crash code and Start while busy](design/CS-256%20Crash%20Code%20and%20Start%20While%20Busy%20Research.md) |
+| `docs/design/` | VGA and Sprite Design Plan; Game Model Hardware Map (draft); Official FPGA Coding Practices (manufacturer guidance; superseded clock and pixel-pipeline comparisons are marked historical); UART input research and [prototype findings](design/CS-256%20UART%20Input%20Prototype%20Findings.md), including XSim, routed timing/CDC and native IP Catalog evidence; research notes for ADR 0003 on the [Step transaction and displayed Heading](design/CS-256%20Step%20Transaction%20and%20Displayed%20Heading%20Research.md), the [fast clock](design/CS-256%20Fast%20Clock%20Domain%20Research.md) and [Crash code and Start while busy](design/CS-256%20Crash%20Code%20and%20Start%20While%20Busy%20Research.md) |
 | `docs/plan/` | Development Plan (calendar, freezes, scope tiers, work list, verification approach) and the Repository Merge Plan |
 | `docs/reviews/` | Opus 5.5 Architecture and Integration Review (read its parent-review reservations before adopting recommendations), Documentation Control Review, and the archived Integration Comparison |
 | `docs/history/` | Game Overview (whiteboard concept), superseded TA game-clock email draft, and the import commit map |
@@ -24,7 +24,7 @@ Paths are relative to the repository root.
 | `prototipos/` (others) | Roman's prototypes and launcher, including the `tron/` viewer |
 | `tools/` | Host-side scripts for candidate-art generation, VGA cycle modelling and desktop Vivado access |
 | `assets/` | Sprite art (`.png`) and generated `.coe` files |
-| `evidence/` | Retained experiment logs and metadata, currently the I2/X2 UART transport experiment; read each run's README for verification limits |
+| `prototipos/fpga/` | Retained experiment logs and metadata, currently the I2/X2 UART transport experiment; read each run's README for verification limits |
 
 Create new folders when their first file is needed. Name report evidence with its Development Plan objective ID, such as `<ObjectiveID>-<short-name>.<ext>` or an objective-specific folder.
 
@@ -65,10 +65,11 @@ Use this index to return to the relevant source before future work. The architec
 | Reference | Use it for |
 |---|---|
 | [CS-256 Official FPGA Coding Practices](design/CS-256%20Official%20FPGA%20Coding%20Practices.md) | Source-backed guidance on clocks and constraints, CDC, BRAM and sprite latency, RTL/reset/input handling, assets, pins and implementation reports. Read before FPGA work alongside the course material, ADR 0002 and contract conventions. Historical clock-enable and delayed-stream comparisons are marked superseded; proposed interfaces still need validation. |
+| [Vivado IP Inventory](design/CS-256%20Vivado%20IP%20Inventory.md) | Which IP each build uses, where its settings live, achieved frequencies and open IP problems. |
 | [VGA and Sprite Design Plan](design/CS-256%20VGA%20and%20Sprite%20Design%20Plan.md) | Course-aligned raster, output coordinates, early ROM reads, sprite conversion and planned video checks. Its alternative-pipeline appendix is historical. |
 | [Game Model Hardware Map](design/CS-256%20Tron%20Game%20Model%20Hardware%20Map.md) | Draft module/domain map, mailbox and input-batch proposals, tick timing and M2 scenario/log interfaces; not an accepted HDL interface. |
 | [UART Input Path Research](design/CS-256%20UART%20Input%20Path%20Research.md) | Proposed browser/USB-UART receiver, command encoding, ordered CDC transport, P1 input handling and verification plan; open choices remain proposals. |
-| [UART Input Prototype Findings](design/CS-256%20UART%20Input%20Prototype%20Findings.md) | Icarus/XSim results, routed timing/CDC, native IP Catalog inspection, ordering/Start counterexamples and queue limits. Board/game integration remains unverified; experiment results do not approve the interface. |
+| [UART Input Prototype Findings](design/CS-256%20UART%20Input%20Prototype%20Findings.md) | XSim results, routed timing/CDC, native IP Catalog inspection, ordering/Start counterexamples and queue limits. Board/game integration remains unverified; experiment results do not approve the interface. |
 | [Development Plan](plan/CS-256%20Tron%20Development%20Plan.md) | Objective IDs, scope tiers, ownership, tentative schedule, independent checks, Step-log comparisons and report evidence. |
 
 ### Implementation, prototypes, tools and evidence
@@ -83,7 +84,7 @@ Use this index to return to the relevant source before future work. The architec
 | [Roman's prototype instructions](../README.md#prototipos-en-python) | Launcher, pygame environment and `prototipos/tron/` viewer controls. Check each prototype's own behavior against the agreement. |
 | [Prototype metrics](../prototipos/tron_fpga/metrics/latest.md) and [CSV](../prototipos/tron_fpga/metrics/look-metrics.csv) | Historical PC-viewer measurements and hardware estimates from 17 October; not target HDL or board evidence. |
 | [UART transport experiment guide](../proyecto_final/prototypes/uart_input/README.md) | Throwaway SystemVerilog experiment, runners and reproduction instructions; separate from the game's accepted interfaces. |
-| [I2/X2 UART evidence](../prototipos/fpga/I2-uart-input-prototype/README.md) | Retained Icarus/XSim logs, routed reports, IP Catalog screenshots, source hashes and model analysis, with explicit verification limits. |
+| [I2/X2 UART evidence](../prototipos/fpga/I2-uart-input-prototype/README.md) | Retained simulation logs, routed reports, IP Catalog screenshots, source hashes and model analysis, with explicit verification limits. |
 | [Desktop Vivado launcher setup](../tools/vivado/README.md) | Administrator-installed launcher, scoped container access and invocation checks. Read alongside the Toolchain policy below. |
 | [Candidate-art generator](../tools/make_candidate_art.py) and [VGA cycle model](../tools/vga_out_tb_cycle_model.py) | Host-side asset generation and cycle-level exploration; inspect the scripts before use. |
 
@@ -139,6 +140,6 @@ As confirmed from the TAs’ instruction on 2026-10-20, the team is **Roman and 
 
 - The requested **83.46 MHz pixel clock** is separate from the approximately **60 Hz frame refresh** and the approximately **60 Hz game-state clock**. The divider, fast Arena service, and video pipeline have different responsibilities; do not describe the divided game clock as display-only.
 
-- New notes use the Obsidian vault's frontmatter and naming standard ([Metadata and File Standard](../../../00-System/Planning/Metadata-and-File-Standard.md)), with a `CS-256` title prefix.
+- New notes use the Obsidian vault's frontmatter and naming standard (`00-System/Planning/Metadata-and-File-Standard.md` in the vault, outside this repository), with a `CS-256` title prefix.
 - When a game term is settled or changed, update the glossary. The 20 October records in `docs/decisions/` stay byte-identical: record a rule change as a new ADR (0003 onward) or a dated successor specification, then update Mechanics' topic links if needed.
 - Code and generated files (`.sv`, `.xdc`, `.coe`, `.py`) do not need frontmatter.

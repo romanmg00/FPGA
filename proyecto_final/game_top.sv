@@ -10,12 +10,16 @@ module game_top (
     logic [10:0] curr_x, curr_y;
     logic [3:0]  draw_r, draw_g, draw_b;
     logic        clk_juego;
+    logic        clk_juego_toggle = 1'b0;
     logic        clk_pix;
     logic        clk_5mhz;
-    logic [15:0] clk_cnt;
-    logic        rst;
+    logic [15:0] clk_cnt = 16'b0;
+    logic        rst_request;
+    logic        rst_pix, rst_juego;
+    logic [4:0]  btn_sync;
+    logic [11:0] sw_sync;
 
-assign rst = ~cpu_resetn;
+assign rst_request = ~cpu_resetn;   // se invierte una sola vez (contrato 1)
 
 clk_wiz_0 u_clk(
     .clk_in1(clk),
@@ -27,24 +31,39 @@ clk_wiz_1 u_clk1 (
     .clk_out1(clk_5mhz)
 );
 
+// El divisor NO se resetea: position_logic tiene reset sincrono, asi que necesita
+// flancos de clk_juego durante el reset. Si este reloj se detuviera, nunca lo veria.
 always_ff @(posedge clk_5mhz)begin
-    if(rst) begin
-        clk_cnt<=16'b0;
-        clk_juego<=1'b0;
-    end
-    else begin
-        clk_cnt <= clk_cnt + 1'b1;
-        if (clk_cnt == 41666) begin
-            clk_juego <= ~clk_juego;
-            clk_cnt <= 16'b0;
-        end
+    clk_cnt <= clk_cnt + 1'b1;
+    if (clk_cnt == 41666) begin
+        clk_juego_toggle <= ~clk_juego_toggle;
+        clk_cnt <= 16'b0;
     end
 end
 
+// clk_juego va por la red global de relojes, no por rutas de datos.
+`ifdef SYNTHESIS
+BUFG u_bufg_juego (.I(clk_juego_toggle), .O(clk_juego));
+`else
+assign clk_juego = clk_juego_toggle;
+`endif
+
+// Entradas asincronas: un reset por dominio y 2 flip-flops por cada boton y switch.
+board_reset_sync u_rst_pix   (.clk(clk_pix),   .async_reset(rst_request), .rst(rst_pix));
+board_reset_sync u_rst_juego (.clk(clk_juego), .async_reset(rst_request), .rst(rst_juego));
+
+for (genvar i = 0; i < 5; i++) begin : g_btn
+    sync_2ff u_sync (.clk(clk_juego), .rst(rst_juego), .async_in(btn[i]), .sync_out(btn_sync[i]));
+end
+
+for (genvar i = 0; i < 12; i++) begin : g_sw
+    sync_2ff u_sync (.clk(clk_pix), .rst(rst_pix), .async_in(sw[i]), .sync_out(sw_sync[i]));
+end
+
 position_logic u_position_logic (
-        .rst(rst),
+        .rst(rst_juego),
         .clk(clk_juego),
-        .btn(btn),
+        .btn(btn_sync),
         .blkpos_x(blkpos_x),
         .blkpos_y(blkpos_y)
     );
@@ -54,7 +73,7 @@ drawcon u_drawcon(
     .curr_y(curr_y),
     .blkpos_x(blkpos_x),
     .blkpos_y(blkpos_y),
-    .sw(sw),
+    .sw(sw_sync),
     .draw_r(draw_r),
     .draw_g(draw_g),
     .draw_b(draw_b)
@@ -62,7 +81,7 @@ drawcon u_drawcon(
 
 vga_out u_vga_out(
     .clk_pix(clk_pix),
-    .rst(rst),
+    .rst(rst_pix),
     .tick_60hz(),
     .curr_x(curr_x),
     .curr_y(curr_y),
