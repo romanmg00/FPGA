@@ -122,8 +122,9 @@ wait_on_run impl_1
 if {[get_property PROGRESS [get_runs impl_1]] ne "100%"} {error "implementation failed"}
 open_run impl_1
 
-# Tercera revision: cada instancia tiene la estructura que genera el Wizard. Juntas, las
-# tres revisiones detectan un Wizard escrito a mano en el diseno; no son una prueba formal.
+# Tercera revision: cada instancia tiene la estructura que genera el Wizard. Las tres no
+# confirman que la instancia sea la IP generada: una copia editada y renombrada de su codigo
+# las pasa, asi que tambien hay que revisar las fuentes.
 foreach {inst name} {u_clk clk_wiz_0 u_clk1 clk_wiz_1} {
     set mmcm [get_cells -quiet $inst/inst/mmcm_adv_inst]
     if {[llength $mmcm] != 1 || [get_property REF_NAME $mmcm] ne "MMCME2_ADV"} {

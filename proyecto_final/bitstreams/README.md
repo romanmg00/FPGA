@@ -9,7 +9,7 @@ El bitstream para mostrar: `v4/moving-block-fixes` con las correcciones de PR 11
 | | |
 |---|---|
 | SHA-256 | `3553e9b59d4fef5fb14bfc71150346fb48029372c6e88cf090a0a1ea3ef9e511` |
-| Fuente | Commit `9b78418`. Los commits posteriores cambian testbenches, el script y documentos, pero no el diseño ni sus restricciones |
+| Fuente | Commit `9b78418`. Los commits posteriores cambian testbenches, el script y documentos, y agregan una restricción para el experimento `prototypes/vga_106mhz/`. El diseño de `game_top` y sus restricciones no cambian |
 | Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` |
 | Herramienta | Vivado 2025.2, 4 de noviembre de 2026 |
 | Parte | `xc7a100tcsg324-1` |
