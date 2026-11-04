@@ -2,6 +2,49 @@
 
 Los bitstreams van aquí para llevarlos a la revisión con el TA y poder repetir las pruebas. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
 
+## `game_top_fixes.bit`
+
+El bitstream para mostrar: `v4/moving-block-fixes` con las correcciones de PR 11. **Este es el probado en la tarjeta.**
+
+| | |
+|---|---|
+| SHA-256 | `e3b324cc79eaac91554048e09a3c6999a15ed069b0214ea7cf4f73196bfb49c2` |
+| Fuente | Commit `a8827e1`: los archivos del diseño son idénticos byte por byte a los de este build |
+| Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` |
+| Herramienta | Vivado 2025.2, 4 de noviembre de 2026 |
+| Parte | `xc7a100tcsg324-1` |
+| `clk_pix` lograda | 83,455,882 Hz |
+| `clk_juego` lograda | 59.9995 Hz (4,999,995 Hz / (2 × 41,667)) |
+
+Los dos Wizards son IP generada por Vivado. Los ajustes de `clk_wiz_1` son deducidos, porque el `.xci` de Roman no está en el repositorio ([inventario de IP](../../docs/design/CS-256%20Vivado%20IP%20Inventory.md)).
+
+### Prueba en la tarjeta
+
+Nexys A7 serial `210292B1820D`, programada por JTAG (DONE en alto). Observó Alan el 4 de noviembre de 2026, en su monitor.
+
+| Prueba | Esperado | Resultado |
+|---|---|---|
+| Arranque con todos los switches abajo | HUD gris, paredes blancas, bloque cian en (320, 432) | Pasa |
+| Subir `SW0`–`SW11` | El bloque cambia de color | Pasa |
+| Los cuatro botones de dirección | Se mueve y se detiene en cada pared | Pasa |
+| CPU_RESET, varias veces | Negro mientras se presiona; el bloque regresa a (320, 432) | Pasa |
+| BTNC | El bloque va al centro, (632, 392) | Pasa |
+
+### Simulación y reportes
+
+- **Testbenches:** `vga_out_tb`, `position_logic_tb` y `game_top_tb` pasan. Son pruebas de quien hizo el código, no las oficiales del contrato (sección 7). Usan `sim_clocks/`, relojes ideales, así que no prueban los Wizards.
+- **Temporización con el diseño ya ruteado:** setup +5.215 ns, hold +0.121 ns, ancho de pulso +2.991 ns. 0 registros sin reloj, 0 extremos internos sin restricción y 0 relojes múltiples.
+- **DRC:** sin violaciones. **Metodología:** solo `TIMING-9`, por el cruce de abajo.
+- **Log de construcción:** sin warnings.
+
+### Lo que falta
+
+- **Tearing.** `blkpos` sigue cruzando directo de `clk_juego` a `clk_pix`, sin un cruce explícito (X1), así que el bloque se puede ver cortado. Las 12 filas críticas de `report_cdc` y `TIMING-9` son este cruce: la restricción limita el retardo, pero no lo hace seguro.
+- **Salidas VGA.** No tienen retardo de salida, porque el monitor no da una especificación de tiempos. No se inventó una.
+- **`clk_wiz_1` encadenado.** Sigue saliendo de `clk_pix` como en PR 11; se discute en el issue 10.
+- **Botones.** Se leen a 60 Hz: una pulsación de menos de unos 17 ms se puede perder.
+- **`CFGBVS`.** El valor no se encontró en un documento oficial de Digilent (ver `game_top.xdc`).
+
 ## `game_top_pr11_asis.bit`
 
 Código de PR 11 **sin cambios**, para probarlo tal como está.
