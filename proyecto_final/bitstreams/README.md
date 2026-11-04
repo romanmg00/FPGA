@@ -9,7 +9,7 @@ El bitstream para mostrar: `v4/moving-block-fixes` con las correcciones de PR 11
 | | |
 |---|---|
 | SHA-256 | `3553e9b59d4fef5fb14bfc71150346fb48029372c6e88cf090a0a1ea3ef9e511` |
-| Fuente | Commit `9b78418`: los archivos del diseño, el script y los testbenches son idénticos byte por byte a los de este build |
+| Fuente | Commit `9b78418`. Los commits posteriores cambian testbenches, el script y documentos, pero no el diseño ni sus restricciones |
 | Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` |
 | Herramienta | Vivado 2025.2, 4 de noviembre de 2026 |
 | Parte | `xc7a100tcsg324-1` |
@@ -35,13 +35,18 @@ Las paredes se probaron en la tarjeta con el build anterior (`e3b324cc…`, de `
 
 ### Simulación y reportes
 
-- **Testbenches:** `vga_out_tb`, `position_logic_tb` y `game_top_tb` pasan. Son pruebas de quien hizo el código, no las oficiales del contrato (sección 7). Usan `sim_clocks/`, relojes ideales, así que no prueban los Wizards.
+- **Testbenches:** `vga_out_tb`, `position_logic_tb`, `game_top_tb`, `sync_2ff_tb` y `board_reset_sync_tb` pasan con el mismo diseño. Son pruebas de quien hizo el código, no las oficiales del contrato (sección 7). Usan `sim_clocks/`, relojes ideales, así que no prueban los Wizards.
 - **Temporización con el diseño ya ruteado:** setup +5.657 ns, hold +0.122 ns, ancho de pulso +2.991 ns. 0 registros sin reloj, 0 extremos internos sin restricción y 0 relojes múltiples.
 - **DRC:** sin violaciones. **Metodología:** solo `TIMING-9`, por el cruce de abajo.
 - **Log de construcción:** sin warnings.
 
+### Reconstruir no da el mismo archivo
+
+Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la misma temporización peor, pero difiere en 950 de los 3,825,744 bytes de configuración. No se investigó la causa. **El probado en la tarjeta es `3553e9b5…`;** cualquier otro `.bit` necesita su propia prueba.
+
 ### Lo que falta
 
+- **CPU_RESET muy corto.** Con un pulso de menos de unos 17 ms, en simulación se reinicia el video pero el bloque se queda donde estaba, porque puede no llegar un flanco de `clk_juego` (5, 10 y 15 ms fallan; 17 y 35 ms pasan). Se corrige alargando el reset, lo que cambia el hardware y pide otro build y otra prueba en la tarjeta.
 - **Tearing.** `blkpos` sigue cruzando directo de `clk_juego` a `clk_pix`, sin un cruce explícito (X1), así que el bloque se puede ver cortado. Las 12 filas críticas de `report_cdc` y `TIMING-9` son este cruce: la restricción limita el retardo, pero no lo hace seguro.
 - **Salidas VGA.** No tienen retardo de salida, porque el monitor no da una especificación de tiempos. No se inventó una.
 - **`clk_wiz_1` encadenado.** Sigue saliendo de `clk_pix` como en PR 11; se discute en el issue 10.
