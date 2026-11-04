@@ -38,6 +38,9 @@ del segundo Clocking Wizard más un divisor, como pidieron los TAs
 ## Archivos
 
 - `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasan Icarus y XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
+- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`
+- `bitstreams/`: bitstreams probados y lo que se comprobó de cada uno
+- `sim_clocks/`: relojes ideales **solo para simulación**. La síntesis usa siempre la IP que genera Vivado; ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
 - `counters_tb.sv`: testbench de los contadores
 - `vga_out.sv`: sync, blanking y `curr_x`/`curr_y` (`tick_60hz` todavía en 0)

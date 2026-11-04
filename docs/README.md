@@ -62,6 +62,7 @@ Use this index to return to the relevant source before future work. The architec
 | Reference | Use it for |
 |---|---|
 | [CS-256 Official FPGA Coding Practices](design/CS-256%20Official%20FPGA%20Coding%20Practices.md) | Source-backed guidance on clocks and constraints, CDC, BRAM and sprite latency, RTL/reset/input handling, assets, pins and implementation reports. Read before FPGA work alongside the course material, ADR 0002 and contract conventions. Historical clock-enable and delayed-stream comparisons are marked superseded; proposed interfaces still need validation. |
+| [Vivado IP Inventory](design/CS-256%20Vivado%20IP%20Inventory.md) | Which IP each build uses, where its settings live, achieved frequencies and open IP problems. |
 | [VGA and Sprite Design Plan](design/CS-256%20VGA%20and%20Sprite%20Design%20Plan.md) | Course-aligned raster, output coordinates, early ROM reads, sprite conversion and planned video checks. Its alternative-pipeline appendix is historical. |
 | [Game Model Hardware Map](design/CS-256%20Tron%20Game%20Model%20Hardware%20Map.md) | Draft module/domain map, mailbox and input-batch proposals, tick timing and M2 scenario/log interfaces; not an accepted HDL interface. |
 | [UART Input Path Research](design/CS-256%20UART%20Input%20Path%20Research.md) | Proposed browser/USB-UART receiver, command encoding, ordered CDC transport, P1 input handling and verification plan; open choices remain proposals. |
