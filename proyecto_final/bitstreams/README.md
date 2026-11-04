@@ -4,7 +4,7 @@ Los bitstreams van aquí para llevarlos a la revisión con el TA y poder repetir
 
 ## `game_top_fixes.bit`
 
-El bitstream para mostrar: `v4/moving-block-fixes` con las correcciones de PR 11. **Este es el probado en la tarjeta.**
+El bitstream para mostrar, ya en `main`, con las correcciones de PR 11. **Este es el probado en la tarjeta.**
 
 | | |
 |---|---|
