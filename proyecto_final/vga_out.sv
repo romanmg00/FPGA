@@ -22,9 +22,9 @@ module vga_out (
 
     always_comb begin
         tick_60hz = 1'b0;
-        curr_x = hcnt - 336;
-        curr_y = vcnt - 27;
-        visible = (hcnt>=336 && hcnt<1616) && (vcnt>=27 && vcnt<827);
+        curr_x = hcnt - 11'd336;
+        curr_y = vcnt - 11'd27;
+        visible = (hcnt>=11'd336 && hcnt<11'd1616) && (vcnt>=11'd27 && vcnt<11'd827);
     end
 
     always_ff @(posedge clk_pix) begin
