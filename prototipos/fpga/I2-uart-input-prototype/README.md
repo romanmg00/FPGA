@@ -4,9 +4,7 @@ Recorded 27 October 2026. See the [findings](../../../docs/design/CS-256%20UART%
 for interpretation, assumptions, the completed Vivado/IP Catalog checks, and
 the remaining game-integration and physical-board limits.
 
-- `rx.txt`, `fifo.txt`, `path-fast.txt`, `path-real.txt`: final portable Icarus stdout.
-- `PASS.txt`: the portable runner's completion marker (all four runs passed).
-- `version.txt`: Icarus version/license output from this run.
+- `rx.txt`, `fifo.txt`, `path-fast.txt`, `path-real.txt`: final portable-simulator stdout.
 - `xsim-*.txt`: final Vivado/XSim results, including checked clock/ratio values.
 - `vivado-summary.json`: final run path, timing/CDC/skew metrics, bitstream hash
   and unattended-launcher verification state.
@@ -26,14 +24,13 @@ the remaining game-integration and physical-board limits.
 - `model-analysis.json`: executable counterexamples using the existing Python model.
 - `local-checks.txt`: recorded parser, shell/Tcl structural and Python-suite results.
 
-Reproduce portable checks from the repository root with Icarus on PATH:
+Reproduce the model analysis from the repository root:
 
 ```bash
-bash proyecto_final/prototypes/uart_input/run_iverilog.sh /tmp/cs256-uart-new-run
 python3 proyecto_final/prototypes/uart_input/analyze.py
 ```
 
-The retained manifests and `model-analysis.json` describe the experiment snapshot.
+The retained manifests and `model-analysis.json` describe the experiment snapshot. After this run, `uart_async_fifo_tb.sv` got a comment-only edit, so its current hash differs from the lists here.
 After PR #4 integration, `analyze.py` was adapted to the new hardware-block model
 API; its current hash differs from the manifest. The UART RTL is unchanged.
 

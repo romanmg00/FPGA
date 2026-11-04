@@ -1,14 +1,20 @@
 module position_logic (
     input  logic        clk,        // clk_juego (~60 Hz)
     input  logic        rst,
-    input  logic [4:0]  btn,        // [0] arriba, [1] abajo, [2] izquierda, [3] derecha
-    output logic [10:0] blkpos_x, blkpos_y
+    input  logic [4:0]  btn,        // [0] arriba, [1] abajo, [2] izquierda, [3] derecha, [4] centro
+    // Valor inicial: sin esto la FPGA arranca en (0,0), escondido bajo la pared y el HUD.
+    output logic [10:0] blkpos_x = 11'd320,
+    output logic [10:0] blkpos_y = 11'd432
 );
 
     always_ff @(posedge clk) begin
         if(rst) begin
-            blkpos_x <= 11'd320;
+            blkpos_x <= 11'd320;    // celda de salida de P1, (20, 27)
             blkpos_y <= 11'd432;
+        end
+        else if(btn[4]) begin
+            blkpos_x <= 11'd632;    // centro de la pantalla, handout paso 12
+            blkpos_y <= 11'd392;    // (1280 - 16) / 2, (800 - 16) / 2
         end
         else begin
             if(btn[0] && blkpos_y > 11'd80) blkpos_y <= blkpos_y - 11'd4;   //up

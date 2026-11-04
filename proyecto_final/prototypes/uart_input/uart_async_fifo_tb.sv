@@ -34,8 +34,7 @@ module uart_async_fifo_tb;
             if (wr_en && wr_ready && full) rejected++;
             #0.001;
             gray_delta = dut.wr_gray ^ previous_wr_gray;
-            // Icarus 12.0 mis-evaluates $onehot0(a ^ b) for a=b=0;
-            // use a direct zero-or-power-of-two check, rejecting X as well.
+            // Direct zero-or-power-of-two check, rejecting X as well.
             if (previous_wr_gray_valid && ((gray_delta & (gray_delta - 1'b1)) !== 7'd0))
                 $fatal(1, "write Gray pointer changed multiple bits previous=%b current=%b",
                        previous_wr_gray, dut.wr_gray);

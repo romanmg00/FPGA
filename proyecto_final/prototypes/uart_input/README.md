@@ -57,25 +57,19 @@ The run saves XSim self-check logs/waves, IP catalog/interface reports, a Vivado
 project, and (for the full run) routed timing/CDC/skew/DRC reports and a bitstream.
 A failing bench or implementation command must make the runner fail.
 
-**Verified status, 27 October 2026:** all four Icarus runs and all four XSim runs
-pass. Vivado 2025.2 generated 83.455882 MHz and 59.999520 Hz clocks, routed the
+**Verified status, 27 October 2026:** all four XSim runs pass. Vivado 2025.2 generated 83.455882 MHz and 59.999520 Hz clocks, routed the
 wrapper, met setup/hold/pulse-width and both Gray-bus skew bounds, and produced
 a bitstream with zero DRC/methodology findings. Native IP Catalog inspection is
 complete. Five expected structural CDC warnings are documented in the findings;
 this is not a physical-board or game-integration certification.
 
-For the portable receiver/FIFO checks with Icarus 12:
+For the model analysis:
 
 ```bash
-bash proyecto_final/prototypes/uart_input/run_iverilog.sh /tmp/cs256-uart-icarus
 python3 proyecto_final/prototypes/uart_input/analyze.py
 ```
 
-The Icarus runner expects `iverilog`, `vvp`, and standard shell utilities. A
-temporary unpacked installation can be selected with `UART_IVERILOG`,
-`UART_IVL_BASE`, and `UART_VVP`. Its tests use 83,333,333 Hz as an experimental
-clock value; this is **not** an observed Clocking Wizard result. Vivado's runner
-instead recalculates the clock parameter from the IP it actually generates.
+Vivado's runner recalculates the clock parameter from the IP it actually generates.
 See [the findings](../../../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md)
 for results, retained evidence and the remaining integration/board limits.
 

@@ -1,11 +1,11 @@
 # Nexys A7-100T / Artix-7 XC7A100T — Official Documentation Bundle
 
-This is a vendor-source index and downloader guide, not a project specification. For CS-256 Tron decisions and the course-approved architecture, start at [[CS-256 Tron Architecture and Documentation Map]] and follow the course references there.
+This is a vendor-source index, not a project specification. For CS-256 Tron decisions and the course-approved architecture, start at [[CS-256 Tron Architecture and Documentation Map]] and follow the course references there.
 
 Target board: **Digilent Nexys A7-100T**
 FPGA: **AMD/Xilinx Artix-7 XC7A100T-1CSG324C**
 
-This bundle contains shortcut files to the official vendor documents plus a small Python downloader (`download_official_docs.py`) that downloads the vendor PDFs/XDC to a local `Downloaded/` folder.
+This bundle contains shortcut files to the official vendor documents, and `OFFICIAL_LINKS.txt` lists the links.
 
 ## Board documentation (Digilent)
 
@@ -41,12 +41,6 @@ This bundle contains shortcut files to the official vendor documents plus a smal
 
 The Digilent Nexys A7 Reference Manual identifies the on-board motion sensor as the **ADXL362** and the microphone as the **ADMP421**. The board includes an accelerometer but **no on-board gyroscope**.
 
-## Using the downloader
+## Getting the documents
 
-Run:
-
-```bash
-python download_official_docs.py
-```
-
-The script only uses Python's standard library and downloads the official vendor files into `Downloaded/`.
+Open them from the shortcuts or from `OFFICIAL_LINKS.txt`. The `download_official_docs.py` downloader this guide used to describe is not in this repository.

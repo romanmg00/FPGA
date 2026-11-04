@@ -5,7 +5,13 @@
 
 ## Clock signal
 set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { clk }]; #IO_L12P_T1_MRCC_35 Sch=clk100mhz
-create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {clk}];
+## Voltaje del banco de configuracion. No se encontro en un documento oficial de Digilent:
+## el valor viene de un hilo de su foro (Nexys 4, CFGBVS_0 a 3.3 V) y de otro proyecto Nexys A7.
+set_property CFGBVS VCCO [current_design]
+set_property CONFIG_VOLTAGE 3.3 [current_design]
+
+## El periodo de 10 ns y el jitter de entrada los define clk_wiz_0.xdc, que genera la IP.
+## No se repite aqui: un create_clock propio anula el suyo y Vivado ignora el jitter.
 
 
 ##Switches

@@ -166,7 +166,7 @@ Keep ROMs always enabled as in the sprite tips initially. If reads are later gat
 
 ## Arena memory and reset
 
-**Selected project encoding:** use the 8192 × 4-bit Arena, 13-bit `{cy[5:0], cx[6:0]}` address and cell codes recorded in [[CS-256 Tron Agreed Specification 2026-10-20#Clocks, Arena encoding and service boundary]]. These are team choices, not AMD-prescribed. Synchronize them in the shared headless model and HDL package; the local implementation still needs migration from its incompatible three-bit table.
+**Selected project encoding:** use the 8192 × 4-bit Arena, 13-bit `{cy[5:0], cx[6:0]}` address and cell codes recorded in [[CS-256 Tron Agreed Specification 2026-10-20#Clocks, Arena encoding and service boundary]]. These are team choices, not AMD-prescribed. Synchronize them in the shared headless model and HDL package; `prototipos/tron_fpga/model/params.py` already uses these four-bit codes, and the preserved PR #2 model in `prototipos/tron/fpga/model/` keeps its incompatible three-bit table.
 
 **Selected service architecture (Q28 clarified by Q32):** retain approximately 60 Hz game-state logic and fast video/memory service. The fast controller is the Arena write owner, executing validated game commands and returning results. Define coherent request/result payloads and render snapshots, occupancy revalidation for delayed Reward placement, reset/pause behavior during a transaction, and measured service/round-trip bounds. Do not infer those guarantees merely from dual-port memory or a common clock on its ports.
 

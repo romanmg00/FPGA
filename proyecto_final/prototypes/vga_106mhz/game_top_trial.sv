@@ -2,7 +2,12 @@
 // It does NOT use clk_wiz_0 or clk_wiz_1: it instantiates the MMCM primitive directly,
 // so there is no IP to reconfigure. To try it, add this file and vga_out_trial.sv
 // to the Vivado project, mark game_top_trial as top (Set as Top) and generate the
-// bitstream. Its ports match game_top, so game_top.xdc is used unchanged.
+// bitstream. Pins come from game_top.xdc, unchanged, except that this top has no btn[4].
+// game_top.xdc no longer defines the board clock, because clk_wiz_0's IP does that and
+// this design has no Wizard, so also add game_top_trial.xdc.
+// Known limits, because this is an experiment and not part of the milestone: its divider
+// is reset by rst, the bug fixed in game_top, so CPU_RESET does not return the block to
+// its start. clk_juego also has no defined clock, so timing is not signed off.
 //
 // Parameter USE_VESA75:
 //   1 (case B) -> vga_out_trial: VESA 1280x800 @ 75 Hz timing (1696 x 838)
