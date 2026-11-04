@@ -39,7 +39,7 @@ Las motos (32 × 32) y los premios (16 × 16) se dibujan encima, como sprites de
   - Paredes: fila `cy = 4`, fila `cy = 49`, columnas `cx = 0` y `cx = 79` (cubren el borde de 10 px).
   - Arena jugable: **78 × 44 celdas**, `cx = 1..78`, `cy = 5..48` (píxeles `x = 16..1263`, `y = 80..783`).
   - El acomodo es una base de trabajo: se puede revisar después de probarlo, anotándolo aquí y como ADR nuevo (la especificación no se edita).
-- **Tipos y nombres:** `logic`, `snake_case`, un módulo por archivo con el mismo nombre. Los anchos están en las tablas de este documento y se usan tal cual en el código. Para que compile también en Icarus, nada de arreglos en los puertos: una señal por jugador (`_p1`, `_p2`).
+- **Tipos y nombres:** `logic`, `snake_case`, un módulo por archivo con el mismo nombre. Los anchos están en las tablas de este documento y se usan tal cual en el código. Nada de arreglos en los puertos: una señal por jugador (`_p1`, `_p2`).
 - **Entradas asíncronas:** botones, switches y `uart_rx` pasan por un sincronizador de 2 flip-flops antes de usarse.
 
 ## 2. Puertos externos de `game_top`
@@ -265,7 +265,7 @@ package game_pkg;
 endpackage
 ```
 
-Nadie ha compilado este paquete. Corre `iverilog -g2012` y una síntesis rápida en Vivado al agregarlo.
+Nadie ha compilado este paquete. Corre una síntesis rápida en Vivado al agregarlo.
 
 **Quién edita `game_pkg.sv`:** Roman fija los tiempos VGA, el borde, los sprites y los colores; Alan, la cuadrícula, los códigos de celda y las reglas de la partida. Los dos acuerdan los estados. Un cambio no se da por bueno hasta que pasan los testbenches de los módulos que lo usan.
 

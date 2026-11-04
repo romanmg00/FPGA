@@ -158,7 +158,7 @@ Use only the parts of the L11 testing methods that help this project:
 2. The shared headless Game Model and the HDL testbench both read it, and each writes a **per-Step state log in the same text format**: head Cells, Headings, Crash flags, Points, Lives, Reward Cells. The testbench only writes, with `$fwrite` (L11 p. 40).
 3. A short Python script compares the two logs and reports the first Step where they differ.
 
-Not used: self-checking SystemVerilog with `$fscanf` (L11 p. 41), and pixel-for-pixel frame comparison. `tb_frame_dump` (`.ppm`) stays, for looking at frames and for report figures.
+Not used for these game scenarios: self-checking SystemVerilog with `$fscanf` (L11 p. 41), and pixel-for-pixel frame comparison. `tb_frame_dump` (`.ppm`) stays, for looking at frames and for report figures. The moving-block milestone's own bench, `proyecto_final/game_top_tb.sv`, is separate: it checks whole frames from the pins, and it does not test game rules.
 
 Scenario set (L11 p. 43, corner cases). Add a scenario whenever a bug is found:
 

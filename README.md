@@ -4,7 +4,7 @@ Nuestro proyecto final de CS 256: **Tron** (motos de luz) para 2 jugadores,
 en una Nexys A7-100T con salida **VGA 1280x800**. Equipo: **Roman y Alan**.
 
 - **Tarjeta:** Digilent Nexys A7-100T (Artix-7, XC7A100T-1CSG324C)
-- **Herramientas:** Vivado y SystemVerilog; Icarus Verilog para simular en la Mac.
+- **Herramientas:** Vivado y SystemVerilog.
   La síntesis se hace en la estación remota de Vivado; Vivado Lab en cada laptop
   solo programa la tarjeta (ver la sección Toolchain de [`docs/README.md`](docs/README.md#toolchain))
 - **Entradas:** P1 usa los botones de dirección de la tarjeta; P2 usa W A S D en una
