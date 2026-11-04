@@ -37,7 +37,7 @@ module game_top_tb;
     initial begin
         #1 expect_pos("power-up, before any button or reset", 320, 432);
         #100ms expect_pos("100 ms later, nothing pressed", 320, 432);
-        expect_block_colour("all switches down: fallback cyan", 12'h0FF);
+        expect_block_colour("all switches down: black block", 12'h000);
         sw = 12'hF00;
         #1ms expect_block_colour("switch colour", 12'hF00);
 

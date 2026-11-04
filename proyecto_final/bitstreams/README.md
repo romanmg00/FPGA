@@ -4,7 +4,7 @@ Los bitstreams van aquí para llevarlos a la revisión con el TA y poder repetir
 
 ## `game_top_fixes.bit`
 
-El bitstream para mostrar: `v4/moving-block-fixes` con las correcciones de PR 11. **Este es el probado en la tarjeta.**
+`v4/moving-block-fixes` con las correcciones de PR 11. **Este es el probado en la tarjeta, pero ya no coincide con el código actual:** viene de `a8827e1`, donde con todos los switches abajo el bloque es cian. Ahora el bloque se queda negro, como en PR 11, así que con todos los switches abajo no se ve. Este archivo se reemplaza cuando el build nuevo pase la prueba en la tarjeta.
 
 | | |
 |---|---|
