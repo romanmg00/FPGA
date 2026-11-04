@@ -19,7 +19,6 @@ prototipos/*/assets/*
 hw/
 homework1/
 Images/
-*.bit
 
 # PDFs del curso (pesados y con derechos de autor)
 lecturesFromCs256/
