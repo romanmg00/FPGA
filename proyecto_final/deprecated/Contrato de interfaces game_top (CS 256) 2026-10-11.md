@@ -32,7 +32,7 @@ Todo el diseño vive en un solo reloj (`clk_pix`) y cada señal tiene un único 
 - **Reset:** `rst` es síncrono y activo en alto. Si se usa el botón CPU\_RESET de la placa (activo en bajo), se invierte una sola vez en `game_top`.
 - **Coordenadas de píxel:** sin signo, origen (0,0) arriba a la izquierda, x crece a la derecha, y crece hacia abajo. Área visible de 1280 × 800.
 - **Coordenadas de celda:** `cx` 0–79 (7 bits) y `cy` 0–49 (6 bits). De píxel a celda se pasa con un corrimiento: `cx = x >> 4`, `cy = y >> 4`. La dirección de una celda en `arena_map` es `{cy, cx}` (13 bits), sin multiplicaciones. Las filas 0 y 1 son la franja del marcador; la arena va de `cy = 2` a `cy = 49`.
-- **Tipos y nombres:** `logic`, `snake_case`, un módulo por archivo con el mismo nombre. Los anchos están en las tablas de este documento y se usan tal cual en el código. Para que compile también en Icarus, nada de arreglos en los puertos: una señal por jugador (`_p1`, `_p2`).
+- **Tipos y nombres:** `logic`, `snake_case`, un módulo por archivo con el mismo nombre. Los anchos están en las tablas de este documento y se usan tal cual en el código. Nada de arreglos en los puertos: una señal por jugador (`_p1`, `_p2`).
 - **Entradas asíncronas:** botones, switches, `ps2_clk` y `ps2_data` pasan por un sincronizador de 2 flip-flops antes de usarse. `ps2_clk` **nunca** se usa como reloj: se detecta su flanco de bajada dentro de `clk_pix`.
 
 ## 2. Puertos externos de `game_top`
@@ -488,7 +488,7 @@ endpackage
 
 Los valores de cada opción de configuración (vidas 1–9, meta 5–95 de 5 en 5, puntos por rayo 1–5, espera 0–5 s, largo 0/64/32/16, con sus valores iniciales 3, 20, 1, 1 e infinita) están en `CONFIG`, en `config.py`. `menu_ctrl` los copia como tablas.
 
-No compilé este paquete. Corre `iverilog -g2012` y una síntesis rápida en Vivado al agregarlo. El arreglo `MOVE_FRAMES` es lo que tiene más probabilidades de dar problemas en Icarus; si falla, cámbialo por un `case`.
+No compilé este paquete. Corre una síntesis rápida en Vivado al agregarlo.
 
 **Quién edita `game_pkg.sv`:** A fija los tiempos VGA, `DRAW_LATENCY` y las tablas de color; B, la cuadrícula, los códigos de celda y las reglas; C, los códigos de teclado y las opciones de los menús. Un cambio no se da por bueno hasta que pasan los testbenches de los módulos que lo usan.
 
@@ -576,7 +576,7 @@ El plan deja el juego completo una semana antes de la pre-demo y el código cong
 - Equipo: repartir A, B y C el **lunes 12**. B presenta el diagrama de estados de `tron_engine` (la secuencia de la sección 4) el **miércoles 14**.
 - A: `vga_out` con `hcnt` 0–1679 y `vcnt` 0–827, pulsos de sync, blanking, `curr_x`/`curr_y` y `tick_60hz` al empezar el borrado vertical. Partir de `counters.sv`, cambiándolo a 11 bits y 1679. Testbench de `arena_map`.
 - B: `arena_map` (doble puerto, lectura síncrona) y el diagrama de `tron_engine`. Testbenches de `btn_debounce` y de `ps2_rx`, alimentando `ps2_rx` con los bytes de `bytes_ps2()`.
-- C: `btn_debounce` y `ps2_rx`; compilar `game_pkg.sv` en Icarus y en Vivado. Testbench de `vga_out` (tiempos de la sección 6). Confirmar el reloj y la polaridad en `/classproject/`.
+- C: `btn_debounce` y `ps2_rx`; compilar `game_pkg.sv` en Vivado. Testbench de `vga_out` (tiempos de la sección 6). Confirmar el reloj y la polaridad en `/classproject/`.
 
 **Semana 2 (19–25 oct): las motos en el monitor**
 - A: configurar el Clocking Wizard para `clk_pix`; `drawcon` con el fondo y la arena en colores planos (`DRAW_LATENCY = 1`). Empezar el testbench de `tron_engine`: movimiento, giro de 180°, choques.

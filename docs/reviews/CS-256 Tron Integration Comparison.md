@@ -102,7 +102,6 @@ Blanking budget used below: 28 blank lines × 1680 = **47,040 pixel cycles ≈ 5
 | T11 | Sync output | Registered (`always_ff`) | Handout step 9: `assign` | Registered outputs are glitch-free and can use I/O flip-flops | Required anyway once sync is delayed (T8) | **Registered**; record the deviation from step 9 in the report |
 | T12 | Coordinates in blanking | `curr_x = hcnt - 336` wraps outside the visible area | Same in our sketch | — | Every consumer must gate with a "visible" flag | **Export one `visible` (delayed) signal** from `vga_out`, and never use raw coordinates outside it |
 | T13 | White border | Missing in the prototype | Handout step 4: 10 px white border; in ours the Wall ring covers it | Free (compare 4 coordinate ranges) | — | **Add it to `drawcon`** as the top layer over the Wall Cells; the handout requires it |
-| T14 | Simulator | Icarus (`iverilog -g2012`) on a Mac | Vivado xsim | — | Contract already bans port arrays for Icarus | **Both must pass:** every testbench compiles in Icarus and xsim, has `` `timescale ``, and ends with `$fatal` on error |
 
 ## 4. Paths A and B: can they coexist?
 

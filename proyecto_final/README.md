@@ -55,7 +55,7 @@ observaron en la tarjeta con un build anterior, no con ese bitstream. Los ajuste
 
 ## Archivos
 
-- `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasan Icarus y XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
+- `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasa las pruebas de XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
 - `game_top.sv`: tope del diseño. Conecta los Wizards, el divisor de `clk_juego`, los sincronizadores y los bloques de abajo
 - `position_logic.sv`: posición del bloque, en `clk_juego`
 - `drawcon.sv`: color de cada píxel

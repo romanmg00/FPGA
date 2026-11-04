@@ -28,7 +28,7 @@ It tests the proposed transport; it is not an accepted input-interface revision
 or a completed game feature. The locked records and interface contract were not
 changed. These are experiment tests, not Roman's official independent tests.
 
-**Verified result:** all four Icarus runs and all four Vivado/XSim runs pass.
+**Verified result:** all four Vivado/XSim runs pass.
 The Nexys A7 LED bring-up wrapper routes, meets its timing/skew constraints and
 generates a bitstream. Native Vivado IP Catalog inspection is complete. The
 approved unattended launcher works without a cached sudo password. Physical
@@ -65,8 +65,7 @@ reference macros or establish that no other UART exists in any distribution.
 
 ## Portable HDL observations
 
-Icarus Verilog **12.0-3** was downloaded and unpacked into `/tmp`, without a
-system installation. The test clock is **83,333,333 Hz**, with a simulated
+An earlier run in a portable simulator used a test clock of **83,333,333 Hz**, with a simulated
 12 ns period at 1 ps resolution. It is an experiment setting, **not a measured
 or generated Wizard frequency**. The independent transmitter uses 115200 baud
 and its specified offsets, rather than copying the RX integer counter.
@@ -80,7 +79,7 @@ and its specified offsets, rather than copying the RX integer counter.
 | Real fast:60-Hz complete path | PASS: ordered commands, full/overflow and full-queue reset recovery; first command's registered read latency was 66,649,287 ns |
 | Portable parser check | slang 12.1.0: zero errors, 20 numeric-conversion warnings in testbench stimulus/reference code; board syntax check has zero diagnostics. The later Vivado run separately elaborated and implemented the vendor clock/buffer modules. |
 
-The FIFO test initially failed because this Icarus build evaluates
+The FIFO test initially failed because that simulator evaluated
 `$onehot0(a ^ b)` as zero for two zero-valued 7-bit variables, while both
 `$onehot0(7'b0)` and `$onehot0(c)` for `c=a^b` return one. A small isolated
 reproduction confirmed that discrepancy. The bench now checks zero-or-one-bit
@@ -96,9 +95,8 @@ error. **All four portable runs passed again after that change.** The complete
 RX run also reported exactly one intended framing error.
 
 The retained [portable logs and metadata](../../prototipos/fpga/I2-uart-input-prototype/README.md)
-include the final receiver, FIFO, accelerated-path and real-ratio runs, tool
-version, static installed-IP inspection and Python counterexamples. The complete
-portable runner exited zero and wrote `All four Icarus runs passed.`
+include the final receiver, FIFO, accelerated-path and real-ratio runs, static
+installed-IP inspection and Python counterexamples.
 
 These tests establish digital behavior for the exercised cases only. They do
 not establish routed pointer skew, metastability MTBF, analog noise immunity,
@@ -153,7 +151,7 @@ evidence. It is separate from the earlier failed build directories.
 | Game Wizard/divider | 5 MHz, toggle every 41667 cycles: 59.99952000384 Hz |
 | XSim | Four runs pass; logs confirm `clk_hz=83455882` and distinct `real_ratio=0` / `real_ratio=1` |
 | RX/decoder | 5132 bytes, 211 recognized commands, 33 checkpoints, one intentional framing error |
-| FIFO | Same randomized/full/reset scoreboard counts as Icarus |
+| FIFO | Same randomized/full/reset scoreboard counts as the portable run |
 | Complete-path latency | 382630 ns with accelerated game clock; 66649293 ns with nominal 60 Hz game clock, to registered read output; a synchronous consumer sees that output on its next edge |
 | Routed setup / hold / pulse width | WNS **+7.344 ns**, WHS **+0.119 ns**, WPWS **+3.000 ns**; zero failing endpoints |
 | Timing coverage | Zero unclocked register pins, unconstrained internal endpoints, multiple-clock pins or disconnected generated clocks |

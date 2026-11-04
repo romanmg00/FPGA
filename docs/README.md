@@ -66,7 +66,7 @@ Use this index to return to the relevant source before future work. The architec
 | [VGA and Sprite Design Plan](design/CS-256%20VGA%20and%20Sprite%20Design%20Plan.md) | Course-aligned raster, output coordinates, early ROM reads, sprite conversion and planned video checks. Its alternative-pipeline appendix is historical. |
 | [Game Model Hardware Map](design/CS-256%20Tron%20Game%20Model%20Hardware%20Map.md) | Draft module/domain map, mailbox and input-batch proposals, tick timing and M2 scenario/log interfaces; not an accepted HDL interface. |
 | [UART Input Path Research](design/CS-256%20UART%20Input%20Path%20Research.md) | Proposed browser/USB-UART receiver, command encoding, ordered CDC transport, P1 input handling and verification plan; open choices remain proposals. |
-| [UART Input Prototype Findings](design/CS-256%20UART%20Input%20Prototype%20Findings.md) | Icarus/XSim results, routed timing/CDC, native IP Catalog inspection, ordering/Start counterexamples and queue limits. Board/game integration remains unverified; experiment results do not approve the interface. |
+| [UART Input Prototype Findings](design/CS-256%20UART%20Input%20Prototype%20Findings.md) | XSim results, routed timing/CDC, native IP Catalog inspection, ordering/Start counterexamples and queue limits. Board/game integration remains unverified; experiment results do not approve the interface. |
 | [Development Plan](plan/CS-256%20Tron%20Development%20Plan.md) | Objective IDs, scope tiers, ownership, tentative schedule, independent checks, Step-log comparisons and report evidence. |
 
 ### Implementation, prototypes, tools and evidence
@@ -81,7 +81,7 @@ Use this index to return to the relevant source before future work. The architec
 | [Roman's prototype instructions](../README.md#prototipos-en-python) | Launcher, pygame environment and `prototipos/tron/` viewer controls. Check each prototype's own behavior against the agreement. |
 | [Prototype metrics](../prototipos/tron_fpga/metrics/latest.md) and [CSV](../prototipos/tron_fpga/metrics/look-metrics.csv) | Historical PC-viewer measurements and hardware estimates from 17 October; not target HDL or board evidence. |
 | [UART transport experiment guide](../proyecto_final/prototypes/uart_input/README.md) | Throwaway SystemVerilog experiment, runners and reproduction instructions; separate from the game's accepted interfaces. |
-| [I2/X2 UART evidence](../prototipos/fpga/I2-uart-input-prototype/README.md) | Retained Icarus/XSim logs, routed reports, IP Catalog screenshots, source hashes and model analysis, with explicit verification limits. |
+| [I2/X2 UART evidence](../prototipos/fpga/I2-uart-input-prototype/README.md) | Retained simulation logs, routed reports, IP Catalog screenshots, source hashes and model analysis, with explicit verification limits. |
 | [Desktop Vivado launcher setup](../tools/vivado/README.md) | Administrator-installed launcher, scoped container access and invocation checks. Read alongside the Toolchain policy below. |
 | [Candidate-art generator](../tools/make_candidate_art.py) and [VGA cycle model](../tools/vga_out_tb_cycle_model.py) | Host-side asset generation and cycle-level exploration; inspect the scripts before use. |
 

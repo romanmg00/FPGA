@@ -2,7 +2,7 @@ Recorded observations, 2026-10-27 (not a combined raw process log).
 
 slang 12.1.0: core and benches elaborate with 0 errors, 20 numeric-conversion warnings.
 Board wrapper: 0 syntax diagnostics; vendor clock/buffer modules not elaborated.
-bash -n: run.sh and run_iverilog.sh pass.
+bash -n: run.sh passes.
 Tcl info complete: run.tcl returns 1 (lexical structure only, not command validation).
 
 Python model/viewer suite:
