@@ -102,10 +102,11 @@ foreach name {clk_wiz_0 clk_wiz_1} {
         error "$name no es IP del catalogo: [get_property IPDEF $ip]"
     }
 }
-# Debe dar el mismo reloj de pixel que el .xci del repositorio.
+# Debe dar el reloj de pixel de ip/clk_wiz_0/clk_wiz_0.xci. Son valores copiados de ese
+# archivo: este script no lo lee, asi que si cambia hay que actualizarlos aqui.
 set ip [get_ips clk_wiz_0]
 if {[get_property CONFIG.MMCM_CLKFBOUT_MULT_F $ip] != 28.375 || [get_property CONFIG.MMCM_DIVCLK_DIVIDE $ip] != 4 || [get_property CONFIG.MMCM_CLKOUT0_DIVIDE_F $ip] != 8.5} {
-    error "clk_wiz_0 no coincide con clk_wiz_0.xci (M 28.375, D 4, O 8.5)"
+    error "clk_wiz_0 no da los valores esperados (M 28.375, D 4, O 8.5)"
 }
 
 read_verilog -sv $design
