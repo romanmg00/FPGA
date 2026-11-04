@@ -52,7 +52,9 @@ Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la m
 - **Diagonales.** Se prueban en `position_logic_tb`, pero no en `game_top_tb`, así que un error de conexión que afecte solo a las diagonales no se detecta.
 - **Salidas VGA.** No tienen retardo de salida, porque el monitor no da una especificación de tiempos. No se inventó una.
 - **`clk_wiz_1` encadenado.** Sigue saliendo de `clk_pix` como en PR 11; se discute en el issue 10.
-- **Botones.** Se leen a 60 Hz: una pulsación de menos de unos 17 ms se puede perder.
+- **Botones.** Se leen a 60 Hz, sin quitar rebotes: una pulsación de menos de unos 17 ms se puede perder. `btn_debounce` sigue por hacer.
+- **Borde blanco de 10 px.** Falta arriba: la franja del HUD llega en gris hasta la orilla de la pantalla. El handout y la especificación acordada piden el borde.
+- **Tamaño del bloque.** Es de 16×16 por elección de PR 11, para coincidir con la celda. El handout pide unos 32×32.
 - **`CFGBVS`.** El valor no se encontró en un documento oficial de Digilent (ver `game_top.xdc`).
 
 ## `game_top_pr11_asis.bit`

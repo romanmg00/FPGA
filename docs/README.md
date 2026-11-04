@@ -24,7 +24,7 @@ Paths are relative to the repository root.
 | `prototipos/` (others) | Roman's prototypes and launcher, including the `tron/` viewer |
 | `tools/` | Host-side scripts for candidate-art generation, VGA cycle modelling and desktop Vivado access |
 | `assets/` | Sprite art (`.png`) and generated `.coe` files |
-| `evidence/` | Retained experiment logs and metadata, currently the I2/X2 UART transport experiment; read each run's README for verification limits |
+| `prototipos/fpga/` | Retained experiment logs and metadata, currently the I2/X2 UART transport experiment; read each run's README for verification limits |
 
 Create new folders when their first file is needed. Name report evidence with its Development Plan objective ID, such as `<ObjectiveID>-<short-name>.<ext>` or an objective-specific folder.
 
@@ -137,6 +137,6 @@ As confirmed from the TAs’ instruction on 2026-10-20, the team is **Roman and 
 
 - The requested **83.46 MHz pixel clock** is separate from the approximately **60 Hz frame refresh** and the approximately **60 Hz game-state clock**. The divider, fast Arena service, and video pipeline have different responsibilities; do not describe the divided game clock as display-only.
 
-- New notes use the Obsidian vault's frontmatter and naming standard ([Metadata and File Standard](../../../00-System/Planning/Metadata-and-File-Standard.md)), with a `CS-256` title prefix.
+- New notes use the Obsidian vault's frontmatter and naming standard (`00-System/Planning/Metadata-and-File-Standard.md` in the vault, outside this repository), with a `CS-256` title prefix.
 - When a game term is settled or changed, update the glossary. The 20 October records in `docs/decisions/` stay byte-identical: record a rule change as a new ADR (0003 onward) or a dated successor specification, then update Mechanics' topic links if needed.
 - Code and generated files (`.sv`, `.xdc`, `.coe`, `.py`) do not need frontmatter.

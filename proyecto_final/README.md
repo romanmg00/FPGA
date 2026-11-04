@@ -40,13 +40,16 @@ del segundo Clocking Wizard más un divisor, como pidieron los TAs
 
 ## Hito: bloque en movimiento (revisión del 5 de noviembre)
 
-`game_top` muestra un bloque de 16x16 que se mueve con los botones y se detiene en las
-paredes. CPU_RESET lo regresa a (320, 432) y BTNC lo lleva al centro, (632, 392). Su
-color sale de `SW0`–`SW11`: **con todos abajo es negro y no se ve.**
+Según el código, `game_top` muestra un bloque de 16x16 que se mueve con los botones y se
+detiene en las paredes. CPU_RESET lo regresa a (320, 432) si se mantiene al menos unos
+17 ms; con menos, se reinicia el video, pero el bloque se puede quedar donde estaba. BTNC
+lo lleva al centro, (632, 392). Su color sale de `SW0`–`SW11`: **con todos abajo es negro
+y no se ve.**
 
 El bitstream probado, los resultados en la tarjeta y los límites están en
-[`bitstreams/README.md`](bitstreams/README.md). Los ajustes de `clk_wiz_1` son deducidos
-y falta que Roman los confirme.
+[`bitstreams/README.md`](bitstreams/README.md). Las paredes y el reset repetido se
+observaron en la tarjeta con un build anterior, no con ese bitstream. Los ajustes de
+`clk_wiz_1` son deducidos y falta que Roman los confirme.
 
 ## Archivos
 
