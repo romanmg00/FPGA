@@ -6,6 +6,8 @@ status: superseded by ADR-0002
 
 > [!warning] Superseded on 20 October 2026
 > The team confirmed that the TAs instructed it to follow the handout architecture strictly. The final game uses the divided approximately 60 Hz game clock. See [[0002-follow-ta-divided-game-clock]]. The reasoning below is historical research, not the active build decision or a pending TA-approval request.
+>
+> On 5 November 2026 [ADR 0006](0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) recorded that the handout is now general guidance rather than a strict architecture. That does not reopen this proposal: reviving it would need a new ADR with its own reasons and evidence.
 
 Everything below records the former proposal and its reasoning. Its consequences and conditional actions are superseded by ADR 0002; use that accepted ADR and the agreed specification for current implementation work.
 

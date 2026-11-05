@@ -5,6 +5,7 @@ title: CS-256 Follow the TA Divided Game Clock Architecture
 type: note
 subject: CS-256
 status: accepted
+superseded_in_part_by: ADR-0006
 created_at: "2026-10-20T13:31:31"
 sources:
   - "[[CS-256 Tron Team Decisions 2026-10-20]]"
@@ -13,6 +14,9 @@ review_status: unreviewed
 ---
 
 # Follow the TA divided game clock architecture
+
+> [!note] Superseded in part on 5 November 2026
+> [ADR 0006](0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) replaces two points below. The game clock now comes from a 20-bit counter on `clk_pix`, with no second Clocking Wizard. The TAs also now treat the handout as general guidance rather than an architecture to follow strictly. The separate approximately 60 Hz game-state clock and every consequence below still stand.
 
 On 20 October 2026 the team confirmed that its TAs recommended following the course handout's architecture strictly. The final Tron game therefore uses the **second Clocking Wizard plus counter divider to produce an approximately 60 Hz game clock**, with game-state logic clocked by that clock, as in Drawing Logic Module steps 10–12. This supersedes [[0001-pixel-clock-with-frame-enable]]; the pixel-clock/frame-enable engine is retained only as historical research, not a pending alternative for this build.
 

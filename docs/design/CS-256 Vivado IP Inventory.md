@@ -9,6 +9,7 @@ created_at: "2026-11-04T17:00:00"
 term: 2026-fall
 sources:
   - "[[0002-follow-ta-divided-game-clock]]"
+  - "[[0006-single-wizard-counter-game-clock-and-handout-as-guidance]]"
   - "[[CS-256 Official FPGA Coding Practices]]"
 review_status: unreviewed
 tags:
@@ -61,7 +62,7 @@ The divider then toggles `clk_juego` every 41,667 cycles of the 5 MHz clock: 4,9
 - **`clk_wiz_1.xci` is not in the repository.** PR 11's text says it is on rsws08. `main` still builds from a clean checkout, because `build_game_top.tcl` creates the Wizard. The settings above were inferred from `game_top.sv` and PR 11's text, so Roman's real values may differ, and any bitstream built here is not byte-for-byte Roman's.
 - **`clk_wiz_0.xci` is not portable as committed.** It records Vivado 2020.2 (`RUNTIME_PARAM.SWVERSION`), was customized for another part (`PROJECT_PARAM.DEVICE` is `xc7vx485t`), and writes outputs to `../../../../DigitalDesignsFinalProject.gen/`. Vivado 2025.2 reports it as locked and upgrades it from revision 6 to 17. Its frequency settings survive the upgrade. Adding it with `add_files` from another location failed in one build, because the output path falls outside the run folder; `import_ip` works. `main` keeps this file for Roman's project, but its build does not read it, which avoids the upgrade's critical warning.
 - **The Vivado version on rsws08 is not confirmed.** The `.xci` suggests 2020.2. A `.xci` written by 2025.2 may not open there, which is why `main` creates `clk_wiz_1` from Tcl. That script has only been run on 2025.2.
-- **Whether a second Wizard stays is open** in issue #10. [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md) is the accepted decision until a later ADR replaces it.
+- **`clk_wiz_1` is to be removed.** [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md), accepted on 5 November 2026 after the TA meeting, closes issue #10: one Wizard, and `clk_juego` comes from a 20-bit counter on `clk_pix`. Until the HDL changes, `main` still builds both Wizards as described above. When it changes, update this note in the same change; the two `clk_wiz_1` problems above then go away.
 
 ## Other builds
 

@@ -51,7 +51,7 @@ Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la m
 - **Testbench colgado.** Ningún testbench tiene límite de tiempo real. Si uno se cuelga, `build_game_top.tcl` no publica el bitstream, pero tampoco termina con error.
 - **Diagonales.** Se prueban en `position_logic_tb`, pero no en `game_top_tb`, así que un error de conexión que afecte solo a las diagonales no se detecta.
 - **Salidas VGA.** No tienen retardo de salida, porque el monitor no da una especificación de tiempos. No se inventó una.
-- **`clk_wiz_1` encadenado.** Sigue saliendo de `clk_pix` como en PR 11; se discute en el issue 10.
+- **`clk_wiz_1` encadenado.** Sigue saliendo de `clk_pix` como en PR 11. El [ADR 0006](../../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) (issue 10) decide quitarlo y sacar `clk_juego` de un contador de 20 bits sobre `clk_pix`; falta un bitstream nuevo con ese cambio.
 - **Botones.** Se leen a 60 Hz, sin quitar rebotes: una pulsación de menos de unos 17 ms se puede perder. `btn_debounce` sigue por hacer.
 - **Borde blanco de 10 px.** Falta arriba: la franja del HUD llega en gris hasta la orilla de la pantalla. El handout y la especificación acordada piden el borde.
 - **Tamaño del bloque.** Es de 16×16 por elección de PR 11, para coincidir con la celda. El handout pide unos 32×32.

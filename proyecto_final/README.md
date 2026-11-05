@@ -1,9 +1,12 @@
 # Proyecto final: Tron en VGA
 
 Tarjeta Nexys A7-100T, salida VGA **1280x800** (diapositiva 7 del curso) con reloj de
-píxel de **83.46 MHz**. El estado del juego corre con un reloj de **~60 Hz** que sale
-del segundo Clocking Wizard más un divisor, como pidieron los TAs
-([ADR 0002](../docs/adr/0002-follow-ta-divided-game-clock.md)).
+píxel de **83.46 MHz**. El estado del juego corre con un reloj aparte de **~60 Hz**
+([ADR 0002](../docs/adr/0002-follow-ta-divided-game-clock.md)). Según la reunión con
+los TAs ([ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)),
+ese reloj sale de un contador de 20 bits sobre `clk_pix`, sin segundo Clocking Wizard,
+y el handout es una guía general. **El código todavía no cambia:** `main` sigue
+generando `clk_juego` con `clk_wiz_1` a 5 MHz más el divisor.
 
 - Reglas: [especificación acordada del 20 de octubre](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md)
   (bloqueada; manda sobre este README y el contrato)
@@ -33,6 +36,10 @@ del segundo Clocking Wizard más un divisor, como pidieron los TAs
   divisor, no de `vga_out`
 - [x] **Paso 4a:** Clocking Wizard (se piden 83.46 MHz y se logran 83,455,882 Hz), segundo
   Wizard con el divisor a ~60 Hz e imagen estable en la tarjeta
+- [ ] **Paso 4c:** quitar `clk_wiz_1` y sacar `clk_juego` de un contador de 20 bits sobre
+  `clk_pix` (ADR 0006), que alterne cada ~695,466 ciclos. Hay que cambiar
+  `game_top.sv`, `game_top_timing.xdc`, `build_game_top.tcl`, `sim_clocks/` y
+  `game_top_tb`, y probar un bitstream nuevo en la tarjeta
 - [ ] **Paso 4b:** borde blanco de 10 px en la franja del HUD, que hoy llega en gris hasta la
   orilla: las 10 filas de arriba y las 10 columnas de cada lado. Abajo de `y = 64`, las
   paredes de 16 px ya lo cubren
