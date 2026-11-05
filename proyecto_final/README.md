@@ -5,8 +5,8 @@ píxel de **83.46 MHz**. El estado del juego corre con un reloj aparte de **~60 
 ([ADR 0002](../docs/adr/0002-follow-ta-divided-game-clock.md)). Según la reunión con
 los TAs ([ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)),
 ese reloj sale de un contador de 20 bits sobre `clk_pix`, sin segundo Clocking Wizard,
-y el handout es una guía general. El código ya lo hace (Paso 4c), pero el bitstream
-probado en la tarjeta todavía es el anterior, con dos Wizards.
+y el handout es una guía general. El código ya lo hace (Paso 4c); el bitstream probado
+en la tarjeta todavía es el anterior, con dos Wizards.
 
 - Reglas: [especificación acordada del 20 de octubre](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md)
   (bloqueada; manda sobre este README y el contrato, salvo en los puntos que cambian los
@@ -38,9 +38,8 @@ probado en la tarjeta todavía es el anterior, con dos Wizards.
 - [x] **Paso 4a:** Clocking Wizard (se piden 83.46 MHz y se logran 83,455,882 Hz), segundo
   Wizard con el divisor a ~60 Hz e imagen estable en la tarjeta
 - [ ] **Paso 4c:** quitar `clk_wiz_1` y sacar `clk_juego` de un contador de 20 bits sobre
-  `clk_pix` (ADR 0006), que alterna cada 695,466 ciclos (59.99997 Hz). Hecho en el
-  código: los 10 testbenches pasan y la temporización ruteada se cumple (build del 5 de
-  noviembre en Vivado 2025.2). **Falta probar el bitstream nuevo en la tarjeta**
+  `clk_pix` (ADR 0006), que alterna cada 695,466 ciclos (59.99997 Hz). El estado (build,
+  pruebas y prueba en la tarjeta) está en el [mapa de arquitectura](../docs/CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md#architecture-and-ownership)
 - [ ] **Paso 4b:** borde blanco de 10 px en la franja del HUD, que hoy llega en gris hasta la
   orilla: las 10 filas de arriba y las 10 columnas de cada lado. Abajo de `y = 64`, las
   paredes de 16 px ya lo cubren

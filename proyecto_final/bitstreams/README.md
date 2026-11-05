@@ -51,7 +51,7 @@ Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la m
 - **Testbench colgado.** Ningún testbench tiene límite de tiempo real. Si uno se cuelga, `build_game_top.tcl` no publica el bitstream, pero tampoco termina con error.
 - **Diagonales.** Se prueban en `position_logic_tb`, pero no en `game_top_tb`, así que un error de conexión que afecte solo a las diagonales no se detecta.
 - **Salidas VGA.** No tienen retardo de salida, porque el monitor no da una especificación de tiempos. No se inventó una.
-- **`clk_wiz_1` encadenado.** Este bitstream todavía lo tiene, saliendo de `clk_pix` como en PR 11. El código actual ya no lo usa: por el [ADR 0006](../../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) (issue 10), `clk_juego` sale de un contador de 20 bits sobre `clk_pix` (Paso 4c). El bitstream nuevo con ese cambio falta probarlo en la tarjeta.
+- **`clk_wiz_1` encadenado.** Este bitstream todavía lo tiene, saliendo de `clk_pix` como en PR 11. El código actual ya no lo usa: por el [ADR 0006](../../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) (issue 10), `clk_juego` sale de un contador de 20 bits sobre `clk_pix` (Paso 4c); su estado está en el [mapa de arquitectura](../../docs/CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md#architecture-and-ownership).
 - **Botones.** Se leen a 60 Hz, sin quitar rebotes: una pulsación de menos de unos 17 ms se puede perder. `btn_debounce` sigue por hacer.
 - **Borde blanco de 10 px.** Falta arriba: la franja del HUD llega en gris hasta la orilla de la pantalla. El handout y la especificación acordada piden el borde.
 - **Tamaño del bloque.** Es de 16×16 por elección de PR 11, para coincidir con la celda. El handout pide unos 32×32.
