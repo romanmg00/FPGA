@@ -2,6 +2,12 @@
 
 This is the team repository for the CS-256 two-player Tron game (Roman and Alan). `CLAUDE.md` imports this file, so Claude Code and other agents read the same instructions.
 
+## Two-machine synchronization
+
+Work happens on two machines at the same time. Before starting each task, including running a prototype, run `git fetch origin` and compare the checkout with its remote tracking branch (or `origin/main` when no upstream is configured). Do not assume the local checkout is current based on an earlier fetch.
+
+If the checkout is behind and the working tree is clean, update with `git pull --ff-only` (or `git merge --ff-only origin/main` when no upstream is configured) before proceeding. If local changes or diverging commits prevent a safe update, preserve them and report the mismatch before doing work that depends on the latest version. Never reset, discard changes, or force an update to synchronize. If fetching fails, report that remote freshness could not be verified.
+
 ## Layout and boundaries
 
 - `proyecto_final/`: hardware. Its interface contract, `proyecto_final/Contrato de interfaces game_top (CS 256).md`, is Roman's and is written in Spanish.
