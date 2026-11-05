@@ -9,8 +9,8 @@ El bitstream para mostrar, ya en `main`, con las correcciones de PR 11. **Este e
 | | |
 |---|---|
 | SHA-256 | `3553e9b59d4fef5fb14bfc71150346fb48029372c6e88cf090a0a1ea3ef9e511` |
-| Fuente | Commit `9b78418`. Los commits posteriores cambian testbenches, el script y documentos, y agregan una restricción para el experimento `prototypes/vga_106mhz/`. El diseño de `game_top` y sus restricciones no cambian |
-| Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` |
+| Fuente | Commit `9b78418`. Los commits posteriores cambian testbenches, el script y documentos, y agregan una restricción para el experimento `prototypes/vga_106mhz/`. Hasta el Paso 4c (ADR 0006), el diseño de `game_top` y sus restricciones no cambian; el Paso 4c cambia `game_top.sv`, `game_top_timing.xdc` y el script para quitar `clk_wiz_1` |
+| Cómo se construye | Desde un checkout de `9b78418`: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop`. Desde el Paso 4c, el mismo comando construye el diseño de un solo Wizard, no este bitstream |
 | Herramienta | Vivado 2025.2, 4 de noviembre de 2026 |
 | Parte | `xc7a100tcsg324-1` |
 | `clk_pix` lograda | 83,455,882 Hz |
