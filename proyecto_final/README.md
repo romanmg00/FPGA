@@ -9,7 +9,8 @@ y el handout es una guía general. **El código todavía no cambia:** `main` sig
 generando `clk_juego` con `clk_wiz_1` a 5 MHz más el divisor.
 
 - Reglas: [especificación acordada del 20 de octubre](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md)
-  (bloqueada; manda sobre este README y el contrato)
+  (bloqueada; manda sobre este README y el contrato, salvo en los puntos que cambian los
+  ADR aceptados después, como el [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) en los relojes)
 - Contrato de interfaces (módulos, señales, reparto y fechas):
   [`Contrato de interfaces game_top (CS 256).md`](Contrato%20de%20interfaces%20game_top%20%28CS%20256%29.md).
   Las interfaces que la especificación deja abiertas están marcadas como pendientes

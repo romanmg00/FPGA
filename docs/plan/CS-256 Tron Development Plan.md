@@ -203,11 +203,11 @@ Verified in: TB = testbench, HW = board check.
 | **M: Game Model** | | |
 | M1 | One shared headless Game Model in hardware-block structure, used by both PC viewers and HDL scenarios | scenario/playtest evidence |
 | M2 | Step logs, 12 scenarios, log-diff script | script |
-| **V: Video, handout steps (built literally)** | | |
+| **V: Video, following the handout as guidance (ADR 0006)** | | |
 | V1 | `vga_out`: counters, sync, visible region + `tb_vga_out` | TB → HW (monitor lock, switch colour) |
 | V2 | `curr_x/curr_y`, `game_top`, wizard moved to top, rectangle | TB → HW |
 | V3 | `drawcon`: border, block, compositing | TB (frame dump) → HW |
-| V4 | Divided game clock + generated-clock constraint; ±4 moving block with border limit (handout step 10, also the final game’s clock architecture per ADR 0002) | TB → HW |
+| V4 | Divided game clock + generated-clock constraint; ±4 moving block with border limit (handout step 10, also the final game’s clock architecture per ADR 0002). Since ADR 0006 the divider is a 20-bit counter on `clk_pix`, with no second Wizard | TB → HW |
 | **X: Clock crossing (Path A)** | | |
 | X1 | Game → render coherent snapshot and Arena command/result interface; restored by [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md). Verify memory-service scheduling and throughput | TB |
 | X2 | Input synchronization/debounce and ordered button/UART command transfer into the divided game-clock domain; preserve valid requests | TB |

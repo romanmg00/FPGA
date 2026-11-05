@@ -46,7 +46,7 @@ On 28 October Alan asked for the technical items to be researched rather than de
 - What the display shows when Pause arrives between a Step's outcome and its publication. The research's working reading is to publish the already-resolved Step without advancing another; decide it together with render publication.
 - `G_PREP` (Hardware Map, decision 2): Alan's Round/Match area.
 - LFSR, seed capture and placement schedule (E1).
-- Use of the Clocking Wizard's `locked` and `reset` ports. The course handout disables them; using them for lock-loss recovery needs TA confirmation.
+- Use of the Clocking Wizard's `locked` and `reset` ports. The course handout disables them. Since [ADR 0006](0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) the handout is guidance, so using them for lock-loss recovery needs its own ADR with reasons and verification evidence.
 - Who writes the official `cmd_mailbox` testbench (the Hardware Map assigns it to Roman).
 
 ## Consequences

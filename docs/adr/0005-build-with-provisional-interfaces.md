@@ -14,8 +14,9 @@ some rework. Roman's agreement has not yet been recorded.
 
 ## What stays fixed
 
-- Course requirements and TA instructions, including ADR 0002's divided
-  game clock.
+- Course requirements and TA instructions, including ADR 0002's separate
+  game clock as amended by ADR 0006: one Clocking Wizard and a counter on
+  `clk_pix`. The handout is guidance; departures need an ADR.
 - The locked agreed specification, including the flexibility it already
   allows.
 - Accepted ADRs keep their scope. Only unresolved choices named as working

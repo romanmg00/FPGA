@@ -108,7 +108,7 @@ Use this index to return to the relevant source before future work. The architec
 | [Opus 5.5 Architecture and Integration Review](reviews/CS-256%20Tron%20Opus%205.5%20Architecture%20and%20Integration%20Review.md) | Findings against pinned repository snapshots and proposed integration options. Read its **Parent review and adoption limits** before adopting recommendations. |
 | [Repository Merge Plan](plan/CS-256%20Tron%20Repository%20Merge%20Plan.md) | Import execution record, path mapping, procedure and rollback. Its recorded remaining steps are historical status, not authorization to run them. |
 | [Integration Comparison](reviews/CS-256%20Tron%20Integration%20Comparison.md) | Archived pre-meeting comparison; its recommendations and “Already agreed” labels are not current authority. |
-| [ADR 0001: pixel clock with frame enable](adr/0001-pixel-clock-with-frame-enable.md) | Superseded clock proposal and source rationale; ADR 0002 selects the final architecture. |
+| [ADR 0001: pixel clock with frame enable](adr/0001-pixel-clock-with-frame-enable.md) | Superseded clock proposal and source rationale; ADR 0002 selects the separate game clock, and ADR 0006 changes its source and the handout's authority without reopening ADR 0001. |
 | [TA game-clock email draft](history/CS-256%20TA%20Email%20-%20Game%20Clock.md) | Superseded approval-request draft; no frame-enable approval request remains pending. |
 | [Game Overview](history/CS-256%20Tron%20Game%20Overview.md) | Historical whiteboard concept and rubric context. |
 | [Import commit map](history/game-research-commit-map.txt) | Old-to-imported commit mapping for tracing repository history. |

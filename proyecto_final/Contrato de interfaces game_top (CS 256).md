@@ -2,7 +2,7 @@
 
 Oct 11, 2026 · @Román · actualizado el 20 oct 2026 a la [especificación acordada](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md) y el 5 nov 2026 a los relojes de [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) · Juego: **Tron** (motos de luz, 2 jugadores) · Fuente: `cs256-project1-fall26.pdf` (las diapositivas citadas son de esa presentación)
 
-> **Cómo leer este contrato.** Las reglas, entradas, relojes, códigos y el reparto ya siguen la especificación del 20 de octubre, que es la que manda si algo no coincide. Lo que la especificación deja como trabajo de ingeniería está marcado como **Pendiente**: ahí se anotan los requisitos, no puertos inventados. Cuando el equipo decida una de esas interfaces, se escribe aquí (y, si cambia una regla, como ADR 0003 en adelante en `docs/adr/`). La versión anterior, para 3 personas y un solo reloj, está en [`deprecated/`](deprecated/).
+> **Cómo leer este contrato.** Las reglas, entradas, relojes, códigos y el reparto ya siguen la especificación del 20 de octubre, que es la que manda si algo no coincide, salvo en los puntos que cambian los ADR aceptados después: el [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) quita el segundo Clocking Wizard y la instrucción de seguir el handout al pie de la letra. Lo que la especificación deja como trabajo de ingeniería está marcado como **Pendiente**: ahí se anotan los requisitos, no puertos inventados. Cuando el equipo decida una de esas interfaces, se escribe aquí (y, si cambia una regla, como ADR 0003 en adelante en `docs/adr/`). La versión anterior, para 3 personas y un solo reloj, está en [`deprecated/`](deprecated/).
 
 ## 0. El juego
 

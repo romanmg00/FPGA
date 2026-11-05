@@ -44,10 +44,11 @@ things that ADR 0002 rested on.
 - Handout step 10 asks for "another clock divider" followed by a counter.
   Issue #10 reads that as a divider, not necessarily a second Clocking Wizard,
   and the TAs agreed that a counter on the pixel clock is enough.
-- Two Wizards cannot both take the E3 pin: each inserts its own input buffer
-  (*Shape Builder 18-119*). On `main`, `clk_wiz_1` is therefore chained from
-  `clk_pix`, which adds a second MMCM and only produces the 5 MHz input of
-  the same counter.
+- When `game_top` was first built, two Wizards that each owned an input buffer on E3 failed
+  placement (*Shape Builder 18-119*). `main` therefore chains `clk_wiz_1`
+  from `clk_pix`; other experiments share one input buffer between two
+  Wizards. Either way the second MMCM only produces the 5 MHz input of the
+  same counter.
 - The 106.5 MHz pixel clock proposed in issue #10 is not adopted. The game
   keeps the 83.46 MHz, 1280×800 at 60 Hz timing from slide 7 and the handout.
 
@@ -60,8 +61,10 @@ things that ADR 0002 rested on.
   not aligned with vertical blanking, so the tearing fix in issue #14 is still
   needed.
 - **Clock buffer and constraints.** Keep the registered toggle feeding a
-  `BUFG`, as `game_top.sv` does now. Redefine the generated clock in
-  `game_top_timing.xdc` from `clk_pix` with the new divide ratio.
+  `BUFG`, as `game_top.sv` does now. In `game_top_timing.xdc`, keep the
+  toggle register's C pin as the generated clock's source and the `BUFG`
+  output as its target, and set `-divide_by` to 2*N. The divider's feedback
+  is then timed on `clk_pix`.
 - **Earlier alternatives.** The strict instruction was the reason ADR 0001's
   pixel-clock frame enable was closed. This ADR does not reopen ADR 0001.
   Any departure from the handout, including that one, needs its own ADR with
@@ -72,7 +75,7 @@ things that ADR 0002 rested on.
   paragraph and §9) was updated to match on 5 November 2026.
 - **Implementation.** On 5 November 2026 `main` still instantiates
   `clk_wiz_1` and divides its 5 MHz output. This ADR changes documentation
-  only: no HDL, build script, bitstream or board behavior has changed or been
-  verified. The change needs updates to `game_top.sv`,
+  only and verifies nothing about the one-Wizard design. The earlier
+  two-Wizard build and board evidence stays valid for those builds. The change needs updates to `game_top.sv`,
   `game_top_timing.xdc`, `build_game_top.tcl`, the simulation clocks in
   `sim_clocks/`, `game_top_tb`, a new bitstream and a board check.

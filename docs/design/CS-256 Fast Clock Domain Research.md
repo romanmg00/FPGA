@@ -41,7 +41,7 @@ The authority path remains [[CS-256 Tron Architecture and Documentation Map#Auth
 
 ## Alternatives and domain boundaries
 
-Counts below refer to **logical domain boundaries**, not individual synchronizer instances. The default has two application domains plus the game-divider source clock. External pins still cross into synchronous logic.
+Counts below refer to **logical domain boundaries**, not individual synchronizer instances. The ADR 0006 default has two application domains, `clk_pix` and the counter-generated `clk_juego`; the divider counter itself runs on `clk_pix`. External pins still cross into synchronous logic.
 
 | Choice | What crosses | Why / why not now |
 |---|---|---|
@@ -129,7 +129,7 @@ The shared Python model needs no rules or geometry change for this clock selecti
 
 **Proposed experiment, not performed here:** on the remote Vivado workstation, make an isolated `.sv` timing slice outside production sources. Match its Vivado/IP versions; use `xc7a100tcsg324-1`. No full game, browser, HUD or final mailbox is needed to answer the first clock question.
 
-1. Generate the pixel Wizard from nominal 100 MHz requesting 83.46 MHz. Reuse the verified two-Wizard/divider topology and constraint approach for a later composed test, without copying its protocol as an accepted design. Record achieved clocks and reset configuration.
+1. Generate the pixel Wizard from nominal 100 MHz requesting 83.46 MHz. For a later composed test, use ADR 0006's one-Wizard topology with the counter divider on `clk_pix`, and revalidate the generated-clock constraint and CDC/timing; the earlier two-Wizard evidence applies only to its recorded topology. Do not copy its protocol as an accepted design. Record achieved clocks and reset configuration.
 2. Instantiate **8192 × 4 true dual-port Arena**, A read/write and B read-only on the same `clk_pix`; a sequential clear/READ2/write/search FSM with real PRNG candidate generation; and a raster-driven B fetch feeding a representative Arena-code/sprite-colour compositor. Use small real synchronous sprite ROMs. Observe data in registered checksums or outputs so synthesis cannot remove the memory/search/render cones. A BRAM-only benchmark would miss the important paths.
 3. Exercise full clear; two addressed reads before any Step writes; maximum movement writes; all candidates rejected followed by a full scan; no-free-Cell completion; and simultaneous same-address A write/B read. Compare actual edge latency and collision behavior with the selected primitive configuration using XSim/UNISIM. Preserve collision checks. Counters record start/done/max service cycles.
 4. Synthesize, place and route. Save `report_utilization` (confirm BRAM mapping), IP latency/mode settings, `report_clocks`, `report_clock_interaction`, `check_timing`, `report_timing_summary -delay_type min_max`, detailed worst service and render paths, `report_cdc -details` and DRC. Reject missing clocks, unconstrained internal endpoints, failing setup/hold/pulse width or unexplained critical CDC. Preserve source hashes and tool/IP versions with reports. A bitstream or synthesis estimate alone is insufficient.
@@ -137,4 +137,4 @@ The shared Python model needs no rules or geometry change for this clock selecti
 
 **Local limits:** `vivado` was not found on this checkout's PATH. No local synthesis, simulation or board test was run for this note. Calculations above were independently recomputed with Python without importing or modifying the model. Toolchain instructions are [[README#Toolchain]] in `docs/README.md`; the course checkout remains read-only.
 
-**Team confirmation genuinely needed:** adopt the practical clock default; settle render publication and X1/reset readiness through their separate research/experiments; clarify optional `locked/reset` use if robust lock-loss recovery is required. There is no reason to hold up the first same-clock timing slice while those interfaces remain open.
+**Team confirmation genuinely needed:** adopt the practical clock default; settle render publication and X1/reset readiness through their separate research/experiments; decide optional `locked/reset` use in its own ADR if robust lock-loss recovery is required. There is no reason to hold up the first same-clock timing slice while those interfaces remain open.

@@ -32,8 +32,10 @@ y los documentos históricos antes de trabajar.
 
 - [`docs/decisions/`](docs/decisions/): la especificación acordada y el registro de
   decisiones del 20 de octubre, **bloqueados** (no se editan; sus SHA-256 están en
-  [`docs/decisions/README.md`](docs/decisions/README.md)). Donde este README o el
-  contrato digan otra cosa, mandan estas reglas.
+  [`docs/decisions/README.md`](docs/decisions/README.md)). Son la base bloqueada:
+  donde este README o el contrato digan otra cosa, mandan estas reglas, salvo en los
+  puntos que cambian los ADR aceptados después (por ejemplo, los relojes y el handout
+  en el ADR 0006).
 - [`docs/adr/`](docs/adr/): decisiones de arquitectura. La
   [0002](docs/adr/0002-follow-ta-divided-game-clock.md) fija un reloj de juego aparte
   de ~60 Hz. La [0006](docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)
