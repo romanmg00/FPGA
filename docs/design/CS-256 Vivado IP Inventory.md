@@ -76,7 +76,7 @@ Each of these creates its Wizards from Tcl in its own build folder, so none has 
 | Clock probe | `t3/basic-systemverilog-blocks` | `probe_shared`, `probe_cascade` and others | Feasibility only | `core_blocks/crossing/clock_probe.tcl` |
 | UART experiment | `main` and later | `uart_pixel_clock`, `uart_game_clock` | 83.46 MHz, 5.000 MHz | `prototypes/uart_input/run.tcl` |
 
-On `main`, `build_game_top.tcl` generates its one Wizard, and the only `.xci` `main` tracks is `clk_wiz_0.xci`, which that build does not read.
+Since Paso 4c, `build_game_top.tcl` generates one Wizard and checks that `-divide_by` in `game_top_timing.xdc` equals 2 × `CLK_JUEGO_N` from `game_top.sv`, and the only `.xci` `main` tracks is `clk_wiz_0.xci`, which that build does not read.
 
 The UART experiment also generates `axi_uartlite` and `axi_uart16550` from the catalog, only to inspect their interfaces. No design instantiates them.
 

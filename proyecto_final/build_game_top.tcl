@@ -59,6 +59,20 @@ proc check_no_handwritten_ip {files} {
 set design [list $here/counters.sv $here/vga_out.sv $here/drawcon.sv $here/sync_2ff.sv \
     $here/board_reset_sync.sv $here/position_logic.sv $here/game_top.sv]
 check_no_handwritten_ip $design
+
+# CLK_JUEGO_N vive en game_top.sv y 2 * N en game_top_timing.xdc, porque el XDC no puede
+# leer parametros de SystemVerilog. Se revisa antes de todo, tambien en modo sim.
+proc read_file_text {path} {set f [open $path]; set text [read $f]; close $f; return $text}
+if {![regexp {localparam\s+int\s+CLK_JUEGO_N\s*=\s*([0-9_]+)\s*;} [read_file_text $here/game_top.sv] -> clk_juego_n]} {
+    error "game_top.sv no define CLK_JUEGO_N"
+}
+set clk_juego_n [string map {_ {}} $clk_juego_n]
+if {![regexp {create_generated_clock -name clk_juego .*-divide_by\s+([0-9]+)} [read_file_text $here/game_top_timing.xdc] -> xdc_divide]} {
+    error "game_top_timing.xdc no define clk_juego con -divide_by"
+}
+if {$xdc_divide != 2 * $clk_juego_n} {
+    error "game_top_timing.xdc usa -divide_by $xdc_divide, pero game_top.sv pide 2 * $clk_juego_n = [expr {2 * $clk_juego_n}]"
+}
 start_bench sync_2ff_tb sync_2ff_tb "PASS sync_2ff_tb" [list $here/sync_2ff_tb.sv $here/sync_2ff.sv]
 start_bench board_reset_sync_tb board_reset_sync_tb "PASS board_reset_sync_tb" [list $here/board_reset_sync_tb.sv $here/board_reset_sync.sv]
 start_bench vga_out_tb vga_out_tb "PRUEBAS OK" [list $here/vga_out_tb.sv $here/vga_out.sv $here/counters.sv]
@@ -70,7 +84,7 @@ foreach scenario {colours moves_x moves_y resets_short reset_long btnc} {
 }
 
 proc build_bitstream {} {
-global here out design
+global here out design clk_juego_n
 create_project game_top $out/project -part xc7a100tcsg324-1
 set_property target_language Verilog [current_project]
 
@@ -79,31 +93,23 @@ set_property target_language Verilog [current_project]
 # 2020.2 y de otra parte, y al importarlo aqui Vivado pide revisar su actualizacion.
 # clk_juego sale de un contador sobre clk_pix, sin segundo Wizard (ADR 0006).
 file mkdir $out/ip
-foreach {name in_mhz source requested} {
-    clk_wiz_0 100.000 Single_ended_clock_capable_pin 83.460
-} {
-    create_ip -name clk_wiz -vendor xilinx.com -library ip -module_name $name -dir $out/ip
-    set ip [get_ips $name]
-    set_property -dict [list CONFIG.PRIM_IN_FREQ $in_mhz CONFIG.PRIM_SOURCE $source \
-        CONFIG.CLKOUT1_REQUESTED_OUT_FREQ $requested CONFIG.USE_RESET false CONFIG.USE_LOCKED false] $ip
-    set_property generate_synth_checkpoint false [get_files */${name}.xci]
-    generate_target all $ip
-    set m [get_property CONFIG.MMCM_CLKFBOUT_MULT_F $ip]
-    set d [get_property CONFIG.MMCM_DIVCLK_DIVIDE $ip]
-    set o [get_property CONFIG.MMCM_CLKOUT0_DIVIDE_F $ip]
-    emit $out/$name-properties.txt [report_property -return_string $ip]
-    emit $out/$name-frequency.txt "in_mhz=$in_mhz achieved_hz=[expr {$in_mhz * 1.0e6 * $m / $d / $o}] m=$m d=$d o=$o"
-}
+create_ip -name clk_wiz -vendor xilinx.com -library ip -module_name clk_wiz_0 -dir $out/ip
+set ip [get_ips clk_wiz_0]
+set_property -dict [list CONFIG.PRIM_IN_FREQ 100.000 CONFIG.PRIM_SOURCE Single_ended_clock_capable_pin \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ 83.460 CONFIG.USE_RESET false CONFIG.USE_LOCKED false] $ip
+set_property generate_synth_checkpoint false [get_files */clk_wiz_0.xci]
+generate_target all $ip
+set m [get_property CONFIG.MMCM_CLKFBOUT_MULT_F $ip]
+set d [get_property CONFIG.MMCM_DIVCLK_DIVIDE $ip]
+set o [get_property CONFIG.MMCM_CLKOUT0_DIVIDE_F $ip]
+emit $out/clk_wiz_0-properties.txt [report_property -return_string $ip]
+emit $out/clk_wiz_0-frequency.txt "in_mhz=100.000 achieved_hz=[expr {100.0e6 * $m / $d / $o}] m=$m d=$d o=$o"
 # Segunda revision: el Wizard es un objeto de IP del catalogo.
-foreach name {clk_wiz_0} {
-    set ip [get_ips $name]
-    if {[llength $ip] != 1 || ![string match xilinx.com:ip:clk_wiz:* [get_property IPDEF $ip]]} {
-        error "$name no es IP del catalogo: [get_property IPDEF $ip]"
-    }
+if {[llength $ip] != 1 || ![string match xilinx.com:ip:clk_wiz:* [get_property IPDEF $ip]]} {
+    error "clk_wiz_0 no es IP del catalogo: [get_property IPDEF $ip]"
 }
 # Debe dar el reloj de pixel de ip/clk_wiz_0/clk_wiz_0.xci. Son valores copiados de ese
 # archivo: este script no lo lee, asi que si cambia hay que actualizarlos aqui.
-set ip [get_ips clk_wiz_0]
 if {[get_property CONFIG.MMCM_CLKFBOUT_MULT_F $ip] != 28.375 || [get_property CONFIG.MMCM_DIVCLK_DIVIDE $ip] != 4 || [get_property CONFIG.MMCM_CLKOUT0_DIVIDE_F $ip] != 8.5} {
     error "clk_wiz_0 no da los valores esperados (M 28.375, D 4, O 8.5)"
 }
@@ -125,12 +131,21 @@ open_run impl_1
 # Tercera revision: la instancia tiene la estructura que genera el Wizard. Las tres no
 # confirman que la instancia sea la IP generada: una copia editada y renombrada de su codigo
 # las pasa, asi que tambien hay que revisar las fuentes.
-foreach {inst name} {u_clk clk_wiz_0} {
-    set mmcm [get_cells -quiet $inst/inst/mmcm_adv_inst]
-    if {[llength $mmcm] != 1 || [get_property REF_NAME $mmcm] ne "MMCME2_ADV"} {
-        error "$inst no tiene la estructura de $name: [get_cells -quiet -hierarchical -filter "NAME =~ $inst/*"]"
-    }
+set mmcm [get_cells -quiet u_clk/inst/mmcm_adv_inst]
+if {[llength $mmcm] != 1 || [get_property REF_NAME $mmcm] ne "MMCME2_ADV"} {
+    error "u_clk no tiene la estructura de clk_wiz_0: [get_cells -quiet -hierarchical -filter "NAME =~ u_clk/*"]"
 }
+
+# El periodo de clk_juego que usa el analisis debe ser 2 * CLK_JUEGO_N periodos de clk_pix.
+# Se usa el periodo exacto del Wizard (M, D, O): PERIOD de clk_pix sale redondeado a 1 ps.
+# La tolerancia (5e-7) es menor que el cambio de un N de mas o de menos (1.4e-6).
+set pix_period [expr {1.0e3 * $d * $o / (100.0 * $m)}]
+set juego_period [get_property PERIOD [get_clocks clk_juego]]
+set want_period [expr {2.0 * $clk_juego_n * $pix_period}]
+if {abs($juego_period - $want_period) > 5.0e-7 * $want_period} {
+    error "clk_juego tiene periodo $juego_period ns; con N = $clk_juego_n deberia ser $want_period ns"
+}
+emit $out/clk_juego-period.txt "clk_juego_n=$clk_juego_n pix_period_ns=$pix_period juego_period_ns=$juego_period"
 
 # Lista de reportes de CS-256 Official FPGA Coding Practices.
 foreach cmd {report_clocks report_clock_networks report_clock_utilization report_clock_interaction report_exceptions report_methodology report_drc} {
