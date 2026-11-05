@@ -1,6 +1,7 @@
 // Builder's own check of game_top, mostly from its pins, with sim_clocks/ in place of
-// the Wizards; not the official bench of contract section 7. It does not test the
-// Wizards themselves, lock behaviour, or a CPU_RESET shorter than one clk_juego period.
+// the pixel Wizard; not the official bench of contract section 7. It checks the period of
+// the counter-generated clk_juego (ADR 0006), but not the Wizard itself, lock behaviour,
+// or a CPU_RESET shorter than one clk_juego period.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
 // own simulator: xsim game_top_tb -runall -testplusarg scenario=moves_x
 // Without +scenario they all run one after another in one simulation.

@@ -96,7 +96,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 
 | Módulo | Resp. | Qué hace | Estado |
 | --- | --- | --- | --- |
-| Clocking Wizard + contador de `clk_juego` | Roman | `clk_pix` de 83.46 MHz; `clk_juego` de ~60 Hz desde un contador sobre `clk_pix` (ADR 0006) | En la tarjeta con dos Wizards (`clk_wiz_1` a 5 MHz); falta quitar `clk_wiz_1` |
+| Clocking Wizard + contador de `clk_juego` | Roman | `clk_pix` de 83.46 MHz; `clk_juego` de ~60 Hz desde un contador sobre `clk_pix` (ADR 0006) | Un solo Wizard en el código desde el 5 nov: testbenches y temporización ruteada pasan; falta probar el bitstream en la tarjeta |
 | `vga_out` | Roman | Contadores, pulsos de sync, blanking y `curr_x`/`curr_y` | Escrito, falta correr el testbench |
 | `drawcon` | Roman | Color de cada píxel: borde, arena, premios y motos | Por hacer |
 | `sprite_rom` | Roman | Motos de 32 × 32 (1024 palabras) y premios de 16 × 16 (256 palabras), `.coe` RGB444 | Por hacer |

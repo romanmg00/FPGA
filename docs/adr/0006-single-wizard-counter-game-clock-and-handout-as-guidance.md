@@ -79,3 +79,8 @@ things that ADR 0002 rested on.
   two-Wizard build and board evidence stays valid for those builds. The change needs updates to `game_top.sv`,
   `game_top_timing.xdc`, `build_game_top.tcl`, the simulation clocks in
   `sim_clocks/`, `game_top_tb`, a new bitstream and a board check.
+
+> **Implementation status, 5 November 2026:** the Paso 4c change removes
+> `clk_wiz_1` from `game_top`. With *N* = 695,466, the full build passes its
+> 10 testbenches and meets routed timing with one MMCM (Vivado 2025.2). The
+> new bitstream has not yet been checked on the board.

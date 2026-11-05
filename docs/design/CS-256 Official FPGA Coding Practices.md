@@ -65,7 +65,7 @@ This investigation uses AMD's 7-series architecture guides **UG472 v1.14** and *
 
 ### Path A — selected handout divided-clock implementation
 
-**Project application (ADR 0006):** use `100 MHz → Clocking Wizard → clk_pix → 20-bit divider counter → registered game-clock output → clock buffer → game logic`. With the achieved 83,455,882 Hz, `N ≈ 695,466` gives about 60 Hz. `main` still has the earlier `clk_pix → second Clocking Wizard (5 MHz) → divider` chain until the HDL is changed. Use a registered output rather than a combinational terminal-count decode as the clock. Inspect the implemented BUFG and its loads; a signal named `game_clk` does not establish its routing. Keep the clock running during a game pause; pause game state rather than placing an AND gate in the clock path.
+**Project application (ADR 0006):** use `100 MHz → Clocking Wizard → clk_pix → 20-bit divider counter → registered game-clock output → clock buffer → game logic`. With the achieved 83,455,882 Hz, `N ≈ 695,466` gives about 60 Hz. `game_top` implements this chain since Paso 4c; earlier builds used `clk_pix → second Clocking Wizard (5 MHz) → divider`. Use a registered output rather than a combinational terminal-count decode as the clock. Inspect the implemented BUFG and its loads; a signal named `game_clk` does not establish its routing. Keep the clock running during a game pause; pause game state rather than placing an AND gate in the clock path.
 
 For a symmetric clock that toggles every `N` input cycles:
 

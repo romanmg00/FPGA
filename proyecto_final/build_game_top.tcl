@@ -65,7 +65,7 @@ start_bench vga_out_tb vga_out_tb "PRUEBAS OK" [list $here/vga_out_tb.sv $here/v
 start_bench position_logic_tb position_logic_tb "PASS position_logic_tb" [list $here/position_logic_tb.sv $here/position_logic.sv]
 foreach scenario {colours moves_x moves_y resets_short reset_long btnc} {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
-        [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_clocks/clk_wiz_1.sv] $design] \
+        [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv] $design] \
         "-testplusarg scenario=$scenario"
 }
 
@@ -74,14 +74,13 @@ global here out design
 create_project game_top $out/project -part xc7a100tcsg324-1
 set_property target_language Verilog [current_project]
 
-# Los dos Wizards se generan aqui, para que funcione con cualquier version de Vivado.
-# ip/clk_wiz_0/clk_wiz_0.xci se queda para el proyecto de Roman; es de Vivado 2020.2 y
-# de otra parte, y al importarlo aqui Vivado pide revisar su actualizacion.
-# clk_wiz_1 esta encadenado desde clk_pix, como en PR 11; se discute en el issue 10.
+# El unico Clocking Wizard se genera aqui, para que funcione con cualquier version de
+# Vivado. ip/clk_wiz_0/clk_wiz_0.xci se queda para el proyecto de Roman; es de Vivado
+# 2020.2 y de otra parte, y al importarlo aqui Vivado pide revisar su actualizacion.
+# clk_juego sale de un contador sobre clk_pix, sin segundo Wizard (ADR 0006).
 file mkdir $out/ip
 foreach {name in_mhz source requested} {
     clk_wiz_0 100.000 Single_ended_clock_capable_pin 83.460
-    clk_wiz_1 83.456  No_buffer                      5.000
 } {
     create_ip -name clk_wiz -vendor xilinx.com -library ip -module_name $name -dir $out/ip
     set ip [get_ips $name]
@@ -95,8 +94,8 @@ foreach {name in_mhz source requested} {
     emit $out/$name-properties.txt [report_property -return_string $ip]
     emit $out/$name-frequency.txt "in_mhz=$in_mhz achieved_hz=[expr {$in_mhz * 1.0e6 * $m / $d / $o}] m=$m d=$d o=$o"
 }
-# Segunda revision: cada Wizard es un objeto de IP del catalogo.
-foreach name {clk_wiz_0 clk_wiz_1} {
+# Segunda revision: el Wizard es un objeto de IP del catalogo.
+foreach name {clk_wiz_0} {
     set ip [get_ips $name]
     if {[llength $ip] != 1 || ![string match xilinx.com:ip:clk_wiz:* [get_property IPDEF $ip]]} {
         error "$name no es IP del catalogo: [get_property IPDEF $ip]"
@@ -123,10 +122,10 @@ wait_on_run impl_1
 if {[get_property PROGRESS [get_runs impl_1]] ne "100%"} {error "implementation failed"}
 open_run impl_1
 
-# Tercera revision: cada instancia tiene la estructura que genera el Wizard. Las tres no
+# Tercera revision: la instancia tiene la estructura que genera el Wizard. Las tres no
 # confirman que la instancia sea la IP generada: una copia editada y renombrada de su codigo
 # las pasa, asi que tambien hay que revisar las fuentes.
-foreach {inst name} {u_clk clk_wiz_0 u_clk1 clk_wiz_1} {
+foreach {inst name} {u_clk clk_wiz_0} {
     set mmcm [get_cells -quiet $inst/inst/mmcm_adv_inst]
     if {[llength $mmcm] != 1 || [get_property REF_NAME $mmcm] ne "MMCME2_ADV"} {
         error "$inst no tiene la estructura de $name: [get_cells -quiet -hierarchical -filter "NAME =~ $inst/*"]"

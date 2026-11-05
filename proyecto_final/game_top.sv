@@ -12,8 +12,7 @@ module game_top (
     logic        clk_juego;
     logic        clk_juego_toggle = 1'b0;
     logic        clk_pix;
-    logic        clk_5mhz;
-    logic [15:0] clk_cnt = 16'b0;
+    logic [19:0] clk_cnt = 20'b0;
     logic        rst_request;
     logic        rst_pix, rst_juego;
     logic [4:0]  btn_sync;
@@ -26,18 +25,17 @@ clk_wiz_0 u_clk(
     .clk_out1(clk_pix)
 );
 
-clk_wiz_1 u_clk1 (  
-    .clk_in1(clk_pix),
-    .clk_out1(clk_5mhz)
-);
+// clk_juego sale de un contador de 20 bits sobre clk_pix, sin segundo Clocking Wizard
+// (ADR 0006): alterna cada CLK_JUEGO_N ciclos, 83,455,882 Hz / (2 * 695,466) = 60.000 Hz.
+localparam int CLK_JUEGO_N = 695_466;
 
 // El divisor NO se resetea: position_logic tiene reset sincrono, asi que necesita
 // flancos de clk_juego durante el reset. Si este reloj se detuviera, nunca lo veria.
-always_ff @(posedge clk_5mhz)begin
+always_ff @(posedge clk_pix) begin
     clk_cnt <= clk_cnt + 1'b1;
-    if (clk_cnt == 41666) begin
+    if (clk_cnt == 20'(CLK_JUEGO_N - 1)) begin
         clk_juego_toggle <= ~clk_juego_toggle;
-        clk_cnt <= 16'b0;
+        clk_cnt <= 20'b0;
     end
 end
 

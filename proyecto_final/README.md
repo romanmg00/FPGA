@@ -5,8 +5,8 @@ píxel de **83.46 MHz**. El estado del juego corre con un reloj aparte de **~60 
 ([ADR 0002](../docs/adr/0002-follow-ta-divided-game-clock.md)). Según la reunión con
 los TAs ([ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)),
 ese reloj sale de un contador de 20 bits sobre `clk_pix`, sin segundo Clocking Wizard,
-y el handout es una guía general. **El código todavía no cambia:** `main` sigue
-generando `clk_juego` con `clk_wiz_1` a 5 MHz más el divisor.
+y el handout es una guía general. El código ya lo hace (Paso 4c), pero el bitstream
+probado en la tarjeta todavía es el anterior, con dos Wizards.
 
 - Reglas: [especificación acordada del 20 de octubre](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md)
   (bloqueada; manda sobre este README y el contrato, salvo en los puntos que cambian los
@@ -38,9 +38,9 @@ generando `clk_juego` con `clk_wiz_1` a 5 MHz más el divisor.
 - [x] **Paso 4a:** Clocking Wizard (se piden 83.46 MHz y se logran 83,455,882 Hz), segundo
   Wizard con el divisor a ~60 Hz e imagen estable en la tarjeta
 - [ ] **Paso 4c:** quitar `clk_wiz_1` y sacar `clk_juego` de un contador de 20 bits sobre
-  `clk_pix` (ADR 0006), que alterne cada ~695,466 ciclos. Hay que cambiar
-  `game_top.sv`, `game_top_timing.xdc`, `build_game_top.tcl`, `sim_clocks/` y
-  `game_top_tb`, y probar un bitstream nuevo en la tarjeta
+  `clk_pix` (ADR 0006), que alterna cada 695,466 ciclos (59.99997 Hz). Hecho en el
+  código: los 10 testbenches pasan y la temporización ruteada se cumple (build del 5 de
+  noviembre en Vivado 2025.2). **Falta probar el bitstream nuevo en la tarjeta**
 - [ ] **Paso 4b:** borde blanco de 10 px en la franja del HUD, que hoy llega en gris hasta la
   orilla: las 10 filas de arriba y las 10 columnas de cada lado. Abajo de `y = 64`, las
   paredes de 16 px ya lo cubren
@@ -58,13 +58,13 @@ y no se ve.**
 
 El bitstream probado, los resultados en la tarjeta y los límites están en
 [`bitstreams/README.md`](bitstreams/README.md). Las paredes y el reset repetido se
-observaron en la tarjeta con un build anterior, no con ese bitstream. Los ajustes de
-`clk_wiz_1` son deducidos y falta que Roman los confirme.
+observaron en la tarjeta con un build anterior, no con ese bitstream. Ese bitstream
+todavía tiene `clk_wiz_1`, con ajustes deducidos; el código actual ya no lo usa.
 
 ## Archivos
 
 - `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasa las pruebas de XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
-- `game_top.sv`: tope del diseño. Conecta los Wizards, el divisor de `clk_juego`, los sincronizadores y los bloques de abajo
+- `game_top.sv`: tope del diseño. Conecta el Clocking Wizard, el contador de `clk_juego`, los sincronizadores y los bloques de abajo
 - `position_logic.sv`: posición del bloque, en `clk_juego`
 - `drawcon.sv`: color de cada píxel
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
