@@ -26,7 +26,7 @@ clk_wiz_0 u_clk(
 );
 
 // clk_juego sale de un contador de 20 bits sobre clk_pix, sin segundo Clocking Wizard
-// (ADR 0006): alterna cada CLK_JUEGO_N ciclos, 83,455,882 Hz / (2 * 695,466) = 60.000 Hz.
+// (ADR 0006): alterna cada CLK_JUEGO_N ciclos, 83,455,882 Hz / (2 * 695,466) = 59.99997 Hz.
 localparam int CLK_JUEGO_N = 695_466;
 
 // El divisor NO se resetea: position_logic tiene reset sincrono, asi que necesita
