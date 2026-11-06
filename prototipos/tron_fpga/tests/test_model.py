@@ -30,8 +30,10 @@ from model.step_unit import S_COMMIT, S_IDLE, S_READ, step_resolve
 from model.turn_unit import DOWN, LEFT, RIGHT, UP, TurnUnit, next_cell
 
 RULES = RuleParams(crash_ticks=8, fixed_seed=True)
-CONTRACT = (Path(__file__).resolve().parents[3] / "proyecto_final"
-            / "Contrato de interfaces game_top (CS 256).md")
+# Found by searching upward, so moving this folder does not break the check.
+CONTRACT_PATH = Path("proyecto_final", "Contrato de interfaces game_top (CS 256).md")
+CONTRACT = next((d / CONTRACT_PATH for d in Path(__file__).resolve().parents
+                 if (d / CONTRACT_PATH).exists()), None)
 
 
 # --- system-test helpers -------------------------------------------------------
@@ -102,8 +104,10 @@ class ContractTests(unittest.TestCase):
     """Constants must match game_pkg in the interface contract."""
 
     def test_constants_match_contract_game_pkg(self):
-        if not CONTRACT.exists():
-            self.skipTest("interface contract not found")
+        # The contract is always in the repository: a missing file is a broken
+        # path, not a reason to skip the only model-to-contract check.
+        self.assertTrue(CONTRACT is not None and CONTRACT.exists(),
+                        f"interface contract {CONTRACT_PATH} not found above {Path(__file__).parent}")
         text = CONTRACT.read_text(encoding="utf-8")
         pkg = text[text.index("package game_pkg;"):text.index("endpackage")]
         values = {}
