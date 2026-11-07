@@ -20,6 +20,10 @@ hw/
 homework1/
 Images/
 
+# Bitstreams locales: solo se suben los de proyecto_final/bitstreams/
+*.bit
+!proyecto_final/bitstreams/*.bit
+
 # PDFs del curso (pesados y con derechos de autor)
 lecturesFromCs256/
 
