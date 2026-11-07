@@ -16,7 +16,9 @@ from model.steplog import parse_line
 
 ROOT = Path(__file__).resolve().parents[1]
 SCENARIOS = ROOT / "scenarios"
-DIFF = ROOT.parents[1] / "tools" / "steplog_diff.py"
+# The repository root is the nearest folder above this one that holds
+# proyecto_final/, so moving this folder does not break the steplog_diff check.
+REPO = next((d for d in ROOT.parents if (d / "proyecto_final").is_dir()), None)
 
 
 def load(name):
@@ -85,7 +87,11 @@ class ScenarioReplayTests(unittest.TestCase):
 
 class StepLogDiffTests(unittest.TestCase):
     def test_diff_reports_the_first_differing_field(self):
-        spec = importlib.util.spec_from_file_location("steplog_diff", DIFF)
+        self.assertIsNotNone(REPO, f"no proyecto_final/ above {ROOT}")
+        diff = REPO / "tools" / "steplog_diff.py"
+        if not diff.is_file():
+            self.fail(f"steplog_diff not found: {diff}")
+        spec = importlib.util.spec_from_file_location("steplog_diff", diff)
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         log, _ = load("05-head-on-swap")
