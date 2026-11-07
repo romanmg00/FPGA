@@ -9,8 +9,8 @@ El bitstream para mostrar, ya en `main`, con las correcciones de PR 11. **Este e
 | | |
 |---|---|
 | SHA-256 | `3553e9b59d4fef5fb14bfc71150346fb48029372c6e88cf090a0a1ea3ef9e511` |
-| Fuente | Commit `9b78418`. Los commits posteriores cambian testbenches, el script y documentos, y agregan una restricción para el experimento `prototypes/vga_106mhz/`. El diseño de `game_top` y sus restricciones no cambian |
-| Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` |
+| Fuente | Commit `9b78418`. Los commits posteriores cambian testbenches, el script y documentos, y agregan una restricción para el experimento `prototypes/vga_106mhz/`. Hasta el Paso 4c (ADR 0006), el diseño de `game_top` y sus restricciones no cambian; el Paso 4c cambia `game_top.sv`, `game_top_timing.xdc` y el script para quitar `clk_wiz_1` |
+| Cómo se construye | Desde un checkout de `9b78418`: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop`. Desde el Paso 4c, el mismo comando construye el diseño de un solo Wizard, no este bitstream |
 | Herramienta | Vivado 2025.2, 4 de noviembre de 2026 |
 | Parte | `xc7a100tcsg324-1` |
 | `clk_pix` lograda | 83,455,882 Hz |
@@ -51,7 +51,7 @@ Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la m
 - **Testbench colgado.** Ningún testbench tiene límite de tiempo real. Si uno se cuelga, `build_game_top.tcl` no publica el bitstream, pero tampoco termina con error.
 - **Diagonales.** Se prueban en `position_logic_tb`, pero no en `game_top_tb`, así que un error de conexión que afecte solo a las diagonales no se detecta.
 - **Salidas VGA.** No tienen retardo de salida, porque el monitor no da una especificación de tiempos. No se inventó una.
-- **`clk_wiz_1` encadenado.** Sigue saliendo de `clk_pix` como en PR 11; se discute en el issue 10.
+- **`clk_wiz_1` encadenado.** Este bitstream todavía lo tiene, saliendo de `clk_pix` como en PR 11. El código actual ya no lo usa: por el [ADR 0006](../../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) (issue 10), `clk_juego` sale de un contador de 20 bits sobre `clk_pix` (Paso 4c); su estado está en el [mapa de arquitectura](../../docs/CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md#architecture-and-ownership).
 - **Botones.** Se leen a 60 Hz, sin quitar rebotes: una pulsación de menos de unos 17 ms se puede perder. `btn_debounce` sigue por hacer.
 - **Borde blanco de 10 px.** Falta arriba: la franja del HUD llega en gris hasta la orilla de la pantalla. El handout y la especificación acordada piden el borde.
 - **Tamaño del bloque.** Es de 16×16 por elección de PR 11, para coincidir con la celda. El handout pide unos 32×32.

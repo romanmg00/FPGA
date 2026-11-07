@@ -203,11 +203,11 @@ Verified in: TB = testbench, HW = board check.
 | **M: Game Model** | | |
 | M1 | One shared headless Game Model in hardware-block structure, used by both PC viewers and HDL scenarios | scenario/playtest evidence |
 | M2 | Step logs, 12 scenarios, log-diff script | script |
-| **V: Video, handout steps (built literally)** | | |
+| **V: Video, following the handout as guidance (ADR 0006)** | | |
 | V1 | `vga_out`: counters, sync, visible region + `tb_vga_out` | TB → HW (monitor lock, switch colour) |
 | V2 | `curr_x/curr_y`, `game_top`, wizard moved to top, rectangle | TB → HW |
 | V3 | `drawcon`: border, block, compositing | TB (frame dump) → HW |
-| V4 | Divided game clock + generated-clock constraint; ±4 moving block with border limit (handout step 10, also the final game’s clock architecture per ADR 0002) | TB → HW |
+| V4 | Divided game clock + generated-clock constraint; ±4 moving block with border limit (handout step 10, also the final game’s clock architecture per ADR 0002). Since ADR 0006 the divider is a 20-bit counter on `clk_pix`, with no second Wizard | TB → HW |
 | **X: Clock crossing (Path A)** | | |
 | X1 | Game → render coherent snapshot and Arena command/result interface; restored by [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md). Verify memory-service scheduling and throughput | TB |
 | X2 | Input synchronization/debounce and ordered button/UART command transfer into the divided game-clock domain; preserve valid requests | TB |
@@ -266,7 +266,7 @@ Alan coordinates the shared reference model, but both now contribute HDL game lo
 ## Open items
 
 1. Use the Q33 two-person split and cross-testing to revise the **tentative** 15/23 November targets and feature staging as progress becomes clear. Q40 explicitly keeps the schedule flexible; the course assessment deadlines remain fixed.
-2. Clock architecture is settled on 2026-10-20: the TAs recommended strict handout architecture. Use the divided game clock and restore X1; see [[0002-follow-ta-divided-game-clock]]. The older [[CS-256 TA Email - Game Clock]] is a superseded draft, not a pending prerequisite. Design X1 before integrating game and renderer.
+2. Clock architecture was settled on 2026-10-20 ([[0002-follow-ta-divided-game-clock]]) and revised on 2026-11-05 ([ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)): one Clocking Wizard, and the divided game clock comes from a 20-bit counter on `clk_pix`. The handout is now general guidance. `game_top` implements this since Paso 4c (status in the [architecture map](../CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md#architecture-and-ownership)); next, restore X1. The older [[CS-256 TA Email - Game Clock]] is a superseded draft, not a pending prerequisite. Design X1 before integrating game and renderer.
 3. Implement and verify the decisions in [[CS-256 Tron Agreed Specification 2026-10-20]]. Q35 preserves mirrored starts; same-Cell Head-on Crash scenarios use arranged positions. Preparation must place all three initial Rewards; Match-ending Crashes retain the winner, show the two-second effect and then enter Match-over. The 99-Point cap is removed.
 4. G4/A2: the legacy local software search tries 64 LFSR draws (32 shifts each), then scans the padded grid. At selected **16 px Cells / 8192 words**, the existing idealized estimator gives `(64 × 32 + 8192) / 83.46 MHz ≈ 123 µs` per placement, or **246 µs for two**, before memory/controller overhead. The old 417/834 µs estimate applied to 8 px Cells. Neither estimate proves a feasible divided-game-clock interface or safe update timing. Verify a bounded or multi-frame placement service, occupancy revalidation and coherent transfers; do not pace an 8192-word bulk clear one word per 60 Hz tick.
 5. Q36 keeps glow, scanlines and animated backgrounds optional after the core build. The core art convention uses only `000` transparency and `0F0` tint; `080` is not an extra glow key. Reconcile existing candidate art/effects before claiming core-format compliance. Any later colour stage must preserve the course-aligned pixel timing.

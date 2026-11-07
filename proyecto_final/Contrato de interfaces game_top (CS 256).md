@@ -1,8 +1,8 @@
 # Contrato de interfaces: game\_top (CS 256)
 
-Oct 11, 2026 · @Román · actualizado el 20 oct 2026 a la [especificación acordada](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md) · Juego: **Tron** (motos de luz, 2 jugadores) · Fuente: `cs256-project1-fall26.pdf` (las diapositivas citadas son de esa presentación)
+Oct 11, 2026 · @Román · actualizado el 20 oct 2026 a la [especificación acordada](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md) y el 5 nov 2026 a los relojes de [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) · Juego: **Tron** (motos de luz, 2 jugadores) · Fuente: `cs256-project1-fall26.pdf` (las diapositivas citadas son de esa presentación)
 
-> **Cómo leer este contrato.** Las reglas, entradas, relojes, códigos y el reparto ya siguen la especificación del 20 de octubre, que es la que manda si algo no coincide. Lo que la especificación deja como trabajo de ingeniería está marcado como **Pendiente**: ahí se anotan los requisitos, no puertos inventados. Cuando el equipo decida una de esas interfaces, se escribe aquí (y, si cambia una regla, como ADR 0003 en adelante en `docs/adr/`). La versión anterior, para 3 personas y un solo reloj, está en [`deprecated/`](deprecated/).
+> **Cómo leer este contrato.** Las reglas, entradas, relojes, códigos y el reparto ya siguen la especificación del 20 de octubre, que es la que manda si algo no coincide, salvo en los puntos que cambian los ADR aceptados después: el [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) quita el segundo Clocking Wizard y la instrucción de seguir el handout al pie de la letra. Lo que la especificación deja como trabajo de ingeniería está marcado como **Pendiente**: ahí se anotan los requisitos, no puertos inventados. Cuando el equipo decida una de esas interfaces, se escribe aquí (y, si cambia una regla, como ADR 0003 en adelante en `docs/adr/`). La versión anterior, para 3 personas y un solo reloj, está en [`deprecated/`](deprecated/).
 
 ## 0. El juego
 
@@ -28,9 +28,9 @@ Las motos (32 × 32) y los premios (16 × 16) se dibujan encima, como sprites de
 
 ## 1. Convenciones generales
 
-- **Relojes (ADR 0002).** `clk` (100 MHz de la placa) solo entra a los Clocking Wizard.
+- **Relojes (ADR 0002 y [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)).** `clk` (100 MHz de la placa) solo entra al Clocking Wizard. Hay **un solo** Clocking Wizard.
   - `clk_pix`, **83.46 MHz**: `vga_out`, `drawcon`, las ROM de sprites y el servicio rápido de memoria (o un reloj rápido adecuado para la memoria; **pendiente**).
-  - `clk_juego`, **~60 Hz**, del segundo Clocking Wizard más un contador divisor (pasos 10 a 12 del módulo de dibujo del handout): todo el estado del juego (movimiento, choques, rondas, vidas y puntos).
+  - `clk_juego`, **~60 Hz**, de un contador de 20 bits sobre `clk_pix` que alterna un registro cada *N* ciclos; ese registro pasa por un `BUFG`. *N* sale de la frecuencia lograda: 83,455,882 / (2 × 60) ≈ 695,466. Lo acordamos con los TAs: el paso 10 del handout pide un divisor más un contador, no un segundo Clocking Wizard. Corre todo el estado del juego (movimiento, choques, rondas, vidas y puntos).
   - No es una habilitación de un cuadro dentro de `clk_pix`, y no está alineado con el borrado vertical. Todo lo que cruza entre los dos relojes necesita un cruce explícito (CDC) y se prueba.
 - **Reset:** `rst` es síncrono y activo en alto dentro del diseño. `CPU_RESETN` (activo en bajo) se invierte una sola vez en `game_top` y se sincroniza en cada dominio de reloj.
 - **Coordenadas de píxel:** sin signo, origen (0,0) arriba a la izquierda, x crece a la derecha, y crece hacia abajo. Área visible de 1280 × 800, con un **borde blanco de 10 px**.
@@ -77,7 +77,7 @@ Los anchos de video salen de los contadores de la diapositiva 7: `hcnt` llega a 
 
 | Señal | De → A | Ancho | Nota |
 | --- | --- | --- | --- |
-| `clk_juego` | Clocking Wizard + divisor → juego | 1 | ~60 Hz |
+| `clk_juego` | Contador de 20 bits sobre `clk_pix` → juego | 1 | ~60 Hz |
 | Pasos | interno | — | Un paso cada **6** ticks de `clk_juego` (unas 10 celdas/s) |
 
 **Arena y memoria** — **Pendiente.** El controlador rápido de la arena es el **único que escribe** en `arena_map`. El juego le manda pedidos (leer las dos celdas destino, escribir cabezas y estelas, limpiar, colocar premios) y recibe resultados; `drawcon` lee por el otro puerto. Falta definir los pedidos y resultados, su cruce de reloj, la latencia y la contrapresión, la inicialización, el reset y la pausa, y una foto coherente para dibujar. Requisitos: no perder ni repetir pedidos, y que reset y pausa no dejen la memoria a medias.
@@ -96,7 +96,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 
 | Módulo | Resp. | Qué hace | Estado |
 | --- | --- | --- | --- |
-| Clocking Wizard ×2 + divisor | Roman | `clk_pix` de 83.46 MHz; `clk_juego` de ~60 Hz | Por hacer |
+| Clocking Wizard + contador de `clk_juego` | Roman | `clk_pix` de 83.46 MHz; `clk_juego` de ~60 Hz desde un contador sobre `clk_pix` (ADR 0006) | Un solo Wizard en el código desde el 5 nov: testbenches y temporización ruteada pasan; falta probar el bitstream en la tarjeta |
 | `vga_out` | Roman | Contadores, pulsos de sync, blanking y `curr_x`/`curr_y` | Escrito, falta correr el testbench |
 | `drawcon` | Roman | Color de cada píxel: borde, arena, premios y motos | Por hacer |
 | `sprite_rom` | Roman | Motos de 32 × 32 (1024 palabras) y premios de 16 × 16 (256 palabras), `.coe` RGB444 | Por hacer |
@@ -200,7 +200,7 @@ module uart_rx (
 
 **`seg7_driver`** (Alan, propuesta). Los 8 dígitos, de izquierda a derecha: P2 en `an[7:4]` y P1 en `an[3:0]`. Cada lado muestra dos letras y dos dígitos decimales: `P2 nn  P1 nn` durante 3 s y `L2 nn  L1 nn` durante 3 s, los dos lados juntos y sin apagarse. Una partida nueva empieza en la vista de puntos. El multiplexado rápido de dígitos es aparte del temporizador de 3 s. El decodificador del proyecto necesita las letras P y L; la referencia de la tarea del curso no se toca.
 
-**`game_top`** (Alan) conecta los dos Clocking Wizard y el divisor, los dos puertos de `arena_map`, sincroniza botones, switches y `uart_rx`, e invierte `cpu_resetn`. Cada quien agrega la instancia de sus propios módulos.
+**`game_top`** (Alan) conecta el Clocking Wizard y el contador de `clk_juego`, los dos puertos de `arena_map`, sincroniza botones, switches y `uart_rx`, e invierte `cpu_resetn`. Cada quien agrega la instancia de sus propios módulos.
 
 ## 5. Constantes compartidas (`game_pkg.sv`)
 
@@ -320,8 +320,8 @@ Las metas del equipo son **tentativas** y se ajustan al avance: una versión par
 - [x] ¿Cuántos en el equipo? **Dos: Roman y Alan**, como indicaron los TAs.
 - [x] ¿Qué placa exacta usamos? Nexys A7-100T.
 - [x] ¿Resolución? **1280 × 800** (`hcnt` 0–1679, `vcnt` 0–827). `counters.sv` ya cuenta así.
-- [x] ¿Reloj de píxel? **83.46 MHz**, el que pide el curso.
-- [x] ¿Un solo reloj o reloj de juego aparte? Reloj de juego de **~60 Hz** con el segundo Clocking Wizard más un divisor ([ADR 0002](../docs/adr/0002-follow-ta-divided-game-clock.md)).
+- [x] ¿Reloj de píxel? **83.46 MHz**, el que pide el curso. Los 106.5 MHz del issue #10 no se adoptan (ADR 0006).
+- [x] ¿Un solo reloj o reloj de juego aparte? Reloj de juego aparte de **~60 Hz** ([ADR 0002](../docs/adr/0002-follow-ta-divided-game-clock.md)), que sale de un contador de 20 bits sobre `clk_pix`, sin segundo Clocking Wizard ([ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)).
 - [x] ¿Polaridad de `hsync` y `vsync`? La del handout: `hsync` en 0 durante 0–135 y `vsync` en 1 durante 0–2.
 - [x] ¿Teclado? Ya no: P1 con botones y P2 por UART desde la página web.
 - [x] ¿Celdas de 16 px? Sí, con 78 × 44 celdas jugables (revisable después de probar).

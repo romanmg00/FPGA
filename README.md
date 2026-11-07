@@ -32,12 +32,17 @@ y los documentos históricos antes de trabajar.
 
 - [`docs/decisions/`](docs/decisions/): la especificación acordada y el registro de
   decisiones del 20 de octubre, **bloqueados** (no se editan; sus SHA-256 están en
-  [`docs/decisions/README.md`](docs/decisions/README.md)). Donde este README o el
-  contrato digan otra cosa, mandan estas reglas.
+  [`docs/decisions/README.md`](docs/decisions/README.md)). Son la base bloqueada:
+  donde este README o el contrato digan otra cosa, mandan estas reglas, salvo en los
+  puntos que cambian los ADR aceptados después (por ejemplo, los relojes y el handout
+  en el ADR 0006).
 - [`docs/adr/`](docs/adr/): decisiones de arquitectura. La
-  [0002](docs/adr/0002-follow-ta-divided-game-clock.md) fija el reloj de juego de
-  ~60 Hz (segundo Clocking Wizard más un divisor), como pidieron los TAs. Las nuevas
-  decisiones del equipo van como ADR 0003 en adelante.
+  [0002](docs/adr/0002-follow-ta-divided-game-clock.md) fija un reloj de juego aparte
+  de ~60 Hz. La [0006](docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)
+  recoge la reunión con los TAs: un solo Clocking Wizard, el reloj de juego sale de un
+  contador de 20 bits sobre el reloj de píxel, y el handout es una guía general, no
+  algo que haya que seguir al pie de la letra. Las nuevas decisiones del equipo van
+  como ADR 0003 en adelante.
 - [Diseño y prácticas FPGA](docs/README.md#fpga-design-and-verification-planning):
   **CS-256 Official FPGA Coding Practices**, plan de VGA y sprites, investigación
   UART y resultados del prototipo; el índice distingue guía, propuestas y evidencia.
@@ -143,7 +148,7 @@ anteriores; ya no están en el lanzador.
 |---|---|
 | Arena en celdas de 16 px, dirección `{cy, cx}` | `arena_map`: BRAM de 8192 x 4 bits con dirección `{cy[5:0], cx[6:0]}` (cuadrícula de 128 x 64 con relleno); `cx = x[10:4]`, sin multiplicar |
 | Códigos de celda | 0 vacía, 1 pared, 2/3 estela/cabeza P1, 4/5 estela/cabeza P2, 6 choque, 7 reservado, 8/9/10 premios 0/1/2; iguales en el modelo y en el HDL |
-| Un paso del juego | Reloj de juego de ~60 Hz del segundo Clocking Wizard más un divisor (ADR 0002); un paso cada 6 ticks. **No** está alineado con el borrado vertical |
+| Un paso del juego | Reloj de juego de ~60 Hz de un contador de 20 bits sobre el reloj de píxel, sin segundo Clocking Wizard (ADR 0002 y 0006); un paso cada 6 ticks. **No** está alineado con el borrado vertical |
 | Video y memoria | Reloj de píxel de 83.46 MHz para `vga_out`, `drawcon` y las ROM; el controlador rápido de la arena es el único que escribe. El cruce entre el reloj lento y el rápido está **pendiente** de diseñar y probar |
 | Leer las dos celdas destino antes de escribir | El resultado no depende del orden: un choque de frente es empate |
 | Estelas | Permanentes; el largo fijo con búfer circular es un extra |

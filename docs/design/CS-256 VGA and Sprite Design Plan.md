@@ -31,13 +31,13 @@ The 20 October documentation pass checked agreement consistency and navigation. 
 > [!decision] Follow the course READMEs — preference settled 2026-10-15
 > Use the [class project handout](../../../cs256-fall-2026/classproject/README.md) and [sprite tips](../../../cs256-fall-2026/classproject/sprites/README.md) as the implementation baseline.
 >
-> 1. **Decision A (confirmed 2026-10-20, see [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md)):** follow the TAs’ strict handout architecture. The second Clocking Wizard plus counter divider produces the approximately **60 Hz clock for the final game’s game-state logic**, not only milestone V4. ADR 0001 is superseded.
->    **Evidence:** AMD recommends enables instead of HDL clock gating ([UG949: Using Gated Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Gated-Clocks)), describes enable inference ([Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables)), and advises avoiding local clocks from fabric counter division ([Avoiding Local Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Avoiding-Local-Clocks)). Those guidelines motivated the superseded frame-enable proposal; they do not override the TAs’ course-architecture instruction. Routing, generated-clock constraints and coherent transfers remain implementation work.
+> 1. **Decision A (confirmed 2026-10-20 in [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md), clock source changed 2026-11-05 in [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)):** a 20-bit counter on `clk_pix` produces the approximately **60 Hz clock for the final game’s game-state logic**, not only milestone V4; there is no second Clocking Wizard. The handout is now general guidance rather than a strict architecture. ADR 0001 is superseded.
+>    **Evidence:** AMD recommends enables instead of HDL clock gating ([UG949: Using Gated Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Gated-Clocks)), describes enable inference ([Creating Clock Enables](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Creating-Clock-Enables)), and advises avoiding local clocks from fabric counter division ([Avoiding Local Clocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Avoiding-Local-Clocks)). Those guidelines motivated the superseded frame-enable proposal; they do not override the accepted ADRs. Routing, generated-clock constraints and coherent transfers remain implementation work.
 > 2. **Decision B:** keep `curr_x`/`curr_y` aligned with the pixel being output and leave the handout's sync/visible timing unchanged. Start sprite reads early by the configured ROM latency, as the sprite tips describe.
 >
-> [[CS-256 Official FPGA Coding Practices]] documents implementation guidance and the [[CS-256 Official FPGA Coding Practices#Historical comparison of both clock paths|historical clock-path comparison]]. For the final game, the divided-clock path is selected (ADR 0002). Output-aligned coordinates and early sprite reads remain the course baseline; alternatives are historical research, not active design choices. Timing constraints, state transfers and boundary handling still require implementation evidence.
+> [[CS-256 Official FPGA Coding Practices]] documents implementation guidance and the [[CS-256 Official FPGA Coding Practices#Historical comparison of both clock paths|historical clock-path comparison]]. For the final game, the divided-clock path is selected (ADR 0002, with its source changed by [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md): a counter on `clk_pix`, no second Wizard). Output-aligned coordinates and early sprite reads remain the course baseline; alternatives are historical research, not active design choices. Timing constraints, state transfers and boundary handling still require implementation evidence.
 
-This note covers the research and planning phase for the VGA display and sprite pipeline of the Tron game in [[CS-256 Tron Game Overview]]. The binding requirements are the [class project README](../../../cs256-fall-2026/classproject/README.md) (the **handout**) and the [sprite tips](../../../cs256-fall-2026/classproject/sprites/README.md) (the **sprite tips**). Section 6 checks every design choice against them, step by step.
+This note covers the research and planning phase for the VGA display and sprite pipeline of the Tron game in [[CS-256 Tron Game Overview]]. The [class project README](../../../cs256-fall-2026/classproject/README.md) (the **handout**) and the [sprite tips](../../../cs256-fall-2026/classproject/sprites/README.md) (the **sprite tips**) provide general implementation guidance. Course requirements, TA instructions and accepted team decisions set the selected baseline; departures from the handout need an ADR ([ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)). Section 6 checks every design choice against them, step by step.
 
 This remains a design plan, with no implementation validation claimed. Course requirements and the TAs’ architecture instruction take precedence, followed by the locked team decisions in [[CS-256 Tron Agreed Specification 2026-10-20]]. The remote interface contract is the selected implementation contract after it has been reconciled with that baseline. The previous one-clock/delayed-sync sketch is retained in the appendix as **superseded, unsimulated reference**. A Python model previously checked sprite-rotation addressing; it did not verify clocking or VGA alignment.
 
@@ -101,9 +101,9 @@ Keep the handout's hierarchy and signal meanings: `game_top` contains the clock 
 ### Decision A: use the handout's divided game clock
 
 > [!decision] Applies to the final game, confirmed 2026-10-20
-> The TAs recommended following this architecture strictly. This section is the active baseline; [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md) supersedes ADR 0001.
+> This section is the active baseline; [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md) supersedes ADR 0001. On 2026-11-05 [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) replaced the second Clocking Wizard with a counter on `clk_pix` and recorded that the TAs treat the handout as guidance, not a strict architecture.
 
-Follow *Drawing Logic Module* steps 10–13: instantiate the second clock divider, request a low supported frequency, then use a counter to divide it to approximately 60 Hz. Update the moving block's position on that slow clock. For M1, implement the literal centre reset and ±4-pixel button-controlled movement with boundary checks before extending to Tron rules.
+Follow *Drawing Logic Module* steps 10–13, with the divider taken directly from `clk_pix` (ADR 0006): a 20-bit counter on `clk_pix` divides it to approximately 60 Hz, with no second Clocking Wizard. Update the moving block's position on that slow clock. For M1, implement the literal centre reset and ±4-pixel button-controlled movement with boundary checks before extending to Tron rules.
 
 The manufacturer's detailed guidance is in [[CS-256 Official FPGA Coding Practices#Game clock and Decision A]] and [[CS-256 Official FPGA Coding Practices#Clock-domain transfers for Path A]]. A divider flip-flop feeding a BUFG is device-supported, but UG472 marks the interconnect-to-BUFG source route as not recommended; the buffer improves distribution after its input, not the whole source path. Verify the actual implementation. A full handshake back to a 60 Hz source also has a multi-tick turnaround, so its throughput must be checked before selecting it.
 
@@ -139,8 +139,8 @@ Render-side grid reads must describe the current displayed pixel after their mem
 | Module or stage | Baseline contract |
 |---|---|
 | `vga_out` | Handout counters, sync polarities, visible region, zero RGB in blanking and output-aligned `curr_x`/`curr_y`. No delayed-sync sprite variant. |
-| Pixel clock | Clocking Wizard requests 83.46 MHz. At the initial handout stage, leave reset/locked unchecked as instructed; move the instance to `game_top` at *Visible Pixel Counter* steps 2–3. Any later startup additions must preserve the demonstrated baseline. |
-| Game clock | Second clock divider plus counter, approximately 60 Hz, used by the position/game logic as described in *Drawing Logic Module* steps 10–12. Record the achieved rate. |
+| Pixel clock | Clocking Wizard requests 83.46 MHz. At the initial handout stage, leave reset/locked unchecked as instructed; move the instance to `game_top` at *Visible Pixel Counter* steps 2–3. Startup additions that depart from the handout need their own ADR and verification evidence. |
+| Game clock | 20-bit counter on `clk_pix` (no second Clocking Wizard, ADR 0006), approximately 60 Hz, used by the position/game logic as described in *Drawing Logic Module* steps 10–12. Record the achieved rate. |
 | Sprite address logic | Uses future raster coordinates and the coherent sprite state to issue reads `L` cycles early; rotation by address remains available for square art. |
 | Sprite memory | Block Memory Generator, Single Port ROM, 12-bit width and depth matching the `.coe`; inspect address width and latency in Summary. |
 | `drawcon` | Purely combinational. Uses current display coordinates with matching prefetched texels; the nonzero foreground wins, otherwise background. |
@@ -222,10 +222,10 @@ Status key:
 | Step 7: non-zero foreground wins, otherwise background | Same rule. Black is the sprite's transparent colour | ✅ |
 | Step 8: all `drawcon` logic combinational | Combinational. ROM and prefetch logic sit outside `drawcon` | ✅ |
 | Step 9: instantiate in `game_top` and connect to `vga_out` | Connect current coordinates and matching prefetched texels, without delaying the handout timing | ✅ ➕ |
-| Step 10: second clock divider + counter → ~60 Hz game clock | Second clock divider plus counter as instructed (Decision A) | ✅ |
+| Step 10: second clock divider + counter → ~60 Hz game clock | One pixel Clocking Wizard plus a counter on `clk_pix` (Decision A, ADR 0006) | ✅ |
 | Steps 11–12: five buttons; centre resets to the centre; ±4 per tick | Literal ±4 version at M1. The selected game moves one 16 px Cell every six approximately 60 Hz game-clock ticks | ✅ M1 / ➕ game |
 | Step 13: the block cannot hit the border | Selected 16 px Cells use side Wall columns 0/79; preserve the 10 px white border, keep head Cells inside the playable bounds and clip cosmetic sprite overlap as needed | ✅ |
-| `game_top` diagram: position logic / `drawcon` / `vga_out` / two clock dividers | Retain the two clock dividers and handout blocks; add sprite/grid/Scoreboard modules | ✅ ➕ |
+| `game_top` diagram: position logic / `drawcon` / `vga_out` / two clock dividers | Retain the handout blocks with one Clocking Wizard plus the `clk_juego` counter (ADR 0006); add sprite/grid/Scoreboard modules | ✅ ➕ |
 
 ### Sprite tips
 
@@ -248,7 +248,7 @@ The work-list IDs and their completion checks live in [[CS-256 Tron Development 
 
 | Design work | Existing work-list IDs | Readiness and evidence |
 |---|---|---|
-| Course video timing and handout movement exercise | V1–V4 | Testbench and board checks listed in the development plan; the game clock must follow ADR 0002. |
+| Course video timing and handout movement exercise | V1–V4 | Testbench and board checks listed in the development plan; the game clock must follow ADR 0002 as amended by ADR 0006. |
 | Sprite assets and output-aligned prefetch | L3, P2, P3 | Test actual ROM latency, first/last pixels, line/frame wrap, and all four rotations. |
 | Agreed game core, Arena service, input, and Scoreboard | A1/A2, G1–G5, I1–I4, X1/X2 | Follow the agreed specification; record simulation, CDC/timing, and board evidence under the existing objective IDs. |
 | On-screen HUD and optional styling | H2, C1/C2 | HUD follows the core. Menus, live customization, glow, scanlines, animated backgrounds, and power-ups are outside the core; power-ups are out of term. |
@@ -263,7 +263,7 @@ Planned source files go in this repository, per the layout in [README](../README
 
 Gameplay and the project baseline are settled in [[CS-256 Tron Agreed Specification 2026-10-20]]; this plan has no remaining group rule questions. Use [[CS-256 Tron Glossary]] for terms. The Arena layout is revisable after playtesting, and the internal 15/23 November planning targets are flexible.
 
-The selected clock and pixel pipeline are documented above and in ADR 0002. The exact generated-clock setup, ROM latency, fast-memory schedule, clock-domain transfer protocol, reset/Pause handling during transactions, and resource/timing results still need engineering and verification evidence. These are open implementation tasks, not undecided replacements for the selected architecture.
+The selected clock and pixel pipeline are documented above and in ADR 0002 as amended by ADR 0006. The exact generated-clock setup, ROM latency, fast-memory schedule, clock-domain transfer protocol, reset/Pause handling during transactions, and resource/timing results still need engineering and verification evidence. These are open implementation tasks, not undecided replacements for the selected architecture.
 
 The initial art format excludes the candidate `080` dim-tint key. Reconcile candidate assets before claiming they follow the core format. Optional effects remain subject to scope and the design/evidence checks in the development plan.
 

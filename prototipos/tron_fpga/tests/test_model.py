@@ -30,8 +30,11 @@ from model.step_unit import S_COMMIT, S_IDLE, S_READ, step_resolve
 from model.turn_unit import DOWN, LEFT, RIGHT, UP, TurnUnit, next_cell
 
 RULES = RuleParams(crash_ticks=8, fixed_seed=True)
-CONTRACT = (Path(__file__).resolve().parents[3] / "proyecto_final"
-            / "Contrato de interfaces game_top (CS 256).md")
+# The repository root is the nearest folder above this file that holds
+# proyecto_final/, so moving this folder does not break the contract check,
+# and a renamed contract fails here instead of matching a copy further up.
+REPO = next((d for d in Path(__file__).resolve().parents if (d / "proyecto_final").is_dir()), None)
+CONTRACT_PATH = Path("proyecto_final", "Contrato de interfaces game_top (CS 256).md")
 
 
 # --- system-test helpers -------------------------------------------------------
@@ -102,9 +105,13 @@ class ContractTests(unittest.TestCase):
     """Constants must match game_pkg in the interface contract."""
 
     def test_constants_match_contract_game_pkg(self):
-        if not CONTRACT.exists():
-            self.skipTest("interface contract not found")
-        text = CONTRACT.read_text(encoding="utf-8")
+        # The contract is always in the repository: a missing file is a broken
+        # path, not a reason to skip the only model-to-contract check.
+        self.assertIsNotNone(REPO, f"no proyecto_final/ above {Path(__file__).parent}")
+        contract = REPO / CONTRACT_PATH
+        if not contract.is_file():
+            self.fail(f"interface contract not found: {contract}")
+        text = contract.read_text(encoding="utf-8")
         pkg = text[text.index("package game_pkg;"):text.index("endpackage")]
         values = {}
         for name, raw in re.findall(r"(\w+)\s*=\s*(\d+'[dh][0-9A-Fa-f]+|\d+)\b", pkg):

@@ -24,7 +24,7 @@ tags:
 
 # CS-256 Official FPGA Coding Practices
 
-**Current baseline (confirmed 2026-10-20, [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md)):** follow the TAs’ strict handout instruction: the final game uses a second Clocking Wizard plus counter divider to produce an approximately 60 Hz **game-state clock**. ADR 0001's pixel-clock/frame-enable proposal is superseded. Output-aligned `curr_x`/`curr_y` and early sprite reads follow the [sprite tips](../../../cs256-fall-2026/classproject/sprites/README.md). The old clock-path comparison is retained below as history, not as a live choice.
+**Current baseline ([ADR 0002](../adr/0002-follow-ta-divided-game-clock.md), with the clock source changed by [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) on 2026-11-05):** the final game uses a separate approximately 60 Hz **game-state clock**, produced by a 20-bit counter on `clk_pix` from the single Clocking Wizard; there is no second Wizard. The handout is general guidance, not a strict architecture; record any departure from it in an ADR. ADR 0001's pixel-clock/frame-enable proposal is superseded and not reopened. Output-aligned `curr_x`/`curr_y` and early sprite reads follow the [sprite tips](../../../cs256-fall-2026/classproject/sprites/README.md). The old clock-path comparison is retained below as history, not as a live choice.
 
 Research checked on **2026-10-15**. Paragraphs marked **AMD guidance** describe vendor documentation. **Project application** identifies our engineering interpretation. Manufacturer guidance supports implementation choices; it does not establish course acceptance or prove this game works.
 
@@ -65,7 +65,7 @@ This investigation uses AMD's 7-series architecture guides **UG472 v1.14** and *
 
 ### Path A — selected handout divided-clock implementation
 
-**Project application:** retain `100 MHz → second Clocking Wizard → divider counter → registered game-clock output → clock buffer → game logic`. Use a registered output rather than a combinational terminal-count decode as the clock. Inspect the implemented BUFG and its loads; a signal named `game_clk` does not establish its routing. Keep the clock running during a game pause; pause game state rather than placing an AND gate in the clock path.
+**Project application (ADR 0006):** use `100 MHz → Clocking Wizard → clk_pix → 20-bit divider counter → registered game-clock output → clock buffer → game logic`. With the achieved 83,455,882 Hz, `N ≈ 695,466` gives about 60 Hz. `game_top` implements this chain since Paso 4c; earlier builds used `clk_pix → second Clocking Wizard (5 MHz) → divider`. Use a registered output rather than a combinational terminal-count decode as the clock. Inspect the implemented BUFG and its loads; a signal named `game_clk` does not establish its routing. Keep the clock running during a game pause; pause game state rather than placing an AND gate in the clock path.
 
 For a symmetric clock that toggles every `N` input cycles:
 
@@ -102,7 +102,7 @@ A frame-derived enable gives approximately 59.998 Hz with the handout timing; a 
 
 **AMD guidance:** predictable-phase clocks can be timed synchronously. However, clocks from the same primary oscillator can be **unexpandable**: Vivado cannot establish a common period within 1,000 cycles and may report slack that does not cover the true worst case. AMD says to treat those crossings like asynchronous ones. [UG903: Synchronous Clocks](https://docs.amd.com/r/en-US/ug903-vivado-using-constraints/Synchronous-Clocks), [Unexpandable Clocks](https://docs.amd.com/r/en-US/ug903-vivado-using-constraints/Unexpandable-Clocks).
 
-**Project application:** inspect the actual pixel Wizard, game Wizard and divider clocks. Use direct timed transfers only when the relationship and both setup/hold directions are covered. Otherwise use a deliberate CDC interface. Neither “same 100 MHz input” nor “different frequencies” settles this classification.
+**Project application:** inspect the actual pixel Wizard and the counter-generated game clock, including their clock ancestry, routing and timing coverage. Use direct timed transfers only when the relationship and both setup/hold directions are covered. Otherwise use a deliberate CDC interface. Neither “same 100 MHz input” nor “different frequencies” settles this classification.
 
 ### Transfer complete state and account for throughput
 
@@ -198,7 +198,7 @@ The 28 complete blank lines provide 47,040 cycles, about **563.6 µs**. The sele
 
 **Project application:** synchronize buttons/switches into a suitable fast input domain, then debounce buttons and generate events. UART RX also needs a fast receiver domain; do not try to sample serial bits on the 60 Hz game clock. Transfer decoded controls coherently to the game domain using the selected interface. Choose and test a debounce interval; AMD's clock-domain macro does not specify one for these switches. Do not feed an asynchronous reset switch into a clock gate.
 
-The course's initial Clocking Wizard instructions uncheck reset/locked. Preserve that baseline and distinguish it from AMD's stronger startup guidance: synchronized `LOCKED`-aware control and reset handling are documented for robust clock startup. Explicit register initial values do not prove safe operation while an MMCM is settling or recovering from clock loss. Record this limitation and evaluate added startup control as a separate extension, rather than silently changing the lab steps. [UG949: Using Clock Modifying Blocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Clock-Modifying-Blocks-MMCM-and-PLL), [Controlling and Synchronizing Device Startup](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Controlling-and-Synchronizing-Device-Startup).
+The course's initial Clocking Wizard instructions uncheck reset/locked. Under [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) the handout is guidance, so enabling those ports is possible but needs its own ADR with reasons and evidence; distinguish the handout baseline from AMD's stronger startup guidance: synchronized `LOCKED`-aware control and reset handling are documented for robust clock startup. Explicit register initial values do not prove safe operation while an MMCM is settling or recovering from clock loss. Record this limitation and evaluate added startup control as a separate, ADR-recorded extension; startup and lock-loss recovery remain unresolved engineering work. [UG949: Using Clock Modifying Blocks](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Using-Clock-Modifying-Blocks-MMCM-and-PLL), [Controlling and Synchronizing Device Startup](https://docs.amd.com/r/en-US/ug949-vivado-design-methodology/Controlling-and-Synchronizing-Device-Startup).
 
 ## Assets, pins and reproducible builds
 
@@ -241,7 +241,7 @@ Our acceptance evidence should include:
 
 ## Historical comparison of both clock paths
 
-This comparison was written while the game-clock choice was open. ADR 0002 has since selected the divided game-state clock under the TAs’ strict handout instruction; the table records provenance and does not leave a live selection task. Reconsidering the clock architecture requires the team to formally reopen the accepted decision and follow any course/TA direction.
+This comparison was written while the game-clock choice was open. ADR 0002 has since selected the divided game-state clock, then under the TAs’ strict handout instruction; ADR 0006 later relaxed that instruction and moved the divider onto `clk_pix`. The table compares the October implementations, including the second Wizard that ADR 0006 removed; the separate game clock and its crossing obligations remain selected. It records provenance and does not leave a live selection task. Reconsidering the clock architecture requires a new ADR and must follow any course/TA direction.
 
 | Criterion | Path A — divided game clock, selected final game | Path B — historical pixel-clock-enable proposal |
 |---|---|---|

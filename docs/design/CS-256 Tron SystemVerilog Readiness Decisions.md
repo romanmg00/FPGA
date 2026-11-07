@@ -16,7 +16,8 @@ All FPGA modules and testbenches use `.sv`.
 
 Follow [the documentation authority path](../README.md), the locked
 [agreed specification](../decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md),
-and accepted [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md).
+and accepted [ADR 0002](../adr/0002-follow-ta-divided-game-clock.md) as amended by
+[ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md).
 The [model hardware map](CS-256%20Tron%20Game%20Model%20Hardware%20Map.md)
 describes the current Python implementation and its proposed interfaces.
 The [team interface contract](../../proyecto_final/Contrato%20de%20interfaces%20game_top%20%28CS%20256%29.md)

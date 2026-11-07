@@ -29,7 +29,7 @@ Research checked **28 October 2026**, on `docs/systemverilog-readiness`. This no
 
 **Working defaults:** keep READ2 → game-domain `step_resolve` → COMMIT, and display the resolved Step's Heading together with its resulting head Cell. These already work in the Python model and preserve the agreed owner split. Build and test these small functional blocks now; use an interchangeable transaction bridge rather than baking the model's two-tick response assumption into them.
 
-Labels below distinguish **Locked requirement**, **Engineering recommendation**, **Implementation evidence**, and **Unverified assumption**. Authority follows [[CS-256 Tron Architecture and Documentation Map#Authority and status]], the course handout, locked specification, accepted ADR 0002, then the reconciled contract. The review's [[CS-256 Tron Opus 5.5 Architecture and Integration Review#Parent review and adoption limits|adoption limits]] apply, especially its qualifications on D3 timing, render coherence and in-flight Pause.
+Labels below distinguish **Locked requirement**, **Engineering recommendation**, **Implementation evidence**, and **Unverified assumption**. Authority follows [[CS-256 Tron Architecture and Documentation Map#Authority and status]], the course handout, locked specification, accepted ADR 0002 as amended by ADR 0006, then the reconciled contract. The review's [[CS-256 Tron Opus 5.5 Architecture and Integration Review#Parent review and adoption limits|adoption limits]] apply, especially its qualifications on D3 timing, render coherence and in-flight Pause.
 
 ## Item 1 — Step transaction
 

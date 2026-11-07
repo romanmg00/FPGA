@@ -18,7 +18,7 @@ tags:
 
 # CS-256 Tron Game Mechanics
 
-This note is a short topic index for the locked team rules. The canonical rule details live in [[CS-256 Tron Agreed Specification 2026-10-20]]; [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] records how they were chosen. Course requirements and the TAs' strict-architecture instruction take precedence over the team baseline.
+This note is a short topic index for the locked team rules. The canonical rule details live in [[CS-256 Tron Agreed Specification 2026-10-20]]; [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] records how they were chosen. Course requirements and TA instructions take precedence over the team baseline. Since [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) the handout is general guidance, and that ADR overrides the locked records' second-Wizard and strict-handout provisions.
 
 Use [[CS-256 Tron Glossary]] for domain terms. A rule agreement records intended behavior; it does not show that a prototype, HDL block, or remote contract implements or verifies it. See [[CS-256 Tron Architecture and Documentation Map]] for document status, implementation links, and evidence paths.
 
@@ -32,7 +32,7 @@ Use [[CS-256 Tron Glossary]] for domain terms. A rule agreement records intended
 | Start, Round transitions, Crash display, Pause and reset | [[CS-256 Tron Agreed Specification 2026-10-20#Start, Crash display, Pause and reset]] |
 | Physical Scoreboard | [[CS-256 Tron Agreed Specification 2026-10-20#Physical Scoreboard]] |
 | Video, sprites and revisable working layout | [[CS-256 Tron Agreed Specification 2026-10-20#Video, sprites and working layout]] |
-| Clocks, Arena encoding and service boundary | [[CS-256 Tron Agreed Specification 2026-10-20#Clocks, Arena encoding and service boundary]] |
+| Clocks, Arena encoding and service boundary | [[CS-256 Tron Agreed Specification 2026-10-20#Clocks, Arena encoding and service boundary]], as amended by [[0002-follow-ta-divided-game-clock]] and [[0006-single-wizard-counter-game-clock-and-handout-as-guidance]] |
 | Ownership, scope and tentative schedule | [[CS-256 Tron Agreed Specification 2026-10-20#Work division and independent verification]] · [[CS-256 Tron Agreed Specification 2026-10-20#Scope and tentative schedule]] |
 
 ## Maintenance
