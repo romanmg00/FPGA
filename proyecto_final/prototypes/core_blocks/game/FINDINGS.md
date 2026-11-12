@@ -358,5 +358,46 @@ DRC: no violations. `tron_top.bit` SHA-256
 `bcf6e754bb2a3680c9631fd3c6d5ecd93691df43a0f4093841c0fbdb0d731561`.
 
 No bench instantiates `tron_top`, so the clock change itself is covered only
-by synthesis, the generated-clock check in `run_tron.tcl` and a board check.
-The board check of section 5 has not been run.
+by synthesis, the generated-clock check in `run_tron.tcl` and a board check
+(section 9).
+
+## 9. Board check, 12 November 2026
+
+Nexys A7 serial `210292B1820D` on `alan-desktop`, programmed by JTAG (DONE
+high), observed by Alan on his monitor. P2 used `p2_controller.html` in Chrome
+over `/dev/ttyUSB1`.
+
+**First build** (`tron-20261112-170534-268322`, SHA-256 `bcf6e754…`, section 8):
+
+| Section 5 check | Result |
+|---|---|
+| Stable image, Wall ring, HUD band; LED 15 blinks; idle Scoreboard | Pass |
+| LEDs 2..0 show the phase | Pass |
+| Start (BTNC or Space); Bikes, Trails, three Rewards | Pass |
+| Turns from the buttons and W A S D; reversals ignored | Pass |
+| Collecting a Reward grows the HUD bar; a new Reward appears | Pass |
+| Crash: blink, Life lost, +3 to the survivor, back to the start Cells | Pass |
+| 7-segment pages alternate every ~3 s | Pass |
+| SW0 Pause | Pass |
+| `{SW15, SW14}` goal | Could not be seen: nothing showed the selected goal. This led to the Goal page below |
+
+**Second build, with the Goal page** (`tron-20261112-184340-376672`, SHA-256
+`d5242e21d44eca9173e874d077a0b99e18d98da68adf4bd2a0c2dcc07102f7c2`). While
+waiting for a new Match (`G_IDLE`, `G_MATCH`) the Scoreboard cycles
+Points → Lives → Goal (`GOAL  nn`), and a change of `{SW15, SW14}` jumps to the
+Goal page. This goes beyond the locked Scoreboard rule (Points and Lives only)
+and needs an ADR before it is accepted. Routed timing met (WNS +0.181 ns, WHS
++0.122 ns); the three new game-to-fast signals are Safe in `report_cdc`; the
+21 Unknown endpoints of section 3 are unchanged.
+
+| Check | Result |
+|---|---|
+| Idle cycles Points → Lives → `GOAL  10` | Pass |
+| SW15/SW14 jump to `GOAL  20/30/40` | Pass |
+| No Goal page during play | Pass |
+| `CPU_RESETN`, repeatedly: back to idle, Start works, LED 4 off | Pass |
+
+Not yet confirmed on the board: reaching the goal ends the Match (phase 100)
+and the Goal page returns; colour fringes at sprite edges. After one reset Alan
+saw a grey bar left of the P1 Bike; it was not investigated, because the
+background design is being replaced.
