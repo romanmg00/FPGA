@@ -1,6 +1,6 @@
 # Bitstreams
 
-Los bitstreams van aquí para llevarlos a la revisión con el TA y poder repetir las pruebas. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
+Aquí va solo el último bitstream probado, para llevarlo a la revisión con el TA y poder repetir las pruebas. Los anteriores se borran de la carpeta, pero su registro se queda abajo y el archivo se recupera del historial de Git. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
 
 ## `game_top_one_wizard.bit`
 
@@ -38,7 +38,11 @@ Nexys A7 serial `210292B1820D`, programada por JTAG (DONE en alto). Observó Ala
 
 Siguen pendientes los puntos de [Lo que falta](#lo-que-falta), salvo el de `clk_wiz_1`.
 
-## `game_top_fixes.bit`
+## Bitstreams anteriores
+
+Ya no están en la carpeta. Para recuperar uno: `git show dc029bf:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`.
+
+## `game_top_fixes.bit` (anterior)
 
 El bitstream de las correcciones de PR 11, con dos Wizards. Fue el probado en la tarjeta hasta el `game_top_one_wizard.bit`.
 
@@ -93,7 +97,7 @@ Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la m
 - **Tamaño del bloque.** Es de 16×16 por elección de PR 11, para coincidir con la celda. El handout pide unos 32×32.
 - **`CFGBVS`.** El valor no se encontró en un documento oficial de Digilent (ver `game_top.xdc`).
 
-## `game_top_pr11_asis.bit`
+## `game_top_pr11_asis.bit` (anterior)
 
 Código de PR 11 **sin cambios**, para probarlo tal como está.
 
