@@ -1,5 +1,6 @@
 // Owner: Roman. Provisional feasibility block, not an accepted interface.
-// clk_base is the second Wizard output; rst is synchronous active-high there.
+// clk_base is the clock to divide: the second Wizard output in the 29 Oct
+// experiments, clk_pix in tron_top since ADR 0006. rst is synchronous active-high.
 // clk_juego is a generated clock, not a CDC data path. No other crossings.
 // Hold rst low in normal operation, including CPU reset/Pause; reset consumers
 // separately so the clock needed by their synchronous resets keeps running.

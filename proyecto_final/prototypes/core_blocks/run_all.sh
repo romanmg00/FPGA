@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Rerun every core-block bench in parallel through run_xsim.sh and summarize.
-# vga_out_check_tb is expected to fail until vga_out's output alignment is
-# settled (video/FINDINGS.md); it is reported separately, not as a regression.
+# vga_out_check_tb checks the prototype copy video/vga_out.sv; it would fail on
+# the registered proyecto_final/vga_out.sv (video/FINDINGS.md), so it is reported separately.
 set -uo pipefail
 here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 p=prototypes/core_blocks
@@ -19,7 +19,7 @@ benches=(
     "seg7_page_tb $p/io/seg7_page.sv $p/io/seg7_page_tb.sv"
     "seg7_driver_tb $p/io/seg7_driver.sv $p/io/seg7_driver_tb.sv"
     "game_clk_div_tb $p/video/game_clk_div.sv $p/video/game_clk_div_tb.sv"
-    "vga_out_check_tb counters.sv vga_out.sv $p/video/vga_out_check_tb.sv"
+    "vga_out_check_tb counters.sv $p/video/vga_out.sv $p/video/vga_out_check_tb.sv"
 )
 for b in "${benches[@]}"; do
     read -r -a args <<<"$b"

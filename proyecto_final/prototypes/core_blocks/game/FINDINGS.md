@@ -258,18 +258,18 @@ Expected:
   outputs use 11.78 of 11.98 ns. If they appear, that supports Roman's
   registered-output variant (section 1).
 
-## 6. Update, 29 October 2026 (evening): crossing variants and ADR 0006
+## 6. Update, 29 October 2026 (evening): crossing variants and ADR 0007
 
 The crossing experiment in [`../crossing/`](../crossing/FINDINGS.md) changed
 these sources. The defaults are unchanged: mailbox crossing, 6 ticks per Step.
 
 - `game_core`, `fast_core`, `tron_system` and `tron_top` take `QUALIFIED`,
   `RSP_REG` and `STEP_TICKS`. `QUALIFIED = 1` with `RSP_REG = 1` is the
-  "captured" crossing. At `STEP_TICKS = 8`, the low end of the range ADR 0006
+  "captured" crossing. At `STEP_TICKS = 8`, the low end of the range ADR 0007
   set, it routes with no unknown CDC. `run_tron.sh [mailbox|qualified|captured]
   [STEP_TICKS]` builds any variant.
 - **Deferred launch** (all variants): a launch that finds the last COMMIT open
-  now waits and sets `overrun`, instead of launching over it (ADR 0006).
+  now waits and sets `overrun`, instead of launching over it (ADR 0007).
 - `phase` on a Step outcome is written, not held; `resolve` carries
   `DIRECT_ENABLE`.
 - `run_tron.tcl` uses the `Performance_Explore` implementation strategy.

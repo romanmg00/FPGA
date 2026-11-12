@@ -6,7 +6,7 @@ Run from prototipos/tron_fpga/ (headless; no pygame needed):
 Writes game/scenarios/<name>.events and <name>.model.log (mailbox crossing,
 the scenario's own Step interval), plus <name>.<crossing>-s<N>.log for the
 provisional crossings of crossing/FINDINGS.md at the Step intervals of
-ADR 0006 (VARIANTS below). Each Step log has an arena log beside it,
+ADR 0007 (VARIANTS below). Each Step log has an arena log beside it,
 <name>.<ref>.arena.log: one CRC-32 of the whole Arena per Step-log line
 (model/steplog.py arena_line), which game_tb.sv also writes. The scenario is
 parsed by the model's own parser, so the bench and the model replay the same

@@ -5,7 +5,7 @@
 #     mailbox     quiet-window mailbox (ADR 0003 working default)
 #     qualified   req/ack crossing + batch_fifo (crossing/FINDINGS.md)
 #     captured    qualified, with the response codes captured first (needs >= 8)
-#     STEP_TICKS  game ticks per Step, default 6 (ADR 0006)
+#     STEP_TICKS  game ticks per Step, default 6 (ADR 0007)
 set -euo pipefail
 here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 hdl=$(cd "$here/../../.." && pwd)    # proyecto_final/

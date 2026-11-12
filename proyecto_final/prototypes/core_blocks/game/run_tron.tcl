@@ -13,8 +13,9 @@ create_project tron $out/project -part xc7a100tcsg324-1
 set_property target_language Verilog [current_project]
 emit $out/version.txt [version]
 
-# Handout settings: no reset, no locked; record the achieved rates.
-foreach {name requested} {tron_pixel_clock 83.460 tron_base_clock 4.6875} {
+# One Clocking Wizard (ADR 0006). Handout settings: no reset, no locked;
+# record the achieved rate. clk_juego comes from game_clk_div on clk_pix.
+foreach {name requested} {tron_pixel_clock 83.460} {
     create_ip -name clk_wiz -vendor xilinx.com -library ip -module_name $name
     set ip [get_ips $name]
     set_property -dict [list CONFIG.PRIM_IN_FREQ 100.000 CONFIG.PRIM_SOURCE No_buffer \
@@ -34,7 +35,7 @@ foreach f {
     crossing/batch_fifo.sv game/reset_stretch.sv game/arena_svc.sv game/fast_core.sv game/game_core.sv
     game/sprite_rom.sv game/drawcon_game.sv game/tron_system.sv game/tron_top.sv
 } {read_verilog -sv $core/$f}
-read_verilog -sv [list $src/vga_out.sv $src/counters.sv \
+read_verilog -sv [list $core/video/vga_out.sv $src/counters.sv \
     $src/prototypes/uart_input/uart_sync_2ff.sv $src/prototypes/uart_input/uart_rx.sv \
     $src/prototypes/uart_input/uart_cmd_decode.sv]
 set_property top tron_top [current_fileset]
@@ -52,7 +53,10 @@ open_run synth_1
 set div_c [get_pins u_div/game_toggle_reg/C]
 set div_o [get_pins u_div/u_game_buf/O]
 if {[llength $div_c] != 1 || [llength $div_o] != 1} {error "divider pin query"}
-create_generated_clock -name clk_juego -source $div_c -divide_by 78126 $div_o
+# -divide_by is 2 * GAME_HALF_CYCLES of tron_top.sv; stop if they disagree.
+set f [open $core/game/tron_top.sv]; set top_text [read $f]; close $f
+if {![regexp {GAME_HALF_CYCLES = ([0-9]+)} $top_text -> half] || $half != 695466} {error "GAME_HALF_CYCLES is not 695466: update -divide_by"}
+create_generated_clock -name clk_juego -source $div_c -divide_by [expr {2 * $half}] $div_o
 set pix  [get_clocks -of_objects [get_pins u_pixel_wiz/clk_out1]]
 set game [get_clocks clk_juego]
 if {[llength $pix] != 1} {error "pixel clock query"}
@@ -76,7 +80,7 @@ foreach port {cpu_resetn btn[0] btn[1] btn[2] btn[3] btn[4] sw[0] sw[14] sw[15] 
     set_false_path -from [get_ports $port] -to $ends
 }
 
-# --- stretched reset request (clk_base) into each domain's synchronizer ------
+# --- stretched reset request (clk_pix) into each domain's synchronizer -------
 set rst_src [get_cells u_reset/rst_req_reg]
 set rst_dst [get_cells -of_objects [all_fanout -from [get_pins u_reset/rst_req_reg/Q] -flat -endpoints_only]]
 first_stage $rst_dst "rst_req"

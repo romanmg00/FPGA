@@ -30,7 +30,7 @@
 //   QUALIFIED = 1, RSP_REG = 1 ("captured"): the held codes are first copied
 //                 into code_q, enabled only by a new synchronized toggle, and
 //                 the game uses code_q: answered at k + 4, so READ2 + COMMIT
-//                 take 8 ticks (ADR 0006: STEP_TICKS 8..10). No game register
+//                 take 8 ticks (ADR 0007: STEP_TICKS 8..10). No game register
 //                 then depends combinationally on a fast-domain word.
 // A Step launch that finds the last COMMIT unfinished is deferred, not
 // overlapped: it waits with step_cnt held and sets the sticky overrun flag.

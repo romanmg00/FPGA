@@ -1,18 +1,18 @@
 // reset_stretch: power-up and CPU_RESETN reset request, held long enough that
 // both clk_pix and clk_juego see reset across several game edges together.
-// Owner: Alan (game_top). Domain: clk = the second Wizard's base clock, which
-// runs from configuration and is never reset, so the hold counter always
-// counts. Crossing: cpu_resetn (async pin) -> 2-FF synchronizer here; the
+// Owner: Alan (game_top). Domain: clk = clk_pix in tron_top (ADR 0006; it was
+// the second Wizard's base clock before 12 Nov 2026). It runs from
+// configuration and is never reset, so the hold counter always counts. Crossing: cpu_resetn (async pin) -> 2-FF synchronizer here; the
 // output rst_req is a level that each domain synchronizes again
 // (board/board_reset_sync).
 //
 // Why: the model resets both domains at once (Hardware Map, review F7). In
 // hardware a reset that one domain sees and the other misses could leave a
-// stale mailbox sequence number; holding rst_req for HOLD base cycles (six
+// stale mailbox sequence number; holding rst_req for HOLD clk cycles (six
 // game periods by default) puts both domains in reset at the same time,
 // so nothing in flight survives. PROVISIONAL (ADR 0005).
 module reset_stretch #(
-    parameter integer HOLD = 6 * 78126           // base cycles: six ~60 Hz game periods
+    parameter integer HOLD = 6 * 2 * 695466      // clk_pix cycles: six ~60 Hz game periods
 ) (
     input  logic clk,
     input  logic cpu_resetn,

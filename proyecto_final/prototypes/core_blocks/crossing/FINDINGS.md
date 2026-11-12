@@ -5,7 +5,7 @@ Built by the orchestrator (Claude Opus 5.5) as the experiment proposed in
 section 4 and gates 1, 2 and 4 of its section 5. It is input to the open
 [ADR 0003](../../../../docs/adr/0003-step-transaction-mailbox-and-render-codes.md)
 item 2. It is judged against
-[ADR 0006](../../../../docs/adr/0006-configurable-step-interval.md) (accepted
+[ADR 0007](../../../../docs/adr/0007-configurable-step-interval.md) (accepted
 29 October): the Step interval is configurable and evaluated at **8 to 10 game
 ticks**, and six ticks is no longer mandatory.
 
@@ -13,7 +13,7 @@ Everything here is **provisional** under
 [ADR 0005](../../../../docs/adr/0005-build-with-provisional-interfaces.md).
 Passing these benches and builds is **evidence**, not team agreement, and the
 benches are the builder's own checks, not the official benches of contract §7.
-The defaults stay as ADR 0006 leaves them: the mailbox crossing at 6 ticks.
+The defaults stay as ADR 0007 leaves them: the mailbox crossing at 6 ticks.
 Nothing here changes an ADR, the contract or a decision file.
 
 **Status.** Two fast-to-game crossings were built, simulated and routed.
@@ -22,11 +22,11 @@ Neither has run on the board.
 | Variant | Parameters | Step | Vivado CDC, fast to game | Input reaches the game |
 |---|---|---|---|---|
 | Mailbox (current default) | `QUALIFIED = 0` | READ2 + COMMIT = 2 + 2 ticks; fits 6 | **21 Critical Unknown** (the quiet-window capture registers) | t + 2 |
-| **Captured** (candidate for ADR 0006) | `QUALIFIED = 1, RSP_REG = 1` | 4 + 4 = **8 ticks**, no spare at 8, 2 spare at 10 | **0 Critical, no waiver**: every endpoint a recognized pattern (CDC-15, CDC-6, CDC-3) | t + 4 |
+| **Captured** (candidate for ADR 0007) | `QUALIFIED = 1, RSP_REG = 1` | 4 + 4 = **8 ticks**, no spare at 8, 2 spare at 10 | **0 Critical, no waiver**: every endpoint a recognized pattern (CDC-15, CDC-6, CDC-3) | t + 4 |
 | Qualified | `QUALIFIED = 1, RSP_REG = 0` | 3 + 3 = 6 ticks, no spare | 5 Critical (CDC-1), covered by one scoped waiver | t + 4 |
 
 All three match the model on all 12 M2 scenarios at 6 (mailbox, qualified), 8
-and 10 ticks per Step. The captured variant is the clean candidate ADR 0006
+and 10 ticks per Step. The captured variant is the clean candidate ADR 0007
 asks for. The qualified variant is the "faster setting" evidence: six ticks
 are reachable, but only with a waiver.
 
@@ -51,7 +51,7 @@ rerun to show they change nothing there:
 
 - **Deferred launch.** A Step launch that finds the last COMMIT unfinished now
   waits with `step_cnt` held and sets the sticky `overrun`. Before, it
-  launched over the open Step. ADR 0006 requires this: "Defer the launch and
+  launched over the open Step. ADR 0007 requires this: "Defer the launch and
   expose the deadline miss."
 - **`phase` on a Step outcome is written, not held.** It becomes
   `crash ? G_CRASH : goal ? G_MATCH : G_PLAY`, because a READ2 is only open in
@@ -226,15 +226,15 @@ budget (`../video/FINDINGS.md`), not the crossing.
 
 ## 4. What the evidence shows, and what it does not
 
-- **ADR 0006's 8-tick setting has a sign-off-clean crossing.** The captured
+- **ADR 0007's 8-tick setting has a sign-off-clean crossing.** The captured
   variant fills 8 ticks exactly with READ2 + COMMIT (4 + 4), and leaves 2
   spare at 10. It routes with no unknown CDC and no waiver. Every game
   register a fast-domain word reaches is a capture register enabled only by a
   synchronizer output. This is the "explicit capture and processing stages"
-  that ADR 0006 prefers over optimizing every edge for six ticks.
+  that ADR 0007 prefers over optimizing every edge for six ticks.
 - **Six ticks is reachable, at a price.** The qualified variant holds 6 ticks
   with no spare. In the composed game and in 600 phase-A Steps no launch
-  waited. It needs the 5-endpoint waiver. ADR 0006 asks for "appropriate
+  waited. It needs the 5-endpoint waiver. ADR 0007 asks for "appropriate
   scheduling margin" before choosing a faster setting, and 6 ticks has none.
 - **Missed deadlines are safe.** When a service misses its edge, the next
   launch waits one tick and `overrun` records it. The command channel never
@@ -253,7 +253,7 @@ budget (`../video/FINDINGS.md`), not the crossing.
   mailbox (+33 ms), in both new variants. A Step outcome comes 1 tick later in
   the qualified variant and 2 in the captured one. At 8 ticks per Step
   (7.5 Cells/s), a Turn must be in a batch about 4 ticks before a launch to
-  count. ADR 0006 leaves this to playtesting.
+  count. ADR 0007 leaves this to playtesting.
 - **Cost in logic:** small. The captured variant at 8 ticks uses 1038 LUTs
   and 1001 registers (1.64 % and 0.79 % of the device).
 - **Not shown:**
@@ -268,7 +268,7 @@ budget (`../video/FINDINGS.md`), not the crossing.
 ## 5. Open questions for Roman and Alan
 
 - **Adopt the captured crossing at 8 ticks** as the ADR 0003 item 2 proposal
-  under ADR 0006? That means editing ADR 0003 item 2 and the contract's
+  under ADR 0007? That means editing ADR 0003 item 2 and the contract's
   crossing section. It also means making `Game(crossing="captured",
   step_ticks=8)` the new Step-log reference and the `tron_top` defaults
   `QUALIFIED = 1, RSP_REG = 1, STEP_TICKS = 8`. Keep the mailbox build for the

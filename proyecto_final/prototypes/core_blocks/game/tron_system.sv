@@ -9,7 +9,7 @@
 module tron_system #(
     parameter bit QUALIFIED = 1'b0,                     // 0 mailbox (ADR 0003 default), 1 req/ack
     parameter bit RSP_REG = 1'b0,                       // with QUALIFIED: capture the codes ("captured")
-    parameter integer STEP_TICKS = game_pkg::STEP_TICKS,  // ADR 0006: configurable, fixed in play
+    parameter integer STEP_TICKS = game_pkg::STEP_TICKS,  // ADR 0007: configurable, fixed in play
     parameter integer CLK_PIX_HZ = 83455882,
     parameter integer DEBOUNCE_MS = 10,
     parameter integer WINDOW = 1 << 18,

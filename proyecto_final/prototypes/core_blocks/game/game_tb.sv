@@ -17,7 +17,7 @@ module game_tb;
     parameter integer WINDOW = 12000;     // fast_core publish window, below N
     parameter bit QUALIFIED = 1'b0;       // 1: req/ack crossing + batch_fifo (crossing/FINDINGS.md)
     parameter bit RSP_REG = 1'b0;         // with QUALIFIED: capture the response codes ("captured")
-    parameter integer STEP_TICKS = game_pkg::STEP_TICKS;   // ADR 0006 evaluation
+    parameter integer STEP_TICKS = game_pkg::STEP_TICKS;   // ADR 0007 evaluation
 
     logic clk = 0, clk_juego = 0, rst_fast = 1, rst_game = 1;
     always #5 clk = !clk;                                  // 100 MHz sim fast clock

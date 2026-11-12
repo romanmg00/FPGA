@@ -4,7 +4,7 @@ set -euo pipefail
 here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 p=prototypes/core_blocks
 exec "$here/../run_xsim.sh" "$@" tron_system_tb \
-    counters.sv vga_out.sv \
+    counters.sv $p/video/vga_out.sv \
     $p/io/sync_2ff.sv $p/io/btn_debounce.sv $p/io/seg7_driver.sv $p/io/seg7_page.sv \
     $p/step/turn_unit.sv $p/step/next_cell.sv $p/step/step_resolve.sv \
     $p/score/score_unit.sv $p/arena/arena_map.sv \

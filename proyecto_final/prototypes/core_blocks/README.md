@@ -23,7 +23,7 @@ agreement; the testbenches here are the builder's own checks, not the
 | `datapath/` | Round two: the Step transaction across two clocks, driven by a model trace |
 | `board/` | Round two: board test-pattern bitstream (clocks, Arena, drawcon) |
 | `game/` | The playable core: `tron_top` bitstream, M2 replay of the full HDL game, end-to-end pins bench, P2 web page and the board checklist |
-| `crossing/` | The game-fast crossing experiment (ADR 0003 item 2, ADR 0006): req/ack responses, `batch_fifo`, protocol benches, routed CDC comparison; also the research note's clock probe |
+| `crossing/` | The game-fast crossing experiment (ADR 0003 item 2, ADR 0007): req/ack responses, `batch_fifo`, protocol benches, routed CDC comparison; also the research note's clock probe |
 
 ## Writing a block
 
@@ -90,7 +90,7 @@ Each folder's `FINDINGS.md` holds the commands, artifacts and limits.
   checklist is in its section 5.
 - **Crossing** ([crossing/](crossing/FINDINGS.md)): the model's stable-payload
   mailbox works, but its 21 fast-to-game capture registers are an unknown CDC
-  in Vivado. Under ADR 0006 (8–10 ticks per Step), the "captured" variant
+  in Vivado. Under ADR 0007 (8–10 ticks per Step), the "captured" variant
   replaces them with a req/ack response captured on a synchronized toggle and
   a Gray FIFO for input batches. It needs READ2 + COMMIT = 8 ticks, matches the
   model at 8 and 10 ticks, and routes with **0 unknown CDC and no waiver**.

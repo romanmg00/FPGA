@@ -77,7 +77,7 @@ def parse(text: str) -> Scenario:
 def run(sc: Scenario, game=None, crossing: str = "mailbox", step_ticks=None,
         arena_log=None) -> list:
     """Replay `sc` and return its Step log lines. `step_ticks` overrides the
-    scenario's Step interval (ADR 0006 evaluation). If `arena_log` is a list,
+    scenario's Step interval (ADR 0007 evaluation). If `arena_log` is a list,
     each Step-log line also appends an arena-log line (steplog.arena_line)."""
     log = []
     rules = sc.rules()

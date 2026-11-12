@@ -22,7 +22,7 @@
 //      resolves at k + 3 + RSP_REG and launches are exactly STEP apart, with
 //      no deferred launch. Phase B (all delays, Pause): deferrals allowed, and
 //      every launch is at least STEP after the last one.
-// RSP_REG = 1 with STEP = 8 is the "captured" variant (ADR 0006).
+// RSP_REG = 1 with STEP = 8 is the "captured" variant (ADR 0007).
 module handshake_tb;
     import game_pkg::*;
     parameter integer STEPS_A = 600;          // Steps with service inside the tick

@@ -3,14 +3,16 @@
 // decimal points, held off; an unused pin would float to the default pull-down
 // and light them).
 //
-// Clocks (ADR 0002): board clk feeds only the two Clocking Wizards.
+// Clocks (ADR 0002 as amended by ADR 0006): board clk feeds only the one
+// Clocking Wizard.
 //   clk_pix    83.46 MHz requested (83.455882 achieved, video/FINDINGS.md):
 //              vga_out, drawcon_game, fast_core (Arena service, input batch,
-//              snapshot), button debounce, UART receive, 7-segment scan.
-//   clk_base   4.6875 MHz: game_clk_div and reset_stretch only.
-//   clk_juego  clk_base / 78126 = 59.999 Hz through a BUFG: game_core.
+//              snapshot), button debounce, UART receive, 7-segment scan,
+//              game_clk_div and reset_stretch.
+//   clk_juego  clk_pix / (2 * 695,466) = 59.99997 Hz through a BUFG: game_core.
+//              Same counter and N as proyecto_final/game_top.sv.
 // Crossings (all PROVISIONAL, ADR 0003 item 2 open; see game/FINDINGS.md):
-//   cpu_resetn -> reset_stretch (2-FF, clk_base) -> rst_req -> 2-FF per domain.
+//   cpu_resetn -> reset_stretch (2-FF, clk_pix) -> rst_req -> 2-FF per domain.
 //   btn -> btn_debounce 2-FF (clk_pix); uart_rx -> uart_sync_2ff (clk_pix);
 //   sw[0], sw[15:14] -> 2-FF inside game_core (clk_juego).
 //   game_core <-> fast_core: tick_tgl 2-FF plus the quiet-window mailbox and
@@ -19,9 +21,9 @@
 module tron_top #(
     parameter bit QUALIFIED = 1'b0,                     // fast -> game crossing, see above
     parameter bit RSP_REG = 1'b0,                       // with QUALIFIED: capture the codes first
-    parameter integer STEP_TICKS = game_pkg::STEP_TICKS,  // game ticks per Step (ADR 0006)
+    parameter integer STEP_TICKS = game_pkg::STEP_TICKS,  // game ticks per Step (ADR 0007)
     parameter integer CLK_PIX_HZ = 83455882,
-    parameter integer GAME_HALF_CYCLES = 39063,
+    parameter integer GAME_HALF_CYCLES = 695466,         // clk_pix cycles per clk_juego half period
     parameter logic [31:0] SEED = 32'h1D2C3B4A,         // model LFSR_SEED
     parameter bit FIXED_SEED = 1'b0,                    // 0: mix the Start tick into the LFSR
     parameter string SPRITE_DIR = "sprites/"          // set by run_tron.tcl to the .mem folder
@@ -40,16 +42,16 @@ module tron_top #(
     import game_pkg::*;
 
     // --- clocks and resets -------------------------------------------------
-    logic clk_in, clk_pix, clk_base, clk_juego, rst_req, rst_pix, rst_game;
+    logic clk_in, clk_pix, clk_juego, rst_req, rst_pix, rst_game;
 `ifdef SYNTHESIS
     IBUF u_clk_ibuf (.I(clk), .O(clk_in));
 `else
     assign clk_in = clk;
 `endif
     tron_pixel_clock u_pixel_wiz (.clk_in1(clk_in), .clk_out1(clk_pix));
-    tron_base_clock  u_base_wiz  (.clk_in1(clk_in), .clk_out1(clk_base));
-    game_clk_div #(.half_cycles(GAME_HALF_CYCLES)) u_div (.clk_base, .rst(1'b0), .clk_juego);
-    reset_stretch #(.HOLD(6 * 2 * GAME_HALF_CYCLES)) u_reset (.clk(clk_base), .cpu_resetn, .rst_req);
+    // game_clk_div's input port is still named clk_base; it now divides clk_pix.
+    game_clk_div #(.half_cycles(GAME_HALF_CYCLES)) u_div (.clk_base(clk_pix), .rst(1'b0), .clk_juego);
+    reset_stretch #(.HOLD(6 * 2 * GAME_HALF_CYCLES)) u_reset (.clk(clk_pix), .cpu_resetn, .rst_req);
     board_reset_sync u_reset_pix  (.clk(clk_pix),   .async_reset(rst_req), .rst(rst_pix));
     board_reset_sync u_reset_game (.clk(clk_juego), .async_reset(rst_req), .rst(rst_game));
 

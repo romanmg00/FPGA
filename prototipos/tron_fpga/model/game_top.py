@@ -25,7 +25,7 @@ batches also pass a Gray FIFO's read register, two edges later. Inputs reach
 the game at t + 4, a Step resolves at k + 3 and its COMMIT is seen done at
 k + 6. `crossing="captured"` also copies the response into a game register
 first: a Step resolves at k + 4 and its COMMIT is done at k + 8, so it needs
-step_ticks >= 8 (ADR 0006).
+step_ticks >= 8 (ADR 0007).
 
 match_ctrl phases (game_pkg G_*): G_IDLE waits for Start after power-up or
 CPU_RESETN. Start captures the goal, resets Points and Lives and issues
