@@ -1,6 +1,7 @@
 // Alan's feasibility bench; decode physical outputs, no internal DUT signals.
 module seg7_driver_tb;
-    logic clk_pix=0, rst=1, page_lives=0;
+    logic clk_pix=0, rst=1, page_lives=0, page_goal=0;
+    logic [1:0] goal_sel=0;
     logic [5:0] points_p1=0, points_p2=0;
     logic [1:0] lives_p1=0, lives_p2=0;
     logic [6:0] seg;
@@ -14,6 +15,7 @@ module seg7_driver_tb;
             7'h30:decode="3"; 7'h19:decode="4"; 7'h12:decode="5";
             7'h02:decode="6"; 7'h78:decode="7"; 7'h00:decode="8";
             7'h10:decode="9"; 7'h0c:decode="P"; 7'h47:decode="L";
+            7'h42:decode="G"; 7'h08:decode="A"; 7'h7f:decode=" ";
             default:decode="?";
         endcase
     endfunction
@@ -53,6 +55,14 @@ module seg7_driver_tb;
         @(negedge clk_pix); lives_p1=1; lives_p2=2;
         frame_check("L202L101");
         @(negedge clk_pix); page_lives=0; points_p1=9; points_p2=9;
+        frame_check("P209P109");
+        @(negedge clk_pix); page_goal=1; goal_sel=1;
+        frame_check("G0AL  20");
+        @(negedge clk_pix); goal_sel=3;
+        frame_check("G0AL  40");
+        @(negedge clk_pix); goal_sel=0;
+        frame_check("G0AL  10");
+        @(negedge clk_pix); page_goal=0;
         frame_check("P209P109");
         $display("PASS seg7_driver_tb"); $finish;
     end

@@ -72,6 +72,8 @@ module game_core #(
     output logic [5:0]  points_p1, points_p2, points_goal,
     output logic [1:0]  lives_p1, lives_p2, result,
     output logic        page_lives,
+    output logic        page_goal,                           // Scoreboard Goal page (seg7_page)
+    output logic [1:0]  goal_sel,                            // synchronized {SW15, SW14}, for the Goal page
     // bench and debug
     output logic [7:0]  round_index,
     output logic [15:0] step_count,
@@ -197,7 +199,9 @@ module game_core #(
         .collected_slot_p1(slot_p1), .collected_slot_p2(slot_p2),
         .points_p1, .points_p2, .lives_p1, .lives_p2, .points_goal, .result);
     seg7_page #(.VIEW_TICKS(VIEW_TICKS), .RUN_DURING_PAUSE(1'b1)) u_page (
-        .clk_juego(clk), .rst, .new_match(start_new), .pause(sw_paused), .page_lives);
+        .clk_juego(clk), .rst, .new_match(start_new), .pause(sw_paused),
+        .waiting(phase == G_IDLE || phase == G_MATCH), .goal_sel, .page_lives, .page_goal);
+    assign goal_sel = {goal_hi_s2, goal_lo_s2};
 
     always_ff @(posedge clk) begin
         if (rst) begin

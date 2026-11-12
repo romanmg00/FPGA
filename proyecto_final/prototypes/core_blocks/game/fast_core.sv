@@ -47,7 +47,8 @@ module fast_core #(
     input  logic        g_crashed_p1, g_crashed_p2,
     input  logic [5:0]  g_points_p1, g_points_p2,
     input  logic [1:0]  g_lives_p1, g_lives_p2,
-    input  logic        g_page_lives,
+    input  logic        g_page_lives, g_page_goal,
+    input  logic [1:0]  g_goal_sel,
     // to game_core
     output logic [3:0]  rsp_seq,
     output logic [3:0]  rsp_code_p1, rsp_code_p2,
@@ -67,7 +68,8 @@ module fast_core #(
     output logic        snap_crashed_p1, snap_crashed_p2,
     output logic [5:0]  snap_points_p1, snap_points_p2,
     output logic [1:0]  snap_lives_p1, snap_lives_p2,
-    output logic        snap_page_lives,
+    output logic        snap_page_lives, snap_page_goal,
+    output logic [1:0]  snap_goal_sel,
     output logic        tick_seen,
     // Arena port B and status
     input  logic [12:0] b_addr,
@@ -156,7 +158,7 @@ module fast_core #(
             snap_crashed_p1 <= 0; snap_crashed_p2 <= 0;
             snap_points_p1 <= 0; snap_points_p2 <= 0;
             snap_lives_p1 <= 2'(LIVES_START); snap_lives_p2 <= 2'(LIVES_START);
-            snap_page_lives <= 0;
+            snap_page_lives <= 0; snap_page_goal <= 0; snap_goal_sel <= 0;
         end else if (tick_seen) begin
             snap_phase <= g_phase; snap_paused <= g_paused; snap_phase_ticks <= g_phase_ticks;
             snap_head_p1 <= g_head_p1; snap_head_p2 <= g_head_p2;
@@ -164,7 +166,7 @@ module fast_core #(
             snap_crashed_p1 <= g_crashed_p1; snap_crashed_p2 <= g_crashed_p2;
             snap_points_p1 <= g_points_p1; snap_points_p2 <= g_points_p2;
             snap_lives_p1 <= g_lives_p1; snap_lives_p2 <= g_lives_p2;
-            snap_page_lives <= g_page_lives;
+            snap_page_lives <= g_page_lives; snap_page_goal <= g_page_goal; snap_goal_sel <= g_goal_sel;
         end
     end
 

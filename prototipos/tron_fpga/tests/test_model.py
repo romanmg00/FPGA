@@ -25,7 +25,7 @@ from model.input_batch import InputBatch, uart_decode
 from model.lfsr import Lfsr
 from model.mailbox import OP_COMMIT, OP_PREPARE, OP_READ2, Mailbox
 from model.reward_place import find_empty_cell
-from model.seg7 import GLYPHS, PageTimer, digits, segments
+from model.seg7 import GLYPHS, GOAL_VIEW, LIVES_VIEW, POINTS_VIEW, PageTimer, digits, segments
 from model.step_unit import S_COMMIT, S_IDLE, S_READ, step_resolve
 from model.turn_unit import DOWN, LEFT, RIGHT, UP, TurnUnit, next_cell
 
@@ -698,6 +698,33 @@ class ScoreboardTests(unittest.TestCase):
         for _ in range(3):
             pt.clock()
         self.assertEqual(pt.view, 0)
+
+    def test_goal_page_while_waiting_for_a_match(self):
+        pt = PageTimer(3)
+        views = []
+        for _ in range(9):
+            pt.clock(waiting=True)
+            views.append(pt.view)
+        self.assertEqual(views, [0, 0, LIVES_VIEW, 1, 1, GOAL_VIEW, 2, 2, POINTS_VIEW])
+        self.assertEqual(digits(GOAL_VIEW, [7, 12], [3, 1], 30), "GOAL  30")
+        pt.clock(waiting=True)
+        pt.clock(waiting=True, goal_sw=2)                    # a change jumps to Goal
+        self.assertEqual((pt.view, pt.timer), (GOAL_VIEW, 0))
+        pt.clock(waiting=False, goal_sw=3)                   # no jump while playing
+        self.assertEqual(pt.view, GOAL_VIEW)                 # the page finishes its time
+        pt.clock(waiting=False, goal_sw=3)
+        pt.clock(waiting=False, goal_sw=3)
+        self.assertEqual(pt.view, POINTS_VIEW)               # then never Goal while playing
+        for _ in range(9):
+            pt.clock(waiting=False, goal_sw=3)
+            self.assertNotEqual(pt.view, GOAL_VIEW)
+
+    def test_goal_switches_show_on_the_idle_scoreboard(self):
+        game = Game(RuleParams(score_view_ticks=60, fixed_seed=True))
+        tick(game)
+        for _ in range(4):
+            tick(game, goal_sw=2)
+        self.assertEqual(game.snapshot()["scoreboard"], "GOAL  30")
 
     def test_glyph_decoder_has_p_and_l_and_is_active_low(self):
         self.assertTrue({"P", "L"} <= set(GLYPHS))

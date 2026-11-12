@@ -178,7 +178,7 @@ class Game:
         self.sw_sync = [sw_pins] + self.sw_sync[:-1]
         self.tick_cnt = (self.tick_cnt + 1) & TICK_MASK
         self.ticks += 1
-        self.page.clock()                            # runs through Pause
+        self.page.clock(ph in (G_IDLE, G_MATCH), goal_sw)   # runs through Pause
         self.paused = paused
 
         if paused:
@@ -285,7 +285,8 @@ class Game:
             "crashed": self.crashed,
             "paused": self.paused,
         }
-        self.seg7_digits = digits(self.page.view, self.score.points, self.score.lives)
+        shown_goal = goal_from_switches(self.sw_sync[-1] >> SW_GOAL_LSB & 3)
+        self.seg7_digits = digits(self.page.view, self.score.points, self.score.lives, shown_goal)
 
     # --- read-only views ----------------------------------------------------
     @property

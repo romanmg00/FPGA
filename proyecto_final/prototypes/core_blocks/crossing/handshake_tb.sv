@@ -43,7 +43,8 @@ module handshake_tb;
     logic [31:0] cmd_seed_mix;
     logic [12:0] cmd_a_p1, cmd_a_p2, cmd_b_p1, cmd_b_p2, head_p1, head_p2;
     logic [2:0] cmd_collected, phase;
-    logic paused, crashed_p1, crashed_p2, head_on, page_lives, overrun;
+    logic paused, crashed_p1, crashed_p2, head_on, page_lives, page_goal, overrun;
+    logic [1:0] goal_sel;
     logic [7:0] phase_ticks, round_index;
     logic [1:0] shown_p1, shown_p2, lives_p1, lives_p2, result, log_kind;
     logic [5:0] points_p1, points_p2, points_goal;
@@ -58,7 +59,7 @@ module handshake_tb;
         .cmd_a_p1, .cmd_a_p2, .cmd_b_p1, .cmd_b_p2, .cmd_survive_p1, .cmd_survive_p2, .cmd_collected,
         .phase, .paused, .phase_ticks, .head_p1, .head_p2, .shown_p1, .shown_p2,
         .crashed_p1, .crashed_p2, .head_on, .points_p1, .points_p2, .points_goal,
-        .lives_p1, .lives_p2, .result, .page_lives, .round_index, .step_count, .log_kind, .overrun);
+        .lives_p1, .lives_p2, .result, .page_lives, .page_goal, .goal_sel, .round_index, .step_count, .log_kind, .overrun);
 
     integer errors = 0;
     task automatic fail(input string what);

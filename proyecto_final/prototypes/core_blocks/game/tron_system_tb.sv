@@ -99,6 +99,7 @@ module tron_system_tb;
             7'b1001111: return "3"; 7'b1100110: return "4"; 7'b1101101: return "5";
             7'b1111101: return "6"; 7'b0000111: return "7"; 7'b1111111: return "8";
             7'b1101111: return "9"; 7'b1110011: return "P"; 7'b0111000: return "L";
+            7'b0111101: return "G"; 7'b1110111: return "A"; 7'b0000000: return " ";
             default: return "?";
         endcase
     endfunction
@@ -200,7 +201,15 @@ module tron_system_tb;
         cell_rgb(20, 27, rgb);  check(rgb == C_BG, "no Bike before Start");
         check(led[2:0] == G_IDLE, "G_IDLE after reset");
         read_display(disp);
-        check(disp == "P200P100" || disp == "L203L103", {"idle Scoreboard shows ", disp});
+        check(disp == "P200P100" || disp == "L203L103" || disp == "G0AL  10", {"idle Scoreboard shows ", disp});
+        // Goal page: changing {SW15, SW14} while idle jumps to it at once. "O" and
+        // "0" are the same 7-segment glyph, so GOAL decodes as G0AL.
+        sw[15:14] = 2'b10; ticks(4);
+        read_display(disp);
+        check(disp == "G0AL  30", {"goal switches show G0AL  30, got ", disp});
+        sw[15:14] = 2'b00; ticks(4);
+        read_display(disp);
+        check(disp == "G0AL  10", {"goal switches back show G0AL  10, got ", disp});
 
         // Start from the web page (UART Space), then the Round runs.
         uart_send(8'h20);

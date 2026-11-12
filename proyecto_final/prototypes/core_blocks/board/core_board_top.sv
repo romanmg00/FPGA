@@ -52,7 +52,7 @@ module core_board_top #(
         tick_fast[5]=gray_settled[5];
         for(integer i=4;i>=0;i=i-1) tick_fast[i]=tick_fast[i+1]^gray_settled[i];
     end
-    seg7_driver u_display(clk_pix,rst_pix,tick_fast,6'd0,2'd0,2'd0,1'b0,seg,an);
+    seg7_driver u_display(clk_pix,rst_pix,tick_fast,6'd0,2'd0,2'd0,1'b0,1'b0,2'd0,seg,an);
     logic [10:0] curr_x,curr_y;
     logic [3:0] dr,dg,db,b_data;
     logic [12:0] b_addr,head,target;
