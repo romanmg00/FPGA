@@ -15,12 +15,16 @@ _BASE = dict(border=0xFFF, p1=0x0FF, p2=0xF80, hud_fg=0xFFF, hud_bg=0x000,
 
 PALETTES = {
     # RGB444 words. P1 cyan and P2 orange in every palette (agreed initial colours).
+    # Synthwave's sky is one colour, its old zenith 001 (bg = sky_low): its
+    # 001 -> 205 gradient showed as visible bands on the board (12 November 2026).
+    # Its Wall Cells are black (wall = 000): the 101 Wall read as a magenta band
+    # between the HUD and the neon tube on the board.
     # border = the handout's white 10 px frame. bg -> bg2 is the sky
     # gradient (top -> bottom); grid_glow is the neon halo; wall_line the
     # neon tube on the Wall edge.
-    "synthwave": dict(_BASE, bg=0x001, bg2=0x506, floor=0x203, sky_low=0x205,
+    "synthwave": dict(_BASE, bg=0x001, bg2=0x506, floor=0x203, sky_low=0x001,
                       grid=0xD2E, grid_glow=0x304,
-                      wall=0x101, wall_line=0xF4D, reward_small=0xFE3, reward_big=0xC8F,
+                      wall=0x000, wall_line=0xF4D, reward_small=0xFE3, reward_big=0xC8F,
                       sun_hi=0xFB4, sun_lo=0xC2A),
     "outrun": dict(_BASE, bg=0x002, bg2=0x613, floor=0x302, sky_low=0x403,
                    grid=0xF4A, grid_glow=0x302,

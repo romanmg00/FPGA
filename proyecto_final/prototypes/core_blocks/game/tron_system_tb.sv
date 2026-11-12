@@ -146,14 +146,46 @@ module tron_system_tb;
     endfunction
 
     // --- sprite expectations, from the art and the Design Plan's bike_addr ----
-    localparam logic [11:0] C_BG = 12'h001, C_WALL = 12'hF4D, C_P1 = 12'h0FF, C_P2 = 12'hF80,
+    localparam logic [11:0] C_WALL = 12'h000, C_TUBE = 12'hF4D, C_GLOW = 12'h726, C_P1 = 12'h0FF, C_P2 = 12'hF80,
         C_P1_TRAIL = 12'h0AA, C_P2_TRAIL = 12'hA50, C_REWARD3 = 12'hC8F;
     logic [11:0] bike_mem [0:1023];
     logic [11:0] star_mem [0:255];
+    logic [11:0] sky_lut [0:63];
+    logic [20:0] sun_lut [0:320];
+    logic [11:0] grid_lut [0:3];
     initial begin
         $readmemh("src/prototypes/core_blocks/game/sprites/bike-synth-32.mem", bike_mem);
         $readmemh("src/prototypes/core_blocks/game/sprites/reward-neon-star-16.mem", star_mem);
+        $readmemh("src/prototypes/core_blocks/game/sprites/synthwave-sky.mem", sky_lut);
+        $readmemh("src/prototypes/core_blocks/game/sprites/synthwave-sun.mem", sun_lut);
+        $readmemh("src/prototypes/core_blocks/game/sprites/synthwave-grid.mem", grid_lut);
     end
+    // Empty Arena pixel (x, y) at animation phase ph, as juego/fx.py build_base
+    // (synthwave): sky, sun (radius 160 at (640, 432)), stars, neon grid, the
+    // Arena-edge glow. Tables from tools/make_bg_luts.py; the rest from fx.py.
+    function automatic logic [11:0] bg_at(input integer x, y, input logic [1:0] ph);
+        logic [11:0] c;
+        logic [20:0] row;
+        integer hx, hy, h, w;
+        bit sun;
+        c = sky_lut[y / 16];
+        sun = 0;
+        if (y >= 272 && y <= 592) begin
+            row = sun_lut[y - 272]; w = row[19:12];
+            if (row[20] && x >= 640 - w && x < 640 + w) begin sun = 1; c = row[11:0]; end
+        end
+        hx = x / 2; hy = y / 2;
+        h = (((hx * 'h2C9 + 7) ^ (hy * 'h1F3 + hx / 8)) * 'h3B) % 65536;
+        if ((h / 32) % 512 == 0 && !sun) c = ((h / 4) % 4 == ph) ? 12'h667 : 12'hCCF;
+        if (x % 32 == 1 || x % 32 == 31 || y % 32 == 1 || y % 32 == 31) c = 12'h304;
+        if (x % 32 == 0 || y % 32 == 0) c = grid_lut[ph];
+        if (x == 16 || x == 1263 || y == 80 || y == 783) c = C_GLOW;
+        return c;
+    endfunction
+    task automatic bg_pixel(input integer x, y, output logic [11:0] rgb, output logic [11:0] want);
+        pixel(x, y, rgb);
+        want = bg_at(x, y, dut.u_draw.frame_cnt[4:3]);
+    endtask
     // ROM word for Bike-local pixel (dx, dy) of art pointing UP (juego/sprites.py rom_address).
     function automatic logic [11:0] bike_texel(input logic [1:0] h, input integer dx, dy);
         integer row, col;
@@ -204,7 +236,7 @@ module tron_system_tb;
     endtask
 
     // --- the test ------------------------------------------------------------
-    logic [11:0] rgb;
+    logic [11:0] rgb, want;
     logic [12:0] h1, h2;
     integer k, m;
     string disp;
@@ -217,9 +249,46 @@ module tron_system_tb;
         // Idle screen: border, Wall ring, HUD band, empty Arena, no Bikes yet.
         pixel(5, 5, rgb);       check(rgb == 12'hFFF, "border pixel (5,5) white");
         pixel(1275, 400, rgb);  check(rgb == 12'hFFF, "border pixel (1275,400) white");
-        cell_rgb(40, 4, rgb);   check(rgb == C_WALL, "Wall row cy=4 drawn");
-        pixel(640, 786, rgb);   check(rgb == C_WALL, "Wall row cy=49 drawn (above the border)");
-        cell_rgb(20, 27, rgb);  check(rgb == C_BG, "no Bike before Start");
+        cell_rgb(40, 4, rgb);   check(rgb == C_WALL, "Wall row cy=4 black");
+        // Neon Wall (juego/fx.py _neon_wall): Arena = x 16..1263, y 80..783.
+        // Outside it 2 px tube then 2 px glow, then black Wall; 1 px glow on its edge.
+        pixel(640, 76, rgb);    check(rgb == C_GLOW, "top Wall: outer glow (y 76)");
+        pixel(640, 78, rgb);    check(rgb == C_TUBE, "top Wall: tube (y 78)");
+        pixel(640, 79, rgb);    check(rgb == C_TUBE, "top Wall: tube (y 79)");
+        pixel(640, 80, rgb);    check(rgb == C_GLOW, "Arena top edge glow (y 80)");
+        bg_pixel(640, 81, rgb, want);  check(rgb == want, $sformatf("Arena inside the edge (y 81): %h, background %h", rgb, want));
+        pixel(11, 400, rgb);    check(rgb == C_WALL, "left Wall black (x 11)");
+        pixel(13, 400, rgb);    check(rgb == C_GLOW, "left Wall: outer glow (x 13)");
+        pixel(15, 400, rgb);    check(rgb == C_TUBE, "left Wall: tube (x 15)");
+        pixel(16, 400, rgb);    check(rgb == C_GLOW, "Arena left edge glow (x 16)");
+        pixel(1263, 400, rgb);  check(rgb == C_GLOW, "Arena right edge glow (x 1263)");
+        pixel(1264, 400, rgb);  check(rgb == C_TUBE, "right Wall: tube (x 1264)");
+        pixel(1267, 400, rgb);  check(rgb == C_GLOW, "right Wall: outer glow (x 1267)");
+        pixel(1268, 400, rgb);  check(rgb == C_WALL, "right Wall black (x 1268)");
+        pixel(640, 785, rgb);   check(rgb == C_TUBE, "bottom Wall: tube (y 785)");
+        pixel(640, 786, rgb);   check(rgb == C_GLOW, "bottom Wall: outer glow (y 786)");
+        pixel(640, 789, rgb);   check(rgb == C_WALL, "bottom Wall black above the border (y 789)");
+        bg_pixel(20 * 16 + 8, 27 * 16 + 8, rgb, want);  check(rgb == want, "no Bike before Start");
+        // Background (fx.py build_base): sky, a star, the sun, a cut stripe, grid
+        // line and glow, at the frame's animation phase.
+        for (int i = 0; i < 12; i++) begin
+            case (i)
+                0: begin m = 33; k = 95; end
+                1: begin m = 100; k = 120; end    // sky
+                2: begin m = 1000; k = 150; end
+                3: begin m = 200; k = 260; end
+                4: begin m = 481; k = 300; end    // grid glow
+                5: begin m = 640; k = 300; end    // sun, upper half
+                6: begin m = 480; k = 416; end    // grid crossing on the sun
+                7: begin m = 500; k = 432; end    // sun's left side
+                8: begin m = 800; k = 470; end
+                9: begin m = 640; k = 590; end    // sun, bottom rows (cut stripes)
+                10: begin m = 1100; k = 650; end
+                default: begin m = 320; k = 700; end    // grid line, lower sky
+            endcase
+            bg_pixel(m, k, rgb, want);
+            check(rgb == want, $sformatf("background at (%0d,%0d): %h, expected %h", m, k, rgb, want));
+        end
         // HUD (juego/hud.py layout): "00" per Player, three full Life diamonds.
         pixel(26, 21, rgb);     check(rgb == C_P1, "HUD P1 tens 0: segment a lit");
         pixel(30, 35, rgb);     check(rgb == 12'h000, "HUD P1 tens 0: segment g dark");
@@ -293,7 +362,7 @@ module tron_system_tb;
         pause(1);
         check_bike({6'd27, 7'd20}, DIR_RIGHT, C_P1, "next Round: P1 on its start Cell");
         check_bike({6'd27, 7'd59}, DIR_LEFT, C_P2, "next Round: P2 on its start Cell");
-        cell_rgb(h2[6:0], h2[12:7], rgb); check(rgb == C_BG, "old Crash Cell cleared");
+        bg_pixel(h2[6:0] * 16 + 8, h2[12:7] * 16 + 8, rgb, want); check(rgb == want, "old Crash Cell cleared");
         pixel(1204, 37, rgb);   check(rgb == 12'h000, "HUD P2 third Life hollow after the Crash");
         pixel(1164, 37, rgb);   check(rgb == C_P2, "HUD P2 first Life still full");
         pixel(76, 37, rgb);     check(rgb == C_P1, "HUD P1 Lives unchanged");

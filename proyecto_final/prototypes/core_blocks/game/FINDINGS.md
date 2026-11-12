@@ -554,3 +554,59 @@ Unknown); DRC no violations. `tron_top.bit` SHA-256
 programmed by JTAG (DONE high). Alan checked the image on the board the
 same night: plain digits with no bar across the 0, and hollow Life diamonds
 with an even ring. All good.
+
+## 11. Update, 12 November 2026 (night): the synthwave background and neon Wall
+
+Inside the Arena `drawcon_game.sv` now draws the background of the viewer's
+synthwave design (`juego/fx.py` `build_base`): a sky, a striped sun of radius
+160 centred on the Arena at (640, 432), 2 × 2 px stars from `fx._star_hash`
+that twinkle a quarter per animation phase, and a neon grid every 32 px (a
+1 px line pulsing over 4 phases, `818 a2c d2e a2c`, with a `304` glow on each
+side). Around the Arena is the neon Wall (`fx._neon_wall`): 2 px tube `F4D`
+just outside it, 2 px glow `726` outside the tube, and a 1 px `726` glow on
+the Arena's own edge, under Trails, Rewards and Bikes. The phase is
+`frame[4:3]` of a video-frame counter, as `fx.phase`.
+
+- **Tables**: `sprites/synthwave-sky.mem` (64 × 12 bit, index `y[9:4]`),
+  `synthwave-sun.mem` (321 × 21 bit, `{lit, half width, colour}` per row,
+  0 for a cut stripe), `synthwave-grid.mem` (4 pulse colours), written by
+  `tools/make_bg_luts.py` from `fx.py` and the synthwave palette.
+- **Pipeline**: the background colour is computed from the position 7 pixels
+  ahead through seven registers (`bg_rgb`); the Wall colour from the Arena
+  look-ahead through one (`wall_rgb`). Neither adds logic between
+  `curr_x`/`curr_y` and the VGA pins. The star hash's three constant
+  multiplies are DSP48s with their multiplier and output registers (MREG,
+  PREG); a first version without them met timing but DRC reported DPOP-1/2
+  on each.
+- **Board feedback, applied to the viewer and the HDL alike** (the viewer
+  stays the guideline; visible flaws are fixed in both): the sky gradient
+  `001 → 205` showed as bands on the monitor, so the sky is one colour, the
+  gradient's zenith `001` (`bg = sky_low = 001` in `juego/candidates.py`);
+  the Wall Cells' `101` read as a magenta band between the HUD and the tube,
+  so the synthwave Wall is black (`wall = 000`). An intermediate build that
+  dropped the tube instead was rejected on the board.
+- **Not yet like the viewer**: the Trails are still flat Cells
+  (`0AA`/`A50`), where the viewer draws the Player colour with moving shine
+  stripes; the final scanline/flash stage, crash rings and Welcome/Pause
+  screens are not built.
+
+| File | SHA-256 |
+|---|---|
+| `game/drawcon_game.sv` | `77571a25a6a3fd56542f861efe930c652d4ef6002bf3e789c7775889eac26008` |
+| `game/tron_system_tb.sv` | `308c099e64de010826185bae4c371a80a95772063d975645dad7215bd56b4063` |
+| `game/sprites/synthwave-sky.mem` | `4c4752e8d0f8eaea205a6c6c2ebc6a91cccddf20b4216a4c19276aae38d1d078` |
+| `game/sprites/synthwave-sun.mem` | `15884bdd67b4880b65b5918023a9924ea216c123e8ff89430acaeae63650e370` |
+| `game/sprites/synthwave-grid.mem` | `c5942b8120707978ba42f90dfdedb2c2071573409599a2e26ea0c00db5a74bbb` |
+| `prototipos/tron_fpga/juego/candidates.py` | `1042427868b4a7978516f30060a772a6360e72e9640e26ef728b7ef40b3738c1` |
+| `tools/make_bg_luts.py` | `f7001065466903f57d5e52765dd5aafce71ef59e610ab3b2e69925952b4bae47` |
+
+| Check | Result |
+|---|---|
+| Python tests (`prototipos/tron_fpga`) | OK |
+| `tron_system_tb` | PASS, including 16 neon-Wall pixels and 12 background pixels against a reference written from `fx.py` (`bg_at`) at the frame's phase |
+| Whole-frame comparison, gradient-sky version | Two dumped frames against `fx.build_base` at the best of the 4 phases: every differing pixel lies in a Cell holding a Trail, a Bike or a Reward; the Wall area (20,034 even-row pixels) matched exactly |
+| `run_tron.sh mailbox` (`tron-20261112-221905-1255133`) | Bitstream written. WNS +0.283 ns, WHS +0.122 ns; `report_cdc` as in section 10; DRC no violations; 1,328 Slice LUTs, 3 Block RAM tiles, 3 DSPs |
+
+`tron_top.bit` SHA-256
+`c8a3d7d303aec3f25080c181b9db3bfa731f65541571696dc64ba539b48bffd0`,
+programmed by JTAG (DONE high); Alan checked it on the monitor and kept it.

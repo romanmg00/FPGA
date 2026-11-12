@@ -35,6 +35,20 @@
 // latched with the Bikes, once per frame; rst restores the idle HUD at once,
 // so a reset never shows the previous Match for a frame. Blinks use
 // snap_blink_ticks[4] (BLINK_TICKS = 16 in juego/hud.py and render.py).
+//
+// Neon Wall (juego/fx.py _neon_wall, synthwave palette): Wall Cells are black
+// (wall 000; 101 read as a magenta band on the board) with a neon tube around
+// the playable Arena: 2 px of wall_line (F4D) just outside it, 2 px of glow
+// (halve(F4D) = 726) outside the tube, and a 1 px glow on the Arena's own edge,
+// under Trails, Rewards and Bikes. Box comparators on the look-ahead pixel,
+// registered like the HUD.
+//
+// Background (juego/fx.py build_base, synthwave): inside the Arena a sky
+// gradient (one colour per 16 px band), a striped sun of radius 160 centred
+// on the Arena, 2 x 2 px stars from a position hash that twinkle by phase,
+// and a neon grid every 32 px (1 px line pulsing over 4 phases, 1 px glow on
+// each side), all under Trails, Rewards and Bikes. Tables:
+// sprites/synthwave-{sky,sun,grid}.mem from tools/make_bg_luts.py.
 module drawcon_game #(
     parameter string SPRITE_DIR = "src/prototypes/core_blocks/game/sprites/"   // .mem prefix (XSim run folder)
 ) (
@@ -54,7 +68,8 @@ module drawcon_game #(
     output logic [3:0]  draw_r, draw_g, draw_b
 );
     import game_pkg::*;
-    localparam logic [11:0] C_BG = 12'h001, C_WALL = 12'hF4D, C_HUD = 12'h000,
+    localparam logic [11:0] C_WALL = 12'h000, C_HUD = 12'h000,
+        C_WALL_LINE = 12'hF4D, C_WALL_GLOW = 12'h726,
         C_P1 = 12'h0FF, C_P2 = 12'hF80, C_P1_TRAIL = 12'h0AA, C_P2_TRAIL = 12'hA50,
         C_CRASH = 12'hF00, C_REWARD1 = 12'hFE3, C_REWARD3 = 12'hC8F, C_WHITE = 12'hFFF;
 
@@ -257,6 +272,101 @@ module drawcon_game #(
     end
     always_ff @(posedge clk) hud_rgb <= hud_next;
 
+    // --- neon Wall, for the next pixel (ax, ay), registered ---------------------
+    // The playable Arena in pixels: [AX0, AX1) x [AY0, AY1).
+    localparam int AX0 = PLAY_CX_MIN * 16, AX1 = (PLAY_CX_MAX + 1) * 16;
+    localparam int AY0 = PLAY_CY_MIN * 16, AY1 = (PLAY_CY_MAX + 1) * 16;
+    // Inside the Arena grown by k px on every side (k = -1 shrinks it).
+    function automatic logic in_arena(input logic [10:0] x, y, input int k);
+        return x >= 11'(AX0 - k) && x < 11'(AX1 + k) && y >= 11'(AY0 - k) && y < 11'(AY1 + k);
+    endfunction
+    logic [11:0] wall_rgb = '0;                   // a Wall Cell's colour
+    always_ff @(posedge clk)
+        wall_rgb <= in_arena(ax, ay, 2) ? C_WALL_LINE : in_arena(ax, ay, 4) ? C_WALL_GLOW : C_WALL;
+
+    // --- synthwave background (juego/fx.py build_base: sky, sun, stars, neon grid)
+    // The colour of an empty Arena pixel, computed from the position 7 ahead
+    // through seven registers, so it is ready when that pixel is shown. The tables come
+    // from fx.py through tools/make_bg_luts.py. The animation phase is
+    // fx.phase(frame) = frame[4:3], frame counting video frames.
+    localparam int SUN_CX = (AX0 + AX1) / 2, SUN_TOP = (AY0 + AY1) / 2 - 160;   // 640, 272 (SUN_R 160)
+    localparam logic [11:0] C_STAR = 12'hCCF, C_STAR_DIM = 12'h667, C_GRID_GLOW = 12'h304;
+    logic [11:0] sky_rom [0:63];
+    logic [11:0] grid_rom [0:3];
+    (* rom_style = "block" *) logic [20:0] sun_rom [0:320];
+    initial begin
+        $readmemh({SPRITE_DIR, "synthwave-sky.mem"}, sky_rom);
+        $readmemh({SPRITE_DIR, "synthwave-sun.mem"}, sun_rom);
+        $readmemh({SPRITE_DIR, "synthwave-grid.mem"}, grid_rom);
+    end
+    logic [4:0] frame_cnt = '0;
+    always_ff @(posedge clk)
+        if (rst) frame_cnt <= '0;
+        else if (curr_x == 11'd0 && curr_y == 11'd800) frame_cnt <= frame_cnt + 5'd1;
+
+    // Pipeline, seven registers from the position 7 ahead to bg_rgb. The star
+    // hash's constant multiplies map to DSP48s, each with its multiplier (MREG)
+    // and output (PREG) register; the position's other features travel beside
+    // them. fx._star_hash: ((hx * 0x2C9 + 7) ^ (hy * 0x1F3 + (hx >> 3))) * 0x3B
+    // & 0xFFFF with hx = x >> 1, hy = y >> 1; only the low 16 bits matter.
+    typedef struct packed {
+        logic [11:0] sky;                 // sky band colour
+        logic [20:0] sun;                 // sun row {lit, half width, colour}
+        logic        sun_ok;              // the row is inside the sun's 321 rows
+        logic [10:0] x;
+        logic        core, halo, rim;     // grid line, grid glow, Arena-edge glow
+    } bg_feat_t;
+    logic [10:0] bx, by, p0_x = '0, p0_y = '0;
+    logic [9:0]  hx0, hy0;
+    logic [10:0] sun_row;
+    logic [15:0] m_a = '0, m_b = '0, a2 = '0, b2 = '0, ab3 = '0, mh4 = '0, h5 = '0;
+    logic [6:0]  hx3_1 = '0;
+    bg_feat_t    f1 = '0, f2 = '0, f3 = '0, f4 = '0, f5 = '0;
+    always_comb begin
+        {by, bx} = ahead(curr_x, curr_y, 7);
+        hx0 = p0_x[10:1]; hy0 = p0_y[10:1];
+        sun_row = p0_y - 11'(SUN_TOP);
+    end
+    always_ff @(posedge clk) begin
+        p0_x <= bx; p0_y <= by;                                         // 1: position
+        m_a <= 16'(32'(hx0) * 32'h2C9);                                 // 2: multiply (MREG)
+        m_b <= 16'(32'(hy0) * 32'h1F3);
+        hx3_1 <= hx0[9:3];
+        f1.sky <= sky_rom[p0_y[9:4]];
+        f1.sun <= sun_rom[sun_row[8:0]];
+        f1.sun_ok <= p0_y >= 11'(SUN_TOP) && p0_y <= 11'(SUN_TOP + 320);
+        f1.x <= p0_x;
+        f1.core <= p0_x[4:0] == 5'd0 || p0_y[4:0] == 5'd0;
+        f1.halo <= p0_x[4:0] == 5'd1 || p0_x[4:0] == 5'd31 || p0_y[4:0] == 5'd1 || p0_y[4:0] == 5'd31;
+        f1.rim <= in_arena(p0_x, p0_y, 0) && !in_arena(p0_x, p0_y, -1);
+        a2 <= m_a + 16'd7;                                              // 3: post-add (PREG)
+        b2 <= m_b + 16'(hx3_1);
+        f2 <= f1;
+        ab3 <= a2 ^ b2;                                                 // 4
+        f3 <= f2;
+        mh4 <= 16'(32'(ab3) * 32'h3B);                                  // 5: multiply (MREG)
+        f4 <= f3;
+        h5 <= mh4;                                                      // 6: (PREG)
+        f5 <= f4;
+    end
+
+    // stage 7: layers in build_base order, sky < sun < stars < grid < Wall edge glow
+    logic [7:0]  s_w;
+    logic        s_sun, s_star;
+    logic [11:0] bg_next, bg_rgb = '0;
+    always_comb begin
+        s_w = f5.sun[19:12];
+        s_sun = f5.sun_ok && f5.sun[20] && f5.x >= 11'(SUN_CX) - 11'(s_w) && f5.x < 11'(SUN_CX) + 11'(s_w);
+        s_star = h5[13:5] == 9'd0 && !s_sun;
+        bg_next = f5.sky;
+        if (s_sun) bg_next = f5.sun[11:0];
+        if (s_star) bg_next = (h5[3:2] == frame_cnt[4:3]) ? C_STAR_DIM : C_STAR;   // a quarter twinkle per phase
+        if (f5.halo && !f5.core) bg_next = C_GRID_GLOW;
+        if (f5.core) bg_next = grid_rom[frame_cnt[4:3]];
+        if (f5.rim) bg_next = C_WALL_GLOW;
+    end
+    always_ff @(posedge clk) bg_rgb <= bg_next;
+
     // --- composition at the current pixel ------------------------------------
     logic [12:0] here;
     logic [11:0] rgb;
@@ -266,13 +376,13 @@ module drawcon_game #(
         visible = curr_x < 11'd1280 && curr_y < 11'd800;
 
         case (b_rdata)
-            CELL_WALL:                    rgb = C_WALL;
+            CELL_WALL:                    rgb = wall_rgb;
             CELL_P1_TRAIL, CELL_P1_HEAD:  rgb = C_P1_TRAIL;
             CELL_P2_TRAIL, CELL_P2_HEAD:  rgb = C_P2_TRAIL;
             CELL_CRASH:  rgb = (here == f_head_p1) ? C_P1_TRAIL : (here == f_head_p2) ? C_P2_TRAIL : C_CRASH;
-            CELL_REWARD0, CELL_REWARD1:   rgb = (tex_gem  != COLOR_TRANSPARENT) ? tint(tex_gem,  C_REWARD1) : C_BG;
-            CELL_REWARD2:                 rgb = (tex_star != COLOR_TRANSPARENT) ? tint(tex_star, C_REWARD3) : C_BG;
-            default:                      rgb = C_BG;
+            CELL_REWARD0, CELL_REWARD1:   rgb = (tex_gem  != COLOR_TRANSPARENT) ? tint(tex_gem,  C_REWARD1) : bg_rgb;
+            CELL_REWARD2:                 rgb = (tex_star != COLOR_TRANSPARENT) ? tint(tex_star, C_REWARD3) : bg_rgb;
+            default:                      rgb = bg_rgb;
         endcase
         if (in_p2_q2 && tex_p2 != COLOR_TRANSPARENT) rgb = tint(tex_p2, C_P2);
         if (in_p1_q2 && tex_p1 != COLOR_TRANSPARENT) rgb = tint(tex_p1, C_P1);
