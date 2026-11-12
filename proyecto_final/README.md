@@ -5,8 +5,7 @@ píxel de **83.46 MHz**. El estado del juego corre con un reloj aparte de **~60 
 ([ADR 0002](../docs/adr/0002-follow-ta-divided-game-clock.md)). Según la reunión con
 los TAs ([ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)),
 ese reloj sale de un contador de 20 bits sobre `clk_pix`, sin segundo Clocking Wizard,
-y el handout es una guía general. El código ya lo hace (Paso 4c); el bitstream probado
-en la tarjeta todavía es el anterior, con dos Wizards.
+y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstream se probó en la tarjeta el 12 de noviembre.
 
 - Reglas: [especificación acordada del 20 de octubre](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md)
   (bloqueada; manda sobre este README y el contrato, salvo en los puntos que cambian los
@@ -37,9 +36,9 @@ en la tarjeta todavía es el anterior, con dos Wizards.
   divisor, no de `vga_out`
 - [x] **Paso 4a:** Clocking Wizard (se piden 83.46 MHz y se logran 83,455,882 Hz), segundo
   Wizard con el divisor a ~60 Hz e imagen estable en la tarjeta
-- [ ] **Paso 4c:** quitar `clk_wiz_1` y sacar `clk_juego` de un contador de 20 bits sobre
-  `clk_pix` (ADR 0006), que alterna cada 695,466 ciclos (59.99997 Hz). El estado (build,
-  pruebas y prueba en la tarjeta) está en el [mapa de arquitectura](../docs/CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md#architecture-and-ownership)
+- [x] **Paso 4c:** quitar `clk_wiz_1` y sacar `clk_juego` de un contador de 20 bits sobre
+  `clk_pix` (ADR 0006), que alterna cada 695,466 ciclos (59.99997 Hz). Build, pruebas e
+  imagen en la tarjeta el 12 de noviembre; el estado está en el [mapa de arquitectura](../docs/CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md#architecture-and-ownership)
 - [ ] **Paso 4b:** borde blanco de 10 px en la franja del HUD, que hoy llega en gris hasta la
   orilla: las 10 filas de arriba y las 10 columnas de cada lado. Abajo de `y = 64`, las
   paredes de 16 px ya lo cubren
@@ -47,7 +46,7 @@ en la tarjeta todavía es el anterior, con dos Wizards.
 - [ ] **Paso 5b:** `drawcon` lee de `arena_map` lo que hay en cada celda
 - [ ] **Paso 5c:** sprites desde ROM (`.coe` RGB444, motos de 32x32 y premios de 16x16)
 
-## Hito: bloque en movimiento (revisión del 5 de noviembre)
+## Hito: bloque en movimiento (revisión del 12 de noviembre)
 
 Según el código, `game_top` muestra un bloque de 16x16 que se mueve con los botones y se
 detiene en las paredes. CPU_RESET lo regresa a (320, 432) si se mantiene al menos unos
@@ -56,9 +55,8 @@ lo lleva al centro, (632, 392). Su color sale de `SW0`–`SW11`: **con todos aba
 y no se ve.**
 
 El bitstream probado, los resultados en la tarjeta y los límites están en
-[`bitstreams/README.md`](bitstreams/README.md). Las paredes y el reset repetido se
-observaron en la tarjeta con un build anterior, no con ese bitstream. Ese bitstream
-todavía tiene `clk_wiz_1`, con ajustes deducidos; el código actual ya no lo usa.
+[`bitstreams/README.md`](bitstreams/README.md). Es `game_top_one_wizard.bit`, con un solo
+Wizard; en la tarjeta se probaron también las paredes y el reset repetido.
 
 ## Archivos
 

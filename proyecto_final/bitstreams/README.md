@@ -1,10 +1,50 @@
 # Bitstreams
 
-Los bitstreams van aquí para llevarlos a la revisión con el TA y poder repetir las pruebas. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
+Aquí va solo el último bitstream probado, para llevarlo a la revisión con el TA y poder repetir las pruebas. Los anteriores se borran de la carpeta, pero su registro se queda abajo y el archivo se recupera del historial de Git. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
 
-## `game_top_fixes.bit`
+## `game_top_one_wizard.bit`
 
-El bitstream para mostrar, ya en `main`, con las correcciones de PR 11. **Este es el probado en la tarjeta.**
+El bitstream para mostrar: el Paso 4c del [ADR 0006](../../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md), con un solo Clocking Wizard y `clk_juego` de un contador sobre `clk_pix`. **Este es el probado en la tarjeta.**
+
+| | |
+|---|---|
+| SHA-256 | `78411635b5c13bde1889155db73e5707b47c5b6113af913dd07bf9b666ecd0bd` |
+| Fuente | Commit `dc029bf` de `main` |
+| Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` |
+| Herramienta | Vivado 2025.2, 12 de noviembre de 2026 |
+| Parte | `xc7a100tcsg324-1` |
+| `clk_pix` lograda | 83,455,882 Hz (un solo MMCM, `clk_wiz_0`) |
+| `clk_juego` lograda | 59.99997 Hz: alterna cada 695,466 ciclos de `clk_pix` y pasa por un `BUFG` |
+
+### Prueba en la tarjeta
+
+Nexys A7 serial `210292B1820D`, programada por JTAG (DONE en alto). Observó Alan el 12 de noviembre de 2026, en su monitor. Todas pasan.
+
+| Prueba | Esperado |
+|---|---|
+| Arranque con todos los switches abajo | HUD gris y paredes blancas; el bloque es negro y no se ve |
+| Subir algún switch de `SW0`–`SW11` | El bloque aparece en (320, 432) con ese color |
+| Botones de dirección | El bloque se mueve y se detiene en las paredes |
+| BTNC | El bloque va al centro, (632, 392) |
+| CPU_RESET sostenido, varias veces | El bloque regresa a (320, 432) |
+| Imagen | Estable, sin parpadeo |
+
+### Simulación y reportes
+
+- **Testbenches:** los 10 de `build_game_top.tcl` pasan (`sync_2ff_tb`, `board_reset_sync_tb`, `vga_out_tb`, `position_logic_tb` y 6 escenarios de `game_top_tb`). Son pruebas de quien hizo el código y usan `sim_clocks/`, así que no prueban el Wizard.
+- **Temporización con el diseño ya ruteado:** setup +6.210 ns, hold +0.111 ns, ancho de pulso +3.000 ns. 0 registros sin reloj, 0 extremos internos sin restricción y 0 relojes múltiples.
+- **DRC:** sin violaciones. **Metodología:** solo `TIMING-9`. **`report_cdc`:** las mismas 12 filas críticas de `blkpos` (ver *Tearing* abajo).
+- **Log de construcción:** sin warnings.
+
+Siguen pendientes los puntos de [Lo que falta](#lo-que-falta), salvo el de `clk_wiz_1`.
+
+## Bitstreams anteriores
+
+Ya no están en la carpeta. Para recuperar uno: `git show dc029bf:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`.
+
+## `game_top_fixes.bit` (anterior)
+
+El bitstream de las correcciones de PR 11, con dos Wizards. Fue el probado en la tarjeta hasta el `game_top_one_wizard.bit`.
 
 | | |
 |---|---|
@@ -42,7 +82,7 @@ Las paredes se probaron en la tarjeta con el build anterior (`e3b324cc…`, de `
 
 ### Reconstruir no da el mismo archivo
 
-Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la misma temporización peor, pero difiere en 950 de los 3,825,744 bytes de configuración. No se investigó la causa. **El probado en la tarjeta es `3553e9b5…`;** cualquier otro `.bit` necesita su propia prueba.
+Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la misma temporización peor, pero difiere en 950 de los 3,825,744 bytes de configuración. No se investigó la causa. **El probado en la tarjeta de este diseño es `3553e9b5…`;** cualquier otro `.bit` necesita su propia prueba.
 
 ### Lo que falta
 
@@ -51,13 +91,13 @@ Otro build del mismo diseño y las mismas restricciones (`02d28845…`) dio la m
 - **Testbench colgado.** Ningún testbench tiene límite de tiempo real. Si uno se cuelga, `build_game_top.tcl` no publica el bitstream, pero tampoco termina con error.
 - **Diagonales.** Se prueban en `position_logic_tb`, pero no en `game_top_tb`, así que un error de conexión que afecte solo a las diagonales no se detecta.
 - **Salidas VGA.** No tienen retardo de salida, porque el monitor no da una especificación de tiempos. No se inventó una.
-- **`clk_wiz_1` encadenado.** Este bitstream todavía lo tiene, saliendo de `clk_pix` como en PR 11. El código actual ya no lo usa: por el [ADR 0006](../../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) (issue 10), `clk_juego` sale de un contador de 20 bits sobre `clk_pix` (Paso 4c); su estado está en el [mapa de arquitectura](../../docs/CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md#architecture-and-ownership).
+- **`clk_wiz_1` encadenado.** Resuelto en `game_top_one_wizard.bit`. Este bitstream todavía lo tiene, saliendo de `clk_pix` como en PR 11. El código actual ya no lo usa: por el [ADR 0006](../../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) (issue 10), `clk_juego` sale de un contador de 20 bits sobre `clk_pix` (Paso 4c); su estado está en el [mapa de arquitectura](../../docs/CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md#architecture-and-ownership).
 - **Botones.** Se leen a 60 Hz, sin quitar rebotes: una pulsación de menos de unos 17 ms se puede perder. `btn_debounce` sigue por hacer.
 - **Borde blanco de 10 px.** Falta arriba: la franja del HUD llega en gris hasta la orilla de la pantalla. El handout y la especificación acordada piden el borde.
 - **Tamaño del bloque.** Es de 16×16 por elección de PR 11, para coincidir con la celda. El handout pide unos 32×32.
 - **`CFGBVS`.** El valor no se encontró en un documento oficial de Digilent (ver `game_top.xdc`).
 
-## `game_top_pr11_asis.bit`
+## `game_top_pr11_asis.bit` (anterior)
 
 Código de PR 11 **sin cambios**, para probarlo tal como está.
 

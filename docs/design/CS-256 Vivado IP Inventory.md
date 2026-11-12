@@ -56,7 +56,7 @@ Settings as built with Vivado 2025.2 on 4 November:
 
 A 20-bit counter on `clk_pix` toggles `clk_juego` every 695,466 cycles: 83,455,882.35 Hz / (2 × 695,466) = 59.99997 Hz. `game_top_timing.xdc` defines it with `-divide_by 1390932`.
 
-Before Paso 4c, `game_top` also had `clk_wiz_1` (instance `u_clk1`), chained from `clk_pix` with `No_buffer` and requesting 5 MHz: M / D / O 44.125 / 6 / 122.750, achieved 4,999,995 Hz, and the divider toggled every 41,667 of its cycles (59.9995 Hz). Those settings were inferred, because Roman's `clk_wiz_1.xci` is only on rsws08. The tested bitstream `bitstreams/game_top_fixes.bit` is that two-Wizard build.
+Before Paso 4c, `game_top` also had `clk_wiz_1` (instance `u_clk1`), chained from `clk_pix` with `No_buffer` and requesting 5 MHz: M / D / O 44.125 / 6 / 122.750, achieved 4,999,995 Hz, and the divider toggled every 41,667 of its cycles (59.9995 Hz). Those settings were inferred, because Roman's `clk_wiz_1.xci` is only on rsws08. `game_top_fixes.bit`, now kept only in Git history (see the [bitstream guide](../../proyecto_final/bitstreams/README.md)), is that two-Wizard build; `bitstreams/game_top_one_wizard.bit` is the one-Wizard build tested on the board on 12 November.
 
 ### Open problems
 
