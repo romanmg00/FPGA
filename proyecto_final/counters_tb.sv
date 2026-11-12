@@ -2,7 +2,7 @@ module counters_tb ();
 
     reg clk, rst;
     wire [10:0] hcnt;
-    wire [10:0] vcnt;
+    wire [9:0] vcnt;
 
     counters uut ( .clk(clk), .rst(rst), .hcnt(hcnt), .vcnt(vcnt));
 
@@ -16,5 +16,5 @@ module counters_tb ();
     always #5 clk = ~clk;
 
     always @(posedge clk)
-        if (vcnt == 11'd827 && hcnt == 11'd1679) $display("vuelta en t=%0t", $time);
+        if (vcnt == 10'd827 && hcnt == 11'd1679) $display("vuelta en t=%0t", $time);
 endmodule
