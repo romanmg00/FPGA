@@ -35,7 +35,7 @@ Lives squares, and the 10 px white border.
 | `sprites/` | — | Roman (art) | `bike-synth-32`, `reward-neon-gem-16` (+1), `reward-neon-star-16` (+3): the synthwave final design's art, as `.coe` and `.mem`, made by `tools/png2coe.py` |
 | `reset_stretch.sv` | base clock | Alan | Holds the reset request for six game periods, so both domains reset together (review F7) |
 | `tron_system.sv` | both | Alan (game_top) | Everything below the clocks: debounce, UART receive and decode, the two cores, drawcon, `vga_out`, `seg7_driver`, debug LEDs |
-| `tron_top.sv`, `tron_top.xdc` | — | Alan | Two Clocking Wizards, `video/game_clk_div`, reset synchronizers, contract §2 pins plus `dp` |
+| `tron_top.sv`, `tron_top.xdc` | — | Alan | One Clocking Wizard since 12 November (two before; section 8), `video/game_clk_div` on `clk_pix`, reset synchronizers, contract §2 pins plus `dp` |
 | `p2_controller.html` | host | Alan (web page) | Web Serial page: W A S D, Space, Enter at 115200 8N1 |
 
 Also reused: `proyecto_final/vga_out.sv` and `counters.sv` (Roman's, fixed as
@@ -319,3 +319,44 @@ alone could not see that difference.
 After these runs the only source change was a comment in `arena_svc.sv`.
 The qualified variant and the 10-tick intervals were not rerun with the
 arena check.
+
+## 8. Update, 12 November 2026: ported onto main with one Clocking Wizard
+
+The branch was ported onto `main` after ADR 0006 (one Clocking Wizard,
+`clk_juego` from a counter on `clk_pix`). Its own ADR on the Step interval is
+now ADR 0007.
+
+- **`tron_top.sv`:** `tron_base_clock` is removed. `game_clk_div` divides
+  `clk_pix` with `GAME_HALF_CYCLES = 695,466`, the N of `game_top.sv`
+  (59.99997 Hz), and `reset_stretch` runs on `clk_pix`, holding six game
+  periods. `run_tron.tcl` generates only `tron_pixel_clock` and takes
+  `-divide_by` as 2 × `GAME_HALF_CYCLES`.
+- **`vga_out`:** main keeps Roman's registered `proyecto_final/vga_out.sv`,
+  which `game_top` was tested with on the board. The combinational version
+  this build was designed for (section 1) is now the prototype copy
+  `video/vga_out.sv`, used by `run_tron.tcl`, `run_system.sh` and
+  `vga_out_check_tb`. Which one the game keeps is open for Roman
+  (`docs/design/CS-256 VGA Output Timing Findings.md`).
+
+Results with Vivado 2025.2 in the `alan-desktop` container:
+
+| Check | Result | Host artifact |
+|---|---|---|
+| `run_all.sh` | 13/13 PASS, including `game_clk_div_tb` and `vga_out_check_tb` | `core-*-20261112-1705*` |
+| `run_system.sh` | PASS `tron_system_tb` | `core-tron_system_tb-20261112-170558-272584` |
+| `run_game.sh`, mailbox, 6 ticks | 12/12 Step logs and 12/12 arena logs MATCH, 3261 lines | — |
+| `run_game.sh`, captured, 8 ticks | 12/12 Step logs and 12/12 arena logs MATCH, 1597 lines | — |
+| Python model (`prototipos/tron_fpga`) | 80 tests OK; regenerated `.events` files unchanged | — |
+| `run_tron.sh mailbox` | Bitstream written; one `MMCME2_ADV`; `clk_pix` 83,455,882 Hz | `tron-20261112-170534-268322` |
+
+Routed timing is met: WNS +0.126 ns, WHS +0.038 ns, WPWS +3.000 ns, 0 failing
+endpoints. The margin is smaller than the +0.296 ns of section 3 and is still
+the combinational VGA pad path. `report_cdc` is as in section 3: `clk_pix` to
+`clk_juego` 21 Unknown endpoints (the mailbox, ADR 0003 item 2) plus 1 Safe;
+`clk_juego` to `clk_pix` 151 Safe. Methodology: `TIMING-9` and `SYNTH-6`.
+DRC: no violations. `tron_top.bit` SHA-256
+`bcf6e754bb2a3680c9631fd3c6d5ecd93691df43a0f4093841c0fbdb0d731561`.
+
+No bench instantiates `tron_top`, so the clock change itself is covered only
+by synthesis, the generated-clock check in `run_tron.tcl` and a board check.
+The board check of section 5 has not been run.
