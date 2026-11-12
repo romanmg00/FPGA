@@ -402,3 +402,155 @@ and is proposed in [ADR 0008](../../../../docs/adr/0008-scoreboard-goal-page-bef
 After one reset Alan
 saw a grey bar left of the P1 Bike; it was not investigated, because the
 background design is being replaced.
+
+## 10. Update, 12 November 2026 (evening): the synthwave HUD
+
+Branch `hdl/synthwave-look`, from `hdl/core-blocks-on-main` at `fc8190a`. The
+placeholder HUD (Points bars, Lives squares, band black while paused) is
+replaced by the Scoreboard of the Python viewer's synthwave design
+(`prototipos/tron_fpga/juego/hud.py`, font `neon`), at its pixel positions.
+This supersedes the HUD items of the section 5 checklist (Points bar, Life
+square, "HUD band goes black" on Pause) and the section 1 note that the
+on-screen score is not built. Still PROVISIONAL (ADR 0005).
+
+**What was built**
+
+- `drawcon_game.sv`: per Player two 16 × 32 seven-segment Points digits
+  (the 8 × 16 glyph of `juego/font.py` at scale 2) whose unlit segments glow
+  at a quarter of the Player colour (`033`, `320`), and three 16 × 16 Life
+  diamonds, hollow once lost; P2 is mirrored. Digits at x 24, 44 (P1) and
+  1220, 1240 (P2), y 21; Lives at x 68 + 20k and 1156 + 20k, y 29; the state
+  icon at (632, 29): "play" blinking while waiting for Start (`G_IDLE`,
+  `G_READY`), a crown after the Match in the winner's colour, white for a
+  Draw. A crashed Player's digits blink during the Crash display. Band
+  background `000`. The digits are segment-rectangle comparators; the icons
+  are a 64 × 16-bit LUT ROM, `sprites/hud-icons-16.mem`, written by
+  `tools/make_hud_icons.py` from the viewer's bitmaps. The HUD colour is
+  computed for the Arena look-ahead pixel and registered (`hud_rgb`), so it
+  adds no logic between `curr_x`/`curr_y` and the VGA pins. HUD values are
+  latched once per frame with the Bikes; the new synchronous `rst` (`rst_pix`)
+  resets them to the idle HUD and hides the Bikes at once.
+- Blinks follow `BLINK_TICKS = 16` of the viewer (`hud.py`, `render.py`):
+  bit 4 of `blink_ticks`, a new `game_core` output that counts with
+  `phase_ticks` but wraps instead of holding at 255, so the play icon keeps
+  blinking in a long wait as the model's unbounded `phase_ticks` does. The
+  crashed Bike now blinks on the same bit (bit 3 before, twice as fast as
+  the viewer).
+- `fast_core.sv`: two snapshot fields, `g_result` → `snap_result` (crown
+  colour) and `g_blink_ticks` → `snap_blink_ticks`, latched on `tick_seen`
+  like the other `g_*` buses. A first version counted past 255 in
+  `fast_core` itself; its enable used game-domain data and `report_cdc`
+  flagged 5 Unknown endpoints (CDC-1 into the counter's CE), so the counter
+  moved to `game_core`.
+- Benches: `drawcon_hud_tb.sv` (new, in `run_all.sh`) compares every pixel of
+  the 1280 × 64 band against a reference written from `hud.py` and `font.py`
+  (positions derived from their constants, Python's exclusive segment ends)
+  in 13 states: reset straight into the idle HUD, Points 0..63 with carries,
+  Lives 0..3, the digits' crash blink, the play icon's blink, the P1, P2 and
+  Draw crowns and no crown outside the Match end. A mutant with the reset
+  removed and P2's ghost colour off by one fails from the first state on;
+  the first band after reset differs in 890 pixels.
+  `tron_system_tb` adds HUD pixel checks through the pins, a wait of 260
+  ticks with the play icon following the blink, and plays on until P2 has no
+  Lives: Match over, P1 wins, cyan crown, P2's Lives hollow. With
+  `-g DUMP_FRAMES=1` it writes whole frames, which
+  `tools/hdl_frame_to_png.py` turns into PNGs. Owner and domain lines were
+  added to the bench headers; the new bench code avoids task `return` and
+  `inside` (Icarus).
+
+**Not built, and deliberate differences from the viewer**: the viewer's final
+stage (`fx.finish`: scanlines, crash flash), the crash rings, the
+Welcome/Pause screens and the neon Wall, grid, sky and Trail effects. With the
+band now opaque, a later crash ring would be hidden under empty HUD pixels;
+when rings are added, overlay only the lit HUD pixels. Nothing on screen marks
+Pause until the Pause screen exists (LED 3 does).
+
+**Source state** (SHA-256)
+
+| File | SHA-256 |
+|---|---|
+| `game/drawcon_game.sv` | `de8921e5db157dd4de89ab3faee10992aee333dd21cfaf34859abba55e8f4747` |
+| `game/drawcon_hud_tb.sv` | `f9323daf0642a6027fd25f4e53d0d26bdafb341f9c1c130d332c96f7066d9ebe` |
+| `game/game_core.sv` | `614a48b039701b871a8f00b12526f0b8a21a2d5b224f5601ac25e93cb4e00bd2` |
+| `game/fast_core.sv` | `4ac9d745473c6666b8425a6788653233b35f402efdbe459b8f95699e373ebd17` |
+| `game/tron_system.sv` | `f20c12b909ba4ab80d966565ed12d6bf3b9c103920edac11e5c924ec27a1d83a` |
+| `game/tron_system_tb.sv` | `2f8754c23c11fd555d2c21e9b961ec9ba46bb7e4de1aab4153f552ffea50cdda` |
+| `game/game_tb.sv` | `4e0194969364ec4f7cf6dfb8a91619fcf12c40f13e1980c6087d7c19bbf3d787` |
+| `game/sprites/hud-icons-16.mem` | `a1f60447a579d830c397e59a785e205d3eb1e0fe3db4e3a001906bbf20c1b486` |
+| `crossing/handshake_tb.sv` | `88976cea24434ec2c9e4b553d6359ec31cf309785f045d6b5df6b7a952a22670` |
+| `run_all.sh` | `789f82cdce418f792ade06e04eeca2f997d445d950fcc2bf63bb8bf08a1c1bdc` |
+| `tools/make_hud_icons.py` | `376cba50e890b164591b2e63325e0e05fcaba196cdf5a3d6f6bc8ca6419cb2c1` |
+| `tools/hdl_frame_to_png.py` | `44c5cc9f1f54e7b180ab745250561093f9b8580b9b53e291da1aa369fa1bad9e` |
+
+**Results** (Vivado 2025.2, `alan-desktop` container)
+
+| Check | Result | Host artifact |
+|---|---|---|
+| `run_all.sh` | 14/14 PASS, `drawcon_hud_tb` included (13 HUD states) | `core-*-20261112-2012*` (`core-drawcon_hud_tb-20261112-201250-686147`) |
+| `run_system.sh` | PASS `tron_system_tb`, HUD, blink and crown checks included | `core-tron_system_tb-20261112-200447-610054` |
+| `run_game.sh`, mailbox, 6 ticks | 12/12 Step logs and 12/12 arena logs MATCH | — |
+| `run_game.sh -g QUALIFIED=1 -g RSP_REG=1 -g STEP_TICKS=8` | 12/12 and 12/12 MATCH | — |
+| `crossing/run_crossing.sh` | PASS `handshake_tb`, both modes | `core-handshake_tb-20261112-201224-*` |
+| `run_tron.sh mailbox` | Bitstream written; sources identical to the table above | `tron-20261112-200447-610064` |
+
+Routed timing is met: WNS +0.143 ns, WHS +0.062 ns, WPWS +3.000 ns, 0
+failing endpoints. `report_cdc`: `clk_pix` to `clk_juego` 21 Unknown plus 1
+Safe, as in section 3; `clk_juego` to `clk_pix` 156 Safe, 0 Unknown.
+Methodology: `SYNTH-6` and `TIMING-9`, as before. DRC: no violations. 1,164
+Slice LUTs, 2.5 Block RAM tiles. `tron_top.bit` SHA-256
+`312b2e6cb25c13c68030797cb0e12a606b17957a9a56d554f37e6fa9296e26a7`.
+
+**Board check to run**: idle shows `00` and three full diamonds per Player
+and a blinking play icon, still blinking after a minute; Points count up in
+decimal past 9; a Crash blinks the crashed Player's digits and Bike about
+twice a second and hollows one diamond; the end of a Match shows a crown in
+the winner's colour (white for a Draw); `CPU_RESETN` after a Match shows the
+idle HUD at once.
+
+### 10.1 Board feedback and the second build (12 November, night)
+
+Alan programmed `tron-20261112-200447-610064` (SHA-256 `312b2e6c…6e26a7`)
+and found the HUD working as expected, with two visual flaws, both inherited
+from the Python art. The viewer stays the guideline; such flaws are fixed in
+the viewer too, so viewer and HDL stay pixel-identical:
+
+- **Hollow Life diamond thicker on one side.** `juego/font.py` `_life_lost`
+  put the hole's edge (0.25) exactly on pixel centres; the even-odd test
+  rasterized the left side 3 px and the right side 4 px. The hole now reaches
+  0.26: a 3 px ring on every side. `sprites/hud-icons-16.mem` was
+  regenerated; `drawcon_hud_tb` now also fails if either Life diamond stops
+  being mirror-symmetric both ways.
+- **A bar across every 0.** The neon "ghost" (unlit segments at a quarter of
+  the Player colour) read as a hollow bar on the monitor. At Alan's choice it
+  is removed in both: synthwave uses font `seg`, `hud.py` no longer draws a
+  ghost, `fx.py` drops its "neon digits" cost line, and `drawcon_game.sv`
+  draws only lit segments. Above, read "Points digits" without the glow; the
+  mutant result above predates this change.
+
+| File | SHA-256 |
+|---|---|
+| `game/drawcon_game.sv` | `a815c7b5a5751cdafb4d227b5fdddaafc2f9b8ca1cc93655f754e1f4278e27d4` |
+| `game/drawcon_hud_tb.sv` | `1ac11ecbdde637350eb14fed9027d6761a319edc58d5183259dd94329d979b24` |
+| `game/tron_system_tb.sv` | `6e5ec7732f22b1e1c7442788a1d85bb688a4729f41baafc207e915da0607dbd9` |
+| `game/sprites/hud-icons-16.mem` | `c1d6267794bf9d541143ec08c61b6f82cf361f220220d972e76481211e141f80` |
+| `prototipos/tron_fpga/juego/font.py` | `70f0b174c160d5cea27cad385a25397308570e793898666602d23df37c1be668` |
+| `prototipos/tron_fpga/juego/hud.py` | `a7a1a6b9c35a26a949c8cd822ac203c1267315dcad2bcecfdf86c05116fac57d` |
+| `prototipos/tron_fpga/juego/fx.py` | `6bec26c8668b2db407aca8387598c62af039e7a9ee14d197c201172310d09f6e` |
+| `prototipos/tron_fpga/juego/candidates.py` | `1d49e524c0ed4f7abc9d07b84cbe652f6b66fba8aa0d51170c76f1156711d7fd` |
+
+Other sources as in the table of section 10.
+
+| Check | Result | Host artifact |
+|---|---|---|
+| Python tests (`prototipos/tron_fpga`) | OK | — |
+| `drawcon_hud_tb` | PASS, 13 states plus the symmetry check | `core-drawcon_hud_tb-20261112-*` |
+| `run_system.sh -g DUMP_FRAMES=1` | PASS `tron_system_tb` | `core-tron_system_tb-20261112-205914-695554` |
+| `run_tron.sh mailbox` | Bitstream written; sources identical to the files above | `tron-20261112-205914-695534` |
+
+Routed timing met: WNS +0.255 ns, WHS +0.062 ns, 0 failing endpoints.
+`report_cdc` as in section 10 (`clk_juego` to `clk_pix` 156 Safe, 0
+Unknown); DRC no violations. `tron_top.bit` SHA-256
+`3c1c7a094da6020b2550cbc67da02047828fe0415a8dc0488dd56b4a5318056d`,
+programmed by JTAG (DONE high). Alan checked the image on the board the
+same night: plain digits with no bar across the 0, and hollow Life diamonds
+with an even ring. All good.

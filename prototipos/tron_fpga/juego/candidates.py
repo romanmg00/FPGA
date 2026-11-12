@@ -59,7 +59,7 @@ PRESETS = {
     "classic": {f: getattr(LookConfig(), f) for f in LookConfig.__dataclass_fields__},
     "synthwave": dict(hud="on", palette="synthwave", bg="sunset", grid="neon", wall="neon",
                       trail="pulse", bike_style="synth", reward_look="neon",
-                      reward_anim="pulse", font="neon", crash="ring+flash", crt="scanlines",
+                      reward_anim="pulse", font="seg", crash="ring+flash", crt="scanlines",
                       bike_fx="none"),
     "outrun": dict(hud="on", palette="outrun", bg="stars", grid="neon", wall="neon",
                    trail="neon", bike_style="racer", reward_look="neon",

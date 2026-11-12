@@ -42,6 +42,7 @@ module fast_core #(
     input  logic [2:0]  g_phase,
     input  logic        g_paused,
     input  logic [7:0]  g_phase_ticks,
+    input  logic [4:0]  g_blink_ticks,
     input  logic [12:0] g_head_p1, g_head_p2,
     input  logic [1:0]  g_shown_p1, g_shown_p2,
     input  logic        g_crashed_p1, g_crashed_p2,
@@ -49,6 +50,7 @@ module fast_core #(
     input  logic [1:0]  g_lives_p1, g_lives_p2,
     input  logic        g_page_lives, g_page_goal,
     input  logic [1:0]  g_goal_sel,
+    input  logic [1:0]  g_result,                   // 0 none, 1 P1, 2 P2, 3 Draw (HUD crown)
     // to game_core
     output logic [3:0]  rsp_seq,
     output logic [3:0]  rsp_code_p1, rsp_code_p2,
@@ -69,7 +71,8 @@ module fast_core #(
     output logic [5:0]  snap_points_p1, snap_points_p2,
     output logic [1:0]  snap_lives_p1, snap_lives_p2,
     output logic        snap_page_lives, snap_page_goal,
-    output logic [1:0]  snap_goal_sel,
+    output logic [1:0]  snap_goal_sel, snap_result,
+    output logic [4:0]  snap_blink_ticks,           // game_core blink_ticks (HUD and Bike blink)
     output logic        tick_seen,
     // Arena port B and status
     input  logic [12:0] b_addr,
@@ -158,7 +161,8 @@ module fast_core #(
             snap_crashed_p1 <= 0; snap_crashed_p2 <= 0;
             snap_points_p1 <= 0; snap_points_p2 <= 0;
             snap_lives_p1 <= 2'(LIVES_START); snap_lives_p2 <= 2'(LIVES_START);
-            snap_page_lives <= 0; snap_page_goal <= 0; snap_goal_sel <= 0;
+            snap_page_lives <= 0; snap_page_goal <= 0; snap_goal_sel <= 0; snap_result <= 0;
+            snap_blink_ticks <= 0;
         end else if (tick_seen) begin
             snap_phase <= g_phase; snap_paused <= g_paused; snap_phase_ticks <= g_phase_ticks;
             snap_head_p1 <= g_head_p1; snap_head_p2 <= g_head_p2;
@@ -167,6 +171,8 @@ module fast_core #(
             snap_points_p1 <= g_points_p1; snap_points_p2 <= g_points_p2;
             snap_lives_p1 <= g_lives_p1; snap_lives_p2 <= g_lives_p2;
             snap_page_lives <= g_page_lives; snap_page_goal <= g_page_goal; snap_goal_sel <= g_goal_sel;
+            snap_result <= g_result;
+            snap_blink_ticks <= g_blink_ticks;
         end
     end
 

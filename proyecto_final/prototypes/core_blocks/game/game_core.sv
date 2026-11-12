@@ -65,7 +65,8 @@ module game_core #(
     // render snapshot and Scoreboard (game -> fast)
     output logic [2:0]  phase,
     output logic        paused,
-    output logic [7:0]  phase_ticks,
+    output logic [7:0]  phase_ticks,                         // held at 255
+    output logic [4:0]  blink_ticks,                         // phase ticks mod 32, not held (HUD and Bike blink)
     output logic [12:0] head_p1, head_p2,
     output logic [1:0]  shown_p1, shown_p2,
     output logic        crashed_p1, crashed_p2, head_on,
@@ -211,7 +212,7 @@ module game_core #(
             cmd_op <= 0; cmd_seq <= 0; cmd_new_match <= 0; cmd_seed_mix <= 0;
             cmd_a_p1 <= 0; cmd_a_p2 <= 0; cmd_b_p1 <= 0; cmd_b_p2 <= 0;
             cmd_survive_p1 <= 0; cmd_survive_p2 <= 0; cmd_collected <= 0;
-            phase <= G_IDLE; paused <= 0; phase_ticks <= 0;
+            phase <= G_IDLE; paused <= 0; phase_ticks <= 0; blink_ticks <= 0;
             head_p1 <= start_p1; head_p2 <= start_p2;
             shown_p1 <= start_dir_p1; shown_p2 <= start_dir_p2;
             crashed_p1 <= 0; crashed_p2 <= 0; head_on <= 0;
@@ -232,7 +233,7 @@ module game_core #(
             if (sw_paused) begin
                 if (state == S_COMMIT && idle) state <= S_IDLE;  // an issued COMMIT still completes
             end else begin
-                phase_ticks <= phase_ticks_inc;
+                phase_ticks <= phase_ticks_inc; blink_ticks <= blink_ticks + 5'd1;
 
                 // Step outcome (edge k + 2)
                 if (resolve) begin
@@ -252,7 +253,7 @@ module game_core #(
                     // A READ2 is only open in G_PLAY, so "no change" is G_PLAY:
                     // written, not held, to keep the enable code-independent.
                     phase <= (c1 || c2) ? G_CRASH : goal_hit ? G_MATCH : G_PLAY;
-                    if (c1 || c2 || goal_hit) phase_ticks <= 0;
+                    if (c1 || c2 || goal_hit) begin phase_ticks <= 0; blink_ticks <= 0; end
                 end else if (state == S_COMMIT && idle) begin
                     state <= S_IDLE;
                 end
@@ -270,15 +271,15 @@ module game_core #(
 
                 // match_ctrl
                 if (start_release) begin
-                    step_cnt <= 0; phase <= G_PLAY; phase_ticks <= 0;
+                    step_cnt <= 0; phase <= G_PLAY; phase_ticks <= 0; blink_ticks <= 0;
                 end else if (prep_done) begin
                     if (prep_match) begin
                         step_cnt <= 0; phase <= G_PLAY;
                     end else phase <= G_READY;
-                    phase_ticks <= 0;
+                    phase_ticks <= 0; blink_ticks <= 0;
                     log_kind <= 2'd1;
                 end else if (crash_done && result != 2'd0) begin
-                    phase <= G_MATCH; phase_ticks <= 0;
+                    phase <= G_MATCH; phase_ticks <= 0; blink_ticks <= 0;
                 end
                 if (prepare) begin                       // round_init + PREPARE
                     head_p1 <= start_p1; head_p2 <= start_p2;
@@ -292,7 +293,7 @@ module game_core #(
                     round_index <= prepare_new ? 8'd1 : round_index + 8'd1;
                     step_count <= 0;
                     crashed_p1 <= 0; crashed_p2 <= 0; head_on <= 0;
-                    phase <= G_PREP; phase_ticks <= 0;
+                    phase <= G_PREP; phase_ticks <= 0; blink_ticks <= 0;
                 end
             end
         end

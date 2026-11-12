@@ -10,11 +10,16 @@
 // clk_pix cycles and the 1 ms debounce 1152 cycles; one game tick is
 // TICK_CYCLES clk_pix cycles instead of ~1.39 M. A frame is still 1680 x 828
 // cycles, so pixel checks run while paused.
+// Owner: Alan, the builder's own check (not an official contract §7 bench).
+// Domains: clk_pix and clk_juego, as in tron_system.sv. PROVISIONAL (ADR 0005).
 module tron_system_tb;
     import game_pkg::*;
     parameter bit QUALIFIED = 1'b0;
     parameter bit RSP_REG = 1'b0;
     parameter integer STEP_TICKS = game_pkg::STEP_TICKS;
+    // -g DUMP_FRAMES=1 writes whole frames (one RGB444 word per line, row by
+    // row) to frame-*.hex in the run folder, for tools/hdl_frame_to_png.py.
+    parameter bit DUMP_FRAMES = 1'b0;
     localparam integer TICK_CYCLES = 40000;
     localparam integer HZ = 1152000;                 // 10 cycles per UART bit at 115200
     localparam integer BIT = 10;
@@ -60,6 +65,22 @@ module tron_system_tb;
     endtask
     task automatic cell_rgb(input integer cx, input integer cy, output logic [11:0] rgb);
         pixel(cx * 16 + 8, cy * 16 + 8, rgb);
+    endtask
+    // One whole frame from the pins, if DUMP_FRAMES (call while paused).
+    task automatic dump_frame(input string name);
+        integer fd;
+        if (DUMP_FRAMES) begin
+            fd = $fopen(name, "w");
+            for (int y = 0; y < 800; y++) begin
+                @(negedge clk_pix iff (line == 27 + y && hc == 336));
+                for (int x = 0; x < 1280; x++) begin
+                    if (x > 0) @(negedge clk_pix);
+                    $fwrite(fd, "%03h\n", {vga_r, vga_g, vga_b});
+                end
+            end
+            $fclose(fd);
+            $display("ok: wrote %s", name);
+        end
     endtask
 
     // --- board inputs --------------------------------------------------------
@@ -199,6 +220,13 @@ module tron_system_tb;
         cell_rgb(40, 4, rgb);   check(rgb == C_WALL, "Wall row cy=4 drawn");
         pixel(640, 786, rgb);   check(rgb == C_WALL, "Wall row cy=49 drawn (above the border)");
         cell_rgb(20, 27, rgb);  check(rgb == C_BG, "no Bike before Start");
+        // HUD (juego/hud.py layout): "00" per Player, three full Life diamonds.
+        pixel(26, 21, rgb);     check(rgb == C_P1, "HUD P1 tens 0: segment a lit");
+        pixel(30, 35, rgb);     check(rgb == 12'h000, "HUD P1 tens 0: segment g dark");
+        pixel(1242, 21, rgb);   check(rgb == C_P2, "HUD P2 ones 0: segment a lit");
+        pixel(76, 37, rgb);     check(rgb == C_P1, "HUD P1 Life 1 full");
+        pixel(1204, 37, rgb);   check(rgb == C_P2, "HUD P2 Life 3 full");
+        pixel(300, 40, rgb);    check(rgb == 12'h000, "HUD band background black");
         check(led[2:0] == G_IDLE, "G_IDLE after reset");
         read_display(disp);
         check(disp == "P200P100" || disp == "L203L103" || disp == "G0AL  10", {"idle Scoreboard shows ", disp});
@@ -242,6 +270,7 @@ module tron_system_tb;
         check(h2[12:7] > 6'd27 && dut.u_game.shown_p2 == DIR_DOWN, $sformatf("P2 turned Down, now (%0d,%0d)", h2[6:0], h2[12:7]));
         check_bike(h1, DIR_UP, C_P1, "P1 after the Turn");
         check_bike(h2, DIR_DOWN, C_P2, "P2 after the Turn");
+        dump_frame("frame-play.hex");
 
         // Run into the Walls: P2 reaches the bottom Wall first and Crashes.
         pause(0);
@@ -265,10 +294,56 @@ module tron_system_tb;
         check_bike({6'd27, 7'd20}, DIR_RIGHT, C_P1, "next Round: P1 on its start Cell");
         check_bike({6'd27, 7'd59}, DIR_LEFT, C_P2, "next Round: P2 on its start Cell");
         cell_rgb(h2[6:0], h2[12:7], rgb); check(rgb == C_BG, "old Crash Cell cleared");
+        pixel(1204, 37, rgb);   check(rgb == 12'h000, "HUD P2 third Life hollow after the Crash");
+        pixel(1164, 37, rgb);   check(rgb == C_P2, "HUD P2 first Life still full");
+        pixel(76, 37, rgb);     check(rgb == C_P1, "HUD P1 Lives unchanged");
+        // P1 ones digit, segment g (x 50, y 35): lit for 2 3 4 5 6 8 9.
+        m = dut.u_game.points_p1 % 10;
+        pixel(50, 35, rgb);
+        check(rgb == ((m != 0 && m != 1 && m != 7) ? C_P1 : 12'h000),
+              $sformatf("HUD P1 ones digit %0d, segment g (%h)", m, rgb));
+        dump_frame("frame-ready.hex");
         pause(0);
+
+        // A wait longer than 255 ticks: game_core holds phase_ticks at 255, but
+        // the play icon keeps blinking (juego/hud.py, BLINK_TICKS = 16).
+        ticks(260);
+        check(dut.u_game.phase_ticks == 8'hFF, "ready wait past 255 ticks");
+        for (int i = 0; i < 2; i++) begin
+            m = dut.u_fast.snap_blink_ticks[4];
+            k = 0;
+            while (dut.u_fast.snap_blink_ticks[4] == m[0] && k < 40) begin ticks(1); k++; end
+            check(k < 40, $sformatf("blink bit changes after tick 255 (%0d ticks)", k));
+            pause(1);
+            pixel(640, 37, rgb);
+            check(rgb == (dut.u_fast.snap_blink_ticks[4] ? 12'h000 : 12'hFFF),
+                  $sformatf("play icon follows the blink (%h, blink %0d)", rgb, dut.u_fast.snap_blink_ticks));
+            pause(0);
+        end
         press(BTN_C);                                // BTNC Start releases the Round
         wait_phase(G_PLAY, 20);
         check(dut.u_fast.late_publish == 0 && dut.u_game.overrun == 0, "no late publish, no Step overrun");
+
+        // Play on until the Match ends: P2 turns Down into the bottom Wall each
+        // Round, so P1 wins (on Lives, or on the goal if Rewards got it there).
+        for (int r = 0; r < 4 && led[2:0] != G_MATCH; r++) begin
+            if (led[2:0] == G_READY) begin press(BTN_C); wait_phase(G_PLAY, 20); end
+            uart_send("s");
+            k = 0;
+            while (led[2:0] != G_READY && led[2:0] != G_MATCH && k < STEP_TICKS * 30 + CRASH_TICKS + 40) begin
+                ticks(1); k++;
+            end
+        end
+        check(led[2:0] == G_MATCH && dut.u_game.result == 2'd1,
+              $sformatf("Match over, P1 wins (phase %0d, result %0d)", led[2:0], dut.u_game.result));
+        pause(1);
+        pixel(640, 37, rgb);    check(rgb == C_P1, $sformatf("HUD crown in P1's colour (%h)", rgb));
+        pixel(640, 31, rgb);    check(rgb == 12'h000, "HUD crown: background between its points");
+        if (dut.u_game.lives_p2 == 0) begin
+            pixel(1164, 37, rgb); check(rgb == 12'h000, "HUD P2 first Life hollow at 0 Lives");
+        end
+        dump_frame("frame-match.hex");
+        pause(0);
 
         if (errors != 0) $fatal(1, "%0d checks failed", errors);
         $display("PASS tron_system_tb");

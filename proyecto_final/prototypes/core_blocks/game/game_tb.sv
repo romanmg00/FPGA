@@ -10,6 +10,9 @@
 // game_core's raw synchronizer inputs. Each scenario starts with a reset of
 // both domains held across one game edge, as the stretched reset will be.
 // The game clock is N fast cycles plus PHASE ns, free-running (no alignment).
+// Owner: Alan, the builder's own check (not an official contract §7 bench).
+// Domains: clk (fast_core) and clk_juego (game_core), crossing as in
+// fast_core.sv. PROVISIONAL (ADR 0005): the ports it drives.
 module game_tb;
     import game_pkg::*;
     parameter integer N = 16384;          // fast cycles per game tick
@@ -44,6 +47,7 @@ module game_tb;
     logic [2:0] cmd_collected, phase, uart_cmd;
     logic paused, crashed_p1, crashed_p2, head_on, page_lives, page_goal, overrun, uart_cmd_valid;
     logic [7:0] phase_ticks, round_index;
+    logic [4:0] blink_ticks;
     logic [12:0] head_p1, head_p2;
     logic [1:0] shown_p1, shown_p2, lives_p1, lives_p2, result, log_kind;
     logic [5:0] points_p1, points_p2, points_goal;
@@ -51,7 +55,7 @@ module game_tb;
     // fast_core outputs
     logic [2:0] snap_phase;
     logic snap_paused, snap_crashed_p1, snap_crashed_p2, snap_page_lives, snap_page_goal, tick_seen;
-    logic [1:0] goal_sel, snap_goal_sel;
+    logic [1:0] goal_sel, snap_goal_sel, snap_result;
     logic [7:0] snap_phase_ticks;
     logic [12:0] snap_head_p1, snap_head_p2, slot0_cell, slot1_cell, slot2_cell;
     logic [5:0] snap_points_p1, snap_points_p2;
@@ -64,7 +68,7 @@ module game_tb;
         .rsp_seq, .rsp_code_p1, .rsp_code_p2, .batch_axes_p1(g_axes_p1), .batch_axes_p2(g_axes_p2),
         .batch_start(g_start), .tick_tgl, .cmd_op, .cmd_seq, .cmd_new_match, .cmd_seed_mix, .cmd_a_p1, .cmd_a_p2,
         .cmd_b_p1, .cmd_b_p2, .cmd_survive_p1, .cmd_survive_p2, .cmd_collected,
-        .phase, .paused, .phase_ticks, .head_p1, .head_p2, .shown_p1, .shown_p2,
+        .phase, .paused, .phase_ticks, .blink_ticks, .head_p1, .head_p2, .shown_p1, .shown_p2,
         .crashed_p1, .crashed_p2, .head_on, .points_p1, .points_p2, .points_goal,
         .lives_p1, .lives_p2, .result, .page_lives, .page_goal, .goal_sel, .round_index, .step_count, .log_kind, .overrun);
 
@@ -73,15 +77,15 @@ module game_tb;
     fast_core #(.QUALIFIED(QUALIFIED), .WINDOW(WINDOW)) dut_fast (.clk, .rst(rst_fast), .seed, .fixed_seed, .tick_tgl,
         .cmd_op, .cmd_seq, .cmd_new_match, .cmd_seed_mix, .cmd_a_p1, .cmd_a_p2, .cmd_b_p1, .cmd_b_p2,
         .cmd_survive_p1, .cmd_survive_p2, .cmd_collected,
-        .g_phase(phase), .g_paused(paused), .g_phase_ticks(phase_ticks),
+        .g_phase(phase), .g_paused(paused), .g_phase_ticks(phase_ticks), .g_blink_ticks(blink_ticks),
         .g_head_p1(head_p1), .g_head_p2(head_p2), .g_shown_p1(shown_p1), .g_shown_p2(shown_p2), .g_crashed_p1(crashed_p1), .g_crashed_p2(crashed_p2),
         .g_points_p1(points_p1), .g_points_p2(points_p2), .g_lives_p1(lives_p1), .g_lives_p2(lives_p2),
-        .g_page_lives(page_lives), .g_page_goal(page_goal), .g_goal_sel(goal_sel), .rsp_seq, .rsp_code_p1, .rsp_code_p2,
+        .g_page_lives(page_lives), .g_page_goal(page_goal), .g_goal_sel(goal_sel), .g_result(result), .rsp_seq, .rsp_code_p1, .rsp_code_p2,
         .batch_axes_p1, .batch_axes_p2, .batch_start, .batch_wr, .btn_pulse, .uart_cmd_valid, .uart_cmd,
         .snap_phase, .snap_paused, .snap_phase_ticks, .snap_head_p1, .snap_head_p2,
         .snap_shown_p1(), .snap_shown_p2(),
         .snap_crashed_p1, .snap_crashed_p2, .snap_points_p1, .snap_points_p2,
-        .snap_lives_p1, .snap_lives_p2, .snap_page_lives, .snap_page_goal, .snap_goal_sel, .tick_seen,
+        .snap_lives_p1, .snap_lives_p2, .snap_page_lives, .snap_page_goal, .snap_goal_sel, .snap_result, .snap_blink_ticks(), .tick_seen,
         .b_addr(13'd0), .b_rdata, .slot0_valid, .slot1_valid, .slot2_valid,
         .slot0_cell, .slot1_cell, .slot2_cell, .svc_busy, .late_publish);
 

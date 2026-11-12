@@ -57,7 +57,7 @@ module handshake_tb;
         .rsp_seq, .rsp_code_p1, .rsp_code_p2, .batch_axes_p1(axes_p1), .batch_axes_p2(axes_p2),
         .batch_start(1'b1), .tick_tgl, .cmd_op, .cmd_seq, .cmd_new_match, .cmd_seed_mix,
         .cmd_a_p1, .cmd_a_p2, .cmd_b_p1, .cmd_b_p2, .cmd_survive_p1, .cmd_survive_p2, .cmd_collected,
-        .phase, .paused, .phase_ticks, .head_p1, .head_p2, .shown_p1, .shown_p2,
+        .phase, .paused, .phase_ticks, .blink_ticks(), .head_p1, .head_p2, .shown_p1, .shown_p2,
         .crashed_p1, .crashed_p2, .head_on, .points_p1, .points_p2, .points_goal,
         .lives_p1, .lives_p2, .result, .page_lives, .page_goal, .goal_sel, .round_index, .step_count, .log_kind, .overrun);
 

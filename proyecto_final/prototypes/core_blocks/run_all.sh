@@ -20,6 +20,7 @@ benches=(
     "seg7_driver_tb $p/io/seg7_driver.sv $p/io/seg7_driver_tb.sv"
     "game_clk_div_tb $p/video/game_clk_div.sv $p/video/game_clk_div_tb.sv"
     "vga_out_check_tb counters.sv $p/video/vga_out.sv $p/video/vga_out_check_tb.sv"
+    "drawcon_hud_tb $p/game/sprite_rom.sv $p/game/drawcon_game.sv $p/game/drawcon_hud_tb.sv"
 )
 for b in "${benches[@]}"; do
     read -r -a args <<<"$b"

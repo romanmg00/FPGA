@@ -51,8 +51,10 @@ module tron_system #(
     logic [12:0] cmd_a_p1, cmd_a_p2, cmd_b_p1, cmd_b_p2, head_p1, head_p2;
     logic [2:0] cmd_collected, phase;
     logic paused, crashed_p1, crashed_p2, head_on, page_lives, page_goal, overrun;
-    logic [1:0] goal_sel, snap_goal_sel;
+    logic [1:0] goal_sel, snap_goal_sel, snap_result;
+    logic [4:0] snap_blink_ticks;
     logic [7:0] phase_ticks, round_index;
+    logic [4:0] blink_ticks;
     logic [1:0] shown_p1, shown_p2, lives_p1, lives_p2, result, log_kind;
     logic [5:0] points_p1, points_p2, points_goal;
     logic [15:0] step_count;
@@ -64,7 +66,7 @@ module tron_system #(
         .batch_start(g_start),
         .tick_tgl, .cmd_op, .cmd_seq, .cmd_new_match, .cmd_seed_mix, .cmd_a_p1, .cmd_a_p2,
         .cmd_b_p1, .cmd_b_p2, .cmd_survive_p1, .cmd_survive_p2, .cmd_collected,
-        .phase, .paused, .phase_ticks, .head_p1, .head_p2, .shown_p1, .shown_p2,
+        .phase, .paused, .phase_ticks, .blink_ticks, .head_p1, .head_p2, .shown_p1, .shown_p2,
         .crashed_p1, .crashed_p2, .head_on, .points_p1, .points_p2, .points_goal,
         .lives_p1, .lives_p2, .result, .page_lives, .page_goal, .goal_sel, .round_index, .step_count, .log_kind, .overrun);
 
@@ -82,15 +84,15 @@ module tron_system #(
     fast_core #(.QUALIFIED(QUALIFIED), .WINDOW(WINDOW)) u_fast (.clk(clk_pix), .rst(rst_pix), .seed(SEED), .fixed_seed(FIXED_SEED), .tick_tgl,
         .cmd_op, .cmd_seq, .cmd_new_match, .cmd_seed_mix, .cmd_a_p1, .cmd_a_p2, .cmd_b_p1, .cmd_b_p2,
         .cmd_survive_p1, .cmd_survive_p2, .cmd_collected,
-        .g_phase(phase), .g_paused(paused), .g_phase_ticks(phase_ticks),
+        .g_phase(phase), .g_paused(paused), .g_phase_ticks(phase_ticks), .g_blink_ticks(blink_ticks),
         .g_head_p1(head_p1), .g_head_p2(head_p2), .g_shown_p1(shown_p1), .g_shown_p2(shown_p2), .g_crashed_p1(crashed_p1), .g_crashed_p2(crashed_p2),
         .g_points_p1(points_p1), .g_points_p2(points_p2), .g_lives_p1(lives_p1), .g_lives_p2(lives_p2),
-        .g_page_lives(page_lives), .g_page_goal(page_goal), .g_goal_sel(goal_sel), .rsp_seq, .rsp_code_p1, .rsp_code_p2,
+        .g_page_lives(page_lives), .g_page_goal(page_goal), .g_goal_sel(goal_sel), .g_result(result), .rsp_seq, .rsp_code_p1, .rsp_code_p2,
         .batch_axes_p1, .batch_axes_p2, .batch_start, .batch_wr, .btn_pulse, .uart_cmd_valid, .uart_cmd,
         .snap_phase, .snap_paused, .snap_phase_ticks, .snap_head_p1, .snap_head_p2,
         .snap_shown_p1, .snap_shown_p2,
         .snap_crashed_p1, .snap_crashed_p2, .snap_points_p1, .snap_points_p2,
-        .snap_lives_p1, .snap_lives_p2, .snap_page_lives, .snap_page_goal, .snap_goal_sel, .tick_seen,
+        .snap_lives_p1, .snap_lives_p2, .snap_page_lives, .snap_page_goal, .snap_goal_sel, .snap_result, .snap_blink_ticks, .tick_seen,
         .b_addr, .b_rdata, .slot0_valid, .slot1_valid, .slot2_valid,
         .slot0_cell, .slot1_cell, .slot2_cell, .svc_busy, .late_publish);
 
@@ -112,11 +114,11 @@ module tron_system #(
     logic [10:0] curr_x, curr_y;
     logic [3:0] draw_r, draw_g, draw_b;
     logic tick_60hz_unused;
-    drawcon_game #(.SPRITE_DIR(SPRITE_DIR)) u_draw (.clk(clk_pix), .curr_x, .curr_y, .b_rdata,
-        .snap_phase, .snap_paused, .snap_phase_ticks, .snap_head_p1, .snap_head_p2,
+    drawcon_game #(.SPRITE_DIR(SPRITE_DIR)) u_draw (.clk(clk_pix), .rst(rst_pix), .curr_x, .curr_y, .b_rdata,
+        .snap_phase, .snap_paused, .snap_blink_ticks, .snap_head_p1, .snap_head_p2,
         .snap_shown_p1, .snap_shown_p2, .snap_crashed_p1, .snap_crashed_p2,
         .points_p1(snap_points_p1), .points_p2(snap_points_p2),
-        .lives_p1(snap_lives_p1), .lives_p2(snap_lives_p2), .b_addr, .draw_r, .draw_g, .draw_b);
+        .lives_p1(snap_lives_p1), .lives_p2(snap_lives_p2), .result(snap_result), .b_addr, .draw_r, .draw_g, .draw_b);
     vga_out u_vga (.clk_pix, .rst(rst_pix), .draw_r, .draw_g, .draw_b, .curr_x, .curr_y,
         .tick_60hz(tick_60hz_unused), .pix_r(vga_r), .pix_g(vga_g), .pix_b(vga_b),
         .hsync(vga_hs), .vsync(vga_vs));
