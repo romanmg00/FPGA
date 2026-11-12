@@ -396,8 +396,9 @@ and needs an ADR before it is accepted. Routed timing met (WNS +0.181 ns, WHS
 | SW15/SW14 jump to `GOAL  20/30/40` | Pass |
 | No Goal page during play | Pass |
 | `CPU_RESETN`, repeatedly: back to idle, Start works, LED 4 off | Pass |
+| Reaching the goal (10) ends the Match; the Goal page returns | Pass |
+| Colour fringes at sprite and Cell edges (combinational VGA outputs) | None seen |
 
-Not yet confirmed on the board: reaching the goal ends the Match (phase 100)
-and the Goal page returns; colour fringes at sprite edges. After one reset Alan
+After one reset Alan
 saw a grey bar left of the P1 Bike; it was not investigated, because the
 background design is being replaced.
