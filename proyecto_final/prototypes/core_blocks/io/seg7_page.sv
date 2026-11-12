@@ -8,7 +8,7 @@
 // shows the goal {SW15, SW14} selects: Points -> Lives -> Goal -> Points. A
 // change of goal_sel while waiting jumps to the Goal page and restarts its
 // time, so the switches show their effect at once. Proposed 12 Nov 2026 after
-// the first board check; not part of the locked Scoreboard rule yet.
+// the first board check; proposed in ADR 0008, not part of the locked Scoreboard rule yet.
 module seg7_page #(
     parameter integer VIEW_TICKS = game_pkg::SCORE_VIEW_TICKS,
     parameter bit RUN_DURING_PAUSE = 1'b1

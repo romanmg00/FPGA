@@ -386,7 +386,7 @@ over `/dev/ttyUSB1`.
 waiting for a new Match (`G_IDLE`, `G_MATCH`) the Scoreboard cycles
 Points → Lives → Goal (`GOAL  nn`), and a change of `{SW15, SW14}` jumps to the
 Goal page. This goes beyond the locked Scoreboard rule (Points and Lives only)
-and needs an ADR before it is accepted. Routed timing met (WNS +0.181 ns, WHS
+and is proposed in [ADR 0008](../../../../docs/adr/0008-scoreboard-goal-page-before-a-match.md). Routed timing met (WNS +0.181 ns, WHS
 +0.122 ns); the three new game-to-fast signals are Safe in `report_cdc`; the
 21 Unknown endpoints of section 3 are unchanged.
 

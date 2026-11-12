@@ -30,7 +30,7 @@ Use [[CS-256 Tron Glossary]] for domain terms. A rule agreement records intended
 | Movement, Pending Turns, Trails and Crashes | [[CS-256 Tron Agreed Specification 2026-10-20#Movement, Turns and Crashes]] · [ADR 0007: configurable Step interval](../adr/0007-configurable-step-interval.md) |
 | Reward slots, Survival Bonus and randomness | [[CS-256 Tron Agreed Specification 2026-10-20#Rewards and randomness]] |
 | Start, Round transitions, Crash display, Pause and reset | [[CS-256 Tron Agreed Specification 2026-10-20#Start, Crash display, Pause and reset]] |
-| Physical Scoreboard | [[CS-256 Tron Agreed Specification 2026-10-20#Physical Scoreboard]] |
+| Physical Scoreboard | [[CS-256 Tron Agreed Specification 2026-10-20#Physical Scoreboard]] · proposed Goal view: [ADR 0008](../adr/0008-scoreboard-goal-page-before-a-match.md) |
 | Video, sprites and revisable working layout | [[CS-256 Tron Agreed Specification 2026-10-20#Video, sprites and working layout]] |
 | Clocks, Arena encoding and service boundary | [[CS-256 Tron Agreed Specification 2026-10-20#Clocks, Arena encoding and service boundary]], as amended by [[0002-follow-ta-divided-game-clock]] and [[0006-single-wizard-counter-game-clock-and-handout-as-guidance]] |
 | Ownership, scope and tentative schedule | [[CS-256 Tron Agreed Specification 2026-10-20#Work division and independent verification]] · [[CS-256 Tron Agreed Specification 2026-10-20#Scope and tentative schedule]] |
@@ -69,7 +69,7 @@ Current rules: [[CS-256 Tron Agreed Specification 2026-10-20#Start, Crash displa
 
 ### Scoreboard (7-segment)
 
-Current mapping and timing: [[CS-256 Tron Agreed Specification 2026-10-20#Physical Scoreboard]].
+Current mapping and timing: [[CS-256 Tron Agreed Specification 2026-10-20#Physical Scoreboard]]. [ADR 0008](../adr/0008-scoreboard-goal-page-before-a-match.md) proposes a Goal view while waiting for a new Match.
 
 ### Display sizes
 

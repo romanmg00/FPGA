@@ -12,7 +12,7 @@ While waiting for a new Match (G_IDLE or G_MATCH, where Start takes the
 Points Goal) a third page, `GOAL  nn`, shows the goal {SW15, SW14} selects:
 Points -> Lives -> Goal -> Points. Changing those switches while waiting
 jumps to the Goal page and restarts its time. Proposed on 12 November 2026
-after the first board check; not part of the locked Scoreboard rule yet.
+after the first board check; proposed in ADR 0008, not part of the locked Scoreboard rule yet.
 
 The Points, Lives, page and goal switches cross to the fast domain, where
 seg7_driver scans the digits. The scan rate is not modelled; `segments`
