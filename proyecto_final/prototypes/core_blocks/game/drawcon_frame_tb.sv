@@ -9,7 +9,7 @@
 // read with arena_map port B's one-cycle latency) and 14 snapshot words in the
 // order of look_frame.SNAP_FIELDS. The dumped frame is the second one after
 // reset, so drawcon's per-frame latches hold the scene and its video-frame
-// counter is 1: animation phase 0, as the viewer's frame 0.
+// counter is 1: animation phase 0, as the viewer's frame 1.
 // Owner: Alan, the builder's own tool (not an official contract §7 bench).
 // Domain: one clock standing in for clk_pix; the raster is the handout's
 // 1680 x 828 counters with curr_x = hcnt - 336, curr_y = vcnt - 27 as in

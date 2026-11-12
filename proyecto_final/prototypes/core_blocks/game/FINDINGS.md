@@ -610,3 +610,64 @@ the Arena's own edge, under Trails, Rewards and Bikes. The phase is
 `tron_top.bit` SHA-256
 `c8a3d7d303aec3f25080c181b9db3bfa731f65541571696dc64ba539b48bffd0`,
 programmed by JTAG (DONE high); Alan checked it on the monitor and kept it.
+
+## 12. Update, 12 November 2026 (late): Trails, quick look loop, flash, diagrams
+
+**Trails** (`juego/render.py`, trail "pulse"): a Trail or head Cell is drawn in
+the Player colour (`0FF`, `F80`); a pixel with `(x + y - 2 frame) mod 64 < 6`
+takes the shine colour `c/4 + CCC` (`CFF`, `FEC`), so diagonal stripes 64 px
+apart slide along the Trails by 2 px per video frame. A crashed head Cell is
+drawn as its Player's Trail. The stripe test is computed on the Arena
+look-ahead pixel and registered (`stripe`). This replaces the flat `0AA`/`A50`
+Cells. The flat-versus-tile choice was discussed with Alan: the formula is the
+viewer's, needs no ROM and moves, so it was chosen over two 16 × 16 tiles per
+Player.
+
+**Quick look loop** (`look_loop.sh`, `drawcon_frame_tb.sv`,
+`tools/look_frame.py`): one command regenerates the tables, exports a scene
+from the model and the viewer's frame of it, renders the scene in XSim (one
+frame, ~1 min) and diffs it pixel by pixel, while the bitstream builds; it
+programs the board only if routed timing is met. With the Trails, the frame of
+the default scene (tick 150, both Bikes turning) differs from the viewer's in
+264 pixels, all in the 3 Reward Cells: the viewer pulses the Rewards' tint,
+which Alan judged close enough. HUD band, Wall and every Trail pixel match.
+
+**Flash**: `tron_top.xdc` now asks for SPI x4 at 33 MHz, and `run_tron.tcl`
+writes `tron_top.bin` (`write_cfgmem`, 16 MB, SPIx4). `program_flash.tcl`
+(host) writes it to the board's QSPI flash (read as Mfg ID 1, capacity 18:
+the S25FL128S), erases, programs and verifies, then reboots the FPGA from the
+flash as PROG does.
+
+**Diagrams**: `diagrams/1-4` are block diagrams in the handout's style, drawn
+by `tools/make_block_diagrams.py` from the module ports (board level,
+`tron_system`, one Step across the clocks, `drawcon_game`).
+`diagrams/vivado/` holds Vivado's own schematics of the synthesized netlist,
+one page per level (`run_schematic.sh`, which runs `schematic.tcl` in the GUI
+under `xvfb-run`). A first attempt from `synth_design -rtl` in project mode
+failed to elaborate (Clocking Wizard module not found, `game_pkg` not
+compiled first), so the netlist of a finished build is used.
+
+| File | SHA-256 |
+|---|---|
+| `game/drawcon_game.sv` | `e1b213b1d57a7cd6c13e2df9338020a5ddd4bb3af6ec9e1073b579b436c832ba` |
+| `game/tron_system_tb.sv` | `d5e3b20aeac0b5ea75175c2c980f8f8e4fcc04a59711a5ce2936834177d1138f` |
+| `game/drawcon_frame_tb.sv` | `cbdc40d4d9d41d7fc2734e5d7c6a95f69d18ebbc70e98d22a07ee74dcd424810` |
+| `game/tron_top.xdc` | `b9f52d2fb2d23776bba6e05e0c5cde21eb63a3676a06360f3b9977cc4e659025` |
+| `game/run_tron.tcl` | `6564b902d1c9d7902e8279fee1efc2e352964f454eed16e84b8d2032bc039964` |
+| `game/program_flash.tcl` | `b5ab454d039e1d52e24f1e85375be84c6012b91ef28807943c7ddf6b3dddb964` |
+| `tools/look_frame.py` | `2d8fd34d1771a26a6d88feec27eb3f3d1cb07833c740d427f82e1d9d17931271` |
+| `tools/make_block_diagrams.py` | `5cebfc3c78b204e0e1b5d82b14461cf46f5d8495ba5b87289fac43f178ea2b2d` |
+
+| Check | Result | Host artifact |
+|---|---|---|
+| `tron_system_tb` | PASS; the Trail checks wait for a frame in which the start Cells hold a stripe pixel and see `CFF` and `FEC` there, `0FF` and `F80` off it | `core-tron_system_tb-20261112-231644-1507345` |
+| `look_loop.sh` frame comparison | 264 differing pixels, all in the 3 Reward Cells | — |
+| `run_tron.sh mailbox` | Bitstream and flash image written. WNS +0.066 ns, WHS +0.059 ns, 0 failing endpoints; `report_cdc` as in section 10; DRC no violations | `tron-20261112-232719-1511752` |
+| `program_flash.tcl` | Erase, program and verify successful; DONE high after booting from the flash | — |
+
+`tron_top.bit` SHA-256 `56a8d0e7e646d92b4d563e62d6e971930c30e431d5317bf784c480fab9f32b2c`,
+`tron_top.bin` `25421aaa6cbaea3b16b10db903a99244cbe90e72918fb92a1bf6bbddf3e0ea15`.
+The slack is small: the critical path is still the combinational VGA output
+path of section 1 (Roman's open question in `docs/design/CS-256 VGA Output
+Timing Findings.md`); registering `drawcon`'s output is the remedy if a later
+change fails timing.

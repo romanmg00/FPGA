@@ -178,6 +178,10 @@ report_timing_summary -delay_type min_max -report_unconstrained -max_paths 10 -f
 report_exceptions -ignored -file $out/exceptions_ignored.rpt
 write_checkpoint -force $out/routed.dcp
 file copy -force $out/project/tron.runs/impl_1/tron_top.bit $out/tron_top.bit
+# Flash image for the board's QSPI (S25FL128S, 16 MB), loaded on PROG or power-up:
+# the bitstream asks for x4 at 33 MHz (tron_top.xdc).
+write_cfgmem -force -format bin -size 16 -interface SPIx4 \
+    -loadbit "up 0x00000000 $out/tron_top.bit" $out/tron_top.bin
 set f [open $out/timing_summary.rpt]; set timing [read $f]; close $f
 if {![string match {*All user specified timing constraints are met.*} $timing]} {error "routed timing failed"}
 emit $out/BUILD_COMPLETE.txt "Bitstream generated; routed timing met. Read the reports for sign-off."

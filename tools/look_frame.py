@@ -5,7 +5,8 @@
       for N game ticks and writes the state drawcon_game reads:
         OUT_DIR/scene-arena.mem  8192 Cell codes, address {cy[5:0], cx[6:0]}
         OUT_DIR/scene-snap.mem   14 snapshot words (order in SNAP_FIELDS)
-      and the viewer's synthwave frame of that state at animation phase 0:
+      and the viewer's synthwave frame of that state at video frame 1 (animation
+      phase 0, Trail stripes shifted 2 px), the frame drawcon_frame_tb dumps:
         OUT_DIR/python.png       for comparison: crt off (no scanlines), no
                                  crash flash, which the HDL does not draw yet
         OUT_DIR/python-full.png  the viewer's complete frame, for reference
@@ -76,7 +77,7 @@ def render(game: Game, look: LookConfig) -> np.ndarray:
     rewards = tuple(sprites.reward(look.reward_look, k) for k in (0, 1))
     r = FrameRenderer(game.geom, look, PALETTES[look.palette], bike, rewards)
     r.redraw_all(game.grid)
-    r.frame = 0                                       # animation phase 0, as the bench
+    r.frame = 1                                       # the bench's video frame: phase 0, stripes at 2 px
     frame = pygame.Surface(SIZE, 0, 32)
     r.draw(frame, game.snapshot())
     return pygame.surfarray.array3d(frame).transpose(1, 0, 2)

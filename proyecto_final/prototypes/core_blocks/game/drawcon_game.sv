@@ -43,6 +43,12 @@
 // under Trails, Rewards and Bikes. Box comparators on the look-ahead pixel,
 // registered like the HUD.
 //
+// Trails (juego/render.py, trail "pulse"): a Trail or head Cell is the Player
+// colour (0FF, F80) and a pixel (x, y) with (x + y - 2 frame) mod 64 < 6 takes
+// the shine colour c/4 + CCC (CFF, FEC): diagonal stripes 64 px apart that
+// slide 2 px per video frame. A crashed head Cell is drawn as its Player's
+// Trail. The stripe test is computed on the look-ahead pixel and registered.
+//
 // Background (juego/fx.py build_base, synthwave): inside the Arena a sky
 // gradient (one colour per 16 px band), a striped sun of radius 160 centred
 // on the Arena, 2 x 2 px stars from a position hash that twinkle by phase,
@@ -70,7 +76,7 @@ module drawcon_game #(
     import game_pkg::*;
     localparam logic [11:0] C_WALL = 12'h000, C_HUD = 12'h000,
         C_WALL_LINE = 12'hF4D, C_WALL_GLOW = 12'h726,
-        C_P1 = 12'h0FF, C_P2 = 12'hF80, C_P1_TRAIL = 12'h0AA, C_P2_TRAIL = 12'hA50,
+        C_P1 = 12'h0FF, C_P2 = 12'hF80, C_P1_SHINE = 12'hCFF, C_P2_SHINE = 12'hFEC,
         C_CRASH = 12'hF00, C_REWARD1 = 12'hFE3, C_REWARD3 = 12'hC8F, C_WHITE = 12'hFFF;
 
     // --- raster positions ---------------------------------------------------
@@ -367,6 +373,12 @@ module drawcon_game #(
     end
     always_ff @(posedge clk) bg_rgb <= bg_next;
 
+    // --- Trail stripes, for the next pixel (ax, ay), registered --------------------
+    logic [5:0] stripe_pos;
+    logic       stripe = 1'b0;
+    always_comb stripe_pos = ax[5:0] + ay[5:0] - {frame_cnt, 1'b0};   // (x + y - 2 frame) mod 64
+    always_ff @(posedge clk) stripe <= stripe_pos < 6'd6;
+
     // --- composition at the current pixel ------------------------------------
     logic [12:0] here;
     logic [11:0] rgb;
@@ -377,9 +389,10 @@ module drawcon_game #(
 
         case (b_rdata)
             CELL_WALL:                    rgb = wall_rgb;
-            CELL_P1_TRAIL, CELL_P1_HEAD:  rgb = C_P1_TRAIL;
-            CELL_P2_TRAIL, CELL_P2_HEAD:  rgb = C_P2_TRAIL;
-            CELL_CRASH:  rgb = (here == f_head_p1) ? C_P1_TRAIL : (here == f_head_p2) ? C_P2_TRAIL : C_CRASH;
+            CELL_P1_TRAIL, CELL_P1_HEAD:  rgb = stripe ? C_P1_SHINE : C_P1;
+            CELL_P2_TRAIL, CELL_P2_HEAD:  rgb = stripe ? C_P2_SHINE : C_P2;
+            CELL_CRASH:  rgb = (here == f_head_p1) ? (stripe ? C_P1_SHINE : C_P1) :
+                               (here == f_head_p2) ? (stripe ? C_P2_SHINE : C_P2) : C_CRASH;
             CELL_REWARD0, CELL_REWARD1:   rgb = (tex_gem  != COLOR_TRANSPARENT) ? tint(tex_gem,  C_REWARD1) : bg_rgb;
             CELL_REWARD2:                 rgb = (tex_star != COLOR_TRANSPARENT) ? tint(tex_star, C_REWARD3) : bg_rgb;
             default:                      rgb = bg_rgb;

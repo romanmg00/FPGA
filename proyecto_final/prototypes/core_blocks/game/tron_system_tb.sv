@@ -147,7 +147,7 @@ module tron_system_tb;
 
     // --- sprite expectations, from the art and the Design Plan's bike_addr ----
     localparam logic [11:0] C_WALL = 12'h000, C_TUBE = 12'hF4D, C_GLOW = 12'h726, C_P1 = 12'h0FF, C_P2 = 12'hF80,
-        C_P1_TRAIL = 12'h0AA, C_P2_TRAIL = 12'hA50, C_REWARD3 = 12'hC8F;
+        C_REWARD3 = 12'hC8F;
     logic [11:0] bike_mem [0:1023];
     logic [11:0] star_mem [0:255];
     logic [11:0] sky_lut [0:63];
@@ -182,6 +182,29 @@ module tron_system_tb;
         if (x == 16 || x == 1263 || y == 80 || y == 783) c = C_GLOW;
         return c;
     endfunction
+    // A pixel of the 16 x 16 Cell at (cx0, cy0) that is (on = 1) or is not on a
+    // Trail stripe in the frame it is shown; want[0] returns whether it was.
+    task automatic stripe_pixel(input integer cx0, cy0, input bit on, output logic [11:0] rgb,
+                                output logic [11:0] want);
+        integer f, u, v, x, y;
+        x = -1;
+        // The stripes move 2 px per frame: wait (at most 40 frames) for one in
+        // which the Cell has such a pixel outside its centre. The Cells checked
+        // lie below row 300, so the pixel is shown in the frame just inspected.
+        for (int n = 0; n < 40 && x < 0; n++) begin
+            @(negedge clk_pix iff (line == 27 + 300 && hc == 1));   // mid-frame: frame_cnt is stable
+            f = dut.u_draw.frame_cnt;
+            for (u = 0; u < 16 && x < 0; u++)
+                for (v = 0; v < 16 && x < 0; v++)
+                    if ((((cx0 + u + cy0 + v - 2 * f) % 64 + 64) % 64 < 6) == on && !(u >= 4 && u < 12 && v >= 4 && v < 12)) begin
+                        x = cx0 + u; y = cy0 + v;
+                    end
+        end
+        check(x >= 0, $sformatf("found a %s pixel in Cell (%0d,%0d)", on ? "stripe" : "body", cx0 / 16, cy0 / 16));
+        if (x < 0) begin x = cx0; y = cy0; end
+        pixel(x, y, rgb);
+        want = {11'd0, (((x + y - 2 * dut.u_draw.frame_cnt) % 64 + 64) % 64) < 6};
+    endtask
     task automatic bg_pixel(input integer x, y, output logic [11:0] rgb, output logic [11:0] want);
         pixel(x, y, rgb);
         want = bg_at(x, y, dut.u_draw.frame_cnt[4:3]);
@@ -322,8 +345,16 @@ module tron_system_tb;
         check(dut.u_game.head_p1 == h1 && dut.u_game.step_count == k, "Pause freezes the Bikes");
         check_bike(h1, DIR_RIGHT, C_P1, "P1");
         check_bike(h2, DIR_LEFT, C_P2, "P2");
-        cell_rgb(20, 27, rgb);          check(rgb == C_P1_TRAIL, "P1 start Cell is now Trail");
-        cell_rgb(59, 27, rgb);          check(rgb == C_P2_TRAIL, "P2 start Cell is now Trail");
+        // Trails (juego/render.py "pulse"): Player colour, shine c/4 + CCC where
+        // (x + y - 2 frame) mod 64 < 6. Each Cell is sampled on a stripe pixel and off it.
+        for (int i = 0; i < 4; i++) begin
+            m = (i < 2) ? 20 * 16 : 59 * 16;                // Cell (20,27) or (59,27)
+            k = 27 * 16;
+            stripe_pixel(m, k, i % 2, rgb, want);
+            want = (i < 2) ? (want[0] ? 12'hCFF : C_P1) : (want[0] ? 12'hFEC : C_P2);
+            check(rgb == want, $sformatf("%s start Cell is Trail %s: %h", (i < 2) ? "P1" : "P2",
+                                         (i % 2) ? "stripe" : "body", rgb));
+        end
         if (dut.u_fast.slot2_valid) check_star(dut.u_fast.slot2_cell);
         read_display(disp);
         check(disp == expect_points() || disp == expect_lives(), {"Scoreboard shows ", disp});
@@ -351,7 +382,7 @@ module tron_system_tb;
         check(h2[12:7] == 6'd48, "P2 stays on its last valid Cell");
         pause(1);
         cell_rgb(h2[6:0], h2[12:7], rgb);
-        check(rgb == C_P2_TRAIL || rgb == C_P2 || rgb == bike_texel(DIR_DOWN, 16, 16),
+        check(rgb == 12'hFEC || rgb == C_P2 || rgb == bike_texel(DIR_DOWN, 16, 16),
               $sformatf("P2 Crash Cell: blinking sprite over its Crash Cell (%h)", rgb));
         read_display(disp);
         check(disp == expect_points() || disp == expect_lives(), {"Scoreboard shows ", disp});
