@@ -6,9 +6,11 @@ module game_top (
     output logic        vga_hs, vga_vs
 );
 
-    logic [10:0] blkpos_x, blkpos_y;     // position_logic -> drawcon: bike position in pixels
+    logic [10:0] blkpos1_x, blkpos1_y;     // position_logic -> drawcon: bike position in pixels
+    logic [10:0] blkpos2_x, blkpos2_y;
     logic [10:0] curr_x, curr_y;
     logic [3:0]  draw_r, draw_g, draw_b;
+    logic [1:0]  heading1, heading2;
     logic        clk_juego;
     logic        clk_juego_toggle = 1'b0;
     logic        clk_pix;
@@ -67,17 +69,25 @@ module game_top (
         .clk(clk_juego),
         .rst(rst_juego),
         .btn(btn_sync),
-        .blkpos_x(blkpos_x),
-        .blkpos_y(blkpos_y),
-        .heading()               // for the sprites, later
+        .turn_req2(4'b0000),
+        .blkpos1_x(blkpos1_x), 
+        .blkpos1_y(blkpos1_y),
+        .blkpos2_x(blkpos2_x), 
+        .blkpos2_y(blkpos2_y), 
+        .heading1(),
+        .heading2()            // for the sprites, later
     );
 
     drawcon u_drawcon(
         .curr_x(curr_x),
         .curr_y(curr_y),
-        .blkpos_x(blkpos_x),
-        .blkpos_y(blkpos_y),
+        .blkpos1_x(blkpos1_x), 
+        .blkpos1_y(blkpos1_y),
+        .blkpos2_x(blkpos2_x),
+        .blkpos2_y(blkpos2_y),
         .sw(sw_sync),
+        //.heading1(heading1),
+        //.heading2(heading2),
         .draw_r(draw_r),
         .draw_g(draw_g),
         .draw_b(draw_b)
