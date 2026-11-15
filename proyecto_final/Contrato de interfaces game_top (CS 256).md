@@ -1,8 +1,8 @@
 # Contrato de interfaces: game\_top (CS 256)
 
-Oct 11, 2026 · @Román · actualizado el 20 oct 2026 a la [especificación acordada](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md) y el 5 nov 2026 a los relojes de [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) · Juego: **Tron** (motos de luz, 2 jugadores) · Fuente: `cs256-project1-fall26.pdf` (las diapositivas citadas son de esa presentación)
+Oct 11, 2026 · @Román · actualizado el 20 oct 2026 a la [especificación acordada](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md) el 5 nov 2026 a los relojes de [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) y el 15 nov 2026 al intervalo de paso del ADR 0007 · Juego: **Tron** (motos de luz, 2 jugadores) · Fuente: `cs256-project1-fall26.pdf` (las diapositivas citadas son de esa presentación)
 
-> **Cómo leer este contrato.** Las reglas, entradas, relojes, códigos y el reparto ya siguen la especificación del 20 de octubre, que es la que manda si algo no coincide, salvo en los puntos que cambian los ADR aceptados después: el [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) quita el segundo Clocking Wizard y la instrucción de seguir el handout al pie de la letra. Lo que la especificación deja como trabajo de ingeniería está marcado como **Pendiente**: ahí se anotan los requisitos, no puertos inventados. Cuando el equipo decida una de esas interfaces, se escribe aquí (y, si cambia una regla, como ADR 0003 en adelante en `docs/adr/`). La versión anterior, para 3 personas y un solo reloj, está en [`deprecated/`](deprecated/).
+> **Cómo leer este contrato.** Las reglas, entradas, relojes, códigos y el reparto ya siguen la especificación del 20 de octubre, que es la que manda si algo no coincide, salvo en los puntos que cambian los ADR aceptados después: el [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) quita el segundo Clocking Wizard y la instrucción de seguir el handout al pie de la letra, y el ADR 0007 (`configurable-step-interval`, hoy solo en la rama `hdl/core-blocks-on-main`) cambia el paso fijo de 6 ticks por un intervalo configurable. Lo que la especificación deja como trabajo de ingeniería está marcado como **Pendiente**: ahí se anotan los requisitos, no puertos inventados. Cuando el equipo decida una de esas interfaces, se escribe aquí (y, si cambia una regla, como ADR 0003 en adelante en `docs/adr/`). La versión anterior, para 3 personas y un solo reloj, está en [`deprecated/`](deprecated/).
 
 ## 0. El juego
 
@@ -78,7 +78,7 @@ Los anchos de video salen de los contadores de la diapositiva 7: `hcnt` llega a 
 | Señal | De → A | Ancho | Nota |
 | --- | --- | --- | --- |
 | `clk_juego` | Contador de 20 bits sobre `clk_pix` → juego | 1 | ~60 Hz |
-| Pasos | interno | — | Un paso cada **6** ticks de `clk_juego` (unas 10 celdas/s) |
+| Pasos | interno | — | Un paso cada **8** ticks de `clk_juego` (unas 7.5 celdas/s). Por el ADR 0007 es un parámetro fijo durante el juego; 8 es el primer valor a evaluar del rango 8–10 y el final se elige jugando en la tarjeta |
 
 **Arena y memoria** — **Pendiente.** El controlador rápido de la arena es el **único que escribe** en `arena_map`. El juego le manda pedidos (leer las dos celdas destino, escribir cabezas y estelas, limpiar, colocar premios) y recibe resultados; `drawcon` lee por el otro puerto. Falta definir los pedidos y resultados, su cruce de reloj, la latencia y la contrapresión, la inicialización, el reset y la pausa, y una foto coherente para dibujar. Requisitos: no perder ni repetir pedidos, y que reset y pausa no dejen la memoria a medias.
 
@@ -165,7 +165,7 @@ El movimiento reporta qué pasó con cada moto; rondas y puntos es dueño del ci
 **Estados de la partida** (nombres en `game_pkg.sv`, propuesta):
 
 - `G_IDLE`: al encender, espera Start. Start toma la meta, pone 3 vidas y 0 puntos, prepara paredes, motos y los **tres** premios, y arranca la primera ronda, sin cuenta regresiva.
-- `G_PLAY`: un paso cada 6 ticks.
+- `G_PLAY`: un paso cada `STEP_TICKS` ticks (8 por ahora, ADR 0007).
 - `G_CRASH`: choque que no termina la partida: el juego se congela y las motos chocadas parpadean **~2 s**; Start y los giros se ignoran. Luego se prepara la siguiente ronda y se pasa a `G_READY`.
 - `G_READY`: espera un Start nuevo, sin giros previos ni cuenta regresiva.
 - `G_MATCH`: fin de la partida, con puntos y vidas finales. Si terminó por choque, primero se muestran los 2 s de choque. Un Start nuevo prepara y arranca otra partida.
@@ -246,7 +246,7 @@ package game_pkg;
     localparam int BTN_U = 0, BTN_D = 1, BTN_L = 2, BTN_R = 3, BTN_C = 4;
 
     // Reglas (en ticks de clk_juego, ~60 Hz)
-    localparam int STEP_TICKS     = 6;     // un paso cada 6 ticks
+    localparam int STEP_TICKS     = 8;     // un paso cada 8 ticks (ADR 0007: evaluar 8 a 10)
     localparam int LIVES_START    = 3;
     localparam int REWARD_PTS0    = 1, REWARD_PTS1 = 1, REWARD_PTS2 = 3;
     localparam int SURVIVAL_BONUS = 3;

@@ -66,19 +66,22 @@ module game_top (
 
     // The bike moves on its own in rounds, turns with the buttons and crashes at a wall.
     position_logic u_position_logic (
+        // Inputs 
         .clk(clk_juego),
         .rst(rst_juego),
         .btn(btn_sync),
         .turn_req2(4'b0000),
+        // Outputs
         .blkpos1_x(blkpos1_x), 
         .blkpos1_y(blkpos1_y),
         .blkpos2_x(blkpos2_x), 
-        .blkpos2_y(blkpos2_y), 
-        .heading1(),
-        .heading2()            // for the sprites, later
+        .blkpos2_y(blkpos2_y) 
+        //.heading1(),
+        //.heading2()            // for the sprites, later
     );
 
     drawcon u_drawcon(
+        // Inputs
         .curr_x(curr_x),
         .curr_y(curr_y),
         .blkpos1_x(blkpos1_x), 
@@ -88,20 +91,23 @@ module game_top (
         .sw(sw_sync),
         //.heading1(heading1),
         //.heading2(heading2),
+        // Outputs
         .draw_r(draw_r),
         .draw_g(draw_g),
         .draw_b(draw_b)
     );
 
     vga_out u_vga_out(
+        // Inputs
         .clk_pix(clk_pix),
         .rst(rst_pix),
-        .tick_60hz(),
-        .curr_x(curr_x),
-        .curr_y(curr_y),
         .draw_r(draw_r),
         .draw_g(draw_g),
         .draw_b(draw_b),
+        // Outputs
+        .curr_x(curr_x),
+        .curr_y(curr_y),
+        .tick_60hz(),
         .pix_r(vga_r),
         .pix_g(vga_g),
         .pix_b(vga_b),

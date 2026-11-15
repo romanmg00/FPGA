@@ -16,7 +16,9 @@ module position_logic_tb;
     // P2 turn requests, in the bike_move order [0] U, [1] R, [2] D, [3] L
     localparam logic [3:0] K_NADA = 4'b0000, K_U = 4'b0001, K_R = 4'b0010,
                            K_D = 4'b0100, K_L = 4'b1000;
-    localparam int STEP = 6;   // ticks per step, as in u_step_counter
+    // Ticks per step. Read from u_step_counter at the start of the test, so changing
+    // STEP_TICKS in position_logic needs no change here.
+    int          STEP;
 
     logic        clk, rst;
     logic [4:0]  btn;
@@ -55,7 +57,7 @@ module position_logic_tb;
         repeat (n) @(negedge clk);
     endtask
 
-    // n whole steps (6 ticks each) with the given buttons and P2 request held
+    // n whole steps (STEP ticks each) with the given buttons and P2 request held
     task automatic pasos(input int n, input logic [4:0] b_i, input logic [3:0] k_i);
         ticks(0, b_i, k_i, n * STEP);
     endtask
@@ -91,7 +93,7 @@ module position_logic_tb;
         end
     endtask
 
-    // Call 5 ticks into a step, while step = 1: checks which bikes crash on this step
+    // Call STEP - 1 ticks into a step, while step = 1: checks which bikes crash on this step
     task automatic revisa_choque(input string caso, input logic c1, input logic c2);
         if (dut.crash1 !== c1 || dut.crash2 !== c2) begin
             $display("ERROR %s: crash1=%b crash2=%b; se esperaba crash1=%b crash2=%b",
@@ -102,19 +104,21 @@ module position_logic_tb;
 
     initial begin
         rst = 1'b1; btn = B_NADA; turn2 = K_NADA;
+        STEP = dut.u_step_counter.STEP_TICKS;
+        $display("STEP_TICKS = %0d", STEP);
 
         // Case 1: after reset both bikes wait at their starts until Start
         ticks(1, B_NADA, K_NADA, 2);  revisa("1 reset", 20, 27, 1, 59, 27, 3, 0);
         ticks(0, B_NADA, K_NADA, 30); revisa("1 sin Start no se mueven", 20, 27, 1, 59, 27, 3, 0);
-        ticks(0, B_R, K_U, 6);        revisa("1 giros sin Start no hacen nada", 20, 27, 1, 59, 27, 3, 0);
+        ticks(0, B_R, K_U, STEP);        revisa("1 giros sin Start no hacen nada", 20, 27, 1, 59, 27, 3, 0);
         ticks(0, B_NADA, K_NADA, 1);
 
-        // Case 2: Start; the first step comes 7 ticks after the press (1 to enter s_run + 6),
+        // Case 2: Start; the first step comes STEP + 1 ticks after the press (1 to enter s_run + STEP),
         // and both bikes move on the same step, towards each other
         ticks(0, B_C, K_NADA, 1);     revisa("2 Start entra a s_run", 20, 27, 1, 59, 27, 3, 1);
-        ticks(0, B_NADA, K_NADA, 5);  revisa("2 aun no hay paso", 20, 27, 1, 59, 27, 3, 1);
+        ticks(0, B_NADA, K_NADA, STEP - 1);  revisa("2 aun no hay paso", 20, 27, 1, 59, 27, 3, 1);
         ticks(0, B_NADA, K_NADA, 1);  revisa("2 primer paso", 21, 27, 1, 58, 27, 3, 1);
-        pasos(9, B_NADA, K_NADA);     revisa("2 diez pasos en 60 ticks", 30, 27, 1, 49, 27, 3, 1);
+        pasos(9, B_NADA, K_NADA);     revisa("2 diez pasos", 30, 27, 1, 49, 27, 3, 1);
 
         // Case 3: P1's buttons arrive in the right order; P2 keeps going left
         pasos(1, B_L, K_NADA);        revisa("3 BTNL (media vuelta) se ignora", 31, 27, 1, 48, 27, 3, 1);
@@ -126,7 +130,7 @@ module position_logic_tb;
         // P2 does not crash, so it completes that last step (spec: the survivor completes it).
         pasos(21, B_NADA, K_NADA);    revisa("4 P1 llega a la ultima celda", 32, 48, 2, 24, 27, 3, 1);
         choques = 0;
-        ticks(0, B_NADA, K_NADA, 5);  revisa_choque("4 choca solo P1 (pared)", 1, 0);
+        ticks(0, B_NADA, K_NADA, STEP - 1);  revisa_choque("4 choca solo P1 (pared)", 1, 0);
         ticks(0, B_NADA, K_NADA, 1);  revisa("4 P1 se queda, P2 completa su paso", 32, 48, 2, 23, 27, 3, 0);
         if (choques !== 1) begin
             $display("ERROR 4: %0d pulsos de crash, se esperaba 1", choques);
@@ -154,7 +158,7 @@ module position_logic_tb;
         pasos(1, B_NADA, K_L);        revisa("8 turn_req2[3] = izquierda", 22, 27, 1, 58, 26, 3, 1);
         pasos(1, B_NADA, K_R);        revisa("8 media vuelta de P2 se ignora", 23, 27, 1, 57, 26, 3, 1);
         pasos(17, B_NADA, K_NADA);    revisa("8 P2 justo arriba de P1", 40, 27, 1, 40, 26, 3, 1);
-        ticks(0, B_NADA, K_D, 5);     revisa_choque("8 P2 entra a la cabeza de P1: choca solo P2", 0, 1);
+        ticks(0, B_NADA, K_D, STEP - 1);     revisa_choque("8 P2 entra a la cabeza de P1: choca solo P2", 0, 1);
         ticks(0, B_NADA, K_D, 1);     revisa("8 P2 se queda, P1 completa su paso", 41, 27, 1, 40, 26, 3, 0);
 
         // Cases 9 and 10, in one round with both DUTs. Everyone goes straight along row 27.
@@ -163,7 +167,7 @@ module position_logic_tb;
         pasos(18, B_NADA, K_NADA);
         revisa_b("9 a una celda de distancia", 38, 40, 1);
         revisa("10 todavia separadas", 38, 27, 1, 41, 27, 3, 1);
-        ticks(0, B_NADA, K_NADA, 5);
+        ticks(0, B_NADA, K_NADA, STEP - 1);
         if (dut_b.crash1 !== 1'b1 || dut_b.crash2 !== 1'b1) begin
             $display("ERROR 9 mismo destino: crash1=%b crash2=%b; se esperaba 1 y 1",
                      dut_b.crash1, dut_b.crash2);
@@ -173,7 +177,7 @@ module position_logic_tb;
         revisa_b("9 mismo destino: chocan las dos y no avanzan", 38, 40, 0);
         // Case 10 (dut): P1 (39,27) and P2 (40,27) aim at each other's cell on step 20.
         revisa("10 cabezas juntas", 39, 27, 1, 40, 27, 3, 1);
-        ticks(0, B_NADA, K_NADA, 5);  revisa_choque("10 intercambio de cabezas: chocan las dos", 1, 1);
+        ticks(0, B_NADA, K_NADA, STEP - 1);  revisa_choque("10 intercambio de cabezas: chocan las dos", 1, 1);
         ticks(0, B_NADA, K_NADA, 1);  revisa("10 ninguna avanza", 39, 27, 1, 40, 27, 3, 0);
 
         if (errores == 0) $display("PRUEBAS OK");
