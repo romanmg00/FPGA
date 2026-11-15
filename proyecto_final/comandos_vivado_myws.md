@@ -22,6 +22,16 @@ cd ~/FPGA
 git pull
 ```
 
+Para cambiar a una rama nueva que se creó en GitHub (por ejemplo `hdl/sprites`):
+
+```bash
+cd ~/FPGA
+git fetch
+git checkout hdl/sprites
+```
+
+`git fetch` baja la lista de ramas nuevas sin cambiar tus archivos; `git checkout` cambia los archivos a esa rama. Después, en esa rama, basta `git pull` para traer lo nuevo.
+
 Cuando la rama ya esté fusionada en `main`:
 
 ```bash
