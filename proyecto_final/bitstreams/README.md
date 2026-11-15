@@ -30,7 +30,9 @@ Nexys A7 serial `210292B1820D`, programada por JTAG con `openFPGALoader` desde l
 ### Simulación y reportes
 
 - **Testbenches:** `position_logic_tb`, `bike_move_tb` y `round_fsm_tb` pasan en Verilator 5.052 (ver PR 25). `game_top_tb` no se corrió: todavía describe el diseño de antes de PR 21 (issue 24).
-- **Temporización, DRC y CDC:** no se registraron de este build.
+- **Temporización con el diseño ya ruteado** (*Project Summary* de Vivado): setup +3.828 ns (WNS), TNS 0 ns, 0 de 110 extremos fallan. Hold (WHS) y ancho de pulso no se registraron.
+- **DRC:** sin violaciones. **CDC:** no se corrió `report_cdc`.
+- **Mensajes:** síntesis con 5 warnings; implementación con 2 critical warnings y 2 warnings, sin revisar todavía.
 
 ## Bitstreams anteriores
 
