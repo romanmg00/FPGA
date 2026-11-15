@@ -11,8 +11,8 @@ set_false_path -from [get_ports cpu_resetn] -to [get_cells {u_rst_pix/meta_reg u
 set_false_path -from [get_ports {btn[*]}] -to [get_cells {g_btn[*].u_sync/meta_reg}]
 set_false_path -from [get_ports {sw[*]}] -to [get_cells {g_sw[*].u_sync/meta_reg}]
 
-## Las posiciones de las motos cruzan de clk_juego a clk_pix SIN cruce explicito (por eso una
-## moto a veces se corta; X1 lo resuelve). blkpos1/2 son las celdas cx, cy de cada bike_move
-## por 16, sin registro propio, asi que el origen son esos registros. Esto limita el retardo a
-## un pixel; no hace seguro el cruce. build_game_top.tcl revisa que el origen no quede vacio.
-set_max_delay -datapath_only 11.982 -from [get_cells {u_position_logic/u_bike_move*/cx_reg[*] u_position_logic/u_bike_move*/cy_reg[*]}] -to [get_cells {u_vga_out/pix_*_reg[*]}]
+## Las posiciones dibujadas cruzan de clk_juego a clk_pix SIN cruce explicito (por eso una
+## moto a veces se corta; X1 lo resuelve, issue de X1). drawcon lee draw_x/draw_y de cada
+## bike_glide, que son registros (ADR 0010). Esto limita el retardo a un pixel; no hace seguro
+## el cruce. build_game_top.tcl revisa que el origen no quede vacio.
+set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/draw_*_reg[*]}] -to [get_cells {u_vga_out/pix_*_reg[*]}]

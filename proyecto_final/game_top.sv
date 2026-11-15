@@ -6,8 +6,14 @@ module game_top (
     output logic        vga_hs, vga_vs
 );
 
-    logic [10:0] blkpos1_x, blkpos1_y;     // position_logic -> drawcon: bike position in pixels
+    logic [10:0] blkpos1_x, blkpos1_y;     // position_logic -> bike_glide: bike Cell in pixels
     logic [10:0] blkpos2_x, blkpos2_y;
+    logic [10:0] glide1_x, glide1_y;       // bike_glide -> drawcon: drawn position, registered
+    logic [10:0] glide2_x, glide2_y;
+
+    // Ticks of clk_juego per step (ADR 0007, ADR 0010): 6 gives about 10 Cells/s. One value
+    // for position_logic and both bike_glide, so the slide always lasts exactly one step.
+    localparam int STEP_TICKS = 6;
     logic [10:0] curr_x, curr_y;
     logic [3:0]  draw_r, draw_g, draw_b;
     logic [1:0]  heading1, heading2;
@@ -65,7 +71,9 @@ module game_top (
     end
 
     // The bike moves on its own in rounds, turns with the buttons and crashes at a wall.
-    position_logic u_position_logic (
+    position_logic #(
+        .STEP_TICKS(STEP_TICKS)
+    ) u_position_logic (
         // Inputs 
         .clk(clk_juego),
         .rst(rst_juego),
@@ -80,14 +88,37 @@ module game_top (
         //.heading2()            // for the sprites, later
     );
 
+    // Each bike's square slides a few pixels every tick toward its current Cell (ADR 0010).
+    bike_glide #(.STEPS(STEP_TICKS)) u_glide1 (
+        // Inputs
+        .clk(clk_juego),
+        .rst(rst_juego),
+        .pos_x(blkpos1_x),
+        .pos_y(blkpos1_y),
+        // Outputs
+        .draw_x(glide1_x),
+        .draw_y(glide1_y)
+    );
+
+    bike_glide #(.STEPS(STEP_TICKS)) u_glide2 (
+        // Inputs
+        .clk(clk_juego),
+        .rst(rst_juego),
+        .pos_x(blkpos2_x),
+        .pos_y(blkpos2_y),
+        // Outputs
+        .draw_x(glide2_x),
+        .draw_y(glide2_y)
+    );
+
     drawcon u_drawcon(
         // Inputs
         .curr_x(curr_x),
         .curr_y(curr_y),
-        .blkpos1_x(blkpos1_x), 
-        .blkpos1_y(blkpos1_y),
-        .blkpos2_x(blkpos2_x),
-        .blkpos2_y(blkpos2_y),
+        .blkpos1_x(glide1_x), 
+        .blkpos1_y(glide1_y),
+        .blkpos2_x(glide2_x),
+        .blkpos2_y(glide2_y),
         .sw(sw_sync),
         //.heading1(heading1),
         //.heading2(heading2),
