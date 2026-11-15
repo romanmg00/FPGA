@@ -56,8 +56,10 @@ proc check_no_handwritten_ip {files} {
     }
 }
 
-set design [list $here/counters.sv $here/vga_out.sv $here/drawcon.sv $here/sync_2ff.sv \
-    $here/board_reset_sync.sv $here/position_logic.sv $here/game_top.sv]
+# position_logic instancia round_fsm, step_counter y bike_move desde el PR #21.
+set movement [list $here/round_fsm.sv $here/step_counter.sv $here/bike_move.sv $here/position_logic.sv]
+set design [concat [list $here/counters.sv $here/vga_out.sv $here/drawcon.sv $here/sync_2ff.sv \
+    $here/board_reset_sync.sv] $movement [list $here/game_top.sv]]
 check_no_handwritten_ip $design
 
 # CLK_JUEGO_N vive en game_top.sv y 2 * N en game_top_timing.xdc, porque el XDC no puede
@@ -76,8 +78,12 @@ if {$xdc_divide != 2 * $clk_juego_n} {
 start_bench sync_2ff_tb sync_2ff_tb "PASS sync_2ff_tb" [list $here/sync_2ff_tb.sv $here/sync_2ff.sv]
 start_bench board_reset_sync_tb board_reset_sync_tb "PASS board_reset_sync_tb" [list $here/board_reset_sync_tb.sv $here/board_reset_sync.sv]
 start_bench vga_out_tb vga_out_tb "PRUEBAS OK" [list $here/vga_out_tb.sv $here/vga_out.sv $here/counters.sv]
-start_bench position_logic_tb position_logic_tb "PASS position_logic_tb" [list $here/position_logic_tb.sv $here/position_logic.sv]
-foreach scenario {colours moves_x moves_y resets_short reset_long btnc} {
+# Los testbenches de Roman imprimen PRUEBAS OK solo si no hubo errores.
+start_bench round_fsm_tb round_fsm_tb "PRUEBAS OK" [list $here/round_fsm_tb.sv $here/round_fsm.sv]
+start_bench step_counter_tb step_counter_tb "PRUEBAS OK" [list $here/step_counter_tb.sv $here/step_counter.sv]
+start_bench bike_move_tb bike_move_tb "PRUEBAS OK" [list $here/bike_move_tb.sv $here/bike_move.sv]
+start_bench position_logic_tb position_logic_tb "PRUEBAS OK" [concat [list $here/position_logic_tb.sv] $movement]
+foreach scenario {idle steps turns head_on wall_crash resets_short reset_long} {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
         [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv] $design] \
         "-testplusarg scenario=$scenario"
@@ -148,6 +154,16 @@ if {abs($juego_period - $want_period) > 5.0e-7 * $want_period} {
     error "clk_juego tiene periodo $juego_period ns; con N = $clk_juego_n deberia ser $want_period ns"
 }
 emit $out/clk_juego-period.txt "clk_juego_n=$clk_juego_n pix_period_ns=$pix_period juego_period_ns=$juego_period"
+
+# El set_max_delay de game_top_timing.xdc nombra los registros de celda de las motos. Si un
+# cambio de nombres lo deja sin origen, Vivado solo avisa, asi que aqui se detiene el build.
+# Hoy son 21: mientras turn_req2 = 0, P2 no cambia de fila y la sintesis quita su cy. Con el
+# teclado seran 28 (2 motos x 2 coordenadas x 7 bits). El numero queda en bike_cells.txt.
+set bike_cells [get_cells -quiet {u_position_logic/u_bike_move*/cx_reg[*] u_position_logic/u_bike_move*/cy_reg[*]}]
+emit $out/bike_cells.txt "[llength $bike_cells] registros: [lsort $bike_cells]"
+if {[llength $bike_cells] == 0} {
+    error "game_top_timing.xdc: el set_max_delay no encuentra los registros de celda de las motos"
+}
 
 # Lista de reportes de CS-256 Official FPGA Coding Practices.
 foreach cmd {report_clocks report_clock_networks report_clock_utilization report_clock_interaction report_exceptions report_methodology report_drc} {
