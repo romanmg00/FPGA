@@ -30,6 +30,7 @@ Nexys A7 serial `210292B1820D`, programada por JTAG con `openFPGALoader` desde l
 ### Simulación y reportes
 
 - **Testbenches:** `position_logic_tb`, `bike_move_tb` y `round_fsm_tb` pasan en Verilator 5.052 (ver PR 25). `game_top_tb` no se corrió: todavía describe el diseño de antes de PR 21 (issue 24).
+- **Capturas de Vivado:** [setup y uso](evidencia/game_top_two_bikes_setup.png), [hold y critical warnings](evidencia/game_top_two_bikes_hold_y_mensajes.png).
 - **Temporización con el diseño ya ruteado** (*Project Summary* de Vivado): setup +3.828 ns (WNS), TNS 0 ns, 0 de 110 extremos fallan; hold +0.156 ns (WHS), THS 0 ns, 0 de 110 extremos fallan. El ancho de pulso no se registró.
 - **DRC:** sin violaciones. **CDC:** no se corrió `report_cdc`.
 - **Mensajes:** síntesis con 5 warnings e implementación con 2 warnings, sin revisar todavía. Los 2 critical warnings de la implementación son `[Designutils 20-1280] Could not find module 'clk_wiz_1'`, uno por cada `.xdc` del IP (`clk_wiz_1.xdc` y `clk_wiz_1_board.xdc`). El proyecto de la estación todavía tiene el IP `clk_wiz_1`, que el diseño dejó de usar en el Paso 4c; como nada lo instancia, sus restricciones no se aplican y no afectan este build. Se quitan sacando el IP del proyecto (ver [comandos_vivado_myws.md](../comandos_vivado_myws.md)).
