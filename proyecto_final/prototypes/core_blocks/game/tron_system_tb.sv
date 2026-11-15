@@ -18,7 +18,7 @@ module tron_system_tb;
     parameter bit RSP_REG = 1'b0;
     parameter integer STEP_TICKS = game_pkg::STEP_TICKS;
     // -g DUMP_FRAMES=1 writes whole frames (one RGB444 word per line, row by
-    // row) to frame-*.hex in the run folder, for tools/hdl_frame_to_png.py.
+    // row) to frame-*.hex in the run folder, for proyecto_final/prototypes/core_blocks/tools/hdl_frame_to_png.py.
     parameter bit DUMP_FRAMES = 1'b0;
     localparam integer TICK_CYCLES = 40000;
     localparam integer HZ = 1152000;                 // 10 cycles per UART bit at 115200
@@ -162,7 +162,7 @@ module tron_system_tb;
     end
     // Empty Arena pixel (x, y) at animation phase ph, as juego/fx.py build_base
     // (synthwave): sky, sun (radius 160 at (640, 432)), stars, neon grid, the
-    // Arena-edge glow. Tables from tools/make_bg_luts.py; the rest from fx.py.
+    // Arena-edge glow. Tables from proyecto_final/prototypes/core_blocks/tools/make_bg_luts.py; the rest from fx.py.
     function automatic logic [11:0] bg_at(input integer x, y, input logic [1:0] ph);
         logic [11:0] c;
         logic [20:0] row;

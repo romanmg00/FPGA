@@ -5,13 +5,13 @@ Four 16 x 16 icons (juego/font.py ICONS): 0 life, 1 life_lost, 2 play,
 bit c of a word is column c, so the hardware reads word[gx].
 
 Usage (from the repository root, with the tron_fpga environment):
-    python3 tools/make_hud_icons.py OUT.mem
+    python3 proyecto_final/prototypes/core_blocks/tools/make_hud_icons.py OUT.mem
 """
 
 import pathlib
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(__file__).resolve().parents[4]  # repository root
 sys.path.insert(0, str(ROOT / "prototipos" / "tron_fpga"))
 
 from juego.font import ICON_PX, ICONS  # noqa: E402

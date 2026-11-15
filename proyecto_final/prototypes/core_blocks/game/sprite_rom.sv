@@ -1,5 +1,5 @@
 // sprite_rom: one RGB444 sprite memory, initialised from the .mem twin of a
-// .coe made by tools/png2coe.py (row by row, top-left first). Owner: Roman
+// .coe made by proyecto_final/prototypes/core_blocks/tools/png2coe.py (row by row, top-left first). Owner: Roman
 // (sprite_rom, contract section 4). Domain: clk = clk_pix. No crossing.
 //
 // Read latency is 2 clk_pix cycles (address register, then output register),

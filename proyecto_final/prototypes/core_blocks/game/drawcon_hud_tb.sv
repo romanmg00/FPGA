@@ -3,7 +3,7 @@
 // layout() and draw(), juego/font.py _SEGMENTS / _DIGIT_SEGMENTS, font
 // "seg"), not from the HDL: positions are derived from hud.py's constants,
 // segment rectangles keep Python's exclusive ends, and the Life/play/crown
-// bitmaps are the generator's output (tools/make_hud_icons.py), read
+// bitmaps are the generator's output (proyecto_final/prototypes/core_blocks/tools/make_hud_icons.py), read
 // independently of the HDL's addressing. Python's final scanline and flash
 // stage (fx.finish) is not part of the HUD and is not modelled.
 //

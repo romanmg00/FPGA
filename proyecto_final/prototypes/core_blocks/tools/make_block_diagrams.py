@@ -11,7 +11,7 @@ Writes SVG files to OUT_DIR:
   4-drawcon_game.svg  the renderer: look-ahead, memories, layers, composition
 
 The diagrams are hand-placed from the module ports; check them against the
-code when ports change. Usage: python3 tools/make_block_diagrams.py OUT_DIR
+code when ports change. Usage: python3 proyecto_final/prototypes/core_blocks/tools/make_block_diagrams.py OUT_DIR
 """
 
 import pathlib

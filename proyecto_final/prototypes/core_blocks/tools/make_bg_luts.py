@@ -12,7 +12,7 @@ Three $readmemh files, all from juego/fx.py with the synthwave palette
                       phase, lerp(grid_glow, grid, level) as fx._grid.
 
 Usage (from the repository root, with the tron_fpga environment):
-    python3 tools/make_bg_luts.py OUT_DIR
+    python3 proyecto_final/prototypes/core_blocks/tools/make_bg_luts.py OUT_DIR
 """
 
 import os
@@ -20,7 +20,7 @@ import pathlib
 import sys
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(__file__).resolve().parents[4]  # repository root
 sys.path.insert(0, str(ROOT / "prototipos" / "tron_fpga"))
 
 from juego import fx  # noqa: E402

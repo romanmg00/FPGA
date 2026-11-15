@@ -1,11 +1,11 @@
 // drawcon_frame_tb: renders one whole frame of drawcon_game from a fixed scene
-// and writes it to frame.hex in the run folder, for tools/look_frame.py
+// and writes it to frame.hex in the run folder, for proyecto_final/prototypes/core_blocks/tools/look_frame.py
 // compare. It is the quick look check of look_loop.sh: no game logic runs, so
 // one frame takes about a minute in XSim instead of the minutes of
 // tron_system_tb. Not a self-checking bench: the comparison with the Python
 // viewer is the check.
 //
-// The scene (tools/look_frame.py scene) is the Arena memory (8192 Cell codes,
+// The scene (proyecto_final/prototypes/core_blocks/tools/look_frame.py scene) is the Arena memory (8192 Cell codes,
 // read with arena_map port B's one-cycle latency) and 14 snapshot words in the
 // order of look_frame.SNAP_FIELDS. The dumped frame is the second one after
 // reset, so drawcon's per-frame latches hold the scene and its video-frame

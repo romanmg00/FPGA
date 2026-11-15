@@ -3,7 +3,7 @@
 The dump holds 1280 x 800 RGB444 words, one hex word per line, row by row.
 Each 4-bit level n is shown as n * 17, like the viewer's rgb444.expand.
 
-Usage: python3 tools/hdl_frame_to_png.py FRAME.hex OUT.png
+Usage: python3 proyecto_final/prototypes/core_blocks/tools/hdl_frame_to_png.py FRAME.hex OUT.png
 """
 
 import sys

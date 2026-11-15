@@ -29,7 +29,7 @@
 // A centre icon blinks "play" while waiting for Start and shows a crown in
 // the winner's colour (white for a Draw) after the Match. The digits are
 // segment rectangles (comparators, no ROM); the icons are a 64 x 16-bit
-// LUT ROM (sprites/hud-icons-16.mem, tools/make_hud_icons.py). The HUD colour
+// LUT ROM (sprites/hud-icons-16.mem, proyecto_final/prototypes/core_blocks/tools/make_hud_icons.py). The HUD colour
 // is computed for the next pixel (the Arena look-ahead) and registered, so it
 // adds no logic between curr_x/curr_y and the VGA pins. Its values are
 // latched with the Bikes, once per frame; rst restores the idle HUD at once,
@@ -54,7 +54,7 @@
 // on the Arena, 2 x 2 px stars from a position hash that twinkle by phase,
 // and a neon grid every 32 px (1 px line pulsing over 4 phases, 1 px glow on
 // each side), all under Trails, Rewards and Bikes. Tables:
-// sprites/synthwave-{sky,sun,grid}.mem from tools/make_bg_luts.py.
+// sprites/synthwave-{sky,sun,grid}.mem from proyecto_final/prototypes/core_blocks/tools/make_bg_luts.py.
 module drawcon_game #(
     parameter string SPRITE_DIR = "src/prototypes/core_blocks/game/sprites/"   // .mem prefix (XSim run folder)
 ) (
@@ -293,7 +293,7 @@ module drawcon_game #(
     // --- synthwave background (juego/fx.py build_base: sky, sun, stars, neon grid)
     // The colour of an empty Arena pixel, computed from the position 7 ahead
     // through seven registers, so it is ready when that pixel is shown. The tables come
-    // from fx.py through tools/make_bg_luts.py. The animation phase is
+    // from fx.py through proyecto_final/prototypes/core_blocks/tools/make_bg_luts.py. The animation phase is
     // fx.phase(frame) = frame[4:3], frame counting video frames.
     localparam int SUN_CX = (AX0 + AX1) / 2, SUN_TOP = (AY0 + AY1) / 2 - 160;   // 640, 272 (SUN_R 160)
     localparam logic [11:0] C_STAR = 12'hCCF, C_STAR_DIM = 12'h667, C_GRID_GLOW = 12'h304;

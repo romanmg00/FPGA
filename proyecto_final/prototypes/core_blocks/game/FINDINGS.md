@@ -32,7 +32,7 @@ Lives squares, and the 10 px white border.
 | `fast_core.sv` | `clk_pix` | Alan | Fast side of the mailbox, the input batch (axis latches gated by the snapshot phase) and the render/Scoreboard snapshot, including the displayed Headings |
 | `sprite_rom.sv` | `clk_pix` | Roman (sprite_rom) | One RGB444 ROM, 2-cycle read latency, initialized from the `.mem` twin of a `.coe` |
 | `drawcon_game.sv` | `clk_pix` | Roman (drawcon) | Design Plan Decision B: composes from the current `curr_x`/`curr_y`, and reads the Arena 1 position ahead and the sprite ROMs 2 positions ahead, from a full raster advance with line and frame wrap. Bike positions and Headings are latched once per frame, in vertical blanking |
-| `sprites/` | — | Roman (art) | `bike-synth-32`, `reward-neon-gem-16` (+1), `reward-neon-star-16` (+3): the synthwave final design's art, as `.coe` and `.mem`, made by `tools/png2coe.py` |
+| `sprites/` | — | Roman (art) | `bike-synth-32`, `reward-neon-gem-16` (+1), `reward-neon-star-16` (+3): the synthwave final design's art, as `.coe` and `.mem`, made by `proyecto_final/prototypes/core_blocks/tools/png2coe.py` |
 | `reset_stretch.sv` | base clock | Alan | Holds the reset request for six game periods, so both domains reset together (review F7) |
 | `tron_system.sv` | both | Alan (game_top) | Everything below the clocks: debounce, UART receive and decode, the two cores, drawcon, `vga_out`, `seg7_driver`, debug LEDs |
 | `tron_top.sv`, `tron_top.xdc` | — | Alan | One Clocking Wizard since 12 November (two before; section 8), `video/game_clk_div` on `clk_pix`, reset synchronizers, contract §2 pins plus `dp` |
@@ -118,7 +118,7 @@ From the repository root; the runners need sandbox escalation for
 
 ```bash
 # Sprite art (only when the PNGs change)
-python3 tools/png2coe.py proyecto_final/prototypes/core_blocks/game/sprites \
+python3 proyecto_final/prototypes/core_blocks/tools/png2coe.py proyecto_final/prototypes/core_blocks/game/sprites \
   assets/candidates/bike-synth-32.png assets/candidates/reward-neon-gem-16.png assets/candidates/reward-neon-star-16.png
 # Event files and model logs (only when the scenarios or the model change)
 (cd prototipos/tron_fpga && python3 ../../proyecto_final/prototypes/core_blocks/game/make_events.py)
@@ -425,7 +425,7 @@ on-screen score is not built. Still PROVISIONAL (ADR 0005).
   Draw. A crashed Player's digits blink during the Crash display. Band
   background `000`. The digits are segment-rectangle comparators; the icons
   are a 64 × 16-bit LUT ROM, `sprites/hud-icons-16.mem`, written by
-  `tools/make_hud_icons.py` from the viewer's bitmaps. The HUD colour is
+  `proyecto_final/prototypes/core_blocks/tools/make_hud_icons.py` from the viewer's bitmaps. The HUD colour is
   computed for the Arena look-ahead pixel and registered (`hud_rgb`), so it
   adds no logic between `curr_x`/`curr_y` and the VGA pins. HUD values are
   latched once per frame with the Bikes; the new synchronous `rst` (`rst_pix`)
@@ -454,7 +454,7 @@ on-screen score is not built. Still PROVISIONAL (ADR 0005).
   ticks with the play icon following the blink, and plays on until P2 has no
   Lives: Match over, P1 wins, cyan crown, P2's Lives hollow. With
   `-g DUMP_FRAMES=1` it writes whole frames, which
-  `tools/hdl_frame_to_png.py` turns into PNGs. Owner and domain lines were
+  `proyecto_final/prototypes/core_blocks/tools/hdl_frame_to_png.py` turns into PNGs. Owner and domain lines were
   added to the bench headers; the new bench code avoids task `return` and
   `inside` (Icarus).
 
@@ -570,7 +570,7 @@ the Arena's own edge, under Trails, Rewards and Bikes. The phase is
 - **Tables**: `sprites/synthwave-sky.mem` (64 × 12 bit, index `y[9:4]`),
   `synthwave-sun.mem` (321 × 21 bit, `{lit, half width, colour}` per row,
   0 for a cut stripe), `synthwave-grid.mem` (4 pulse colours), written by
-  `tools/make_bg_luts.py` from `fx.py` and the synthwave palette.
+  `proyecto_final/prototypes/core_blocks/tools/make_bg_luts.py` from `fx.py` and the synthwave palette.
 - **Pipeline**: the background colour is computed from the position 7 pixels
   ahead through seven registers (`bg_rgb`); the Wall colour from the Arena
   look-ahead through one (`wall_rgb`). Neither adds logic between
@@ -624,7 +624,7 @@ viewer's, needs no ROM and moves, so it was chosen over two 16 × 16 tiles per
 Player.
 
 **Quick look loop** (`look_loop.sh`, `drawcon_frame_tb.sv`,
-`tools/look_frame.py`): one command regenerates the tables, exports a scene
+`proyecto_final/prototypes/core_blocks/tools/look_frame.py`): one command regenerates the tables, exports a scene
 from the model and the viewer's frame of it, renders the scene in XSim (one
 frame, ~1 min) and diffs it pixel by pixel, while the bitstream builds; it
 programs the board only if routed timing is met. With the Trails, the frame of
@@ -639,7 +639,7 @@ the S25FL128S), erases, programs and verifies, then reboots the FPGA from the
 flash as PROG does.
 
 **Diagrams**: `diagrams/1-4` are block diagrams in the handout's style, drawn
-by `tools/make_block_diagrams.py` from the module ports (board level,
+by `proyecto_final/prototypes/core_blocks/tools/make_block_diagrams.py` from the module ports (board level,
 `tron_system`, one Step across the clocks, `drawcon_game`).
 `diagrams/vivado/` holds Vivado's own schematics of the synthesized netlist,
 one page per level (`run_schematic.sh`, which runs `schematic.tcl` in the GUI

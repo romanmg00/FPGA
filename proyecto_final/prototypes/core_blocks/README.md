@@ -10,11 +10,21 @@ already state is **provisional**. Passing these benches is **evidence**, not tea
 agreement; the testbenches here are the builder's own checks, not the
 **official** testbenches of contract §7, which the other owner writes.
 
+> **Prototype only.** Everything in this folder, the playable `game/` build
+> (`tron_top`) included, shows how the game *could* be implemented. It is not
+> the design delivered to the TAs, and no file here is instantiated, included
+> or copied directly into the top-level `proyecto_final/` design. The final
+> game is built step by step in `proyecto_final/`; use this folder as a
+> reference for ideas, timing evidence and the synthwave look. Some module
+> names repeat the top-level ones (`vga_out`, `sync_2ff`, `board_reset_sync`),
+> so every build script here lists its sources explicitly; never glob across
+> both trees.
+
 ## Layout
 
 | Path | Contents |
 |---|---|
-| `game_pkg.sv` | Contract §5 package, copied verbatim. Change the contract first |
+| `game_pkg.sv` | Contract §5 package as copied on 29 October 2026. It keeps `STEP_TICKS = 6`, the value these benches and reference logs were made with; since PR #26 the contract and `proyecto_final/` use 8 ([ADR 0007](../../../docs/adr/0007-configurable-step-interval.md)). The game benches pass the interval as a parameter |
 | `game_pkg_tb.sv` | Checks the package's derived constants |
 | `run_xsim.sh` | One self-checking XSim bench in the Vivado 2025.2 container |
 | `run_synth.sh` | Out-of-context synthesis: utilization, latches, RAM inference, timing |
@@ -23,6 +33,7 @@ agreement; the testbenches here are the builder's own checks, not the
 | `datapath/` | Round two: the Step transaction across two clocks, driven by a model trace |
 | `board/` | Round two: board test-pattern bitstream (clocks, Arena, drawcon) |
 | `game/` | The playable core: `tron_top` bitstream and flash image, M2 replay of the full HDL game, end-to-end pins bench, P2 web page, board checklist, the quick look loop (`look_loop.sh`) and the block diagrams (`diagrams/`, see [Architecture](#architecture-of-the-playable-core-tron_top)) |
+| `tools/` | Host scripts used only by this prototype (moved from the repository's `tools/` on 15 November 2026): `png2coe.py` (`.coe` + `.mem` sprite ROMs), `make_hud_icons.py`, `make_bg_luts.py`, `look_frame.py`, `hdl_frame_to_png.py`, `make_block_diagrams.py`. Run them from the repository root. The SHA-256 tables in `game/FINDINGS.md` name them at their old `tools/` paths, as they were when hashed |
 | `crossing/` | The game-fast crossing experiment (ADR 0003 item 2, ADR 0007): req/ack responses, `batch_fifo`, protocol benches, routed CDC comparison; also the research note's clock probe |
 
 ## Architecture of the playable core (`tron_top`)
@@ -35,8 +46,8 @@ current behaviour. As of 12 November 2026 (branch `hdl/synthwave-look`), this
 build is in the board's flash ([game/FINDINGS.md](game/FINDINGS.md), section 12).
 
 The diagrams follow the course handout's `game_top.png`. They are drawn from
-the module ports by `tools/make_block_diagrams.py`; regenerate them when ports
-change (`python3 tools/make_block_diagrams.py proyecto_final/prototypes/core_blocks/game/diagrams`,
+the module ports by `proyecto_final/prototypes/core_blocks/tools/make_block_diagrams.py`; regenerate them when ports
+change (`python3 proyecto_final/prototypes/core_blocks/tools/make_block_diagrams.py proyecto_final/prototypes/core_blocks/game/diagrams`,
 then a PNG per SVG). Vivado's own schematics of a built netlist, one page per
 level, are in [`game/diagrams/vivado/`](game/diagrams/vivado/) (PDF and SVG;
 `game/run_schematic.sh [tron-BUILD]`). They are exact but dense: zoom in.
@@ -201,8 +212,9 @@ Each folder's `FINDINGS.md` holds the commands, artifacts and limits.
   periods. An end-to-end bench through the board pins passes 43 checks,
   including texel-exact sprite rows in all four Headings. `tron_top.bit` meets
   routed timing (WNS +0.202 ns on a VGA pad path, internal +2.30 ns;
-  WHS +0.028 ns) using 1.62 % of the LUTs. **Not yet run on the board**: the
-  checklist is in its section 5.
+  WHS +0.028 ns) using 1.62 % of the LUTs. Run on the board and written to its
+  flash on 12 November 2026 ([game/FINDINGS.md](game/FINDINGS.md), section 12;
+  checklist in section 5).
 - **Crossing** ([crossing/](crossing/FINDINGS.md)): the model's stable-payload
   mailbox works, but its 21 fast-to-game capture registers are an unknown CDC
   in Vivado. Under ADR 0007 (8–10 ticks per Step), the "captured" variant

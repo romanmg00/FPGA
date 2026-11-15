@@ -39,7 +39,7 @@ read_verilog -sv [list $core/video/vga_out.sv $src/counters.sv \
     $src/prototypes/uart_input/uart_sync_2ff.sv $src/prototypes/uart_input/uart_rx.sv \
     $src/prototypes/uart_input/uart_cmd_decode.sv]
 set_property top tron_top [current_fileset]
-# Sprite ROM contents: the .mem twins of the .coe files from tools/png2coe.py.
+# Sprite ROM contents: the .mem twins of the .coe files from proyecto_final/prototypes/core_blocks/tools/png2coe.py.
 set_property generic "SPRITE_DIR=\"$core/game/sprites/\" QUALIFIED=$qualified RSP_REG=$rsp_reg STEP_TICKS=$step" [current_fileset]
 emit $out/crossing.txt "QUALIFIED=$qualified RSP_REG=$rsp_reg STEP_TICKS=$step"
 add_files -fileset constrs_1 $core/game/tron_top.xdc

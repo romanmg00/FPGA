@@ -26,7 +26,7 @@ import sys
 from dataclasses import replace
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(__file__).resolve().parents[4]  # repository root
 sys.path.insert(0, str(ROOT / "prototipos" / "tron_fpga"))
 
 import numpy as np  # noqa: E402

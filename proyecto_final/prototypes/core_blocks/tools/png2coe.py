@@ -5,7 +5,7 @@ juego.sprites.load_png: a pixel with alpha below 128 is 000 (transparent);
 art uses 0F0 as the tint key. Square, power-of-two sides only.
 
 Usage (from the repository root):
-    python3 tools/png2coe.py OUT_DIR PNG...
+    python3 proyecto_final/prototypes/core_blocks/tools/png2coe.py OUT_DIR PNG...
 writes OUT_DIR/<name>.coe and OUT_DIR/<name>.mem for each PNG.
 """
 
