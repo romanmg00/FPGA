@@ -68,10 +68,10 @@ module position_logic #(
     );    
 
     // ---------------------------------------------------------------
-    // 3. Pace: one step every 6 ticks while run = 1
+    // 3. Pace: one step every 8 ticks while run = 1
     // ---------------------------------------------------------------
     step_counter #(
-        .STEP_TICKS(6)
+        .STEP_TICKS(8)
     ) u_step_counter (
         .clk(clk),
         .rst(rst),
