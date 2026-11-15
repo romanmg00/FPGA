@@ -125,7 +125,7 @@ class ContractTests(unittest.TestCase):
                  "CELL_EMPTY", "CELL_WALL", "CELL_P1_TRAIL", "CELL_P1_HEAD", "CELL_P2_TRAIL",
                  "CELL_P2_HEAD", "CELL_CRASH", "CELL_RESERVED", "DIR_UP", "DIR_RIGHT",
                  "DIR_DOWN", "DIR_LEFT", "G_IDLE", "G_PLAY", "G_CRASH", "G_READY", "G_MATCH",
-                 "BTN_U", "BTN_D", "BTN_L", "BTN_R", "BTN_C", "LIVES_START",
+                 "BTN_U", "BTN_D", "BTN_L", "BTN_R", "BTN_C", "STEP_TICKS", "LIVES_START",
                  "REWARD_PTS0", "REWARD_PTS1", "REWARD_PTS2", "SURVIVAL_BONUS", "CRASH_TICKS",
                  "SCORE_VIEW_TICKS", "SAL_P1_CX", "SAL_P2_CX", "SAL_CY")
         expected = {n: getattr(params, n) for n in names}
@@ -134,11 +134,6 @@ class ContractTests(unittest.TestCase):
                          "COLOR_TRANSPARENT": 0x000, "COLOR_TINT_KEY": 0x0F0})
         for name, value in expected.items():
             self.assertEqual(values.get(name), value, name)
-        # ADR 0007: the Step interval is configurable, and the contract picks one value
-        # from 8 to 10 ticks. The model keeps 6 as its default because the 12 recorded
-        # scenario logs were made with it; it must still accept the contract's value.
-        self.assertIn(values.get("STEP_TICKS"), range(8, 11), "STEP_TICKS")
-        RuleParams(step_ticks=values["STEP_TICKS"])
         self.assertNotIn(params.G_PREP, (values[n] for n in ("G_IDLE", "G_PLAY", "G_CRASH",
                                                              "G_READY", "G_MATCH")))
 

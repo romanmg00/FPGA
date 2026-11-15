@@ -6,6 +6,8 @@
 // Flow: buttons -> turn_req -> bike_move -> next_cx/next_cy -> wall check
 //       -> advance (move) or crash. step_counter sets how often a step happens.
 module position_logic #(
+    // Ticks of clk_juego per step. game_top passes the same value to bike_glide (ADR 0010).
+    parameter int STEP_TICKS = 6,
     // P2's start column. Only a testbench changes it, to arrange a same-target crash.
     parameter logic [6:0] P2_START_CX = 7'd59
 ) (
@@ -68,10 +70,10 @@ module position_logic #(
     );    
 
     // ---------------------------------------------------------------
-    // 3. Pace: one step every 8 ticks while run = 1
+    // 3. Pace: one step every STEP_TICKS ticks while run = 1
     // ---------------------------------------------------------------
     step_counter #(
-        .STEP_TICKS(8)
+        .STEP_TICKS(STEP_TICKS)
     ) u_step_counter (
         .clk(clk),
         .rst(rst),

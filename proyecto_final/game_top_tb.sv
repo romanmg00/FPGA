@@ -10,8 +10,11 @@
 // pause both bikes go back to their starts. The crash rules themselves are checked in
 // position_logic_tb; this bench checks that game_top wires them to the pins.
 //
-// Bike positions are read from dut.blkpos1_x/y and dut.blkpos2_x/y; the Round state from
-// dut.u_position_logic.run; the step length from u_step_counter's STEP_TICKS.
+// Bike Cells are read from dut.blkpos1_x/y and dut.blkpos2_x/y; the Round state from
+// dut.u_position_logic.run; the step length from u_step_counter's STEP_TICKS. The squares
+// are drawn at dut.glide1_x/y and dut.glide2_x/y, which slide toward the Cell over one step
+// (ADR 0010): frames taken while the bikes move use those, and glide_check compares the
+// slide with the offsets the ADR gives.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
 // own simulator: xsim game_top_tb -runall -testplusarg scenario=steps
 // Without +scenario they all run one after another in one simulation.
@@ -39,6 +42,13 @@ module game_top_tb;
     int STEP;                 // ticks per step, read from the design
     int ticks = 0;            // clk_juego rises since power-up
     int last_step_tick = -1;  // tick of the last step seen; -1 before the first of a Round
+    // Drawn positions as vga_out samples them: drawcon's colour at a clk_pix edge comes from
+    // the glide registers just before that edge.
+    logic [10:0] e1x, e1y, e2x, e2y;
+    always @(posedge dut.clk_pix) begin
+        e1x <= dut.glide1_x; e1y <= dut.glide1_y;
+        e2x <= dut.glide2_x; e2y <= dut.glide2_y;
+    end
 
     game_top dut (.clk, .cpu_resetn, .sw, .btn, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs));
     always #5 clk = ~clk;
@@ -81,9 +91,9 @@ module game_top_tb;
 
     // Rebuilds one whole frame from the pins: sync widths, line and frame length,
     // blanking, and the colour of every pixel. The frame starts where vga_vs rises.
-    // It takes at most two frames (28 ms), less than one step (8 ticks, 133 ms), so it can
-    // run between two steps of a moving Round.
-    task automatic check_frame(string what, int p1x, int p1y, int p2x, int p2y);
+    // With live = 1 the expected squares follow the drawn positions pixel by pixel, so the
+    // check also holds while the bikes slide.
+    task automatic check_frame(string what, int p1x, int p1y, int p2x, int p2y, bit live = 1'b0);
         realtime t0, frame_ns;
         logic [11:0] want;
         int x, y;
@@ -106,7 +116,8 @@ module game_top_tb;
                 if (h >= 336 && h < 1616 && v >= 27 && v < 827) begin
                     x = h - 336;
                     y = v - 27;
-                    want = expected_colour(x, y, p1x, p1y, p2x, p2y);
+                    want = live ? expected_colour(x, y, e1x, e1y, e2x, e2y)
+                                : expected_colour(x, y, p1x, p1y, p2x, p2y);
                 end
                 if ({r, g, b} !== want)
                     fail($sformatf("%s: pins show %03h, expected %03h at h=%0d v=%0d", what, {r, g, b}, want, h, v));
@@ -116,12 +127,40 @@ module game_top_tb;
         frame_ns = $realtime - t0;
         if (frame_ns < 0.995 * H_TOTAL * V_TOTAL * PIX_NS || frame_ns > 1.005 * H_TOTAL * V_TOTAL * PIX_NS)
             fail($sformatf("%s: frame took %0.0f ns", what, frame_ns));
-        $display("ok   %s: whole frame correct, P1 at (%0d,%0d), P2 at (%0d,%0d)", what, p1x, p1y, p2x, p2y);
+        if (live) $display("ok   %s: whole frame correct at the drawn positions", what);
+        else $display("ok   %s: whole frame correct, P1 at (%0d,%0d), P2 at (%0d,%0d)", what, p1x, p1y, p2x, p2y);
     endtask
 
-    // Checks the frame at the bikes' current positions.
+    // Checks the frame at the bikes' drawn positions, which may be sliding.
     task automatic check_frame_here(string what);
-        check_frame(what, dut.blkpos1_x, dut.blkpos1_y, dut.blkpos2_x, dut.blkpos2_y);
+        check_frame(what, 0, 0, 0, 0, 1'b1);
+    endtask
+
+    // ADR 0010: after a one-Cell step the square has covered round(16 t / STEP) px t ticks later.
+    function automatic int glide_offset(int t);
+        return (16 * t + STEP / 2) / STEP;
+    endfunction
+
+    // Called right after next_step saw a step of (dx1,dy1) for P1 and (dx2,dy2) for P2: the
+    // drawn squares stay on the old Cells until the next tick, then slide one offset per tick
+    // and reach the new Cells exactly STEP ticks after the step.
+    task automatic glide_check(string what, int dx1, int dy1, int dx2, int dy2);
+        int o1x, o1y, o2x, o2y, g1x, g1y, g2x, g2y;
+        o1x = dut.blkpos1_x; o1y = dut.blkpos1_y; o2x = dut.blkpos2_x; o2y = dut.blkpos2_y;
+        o1x -= 16 * dx1; o1y -= 16 * dy1; o2x -= 16 * dx2; o2y -= 16 * dy2;
+        for (int t = 0; t <= STEP; t++) begin
+            if (t > 0) begin
+                @(posedge dut.clk_juego);
+                #1;
+            end
+            g1x = dut.glide1_x; g1y = dut.glide1_y; g2x = dut.glide2_x; g2y = dut.glide2_y;
+            if (g1x != o1x + dx1 * glide_offset(t) || g1y != o1y + dy1 * glide_offset(t)
+                || g2x != o2x + dx2 * glide_offset(t) || g2y != o2y + dy2 * glide_offset(t))
+                fail($sformatf("%s, tick %0d: drawn P1 (%0d,%0d) P2 (%0d,%0d); expected P1 (%0d,%0d) P2 (%0d,%0d)",
+                               what, t, g1x, g1y, g2x, g2y, o1x + dx1 * glide_offset(t),
+                               o1y + dy1 * glide_offset(t), o2x + dx2 * glide_offset(t), o2y + dy2 * glide_offset(t)));
+        end
+        $display("ok   %s: both squares slid one Cell in %0d ticks", what, STEP);
     endtask
 
     task automatic expect_at(string what, int p1x, int p1y, int p2x, int p2y);
@@ -206,13 +245,15 @@ module game_top_tb;
         check_frame("switches up: same colours", P1_X0, P1_Y0, P2_X0, P2_Y0);
     endtask
 
-    // BTNC starts the Round; both bikes move one cell on the same edge, every STEP ticks.
+    // BTNC starts the Round; both bikes move one cell on the same edge, every STEP ticks, and
+    // their squares slide between Cells.
     task automatic steps();
         press_start();
         for (int i = 1; i <= 5; i++) step_ok($sformatf("step %0d", i), 1, 0, -1, 0);
         expect_at("after 5 steps", P1_X0 + 5 * 16, P1_Y0, P2_X0 - 5 * 16, P2_Y0);
         check_frame_here("moving, between steps 5 and 6");
         step_ok("step 6", 1, 0, -1, 0);
+        glide_check("step 6", 1, 0, -1, 0);
     endtask
 
     // P1 turns with the buttons; a reversal is ignored; P2 keeps going straight.
