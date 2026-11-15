@@ -80,6 +80,16 @@ Debe salir la lista de `.sv` desde `~/FPGA/proyecto_final` y el `.xci` de `clk_w
 - Si llegó un archivo `.sv` nuevo (un módulo nuevo), repite el bloque de la sección 2 y luego sintetiza.
 - Revisa en *Design Sources* que `game_top` esté arriba y que no haya módulos sueltos sin padre.
 
+## Quitar el IP viejo `clk_wiz_1` (Tcl de Vivado)
+
+Desde el Paso 4c el diseño ya no usa `clk_wiz_1`. Si el proyecto todavía lo tiene, la implementación da dos critical warnings `Could not find module 'clk_wiz_1'`. Para quitarlo del proyecto:
+
+```tcl
+remove_files [get_files clk_wiz_1.xci]
+```
+
+Solo lo saca del proyecto; no toca `clk_wiz_0`. Después vuelve a correr la síntesis.
+
 ## 4. Sintetizar, implementar y generar el bitstream (Tcl de Vivado)
 
 ```tcl

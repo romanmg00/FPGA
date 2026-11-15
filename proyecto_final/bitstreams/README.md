@@ -11,7 +11,7 @@ El bitstream para mostrar: dos motos que avanzan solas en rondas, con choques co
 | SHA-256 | `ab46d0e8d52e19e16dd05d44a3d41c4bfdef7f40f364ef16a21e76083a88fb92` |
 | Fuente | Rama `hdl/second-bike`. El diseño (`.sv`, `.xdc`, IP) es el mismo desde `01cdcc8` hasta `80b55f2`; los commits de en medio solo cambian documentos. No se registró el commit exacto del checkout |
 | Cómo se construye | Proyecto de Vivado en la estación remota `myws.kaust.edu.sa`, con las fuentes cargadas desde un clon del repo como en [comandos_vivado_myws.md](../comandos_vivado_myws.md). No usa `build_game_top.tcl`, que todavía describe el diseño de antes de PR 21 (issue 24) |
-| Herramienta | Vivado de la estación remota (versión no registrada), 15 de noviembre de 2026 |
+| Herramienta | Vivado 2020.2 de la estación remota, 15 de noviembre de 2026. Es otra versión que la 2025.2 de `alan-desktop`, con la que se hicieron los bitstreams anteriores |
 | Parte | `xc7a100tcsg324-1` |
 
 ### Prueba en la tarjeta
@@ -30,9 +30,9 @@ Nexys A7 serial `210292B1820D`, programada por JTAG con `openFPGALoader` desde l
 ### Simulación y reportes
 
 - **Testbenches:** `position_logic_tb`, `bike_move_tb` y `round_fsm_tb` pasan en Verilator 5.052 (ver PR 25). `game_top_tb` no se corrió: todavía describe el diseño de antes de PR 21 (issue 24).
-- **Temporización con el diseño ya ruteado** (*Project Summary* de Vivado): setup +3.828 ns (WNS), TNS 0 ns, 0 de 110 extremos fallan. Hold (WHS) y ancho de pulso no se registraron.
+- **Temporización con el diseño ya ruteado** (*Project Summary* de Vivado): setup +3.828 ns (WNS), TNS 0 ns, 0 de 110 extremos fallan; hold +0.156 ns (WHS), THS 0 ns, 0 de 110 extremos fallan. El ancho de pulso no se registró.
 - **DRC:** sin violaciones. **CDC:** no se corrió `report_cdc`.
-- **Mensajes:** síntesis con 5 warnings; implementación con 2 critical warnings y 2 warnings, sin revisar todavía.
+- **Mensajes:** síntesis con 5 warnings e implementación con 2 warnings, sin revisar todavía. Los 2 critical warnings de la implementación son `[Designutils 20-1280] Could not find module 'clk_wiz_1'`, uno por cada `.xdc` del IP (`clk_wiz_1.xdc` y `clk_wiz_1_board.xdc`). El proyecto de la estación todavía tiene el IP `clk_wiz_1`, que el diseño dejó de usar en el Paso 4c; como nada lo instancia, sus restricciones no se aplican y no afectan este build. Se quitan sacando el IP del proyecto (ver [comandos_vivado_myws.md](../comandos_vivado_myws.md)).
 
 ## Bitstreams anteriores
 
