@@ -25,7 +25,7 @@ from model.input_batch import InputBatch, uart_decode
 from model.lfsr import Lfsr
 from model.mailbox import OP_COMMIT, OP_PREPARE, OP_READ2, Mailbox
 from model.reward_place import find_empty_cell
-from model.seg7 import GLYPHS, PageTimer, digits, segments
+from model.seg7 import GLYPHS, GOAL_VIEW, LIVES_VIEW, POINTS_VIEW, PageTimer, digits, segments
 from model.step_unit import S_COMMIT, S_IDLE, S_READ, step_resolve
 from model.turn_unit import DOWN, LEFT, RIGHT, UP, TurnUnit, next_cell
 
@@ -125,7 +125,7 @@ class ContractTests(unittest.TestCase):
                  "CELL_EMPTY", "CELL_WALL", "CELL_P1_TRAIL", "CELL_P1_HEAD", "CELL_P2_TRAIL",
                  "CELL_P2_HEAD", "CELL_CRASH", "CELL_RESERVED", "DIR_UP", "DIR_RIGHT",
                  "DIR_DOWN", "DIR_LEFT", "G_IDLE", "G_PLAY", "G_CRASH", "G_READY", "G_MATCH",
-                 "BTN_U", "BTN_D", "BTN_L", "BTN_R", "BTN_C", "STEP_TICKS", "LIVES_START",
+                 "BTN_U", "BTN_D", "BTN_L", "BTN_R", "BTN_C", "LIVES_START",
                  "REWARD_PTS0", "REWARD_PTS1", "REWARD_PTS2", "SURVIVAL_BONUS", "CRASH_TICKS",
                  "SCORE_VIEW_TICKS", "SAL_P1_CX", "SAL_P2_CX", "SAL_CY")
         expected = {n: getattr(params, n) for n in names}
@@ -134,6 +134,11 @@ class ContractTests(unittest.TestCase):
                          "COLOR_TRANSPARENT": 0x000, "COLOR_TINT_KEY": 0x0F0})
         for name, value in expected.items():
             self.assertEqual(values.get(name), value, name)
+        # ADR 0007: the Step interval is configurable, and the contract picks one value
+        # from 8 to 10 ticks. The model keeps 6 as its default because the 12 recorded
+        # scenario logs were made with it; it must still accept the contract's value.
+        self.assertIn(values.get("STEP_TICKS"), range(8, 11), "STEP_TICKS")
+        RuleParams(step_ticks=values["STEP_TICKS"])
         self.assertNotIn(params.G_PREP, (values[n] for n in ("G_IDLE", "G_PLAY", "G_CRASH",
                                                              "G_READY", "G_MATCH")))
 
@@ -186,7 +191,7 @@ class StepResolveTests(unittest.TestCase):
     def test_head_on_same_cell_crashes_both(self):
         out = self.resolve(((40, 20), (41, 19)), (RIGHT, DOWN), (EMPTY, EMPTY))
         self.assertEqual((out.crashed, out.head_on), ((True, True), True))
-        self.assertEqual(out.writes, ())
+        self.assertEqual(out.writes, ((40, 20, arena_map.CRASH), (41, 19, arena_map.CRASH)))
 
     def test_head_on_swap_crashes_both(self):
         out = self.resolve(((40, 20), (41, 20)), (RIGHT, LEFT), (HEAD_P2, HEAD_P1))
@@ -200,7 +205,8 @@ class StepResolveTests(unittest.TestCase):
         out = self.resolve(((40, 20), (60, 20)), (RIGHT, LEFT), (WALL, REWARD_SLOT0 + 1))
         self.assertEqual(out.heads, ((40, 20), (59, 20)))
         self.assertEqual(out.collected, (None, 1))
-        self.assertEqual(out.writes, ((60, 20, TRAIL_P2), (59, 20, HEAD_P2)))
+        self.assertEqual(out.writes,
+                         ((40, 20, arena_map.CRASH), (60, 20, TRAIL_P2), (59, 20, HEAD_P2)))
 
 
 class TurnUnitTests(unittest.TestCase):
@@ -299,6 +305,17 @@ class MailboxTests(unittest.TestCase):
         game = started(RuleParams(step_ticks=params.MIN_STEP_TICKS, crash_ticks=8, fixed_seed=True))
         until(game, lambda g: g.phase == CRASH)            # no cadence overrun on the way
         self.assertEqual(game.step_count, 20)
+
+    def test_each_crossing_rejects_a_step_interval_it_cannot_sustain(self):
+        for crossing, shortest in (("mailbox", 4), ("qualified", 6), ("captured", 8)):
+            with self.subTest(crossing=crossing):
+                with self.assertRaises(ValueError):
+                    Game(RuleParams(step_ticks=shortest - 1), crossing=crossing)
+                game = Game(RuleParams(step_ticks=shortest, crash_ticks=8, fixed_seed=True),
+                            crossing=crossing)
+                tick(game, start=True)
+                until(game, lambda g: g.phase == CRASH)    # no cadence overrun on the way
+                self.assertEqual(game.step_count, 20)
 
 
 class ArenaCtrlTests(unittest.TestCase):
@@ -687,6 +704,33 @@ class ScoreboardTests(unittest.TestCase):
             pt.clock()
         self.assertEqual(pt.view, 0)
 
+    def test_goal_page_while_waiting_for_a_match(self):
+        pt = PageTimer(3)
+        views = []
+        for _ in range(9):
+            pt.clock(waiting=True)
+            views.append(pt.view)
+        self.assertEqual(views, [0, 0, LIVES_VIEW, 1, 1, GOAL_VIEW, 2, 2, POINTS_VIEW])
+        self.assertEqual(digits(GOAL_VIEW, [7, 12], [3, 1], 30), "GOAL  30")
+        pt.clock(waiting=True)
+        pt.clock(waiting=True, goal_sw=2)                    # a change jumps to Goal
+        self.assertEqual((pt.view, pt.timer), (GOAL_VIEW, 0))
+        pt.clock(waiting=False, goal_sw=3)                   # no jump while playing
+        self.assertEqual(pt.view, GOAL_VIEW)                 # the page finishes its time
+        pt.clock(waiting=False, goal_sw=3)
+        pt.clock(waiting=False, goal_sw=3)
+        self.assertEqual(pt.view, POINTS_VIEW)               # then never Goal while playing
+        for _ in range(9):
+            pt.clock(waiting=False, goal_sw=3)
+            self.assertNotEqual(pt.view, GOAL_VIEW)
+
+    def test_goal_switches_show_on_the_idle_scoreboard(self):
+        game = Game(RuleParams(score_view_ticks=60, fixed_seed=True))
+        tick(game)
+        for _ in range(4):
+            tick(game, goal_sw=2)
+        self.assertEqual(game.snapshot()["scoreboard"], "GOAL  30")
+
     def test_glyph_decoder_has_p_and_l_and_is_active_low(self):
         self.assertTrue({"P", "L"} <= set(GLYPHS))
         self.assertEqual(segments("8"), 0)
@@ -721,7 +765,8 @@ class LongGameTests(unittest.TestCase):
                     self.assertEqual(game.grid.read(*cell), REWARD_SLOT0 + slot)
             if game.phase != PREP:
                 for i, head in enumerate(game.step.head):
-                    self.assertEqual(game.grid.read(*head), arena_map.HEAD[i])
+                    code = arena_map.CRASH if game.crashed[i] else arena_map.HEAD[i]
+                    self.assertEqual(game.grid.read(*head), code)
             self.assertLessEqual(max(game.points), params.POINTS_MAX)
             self.assertTrue(all(0 <= n <= 3 for n in game.lives))
             if game.phase == PLAY:

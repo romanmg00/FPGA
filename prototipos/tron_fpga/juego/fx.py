@@ -49,7 +49,6 @@ HW_COST = {                # short enough for one panel line each
     "Reward spin": "Heading = frame[4:3] (address)",
     "speed streaks": "rect compares vs head + Heading",
     "HUD": "box compares + font/icon ROM",
-    "neon digits": "ghost = segment-area compares",
     "chrome digits": "row LUT 2 x 16 x 12 b",
 }
 
@@ -296,7 +295,7 @@ def active(look) -> list:
         on.append("flash")
     if look.hud == "on":
         on.append("HUD")
-        if look.font in ("neon", "chrome"):
+        if look.font == "chrome":
             on.append(look.font + " digits")
     if look.crt == "scanlines":
         on.append("scanlines")

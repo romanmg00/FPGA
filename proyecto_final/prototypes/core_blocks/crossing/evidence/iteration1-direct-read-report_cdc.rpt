@@ -1,0 +1,573 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Thu Oct 29 16:02:32 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_cdc -details -file /builds/tron-qualified-20261029-185917-1261465/report_cdc.rpt
+| Design       : tron_top
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+CDC Report
+
+ID      Severity  Count  Description
+------  --------  -----  ----------------------------------------------
+CDC-1   Critical    121  1-bit unknown CDC circuitry
+CDC-3   Info         14  1-bit synchronized with ASYNC_REG property
+CDC-6   Warning       2  Multi-bit synchronized with ASYNC_REG property
+CDC-15  Warning     364  Clock enable controlled CDC structure detected
+
+Source Clock: clk_out1_tron_base_clock
+Destination Clock: clk_juego
+CDC Type: No Common Period
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)          Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  ---------------------  -----------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  u_reset/rst_req_reg/C  u_reset_game/meta_reg/D
+
+Source Clock: clk_out1_tron_pixel_clock
+Destination Clock: clk_juego
+CDC Type: No Common Period
+
+Row  ID      Severity  Description                                     Depth  Exception                Source (From)                                              Destination (To)
+---  ------  --------  ----------------------------------------------  -----  -----------------------  ---------------------------------------------------------  -------------------------------------------------
+  1  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/wgray_reg[3:0]/C             u_system/g_batch_fifo.u_batch/wgray_s1_reg[3:0]/D
+  2  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[0]/CE
+  3  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[0]/D
+  4  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[1]/CE
+  5  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[1]/D
+  6  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[2]/CE
+  7  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[2]/D
+  8  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[3]/CE
+  9  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/cmd_a_p1_reg[3]/D
+ 10  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[4]/CE
+ 11  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/cmd_a_p1_reg[4]/D
+ 12  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[5]/CE
+ 13  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/cmd_a_p1_reg[5]/D
+ 14  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[6]/CE
+ 15  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/cmd_a_p1_reg[6]/D
+ 16  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[7]/CE
+ 17  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[7]/D
+ 18  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[8]/CE
+ 19  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/cmd_a_p1_reg[8]/D
+ 20  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[9]/CE
+ 21  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/cmd_a_p1_reg[9]/D
+ 22  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[10]/CE
+ 23  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/cmd_a_p1_reg[10]/D
+ 24  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[11]/CE
+ 25  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/cmd_a_p1_reg[11]/D
+ 26  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p1_reg[12]/CE
+ 27  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/cmd_a_p1_reg[12]/D
+ 28  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[0]/CE
+ 29  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[0]/D
+ 30  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[1]/CE
+ 31  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[1]/D
+ 32  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[2]/CE
+ 33  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/cmd_a_p2_reg[2]/D
+ 34  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[3]/CE
+ 35  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/cmd_a_p2_reg[3]/D
+ 36  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[4]/CE
+ 37  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/cmd_a_p2_reg[4]/D
+ 38  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[5]/CE
+ 39  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/cmd_a_p2_reg[5]/D
+ 40  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[6]/CE
+ 41  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/cmd_a_p2_reg[6]/D
+ 42  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[7]/CE
+ 43  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[7]/D
+ 44  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[8]/CE
+ 45  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[8]/D
+ 46  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[9]/CE
+ 47  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[9]/D
+ 48  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[10]/CE
+ 49  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[10]/D
+ 50  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[11]/CE
+ 51  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/cmd_a_p2_reg[11]/D
+ 52  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[12]/CE
+ 53  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_a_p2_reg[12]/D
+ 54  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[0]/D
+ 55  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[1]/D
+ 56  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[2]/D
+ 57  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[3]/D
+ 58  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[4]/D
+ 59  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[5]/D
+ 60  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[6]/D
+ 61  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[7]/D
+ 62  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[8]/D
+ 63  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[9]/D
+ 64  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[10]/D
+ 65  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[11]/D
+ 66  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_b_p1_reg[12]/D
+ 67  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[0]/D
+ 68  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[1]/D
+ 69  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[2]/D
+ 70  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[3]/D
+ 71  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[4]/D
+ 72  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[5]/D
+ 73  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[6]/D
+ 74  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[7]/D
+ 75  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[8]/D
+ 76  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[9]/D
+ 77  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[10]/D
+ 78  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[11]/D
+ 79  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_b_p2_reg[12]/D
+ 80  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_collected_reg[0]/D
+ 81  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_collected_reg[1]/D
+ 82  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_collected_reg[2]/D
+ 83  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_new_match_reg/CE
+ 84  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_new_match_reg/D
+ 85  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_op_reg[0]/D
+ 86  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_op_reg[1]/D
+ 87  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[0]/CE
+ 88  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[1]/CE
+ 89  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[2]/CE
+ 90  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[3]/CE
+ 91  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[4]/CE
+ 92  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[5]/CE
+ 93  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[6]/CE
+ 94  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[7]/CE
+ 95  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[8]/CE
+ 96  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[9]/CE
+ 97  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[10]/CE
+ 98  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[11]/CE
+ 99  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[12]/CE
+100  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[13]/CE
+101  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[14]/CE
+102  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[15]/CE
+103  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[16]/CE
+104  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[17]/CE
+105  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[18]/CE
+106  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[19]/CE
+107  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[20]/CE
+108  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[21]/CE
+109  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[22]/CE
+110  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[23]/CE
+111  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[24]/CE
+112  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[25]/CE
+113  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[26]/CE
+114  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[27]/CE
+115  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[28]/CE
+116  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[29]/CE
+117  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[30]/CE
+118  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seed_mix_reg[31]/CE
+119  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seq_reg[0]/CE
+120  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seq_reg[1]/CE
+121  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seq_reg[2]/CE
+122  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/cmd_seq_reg[3]/CE
+123  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/cmd_survive_p1_reg/D
+124  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/cmd_survive_p2_reg/D
+125  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/crashed_p1_reg/D
+126  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/crashed_p2_reg/D
+127  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_system/u_fast/rsp_seq_reg[0]/C                           u_system/u_game/g_qualified.rsp_meta_reg/D
+128  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[0]/D
+129  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[0]/R
+130  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[1]/D
+131  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[1]/R
+132  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[2]/D
+133  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[2]/S
+134  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[3]/D
+135  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[3]/R
+136  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[4]/D
+137  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[4]/S
+138  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[5]/D
+139  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[5]/R
+140  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[6]/D
+141  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[6]/R
+142  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[7]/D
+143  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[7]/S
+144  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[8]/D
+145  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[8]/S
+146  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[9]/D
+147  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[9]/R
+148  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[10]/D
+149  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[10]/S
+150  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[11]/D
+151  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[11]/S
+152  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/head_p1_reg[12]/D
+153  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p1_reg[12]/R
+154  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[0]/D
+155  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[0]/S
+156  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[1]/D
+157  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[1]/S
+158  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[2]/D
+159  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[2]/R
+160  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[3]/D
+161  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[3]/S
+162  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[4]/D
+163  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[4]/S
+164  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[5]/D
+165  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[5]/S
+166  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[6]/D
+167  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[6]/R
+168  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[7]/D
+169  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[7]/S
+170  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[8]/D
+171  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[8]/S
+172  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[9]/D
+173  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[9]/R
+174  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[10]/D
+175  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[10]/S
+176  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[11]/D
+177  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[11]/S
+178  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/head_p2_reg[12]/D
+179  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/head_p2_reg[12]/R
+180  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/launched_p1_reg[0]/D
+181  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/launched_p1_reg[1]/D
+182  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/launched_p2_reg[0]/D
+183  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/launched_p2_reg[1]/D
+184  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_reg[0]/D
+185  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_reg[1]/D
+186  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_reg[2]/D
+187  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_ticks_reg[0]/R
+188  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_ticks_reg[1]/R
+189  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_ticks_reg[2]/R
+190  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_ticks_reg[3]/R
+191  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_ticks_reg[4]/R
+192  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_ticks_reg[5]/R
+193  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_ticks_reg[6]/R
+194  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/phase_ticks_reg[7]/R
+195  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/shown_p1_reg[0]/S
+196  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/shown_p1_reg[1]/R
+197  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/shown_p2_reg[0]/S
+198  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/shown_p2_reg[1]/S
+199  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/step_cnt_reg[0]/R
+200  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/step_cnt_reg[1]/R
+201  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/step_cnt_reg[2]/R
+202  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/step_cnt_reg[3]/R
+203  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/step_cnt_reg[4]/R
+204  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/step_cnt_reg[5]/R
+205  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/step_cnt_reg[6]/R
+206  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/step_cnt_reg[7]/R
+207  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[0]/CE
+208  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMC_D1/CLK  u_system/u_game/target_p1_reg[0]/D
+209  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[0]/R
+210  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[1]/CE
+211  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[1]/D
+212  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[1]/R
+213  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[2]/CE
+214  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[2]/D
+215  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[2]/S
+216  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[3]/CE
+217  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[3]/D
+218  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[3]/R
+219  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[4]/CE
+220  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[4]/D
+221  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[4]/S
+222  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[5]/CE
+223  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[5]/D
+224  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[5]/R
+225  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[6]/CE
+226  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[6]/D
+227  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[6]/R
+228  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[7]/CE
+229  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMC_D1/CLK  u_system/u_game/target_p1_reg[7]/D
+230  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[7]/S
+231  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[8]/CE
+232  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[8]/D
+233  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[8]/S
+234  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[9]/CE
+235  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[9]/D
+236  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[9]/R
+237  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[10]/CE
+238  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[10]/D
+239  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[10]/S
+240  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[11]/CE
+241  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[11]/D
+242  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[11]/S
+243  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[12]/CE
+244  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMA_D1/CLK  u_system/u_game/target_p1_reg[12]/D
+245  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p1_reg[12]/R
+246  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[0]/CE
+247  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMB_D1/CLK  u_system/u_game/target_p2_reg[0]/D
+248  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[0]/S
+249  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[1]/CE
+250  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[1]/D
+251  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[1]/S
+252  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[2]/CE
+253  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[2]/D
+254  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[2]/R
+255  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[3]/CE
+256  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[3]/D
+257  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[3]/S
+258  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[4]/CE
+259  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[4]/D
+260  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[4]/S
+261  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[5]/CE
+262  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[5]/D
+263  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[5]/S
+264  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[6]/CE
+265  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[6]/D
+266  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[6]/R
+267  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[7]/CE
+268  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMB_D1/CLK  u_system/u_game/target_p2_reg[7]/D
+269  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[7]/S
+270  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[8]/CE
+271  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[8]/D
+272  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[8]/S
+273  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[9]/CE
+274  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[9]/D
+275  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[9]/R
+276  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[10]/CE
+277  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[10]/D
+278  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[10]/S
+279  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[11]/CE
+280  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[11]/D
+281  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[11]/S
+282  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[12]/CE
+283  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_0_5/RAMA_D1/CLK  u_system/u_game/target_p2_reg[12]/D
+284  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/target_p2_reg[12]/R
+285  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_page/count_reg[0]/R
+286  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_page/count_reg[1]/R
+287  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_page/count_reg[2]/R
+288  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_page/count_reg[3]/R
+289  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_page/count_reg[4]/R
+290  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_page/count_reg[5]/R
+291  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_page/count_reg[6]/R
+292  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_page/count_reg[7]/R
+293  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_page/page_lives_reg/D
+294  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/u_score/lives_p1_reg[0]/D
+295  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/lives_p1_reg[0]/S
+296  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p1_reg[1]/C                       u_system/u_game/u_score/lives_p1_reg[1]/D
+297  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/lives_p1_reg[1]/S
+298  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/lives_p2_reg[0]/D
+299  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/lives_p2_reg[0]/S
+300  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/lives_p2_reg[1]/D
+301  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/lives_p2_reg[1]/S
+302  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_goal_reg[1]/CE
+303  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_goal_reg[3]/CE
+304  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_goal_reg[4]/CE
+305  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_goal_reg[5]/CE
+306  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p1_reg[0]/D
+307  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p1_reg[0]/R
+308  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p1_reg[1]/D
+309  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p1_reg[1]/R
+310  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p1_reg[2]/D
+311  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p1_reg[2]/R
+312  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p1_reg[3]/D
+313  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p1_reg[3]/R
+314  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p1_reg[4]/D
+315  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p1_reg[4]/R
+316  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p1_reg[5]/D
+317  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p1_reg[5]/R
+318  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p2_reg[0]/D
+319  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p2_reg[0]/R
+320  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p2_reg[1]/D
+321  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p2_reg[1]/R
+322  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p2_reg[2]/D
+323  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p2_reg[2]/R
+324  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p2_reg[3]/D
+325  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p2_reg[3]/R
+326  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p2_reg[4]/D
+327  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p2_reg[4]/R
+328  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/points_p2_reg[5]/D
+329  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_score/points_p2_reg[5]/R
+330  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/result_reg[0]/D
+331  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/u_fast/rsp_code_p2_reg[0]/C                       u_system/u_game/u_score/result_reg[1]/D
+332  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_turn_p1/heading_reg[0]/D
+333  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_turn_p1/pending_reg[0]/D
+334  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_turn_p1/pending_reg[1]/D
+335  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_turn_p2/heading_reg[0]/D
+336  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_turn_p2/pending_reg[0]/D
+337  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/mem_reg_0_7_6_8/RAMB/CLK     u_system/u_game/u_turn_p2/pending_reg[1]/D
+
+Source Clock: input port clock
+Destination Clock: clk_juego
+CDC Type: No Common Primary Clock
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)  Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  -------------  --------------------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  sw[15]         u_system/u_game/goal_hi_s1_reg/D
+  2  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  sw[14]         u_system/u_game/goal_lo_s1_reg/D
+  3  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  sw[0]          u_system/u_game/pause_s1_reg/D
+
+Source Clock: input port clock
+Destination Clock: clk_out1_tron_base_clock
+CDC Type: No Common Primary Clock
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)  Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  -------------  --------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  cpu_resetn     u_reset/n_meta_reg/D
+
+Source Clock: clk_juego
+Destination Clock: clk_out1_tron_pixel_clock
+CDC Type: No Common Period
+
+Row  ID      Severity  Description                                     Depth  Exception                Source (From)                                   Destination (To)
+---  ------  --------  ----------------------------------------------  -----  -----------------------  ----------------------------------------------  -------------------------------------------------
+  1  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_system/g_batch_fifo.u_batch/rgray_reg[3:0]/C  u_system/g_batch_fifo.u_batch/rgray_s1_reg[3:0]/D
+  2  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[0]/C               u_system/u_fast/q_a_p1_reg[0]/D
+  3  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[1]/C               u_system/u_fast/q_a_p1_reg[1]/D
+  4  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[2]/C               u_system/u_fast/q_a_p1_reg[2]/D
+  5  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[3]/C               u_system/u_fast/q_a_p1_reg[3]/D
+  6  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[4]/C               u_system/u_fast/q_a_p1_reg[4]/D
+  7  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[5]/C               u_system/u_fast/q_a_p1_reg[5]/D
+  8  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[6]/C               u_system/u_fast/q_a_p1_reg[6]/D
+  9  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[7]/C               u_system/u_fast/q_a_p1_reg[7]/D
+ 10  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[8]/C               u_system/u_fast/q_a_p1_reg[8]/D
+ 11  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[9]/C               u_system/u_fast/q_a_p1_reg[9]/D
+ 12  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[10]/C              u_system/u_fast/q_a_p1_reg[10]/D
+ 13  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[11]/C              u_system/u_fast/q_a_p1_reg[11]/D
+ 14  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p1_reg[12]/C              u_system/u_fast/q_a_p1_reg[12]/D
+ 15  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[0]/C               u_system/u_fast/q_a_p2_reg[0]/D
+ 16  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[1]/C               u_system/u_fast/q_a_p2_reg[1]/D
+ 17  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[2]/C               u_system/u_fast/q_a_p2_reg[2]/D
+ 18  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[3]/C               u_system/u_fast/q_a_p2_reg[3]/D
+ 19  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[4]/C               u_system/u_fast/q_a_p2_reg[4]/D
+ 20  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[5]/C               u_system/u_fast/q_a_p2_reg[5]/D
+ 21  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[6]/C               u_system/u_fast/q_a_p2_reg[6]/D
+ 22  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[7]/C               u_system/u_fast/q_a_p2_reg[7]/D
+ 23  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[8]/C               u_system/u_fast/q_a_p2_reg[8]/D
+ 24  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[9]/C               u_system/u_fast/q_a_p2_reg[9]/D
+ 25  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[10]/C              u_system/u_fast/q_a_p2_reg[10]/D
+ 26  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[11]/C              u_system/u_fast/q_a_p2_reg[11]/D
+ 27  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_a_p2_reg[12]/C              u_system/u_fast/q_a_p2_reg[12]/D
+ 28  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[0]/C               u_system/u_fast/q_b_p1_reg[0]/D
+ 29  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[1]/C               u_system/u_fast/q_b_p1_reg[1]/D
+ 30  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[2]/C               u_system/u_fast/q_b_p1_reg[2]/D
+ 31  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[3]/C               u_system/u_fast/q_b_p1_reg[3]/D
+ 32  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[4]/C               u_system/u_fast/q_b_p1_reg[4]/D
+ 33  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[5]/C               u_system/u_fast/q_b_p1_reg[5]/D
+ 34  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[6]/C               u_system/u_fast/q_b_p1_reg[6]/D
+ 35  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[7]/C               u_system/u_fast/q_b_p1_reg[7]/D
+ 36  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[8]/C               u_system/u_fast/q_b_p1_reg[8]/D
+ 37  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[9]/C               u_system/u_fast/q_b_p1_reg[9]/D
+ 38  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[10]/C              u_system/u_fast/q_b_p1_reg[10]/D
+ 39  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[11]/C              u_system/u_fast/q_b_p1_reg[11]/D
+ 40  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p1_reg[12]/C              u_system/u_fast/q_b_p1_reg[12]/D
+ 41  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[0]/C               u_system/u_fast/q_b_p2_reg[0]/D
+ 42  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[1]/C               u_system/u_fast/q_b_p2_reg[1]/D
+ 43  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[2]/C               u_system/u_fast/q_b_p2_reg[2]/D
+ 44  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[3]/C               u_system/u_fast/q_b_p2_reg[3]/D
+ 45  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[4]/C               u_system/u_fast/q_b_p2_reg[4]/D
+ 46  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[5]/C               u_system/u_fast/q_b_p2_reg[5]/D
+ 47  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[6]/C               u_system/u_fast/q_b_p2_reg[6]/D
+ 48  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[7]/C               u_system/u_fast/q_b_p2_reg[7]/D
+ 49  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[8]/C               u_system/u_fast/q_b_p2_reg[8]/D
+ 50  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[9]/C               u_system/u_fast/q_b_p2_reg[9]/D
+ 51  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[10]/C              u_system/u_fast/q_b_p2_reg[10]/D
+ 52  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[11]/C              u_system/u_fast/q_b_p2_reg[11]/D
+ 53  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_b_p2_reg[12]/C              u_system/u_fast/q_b_p2_reg[12]/D
+ 54  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_collected_reg[0]/C          u_system/u_fast/q_collected_reg[0]/D
+ 55  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_collected_reg[1]/C          u_system/u_fast/q_collected_reg[1]/D
+ 56  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_collected_reg[2]/C          u_system/u_fast/q_collected_reg[2]/D
+ 57  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_new_match_reg/C             u_system/u_fast/q_new_match_reg/D
+ 58  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_op_reg[0]/C                 u_system/u_fast/q_op_reg[0]/D
+ 59  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_op_reg[1]/C                 u_system/u_fast/q_op_reg[1]/D
+ 60  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[0]/C           u_system/u_fast/q_seed_mix_reg[0]/D
+ 61  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[1]/C           u_system/u_fast/q_seed_mix_reg[1]/D
+ 62  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[2]/C           u_system/u_fast/q_seed_mix_reg[2]/D
+ 63  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[3]/C           u_system/u_fast/q_seed_mix_reg[3]/D
+ 64  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[4]/C           u_system/u_fast/q_seed_mix_reg[4]/D
+ 65  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[5]/C           u_system/u_fast/q_seed_mix_reg[5]/D
+ 66  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[6]/C           u_system/u_fast/q_seed_mix_reg[6]/D
+ 67  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[7]/C           u_system/u_fast/q_seed_mix_reg[7]/D
+ 68  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[8]/C           u_system/u_fast/q_seed_mix_reg[8]/D
+ 69  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[9]/C           u_system/u_fast/q_seed_mix_reg[9]/D
+ 70  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[10]/C          u_system/u_fast/q_seed_mix_reg[10]/D
+ 71  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[11]/C          u_system/u_fast/q_seed_mix_reg[11]/D
+ 72  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[12]/C          u_system/u_fast/q_seed_mix_reg[12]/D
+ 73  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[13]/C          u_system/u_fast/q_seed_mix_reg[13]/D
+ 74  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[14]/C          u_system/u_fast/q_seed_mix_reg[14]/D
+ 75  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[15]/C          u_system/u_fast/q_seed_mix_reg[15]/D
+ 76  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[16]/C          u_system/u_fast/q_seed_mix_reg[16]/D
+ 77  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[17]/C          u_system/u_fast/q_seed_mix_reg[17]/D
+ 78  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[18]/C          u_system/u_fast/q_seed_mix_reg[18]/D
+ 79  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[19]/C          u_system/u_fast/q_seed_mix_reg[19]/D
+ 80  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[20]/C          u_system/u_fast/q_seed_mix_reg[20]/D
+ 81  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[21]/C          u_system/u_fast/q_seed_mix_reg[21]/D
+ 82  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[22]/C          u_system/u_fast/q_seed_mix_reg[22]/D
+ 83  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[23]/C          u_system/u_fast/q_seed_mix_reg[23]/D
+ 84  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[24]/C          u_system/u_fast/q_seed_mix_reg[24]/D
+ 85  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[25]/C          u_system/u_fast/q_seed_mix_reg[25]/D
+ 86  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[26]/C          u_system/u_fast/q_seed_mix_reg[26]/D
+ 87  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[27]/C          u_system/u_fast/q_seed_mix_reg[27]/D
+ 88  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[28]/C          u_system/u_fast/q_seed_mix_reg[28]/D
+ 89  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[29]/C          u_system/u_fast/q_seed_mix_reg[29]/D
+ 90  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[30]/C          u_system/u_fast/q_seed_mix_reg[30]/D
+ 91  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seed_mix_reg[31]/C          u_system/u_fast/q_seed_mix_reg[31]/D
+ 92  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seq_reg[0]/C                u_system/u_fast/q_seq_reg[0]/D
+ 93  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seq_reg[1]/C                u_system/u_fast/q_seq_reg[1]/D
+ 94  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seq_reg[2]/C                u_system/u_fast/q_seq_reg[2]/D
+ 95  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_seq_reg[3]/C                u_system/u_fast/q_seq_reg[3]/D
+ 96  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_survive_p1_reg/C            u_system/u_fast/q_survive_p1_reg/D
+ 97  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/cmd_survive_p2_reg/C            u_system/u_fast/q_survive_p2_reg/D
+ 98  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/crashed_p1_reg/C                u_system/u_fast/snap_crashed_p1_reg/D
+ 99  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/crashed_p2_reg/C                u_system/u_fast/snap_crashed_p2_reg/D
+100  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[0]/C                u_system/u_fast/snap_head_p1_reg[0]/D
+101  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[1]/C                u_system/u_fast/snap_head_p1_reg[1]/D
+102  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[2]/C                u_system/u_fast/snap_head_p1_reg[2]/D
+103  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[3]/C                u_system/u_fast/snap_head_p1_reg[3]/D
+104  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[4]/C                u_system/u_fast/snap_head_p1_reg[4]/D
+105  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[5]/C                u_system/u_fast/snap_head_p1_reg[5]/D
+106  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[6]/C                u_system/u_fast/snap_head_p1_reg[6]/D
+107  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[7]/C                u_system/u_fast/snap_head_p1_reg[7]/D
+108  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[8]/C                u_system/u_fast/snap_head_p1_reg[8]/D
+109  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[9]/C                u_system/u_fast/snap_head_p1_reg[9]/D
+110  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[10]/C               u_system/u_fast/snap_head_p1_reg[10]/D
+111  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[11]/C               u_system/u_fast/snap_head_p1_reg[11]/D
+112  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p1_reg[12]/C               u_system/u_fast/snap_head_p1_reg[12]/D
+113  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[0]/C                u_system/u_fast/snap_head_p2_reg[0]/D
+114  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[1]/C                u_system/u_fast/snap_head_p2_reg[1]/D
+115  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[2]/C                u_system/u_fast/snap_head_p2_reg[2]/D
+116  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[3]/C                u_system/u_fast/snap_head_p2_reg[3]/D
+117  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[4]/C                u_system/u_fast/snap_head_p2_reg[4]/D
+118  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[5]/C                u_system/u_fast/snap_head_p2_reg[5]/D
+119  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[6]/C                u_system/u_fast/snap_head_p2_reg[6]/D
+120  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[7]/C                u_system/u_fast/snap_head_p2_reg[7]/D
+121  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[8]/C                u_system/u_fast/snap_head_p2_reg[8]/D
+122  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[9]/C                u_system/u_fast/snap_head_p2_reg[9]/D
+123  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[10]/C               u_system/u_fast/snap_head_p2_reg[10]/D
+124  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[11]/C               u_system/u_fast/snap_head_p2_reg[11]/D
+125  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/head_p2_reg[12]/C               u_system/u_fast/snap_head_p2_reg[12]/D
+126  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/lives_p1_reg[0]/C       u_system/u_fast/snap_lives_p1_reg[0]/D
+127  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/lives_p1_reg[1]/C       u_system/u_fast/snap_lives_p1_reg[1]/D
+128  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/lives_p2_reg[0]/C       u_system/u_fast/snap_lives_p2_reg[0]/D
+129  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/lives_p2_reg[1]/C       u_system/u_fast/snap_lives_p2_reg[1]/D
+130  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_page/page_lives_reg/C         u_system/u_fast/snap_page_lives_reg/D
+131  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/paused_reg/C                    u_system/u_fast/snap_paused_reg/D
+132  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/phase_reg[0]/C                  u_system/u_fast/snap_phase_reg[0]/D
+133  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/phase_reg[1]/C                  u_system/u_fast/snap_phase_reg[1]/D
+134  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/phase_reg[2]/C                  u_system/u_fast/snap_phase_reg[2]/D
+135  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/phase_ticks_reg[3]/C            u_system/u_fast/snap_phase_ticks_reg[3]/D
+136  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p1_reg[0]/C      u_system/u_fast/snap_points_p1_reg[0]/D
+137  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p1_reg[1]/C      u_system/u_fast/snap_points_p1_reg[1]/D
+138  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p1_reg[2]/C      u_system/u_fast/snap_points_p1_reg[2]/D
+139  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p1_reg[3]/C      u_system/u_fast/snap_points_p1_reg[3]/D
+140  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p1_reg[4]/C      u_system/u_fast/snap_points_p1_reg[4]/D
+141  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p1_reg[5]/C      u_system/u_fast/snap_points_p1_reg[5]/D
+142  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p2_reg[0]/C      u_system/u_fast/snap_points_p2_reg[0]/D
+143  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p2_reg[1]/C      u_system/u_fast/snap_points_p2_reg[1]/D
+144  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p2_reg[2]/C      u_system/u_fast/snap_points_p2_reg[2]/D
+145  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p2_reg[3]/C      u_system/u_fast/snap_points_p2_reg[3]/D
+146  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p2_reg[4]/C      u_system/u_fast/snap_points_p2_reg[4]/D
+147  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/u_score/points_p2_reg[5]/C      u_system/u_fast/snap_points_p2_reg[5]/D
+148  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/shown_p1_reg[0]/C               u_system/u_fast/snap_shown_p1_reg[0]/D
+149  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/shown_p1_reg[1]/C               u_system/u_fast/snap_shown_p1_reg[1]/D
+150  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/shown_p2_reg[0]/C               u_system/u_fast/snap_shown_p2_reg[0]/D
+151  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_system/u_game/shown_p2_reg[1]/C               u_system/u_fast/snap_shown_p2_reg[1]/D
+152  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_system/u_game/tick_tgl_reg/C                  u_system/u_fast/u_tick_sync/meta_reg/D
+
+Source Clock: clk_out1_tron_base_clock
+Destination Clock: clk_out1_tron_pixel_clock
+CDC Type: No Common Phase
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)          Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  ---------------------  ----------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  u_reset/rst_req_reg/C  u_reset_pix/meta_reg/D
+
+Source Clock: input port clock
+Destination Clock: clk_out1_tron_pixel_clock
+CDC Type: No Common Primary Clock
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)  Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  -------------  ----------------------------------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  btn[0]         u_system/u_btn/buttons[0].sync_inst/meta_reg/D
+  2  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  btn[1]         u_system/u_btn/buttons[1].sync_inst/meta_reg/D
+  3  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  btn[2]         u_system/u_btn/buttons[2].sync_inst/meta_reg/D
+  4  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  btn[3]         u_system/u_btn/buttons[3].sync_inst/meta_reg/D
+  5  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  btn[4]         u_system/u_btn/buttons[4].sync_inst/meta_reg/D
+  6  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  uart_rx        u_system/u_rx_sync/stage1_reg/D
+

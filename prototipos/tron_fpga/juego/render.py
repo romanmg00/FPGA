@@ -88,12 +88,14 @@ class FrameRenderer:
             self.shine_src.fill((0, 0, 0))
 
     def _draw_cell(self, x, y, code) -> None:
+        self._paint_cell(x, y, player_of(code))   # Trail and head Cells; CRASH is drawn in draw()
+
+    def _paint_cell(self, x, y, player) -> None:
         c = self.geom.cell_px
         r = pygame.Rect(x * c, y * c, c, c)
         self.trails.fill((0, 0, 0), r)
         if self.pulse:
             self.shine_src.fill((0, 0, 0), r)
-        player = player_of(code)               # Trail and head Cells
         if player is None:
             return
         col = self.pal["p1"] if player == 0 else self.pal["p2"]
@@ -115,6 +117,11 @@ class FrameRenderer:
     # --- frame ------------------------------------------------------------
     def draw(self, frame: pygame.Surface, snap: dict) -> None:
         c = self.geom.cell_px
+        # A crashed head holds CELL_CRASH (ADR 0003 item 4): the colour comes from
+        # the snapshot, by matching the crashed head Cell, not from the code.
+        for i in (0, 1) if snap["heads"] else ():
+            if snap["crashed"][i]:
+                self._paint_cell(*snap["heads"][i], i)
         ph = fx.phase(self.frame)
         frame.blit(self.bases[ph % len(self.bases)], (0, 0))
         frame.blit(self.trails, (0, 0))

@@ -1,0 +1,163 @@
+# reference: <name>.model.log  /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-232239-1926173
+SUMMARY scenarios=12 log_lines=3261 N=16384 PHASE=3 WINDOW=12000 QUALIFIED=0 RSP_REG=0 STEP_TICKS=6
+MATCH 01-walls                 match: 91 lines
+MATCH 02-own-trail             match: 5 lines
+MATCH 03-other-trail           match: 27 lines
+MATCH 04-head-on-same-cell     match: 20 lines
+MATCH 05-head-on-swap          match: 21 lines
+MATCH 06-reversal-ignored      match: 39 lines
+MATCH 07-two-inputs            match: 29 lines
+MATCH 08-reward-respawn        match: 47 lines
+MATCH 09-goal                  match: 1621 lines
+MATCH 10-both-last-life        match: 63 lines
+MATCH 11-new-match             match: 86 lines
+MATCH 12-long-random           match: 1212 lines
+
+# reference: <name>.mailbox-s8.log  /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-232239-1926168
+SUMMARY scenarios=12 log_lines=1582 N=16384 PHASE=3 WINDOW=12000 QUALIFIED=0 RSP_REG=0 STEP_TICKS=8
+MATCH 01-walls                 match: 47 lines
+MATCH 02-own-trail             match: 5 lines
+MATCH 03-other-trail           match: 21 lines
+MATCH 04-head-on-same-cell     match: 16 lines
+MATCH 05-head-on-swap          match: 17 lines
+MATCH 06-reversal-ignored      match: 30 lines
+MATCH 07-two-inputs            match: 23 lines
+MATCH 08-reward-respawn        match: 32 lines
+MATCH 09-goal                  match: 309 lines
+MATCH 10-both-last-life        match: 42 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 997 lines
+
+# reference: <name>.mailbox-s10.log  /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-232239-1926181
+SUMMARY scenarios=12 log_lines=1448 N=16384 PHASE=3 WINDOW=12000 QUALIFIED=0 RSP_REG=0 STEP_TICKS=10
+MATCH 01-walls                 match: 47 lines
+MATCH 02-own-trail             match: 4 lines
+MATCH 03-other-trail           match: 17 lines
+MATCH 04-head-on-same-cell     match: 13 lines
+MATCH 05-head-on-swap          match: 14 lines
+MATCH 06-reversal-ignored      match: 24 lines
+MATCH 07-two-inputs            match: 18 lines
+MATCH 08-reward-respawn        match: 29 lines
+MATCH 09-goal                  match: 315 lines
+MATCH 10-both-last-life        match: 42 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 882 lines
+
+# reference: <name>.qualified-s6.log  /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-232239-1926169
+SUMMARY scenarios=12 log_lines=2089 N=16384 PHASE=3 WINDOW=12000 QUALIFIED=1 RSP_REG=0 STEP_TICKS=6
+MATCH 01-walls                 match: 87 lines
+MATCH 02-own-trail             match: 6 lines
+MATCH 03-other-trail           match: 21 lines
+MATCH 04-head-on-same-cell     match: 20 lines
+MATCH 05-head-on-swap          match: 21 lines
+MATCH 06-reversal-ignored      match: 39 lines
+MATCH 07-two-inputs            match: 26 lines
+MATCH 08-reward-respawn        match: 47 lines
+MATCH 09-goal                  match: 492 lines
+MATCH 10-both-last-life        match: 43 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 1244 lines
+
+# reference: <name>.qualified-s8.log  /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-232239-1926179
+SUMMARY scenarios=12 log_lines=1547 N=16384 PHASE=3 WINDOW=12000 QUALIFIED=1 RSP_REG=0 STEP_TICKS=8
+MATCH 01-walls                 match: 43 lines
+MATCH 02-own-trail             match: 4 lines
+MATCH 03-other-trail           match: 21 lines
+MATCH 04-head-on-same-cell     match: 16 lines
+MATCH 05-head-on-swap          match: 16 lines
+MATCH 06-reversal-ignored      match: 30 lines
+MATCH 07-two-inputs            match: 22 lines
+MATCH 08-reward-respawn        match: 27 lines
+MATCH 09-goal                  match: 327 lines
+MATCH 10-both-last-life        match: 42 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 956 lines
+
+# reference: <name>.qualified-s10.log  /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-232239-1926190
+SUMMARY scenarios=12 log_lines=1363 N=16384 PHASE=3 WINDOW=12000 QUALIFIED=1 RSP_REG=0 STEP_TICKS=10
+MATCH 01-walls                 match: 43 lines
+MATCH 02-own-trail             match: 4 lines
+MATCH 03-other-trail           match: 17 lines
+MATCH 04-head-on-same-cell     match: 13 lines
+MATCH 05-head-on-swap          match: 13 lines
+MATCH 06-reversal-ignored      match: 24 lines
+MATCH 07-two-inputs            match: 18 lines
+MATCH 08-reward-respawn        match: 25 lines
+MATCH 09-goal                  match: 301 lines
+MATCH 10-both-last-life        match: 42 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 820 lines
+
+# reference: <name>.captured-s8.log  /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-232239-1926200
+SUMMARY scenarios=12 log_lines=1597 N=16384 PHASE=3 WINDOW=12000 QUALIFIED=1 RSP_REG=1 STEP_TICKS=8
+MATCH 01-walls                 match: 43 lines
+MATCH 02-own-trail             match: 4 lines
+MATCH 03-other-trail           match: 21 lines
+MATCH 04-head-on-same-cell     match: 15 lines
+MATCH 05-head-on-swap          match: 16 lines
+MATCH 06-reversal-ignored      match: 30 lines
+MATCH 07-two-inputs            match: 22 lines
+MATCH 08-reward-respawn        match: 27 lines
+MATCH 09-goal                  match: 339 lines
+MATCH 10-both-last-life        match: 42 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 995 lines
+
+# reference: <name>.captured-s10.log  /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-232239-1926204
+SUMMARY scenarios=12 log_lines=1337 N=16384 PHASE=3 WINDOW=12000 QUALIFIED=1 RSP_REG=1 STEP_TICKS=10
+MATCH 01-walls                 match: 43 lines
+MATCH 02-own-trail             match: 3 lines
+MATCH 03-other-trail           match: 17 lines
+MATCH 04-head-on-same-cell     match: 12 lines
+MATCH 05-head-on-swap          match: 13 lines
+MATCH 06-reversal-ignored      match: 24 lines
+MATCH 07-two-inputs            match: 18 lines
+MATCH 08-reward-respawn        match: 25 lines
+MATCH 09-goal                  match: 301 lines
+MATCH 10-both-last-life        match: 42 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 796 lines
+
+# earlier qualified-s6 period/phase sweeps (same sources apart from RSP_REG/STEP_TICKS plumbing)
+# /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-191610-1791627
+SUMMARY scenarios=12 log_lines=2089 N=12000 PHASE=5 WINDOW=10000 QUALIFIED=1
+MATCH 01-walls                 match: 87 lines
+MATCH 02-own-trail             match: 6 lines
+MATCH 03-other-trail           match: 21 lines
+MATCH 04-head-on-same-cell     match: 20 lines
+MATCH 05-head-on-swap          match: 21 lines
+MATCH 06-reversal-ignored      match: 39 lines
+MATCH 07-two-inputs            match: 26 lines
+MATCH 08-reward-respawn        match: 47 lines
+MATCH 09-goal                  match: 492 lines
+MATCH 10-both-last-life        match: 43 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 1244 lines
+# /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-191610-1791615
+SUMMARY scenarios=12 log_lines=2089 N=16384 PHASE=1777 WINDOW=12000 QUALIFIED=1
+MATCH 01-walls                 match: 87 lines
+MATCH 02-own-trail             match: 6 lines
+MATCH 03-other-trail           match: 21 lines
+MATCH 04-head-on-same-cell     match: 20 lines
+MATCH 05-head-on-swap          match: 21 lines
+MATCH 06-reversal-ignored      match: 39 lines
+MATCH 07-two-inputs            match: 26 lines
+MATCH 08-reward-respawn        match: 47 lines
+MATCH 09-goal                  match: 492 lines
+MATCH 10-both-last-life        match: 43 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 1244 lines
+# /home/alan/.local/share/cs256-vivado/builds/core-game_tb-20261029-191610-1791645
+SUMMARY scenarios=12 log_lines=2089 N=20011 PHASE=4999 WINDOW=12000 QUALIFIED=1
+MATCH 01-walls                 match: 87 lines
+MATCH 02-own-trail             match: 6 lines
+MATCH 03-other-trail           match: 21 lines
+MATCH 04-head-on-same-cell     match: 20 lines
+MATCH 05-head-on-swap          match: 21 lines
+MATCH 06-reversal-ignored      match: 39 lines
+MATCH 07-two-inputs            match: 26 lines
+MATCH 08-reward-respawn        match: 47 lines
+MATCH 09-goal                  match: 492 lines
+MATCH 10-both-last-life        match: 43 lines
+MATCH 11-new-match             match: 43 lines
+MATCH 12-long-random           match: 1244 lines

@@ -1,0 +1,7 @@
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+# synth_design -top turn_unit -part xc7a100tcsg324-1 -mode out_of_context
+Command: synth_design -top turn_unit -part xc7a100tcsg324-1 -mode out_of_context
+WARNING: [Timing 38-242] The property HD.CLK_SRC of clock port "clk" is not set. In out-of-context mode, this prevents timing estimation for clock delay/skew
+WARNING: [Vivado 12-1348] No Latch(s) found
+WARNING: [Vivado 12-180] No cells matched 'get_cells -hier -filter {PRIMITIVE_GROUP == BLOCKRAM || PRIMITIVE_GROUP == DMEM}'.

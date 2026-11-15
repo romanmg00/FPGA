@@ -22,7 +22,7 @@ DIGIT_PX = 32              # agreed starting text height
 
 
 def digit_font(look):
-    """neon and chrome are colour treatments of the seven-segment glyphs."""
+    """chrome is a colour treatment of the seven-segment glyphs."""
     return FONTS["block" if look.font == "block" else "seg"].at_height(DIGIT_PX)
 
 
@@ -110,13 +110,7 @@ class HudRenderer:
                 value = snap["points"][el.player]
                 digit = value // 10 if el.index == 0 else value % 10
                 col = colours[el.player]
-                if look.font == "neon":            # unlit segments glow faintly; in
-                    # hardware the ghost is the union of the segment rectangles
-                    # (comparators on glyph x/y), not a second ROM read
-                    ghost = self._bitmap(("d", font.name, 8), font.glyphs[8], font.scale,
-                                         halve(halve(col)))
-                    frame.blit(ghost, (el.x, el.y))
-                elif look.font == "chrome":
+                if look.font == "chrome":
                     col = chrome_rows(col, font.glyph_h)
                 bmp = self._bitmap(("d", font.name, digit), font.glyphs[digit], font.scale, col)
             elif el.kind == "life":

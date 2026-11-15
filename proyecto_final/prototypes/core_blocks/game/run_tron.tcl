@@ -1,0 +1,188 @@
+# Full build of tron_top: Clocking Wizards from the IP Catalog, synthesis,
+# derived crossing constraints, implementation, bitstream and the sign-off
+# reports of the Coding Practices. Modelled on board/run_board.tcl, which met
+# routed timing for the board test pattern. Run through run_tron.sh.
+set out [file normalize [lindex $argv 0]]
+set qualified [expr {[llength $argv] > 1 ? [lindex $argv 1] : 0}]
+set rsp_reg   [expr {[llength $argv] > 2 ? [lindex $argv 2] : 0}]
+set step      [expr {[llength $argv] > 3 ? [lindex $argv 3] : 6}]
+set src $out/src
+set core $src/prototypes/core_blocks
+proc emit {path text} {set f [open $path w]; puts $f $text; close $f}
+create_project tron $out/project -part xc7a100tcsg324-1
+set_property target_language Verilog [current_project]
+emit $out/version.txt [version]
+
+# One Clocking Wizard (ADR 0006). Handout settings: no reset, no locked;
+# record the achieved rate. clk_juego comes from game_clk_div on clk_pix.
+foreach {name requested} {tron_pixel_clock 83.460} {
+    create_ip -name clk_wiz -vendor xilinx.com -library ip -module_name $name
+    set ip [get_ips $name]
+    set_property -dict [list CONFIG.PRIM_IN_FREQ 100.000 CONFIG.PRIM_SOURCE No_buffer \
+        CONFIG.CLKOUT1_REQUESTED_OUT_FREQ $requested CONFIG.USE_RESET false CONFIG.USE_LOCKED false] $ip
+    set_property generate_synth_checkpoint false [get_files */${name}.xci]
+    generate_target all $ip
+    emit $out/$name-properties.txt [report_property -return_string $ip]
+    set hz [expr {100000000.0 * [get_property CONFIG.MMCM_CLKFBOUT_MULT_F $ip] / \
+        [get_property CONFIG.MMCM_DIVCLK_DIVIDE $ip] / [get_property CONFIG.MMCM_CLKOUT0_DIVIDE_F $ip]}]
+    emit $out/$name-frequency.txt "requested_mhz=$requested achieved_hz=$hz"
+}
+
+foreach f {
+    game_pkg.sv io/sync_2ff.sv io/btn_debounce.sv io/seg7_driver.sv io/seg7_page.sv
+    step/turn_unit.sv step/next_cell.sv step/step_resolve.sv score/score_unit.sv
+    arena/arena_map.sv video/game_clk_div.sv board/board_reset_sync.sv
+    crossing/batch_fifo.sv game/reset_stretch.sv game/arena_svc.sv game/fast_core.sv game/game_core.sv
+    game/sprite_rom.sv game/drawcon_game.sv game/tron_system.sv game/tron_top.sv
+} {read_verilog -sv $core/$f}
+read_verilog -sv [list $core/video/vga_out.sv $src/counters.sv \
+    $src/prototypes/uart_input/uart_sync_2ff.sv $src/prototypes/uart_input/uart_rx.sv \
+    $src/prototypes/uart_input/uart_cmd_decode.sv]
+set_property top tron_top [current_fileset]
+# Sprite ROM contents: the .mem twins of the .coe files from proyecto_final/prototypes/core_blocks/tools/png2coe.py.
+set_property generic "SPRITE_DIR=\"$core/game/sprites/\" QUALIFIED=$qualified RSP_REG=$rsp_reg STEP_TICKS=$step" [current_fileset]
+emit $out/crossing.txt "QUALIFIED=$qualified RSP_REG=$rsp_reg STEP_TICKS=$step"
+add_files -fileset constrs_1 $core/game/tron_top.xdc
+
+launch_runs synth_1 -jobs 8
+wait_on_run synth_1
+if {[get_property PROGRESS [get_runs synth_1]] ne "100%"} {error "Synthesis did not complete"}
+open_run synth_1
+
+# --- clocks -------------------------------------------------------------------
+set div_c [get_pins u_div/game_toggle_reg/C]
+set div_o [get_pins u_div/u_game_buf/O]
+if {[llength $div_c] != 1 || [llength $div_o] != 1} {error "divider pin query"}
+# -divide_by is 2 * GAME_HALF_CYCLES of tron_top.sv; stop if they disagree.
+set f [open $core/game/tron_top.sv]; set top_text [read $f]; close $f
+if {![regexp {GAME_HALF_CYCLES = ([0-9]+)} $top_text -> half] || $half != 695466} {error "GAME_HALF_CYCLES is not 695466: update -divide_by"}
+create_generated_clock -name clk_juego -source $div_c -divide_by [expr {2 * $half}] $div_o
+set pix  [get_clocks -of_objects [get_pins u_pixel_wiz/clk_out1]]
+set game [get_clocks clk_juego]
+if {[llength $pix] != 1} {error "pixel clock query"}
+
+proc first_stage {cells what} {
+    # Every endpoint must be the first flop of a synchronizer.
+    if {[llength $cells] == 0} {error "no endpoints for $what"}
+    foreach c $cells {
+        if {![string match FD* [get_property REF_NAME $c]] || [get_property ASYNC_REG $c] != 1} {
+            error "$what reaches $c, which is not an ASYNC_REG flop"
+        }
+    }
+}
+set log [open $out/cdc-endpoints.txt w]
+
+# --- asynchronous pins: only into first synchronizer stages ------------------
+foreach port {cpu_resetn btn[0] btn[1] btn[2] btn[3] btn[4] sw[0] sw[14] sw[15] uart_rx} {
+    set ends [get_cells -of_objects [all_fanout -from [get_ports $port] -flat -endpoints_only]]
+    first_stage $ends $port
+    puts $log "pin $port -> $ends"
+    set_false_path -from [get_ports $port] -to $ends
+}
+
+# --- stretched reset request (clk_pix) into each domain's synchronizer -------
+set rst_src [get_cells u_reset/rst_req_reg]
+set rst_dst [get_cells -of_objects [all_fanout -from [get_pins u_reset/rst_req_reg/Q] -flat -endpoints_only]]
+first_stage $rst_dst "rst_req"
+puts $log "rst_req -> $rst_dst"
+set_false_path -from $rst_src -to $rst_dst
+
+# --- game <-> fast mailbox, input batch and render snapshot ------------------
+# Bounded, not excluded: every path between the two domains settles within
+# one clk_pix period. tick_tgl is 2-FF synchronized; the payload buses are
+# latched on tick_seen (>= 2 clk_pix edges after tick_tgl) or sampled by
+# clk_juego a whole tick after their quiet-window update (fast_core.sv).
+set g2f_from [all_registers -clock $game]
+set g2f_to   [all_registers -clock $pix]
+set_max_delay -datapath_only 11.982 -from $g2f_from -to $g2f_to
+set_max_delay -datapath_only 11.982 -from $g2f_to -to $g2f_from
+puts $log "game->fast and fast->game bounded at 11.982 ns datapath_only"
+
+# --- qualified crossing: synchronizer chains and Gray pointers ---------------
+# Every synchronizer stage must carry ASYNC_REG. The Gray pointers also get a
+# bus-skew bound from their (traced) source flops to the first stage, as the
+# UART FIFO experiment did (prototypes/uart_input/run.tcl).
+if {$qualified} {
+    set rsp [get_cells -hier -regexp {.*u_game/g_qualified\.rsp_(meta|sync)_reg}]
+    if {[llength $rsp] != 2} {error "response toggle synchronizer: $rsp"}
+    first_stage $rsp "response toggle synchronizer"
+    puts $log "rsp toggle sync: $rsp"
+    foreach dir {w r} {
+        set s1 [get_cells -hier -regexp [format {.*u_batch/%sgray_s1_reg\[[0-9]+\]} $dir]]
+        set s2 [get_cells -hier -regexp [format {.*u_batch/%sgray_s2_reg\[[0-9]+\]} $dir]]
+        if {[llength $s1] != 4 || [llength $s2] != 4} {error "${dir}gray synchronizer: $s1 / $s2"}
+        first_stage [concat $s1 $s2] "${dir}gray synchronizer"
+        set src {}
+        foreach c $s1 {
+            set d [get_pins -of_objects $c -filter {REF_PIN_NAME == D}]
+            set launch [all_fanin -flat -startpoints_only -to $d]
+            if {[llength $launch] != 1} {error "Gray bit $c has sources $launch"}
+            set sc [get_cells -of_objects $launch]
+            if {![string match FD* [get_property REF_NAME $sc]]} {error "Gray source $sc is not a flop"}
+            lappend src $sc
+            puts $log "${dir}gray: $sc -> $c"
+        }
+        set_bus_skew 11.982 -from $src -to $s1
+    }
+}
+close $log
+
+# --- outputs: human-facing pads, registered sources --------------------------
+# Flip-flops and block RAMs only (vga_out's outputs are combinational from the
+# counters, drawcon and the memories); all_registers would also return the MMCMs,
+# which segments their clock paths.
+set flops [get_cells -hier -filter {REF_NAME =~ FD* || REF_NAME =~ RAMB*}]
+set_max_delay -datapath_only 11.982 -from $flops -to [get_ports {vga_* seg[*] an[*]}]
+set_max_delay -datapath_only 1000 -from $flops -to [get_ports {led[*]}]
+
+write_xdc -force $out/derived.xdc
+write_checkpoint -force $out/synth.dcp
+close_design
+set_property USED_IN_IMPLEMENTATION false [get_files tron_top.xdc]
+add_files -fileset constrs_1 $out/derived.xdc
+set_property USED_IN_SYNTHESIS false [get_files derived.xdc]
+
+# The VGA pad path (combinational vga_out, video/FINDINGS.md) closes with
+# only ~0.1-0.3 ns and flips between pass and fail with placement; the
+# Explore strategy gives the placer and router more effort.
+set_property strategy Performance_Explore [get_runs impl_1]
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+wait_on_run impl_1
+if {[get_property PROGRESS [get_runs impl_1]] ne "100%"} {error "Implementation did not complete"}
+open_run impl_1
+foreach cmd {report_clocks report_clock_networks report_clock_utilization report_clock_interaction
+             report_bus_skew report_exceptions report_methodology report_drc report_utilization} {
+    $cmd -file $out/$cmd.rpt
+}
+report_cdc -details -file $out/report_cdc.rpt
+report_cdc -file $out/report_cdc_summary.rpt
+# Qualified crossing: the response codes are used only under the synchronized
+# idle (game_core), but a code also picks the value of phase and result, which
+# several game-side conditions write, so their enable cannot be resolve alone
+# and Vivado reports CDC-1. Waive exactly those endpoints, checked by count,
+# keeping the unwaived reports above (crossing/FINDINGS.md). PROVISIONAL.
+# The captured variant (RSP_REG) copies the codes first and needs no waiver.
+if {$qualified && !$rsp_reg} {
+    set wsrc [get_pins -of_objects [get_cells -hier -regexp {.*u_fast/rsp_code_p[12]_reg\[[0-9]\]}] -filter {REF_PIN_NAME == C}]
+    set wdst [get_pins -of_objects [get_cells -hier -regexp {.*u_game/(phase_reg\[[0-9]\]|u_score/result_reg\[[0-9]\])}] -filter {REF_PIN_NAME == D}]
+    if {[llength $wsrc] != 8 || [llength $wdst] != 5} {error "waiver endpoints: [llength $wsrc] sources, [llength $wdst] destinations"}
+    create_waiver -type CDC -id CDC-1 -user alan -from $wsrc -to $wdst \
+        -description {Qualified req/ack: rsp_code held until the next command and used only when the synchronized ack matches cmd_seq[0] (game_core resolve); protocol evidence crossing/handshake_tb.sv}
+    write_waivers -force $out/crossing-waivers.xdc
+    report_cdc -details -file $out/report_cdc_waived.rpt
+    report_cdc -file $out/report_cdc_waived_summary.rpt
+}
+check_timing -verbose -file $out/check_timing.rpt
+report_utilization -hierarchical -file $out/utilization_hierarchical.rpt
+report_timing_summary -delay_type min_max -report_unconstrained -max_paths 10 -file $out/timing_summary.rpt
+report_exceptions -ignored -file $out/exceptions_ignored.rpt
+write_checkpoint -force $out/routed.dcp
+file copy -force $out/project/tron.runs/impl_1/tron_top.bit $out/tron_top.bit
+# Flash image for the board's QSPI (S25FL128S, 16 MB), loaded on PROG or power-up:
+# the bitstream asks for x4 at 33 MHz (tron_top.xdc).
+write_cfgmem -force -format bin -size 16 -interface SPIx4 \
+    -loadbit "up 0x00000000 $out/tron_top.bit" $out/tron_top.bin
+set f [open $out/timing_summary.rpt]; set timing [read $f]; close $f
+if {![string match {*All user specified timing constraints are met.*} $timing]} {error "routed timing failed"}
+emit $out/BUILD_COMPLETE.txt "Bitstream generated; routed timing met. Read the reports for sign-off."
+close_project

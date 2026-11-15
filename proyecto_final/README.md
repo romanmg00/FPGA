@@ -48,10 +48,13 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
 - [x] **Paso 6a:** una moto que avanza sola en rondas (`round_fsm`, `step_counter`, `bike_move`):
   Start con BTNC, giros de 90°, choque con la pared y pausa de 2 s. Probada en la tarjeta el
   12 de noviembre (PR #21)
-- [ ] **Paso 6b:** segunda moto y choques entre motos (mismo destino, cabeza de la otra,
+- [x] **Paso 6b:** segunda moto y choques entre motos (mismo destino, cabeza de la otra,
   intercambio). P2 sale de (59, 27) hacia la izquierda y por ahora avanza recto; su entrada
-  `turn_req2` espera el teclado. `position_logic_tb` pasa en Verilator; falta la tarjeta (PR #25)
-- [ ] **Paso 6c:** paso de 8 a 10 ticks en vez de 6 (ADR 0007, issue #22)
+  `turn_req2` espera el teclado. `position_logic_tb` pasa en Verilator; probada en la tarjeta
+  el 15 de noviembre con `game_top_two_bikes.bit` (PR #25)
+- [ ] **Paso 6c:** paso de 8 a 10 ticks en vez de 6 (ADR 0007, issue #22). El código ya usa 8
+  (PR #26); falta probarlo en la tarjeta y elegir el valor final. `game_top_two_bikes.bit` es
+  de antes del PR #26 y todavía avanza cada 6 ticks
 - [ ] **Paso 6d:** choque con estelas y premios, leyendo las celdas destino de `arena_map`
 
 ## Hito: bloque en movimiento (revisión del 12 de noviembre)
@@ -65,17 +68,19 @@ detiene en las paredes. CPU_RESET lo regresa a (320, 432) si se mantiene al meno
 lo lleva al centro, (632, 392). Su color sale de `SW0`–`SW11`: **con todos abajo es negro
 y no se ve.**
 
-El bitstream probado, los resultados en la tarjeta y los límites están en
-[`bitstreams/README.md`](bitstreams/README.md). Es `game_top_one_wizard.bit`, con un solo
-Wizard; en la tarjeta se probaron también las paredes y el reset repetido.
+Ese hito se probó con `game_top_one_wizard.bit`, con un solo Wizard; en la tarjeta se
+probaron también las paredes y el reset repetido. Ese archivo ya no está en el repositorio:
+[`bitstreams/README.md`](bitstreams/README.md) guarda solo el último bitstream probado
+(`game_top_two_bikes.bit`), con sus resultados y límites.
 
 ## Archivos
 
+- `prototypes/core_blocks/`: [bloques básicos y núcleo jugable provisionales](prototypes/core_blocks/README.md) (29 oct 2026). **Solo prototipo:** muestra cómo se podría implementar el juego (con el look synthwave) y no se usa directamente en el diseño de `proyecto_final/` ni es lo que se entrega a los TAs. Pruebas por bloque, comparación con los 12 escenarios M2 del modelo y un bitstream `tron_top`, probado en la tarjeta y grabado en su flash el 12 de noviembre. Trae sus propios scripts de host en `prototypes/core_blocks/tools/`. No seleccionan interfaces (ADR 0005). Usan su propia copia de `vga_out` con salidas combinacionales (`video/vga_out.sv`), que todavía no es la de `game_top`.
 - `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasa las pruebas de XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
 - `game_top.sv`: tope del diseño. Conecta el Clocking Wizard, el contador de `clk_juego`, los sincronizadores y los bloques de abajo
 - `position_logic.sv`: las dos motos, en `clk_juego`: control de ronda, ritmo del paso, giros y choques
 - `round_fsm.sv`: ronda provisional: espera Start, corre, pausa tras un choque y espera que se suelte Start
-- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (6) y la pausa de choque (120)
+- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (8, ADR 0007) y la pausa de choque (120)
 - `bike_move.sv`: celda, dirección y giro pendiente de una moto; se instancia una vez por moto
 - `drawcon.sv`: color de cada píxel: paredes, HUD, P1 en azul (`0DF`) y P2 en naranja (`F80`)
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)

@@ -1,0 +1,1919 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 7154 5068"
+     preserveAspectRatio="xMidYMid meet"
+     version="1.1"
+     baseProfile="full"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:ev="http://www.w3.org/2001/xml-events"
+     xml:space="preserve">
+<title>tron_top</title>
+<desc>Nlview schematic (SVG)</desc>
+<clipPath id="clippingbbox">
+<rect x="0" y="0" width="7154" height="5068" />
+</clipPath>
+<g stroke="#19b400"
+   stroke-width="1"
+   stroke-linecap="butt"
+   stroke-linejoin="miter"
+   stroke-miterlimit="4"
+   stroke-dasharray="none"
+   stroke-dashoffset="0"
+   fill="none"
+   font-family="Helvetica"
+   font-style="normal"
+   font-size="12"
+   writing-mode="lr-tb"
+   cursor="crosshair"
+   clip-path="url(#clippingbbox)">
+<path d="M0 0h7154v5069h-7154z" stroke="none" fill="white" />
+<path d="M124 29h6894l3 1l3 1l1 3l1 3v4994l-1 3l-1 3l-3 1l-3 1h-6894l-3 -1l-3 -1l-1 -3l-1 -3v-4994l1 -3l1 -3l3 -1z" stroke="none" fill="#fafafa" />
+<g stroke="black">
+<path d="M124 29h6894" />
+<path d="M7018,29 A7.83511,7.83511 1.61334 0,1 7026,37" />
+<path d="M7026 37v4994" />
+<path d="M7026,5031 A7.83511,7.83511 1.61334 0,1 7018,5039" />
+<path d="M7018 5039h-6894" />
+<path d="M124,5039 A7.83511,7.83511 1.61334 0,1 116,5031" />
+<path d="M116 5031v-4994" />
+<path d="M116,37 A7.83511,7.83511 1.61334 0,1 124,29" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M121 40h12" />
+</g>
+<g stroke="black">
+<path d="M119 32h16v16h-16z" />
+<text x="3571" y="27" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_system</text>
+<text x="3571" y="5041" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">tron_system</text>
+<path d="M106 4179h10" />
+<text x="114" y="4177" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_juego</text>
+<path d="M106 4199h10" />
+<text x="114" y="4197" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_out1</text>
+<path d="M106 4219h10" />
+<text x="114" y="4217" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">count_reg[0]</text>
+<path d="M7036 2999h-10" />
+<text x="7028" y="2997" fill="black" stroke-width="0" font-size="10" dy="-1.33333">count_reg[7]</text>
+<path d="M106 4239h10" />
+<text x="114" y="4237" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lives_p1_reg[0]</text>
+<path d="M106 4259h10" />
+<text x="114" y="4257" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">out</text>
+<path d="M7036 3039h-10" />
+<text x="7028" y="3037" fill="black" stroke-width="0" font-size="10" dy="-1.33333">prepare_new</text>
+<path d="M7036 3079h-10" />
+<text x="7028" y="3077" fill="black" stroke-width="0" font-size="10" dy="-1.33333">tick_seen</text>
+<path d="M106 4299h10" />
+<text x="114" y="4297" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">uart_rx</text>
+<path d="M106 4319h10" />
+<text x="114" y="4317" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vcnt_reg[0]</text>
+<path d="M7036 3139h-10" />
+<text x="7028" y="3137" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_hs_OBUF</text>
+<path d="M7036 3179h-10" />
+<text x="7028" y="3177" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_vs_OBUF</text>
+<path d="M106 4339h10" />
+<text x="114" y="4337" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">win_cnt_reg[0]</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M7036 2979h-10" />
+<text x="7028" y="2977" fill="black" stroke-width="0" font-size="10" dy="-1.33333">an_OBUF[7:0]</text>
+<path d="M106 3119h10" />
+<text x="114" y="3117" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">btn[4:0]</text>
+<path d="M7036 3019h-10" />
+<text x="7028" y="3017" fill="black" stroke-width="0" font-size="10" dy="-1.33333">led_OBUF[8:0]</text>
+<path d="M7036 3059h-10" />
+<text x="7028" y="3057" fill="black" stroke-width="0" font-size="10" dy="-1.33333">seg_OBUF[6:0]</text>
+<path d="M106 4279h10" />
+<text x="114" y="4277" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">sw_IBUF[2:0]</text>
+<path d="M7036 3099h-10" />
+<text x="7028" y="3097" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_b_OBUF[3:0]</text>
+<path d="M7036 3119h-10" />
+<text x="7028" y="3117" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_g_OBUF[3:0]</text>
+<path d="M7036 3159h-10" />
+<text x="7028" y="3157" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_r_OBUF[3:0]</text>
+</g>
+<g stroke="black">
+<path d="M126 4179h-10" />
+<path d="M126 4199h-10" />
+<path d="M126 4219h-10" />
+<path d="M7016 2999h10" />
+<path d="M126 4239h-10" />
+<path d="M126 4259h-10" />
+<path d="M7016 3039h10" />
+<path d="M7016 3079h10" />
+<path d="M126 4299h-10" />
+<path d="M126 4319h-10" />
+<path d="M7016 3139h10" />
+<path d="M7016 3179h10" />
+<path d="M126 4339h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M7016 2979h10" />
+<path d="M126 3119h-10" />
+<path d="M7016 3019h10" />
+<path d="M7016 3059h10" />
+<path d="M126 4279h-10" />
+<path d="M7016 3099h10" />
+<path d="M7016 3119h10" />
+<path d="M7016 3159h10" />
+<path d="M3836 3087h60v82h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M3836 3087h60v82h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3847 3092v12" />
+<path d="M3841 3098h12" />
+</g>
+<g stroke="black">
+<path d="M3839 3090h16v16h-16z" />
+<text x="3866" y="3085" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_btn</text>
+<text x="3866" y="3171" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">btn_debounce</text>
+<path d="M3826 3139h10" />
+<text x="3834" y="3138" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_out1</text>
+<path d="M3826 3159h10" />
+<text x="3834" y="3158" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">settled_reg</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3826 3119h10" />
+<text x="3834" y="3118" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">btn[4:0]</text>
+<path d="M3906 3139h-10" />
+<text x="3898" y="3138" fill="black" stroke-width="0" font-size="10" dy="-1.33333">btn_pulse[4:0]</text>
+</g>
+<g stroke="black">
+<path d="M3846 3139h-10" />
+<path d="M3846 3159h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3846 3119h-10" />
+<path d="M3886 3139h10" />
+<path d="M3836 3507h60v242h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M3836 3507h60v242h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3847 3512v12" />
+<path d="M3841 3518h12" />
+</g>
+<g stroke="black">
+<path d="M3839 3510h16v16h-16z" />
+<text x="3866" y="3505" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_dec</text>
+<text x="3866" y="3751" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">uart_cmd_decode</text>
+<path d="M3826 3579h10" />
+<text x="3834" y="3578" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_out1</text>
+<path d="M3906 3579h-10" />
+<text x="3898" y="3578" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_reg[0]_0</text>
+<path d="M3906 3599h-10" />
+<text x="3898" y="3598" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_reg[0]_1</text>
+<path d="M3906 3619h-10" />
+<text x="3898" y="3618" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_reg[0]_2</text>
+<path d="M3826 3599h10" />
+<text x="3834" y="3598" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">cmd_reg[0]_3</text>
+<path d="M3826 3619h10" />
+<text x="3834" y="3618" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">cmd_reg[0]_4</text>
+<path d="M3826 3639h10" />
+<text x="3834" y="3638" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">cmd_reg[1]_0</text>
+<path d="M3826 3659h10" />
+<text x="3834" y="3658" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">cmd_reg[2]_0</text>
+<path d="M3906 3639h-10" />
+<text x="3898" y="3638" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_valid_reg_0</text>
+<path d="M3826 3679h10" />
+<text x="3834" y="3678" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">cmd_valid_reg_1</text>
+<path d="M3826 3699h10" />
+<text x="3834" y="3698" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lat_p2_reg[2]</text>
+<path d="M3826 3719h10" />
+<text x="3834" y="3718" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lat_p2_reg[3]</text>
+<path d="M3826 3739h10" />
+<text x="3834" y="3738" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lat_start_reg</text>
+<path d="M3906 3659h-10" />
+<text x="3898" y="3658" fill="black" stroke-width="0" font-size="10" dy="-1.33333">nxt_start1_out</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3826 3539h10" />
+<text x="3834" y="3538" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">D[3:0]</text>
+<path d="M3826 3559h10" />
+<text x="3834" y="3558" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">E</text>
+<path d="M3906 3679h-10" />
+<text x="3898" y="3678" fill="black" stroke-width="0" font-size="10" dy="-1.33333">uart_cmd[2:0]</text>
+</g>
+<g stroke="black">
+<path d="M3846 3579h-10" />
+<path d="M3886 3579h10" />
+<path d="M3886 3599h10" />
+<path d="M3886 3619h10" />
+<path d="M3846 3599h-10" />
+<path d="M3846 3619h-10" />
+<path d="M3846 3639h-10" />
+<path d="M3846 3659h-10" />
+<path d="M3886 3639h10" />
+<path d="M3846 3679h-10" />
+<path d="M3846 3699h-10" />
+<path d="M3846 3719h-10" />
+<path d="M3846 3739h-10" />
+<path d="M3886 3659h10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3846 3539h-10" />
+<path d="M3846 3559h-10" />
+<path d="M3886 3679h10" />
+<path d="M2026 147h190v1462h-190z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M2026 147h190v1462h-190z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M2037 152v12" />
+<path d="M2031 158h12" />
+</g>
+<g stroke="black">
+<path d="M2029 150h16v16h-16z" />
+<text x="2121" y="145" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_draw</text>
+<text x="2121" y="1611" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">drawcon_game</text>
+<path d="M2016 299h10" />
+<text x="2024" y="298" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_out1</text>
+<path d="M2226 299h-10" />
+<text x="2218" y="298" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown</text>
+<path d="M2016 399h10" />
+<text x="2024" y="398" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_crown0</text>
+<path d="M2016 359h10" />
+<text x="2024" y="358" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_crown_c_reg[6]_0</text>
+<path d="M2226 339h-10" />
+<text x="2218" y="338" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_0</text>
+<path d="M2226 359h-10" />
+<text x="2218" y="358" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_1</text>
+<path d="M2226 539h-10" />
+<text x="2218" y="538" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_10</text>
+<path d="M2226 559h-10" />
+<text x="2218" y="558" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_11</text>
+<path d="M2226 579h-10" />
+<text x="2218" y="578" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_12</text>
+<path d="M2226 599h-10" />
+<text x="2218" y="598" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_13</text>
+<path d="M2226 619h-10" />
+<text x="2218" y="618" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_14</text>
+<path d="M2226 639h-10" />
+<text x="2218" y="638" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_15</text>
+<path d="M2226 659h-10" />
+<text x="2218" y="658" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_16</text>
+<path d="M2226 379h-10" />
+<text x="2218" y="378" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_2</text>
+<path d="M2226 399h-10" />
+<text x="2218" y="398" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_3</text>
+<path d="M2226 419h-10" />
+<text x="2218" y="418" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_4</text>
+<path d="M2226 439h-10" />
+<text x="2218" y="438" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_5</text>
+<path d="M2226 459h-10" />
+<text x="2218" y="458" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_6</text>
+<path d="M2226 479h-10" />
+<text x="2218" y="478" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_7</text>
+<path d="M2226 499h-10" />
+<text x="2218" y="498" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_8</text>
+<path d="M2226 519h-10" />
+<text x="2218" y="518" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_reg_9</text>
+<path d="M2226 679h-10" />
+<text x="2218" y="678" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_dig_p2_reg_0</text>
+<path d="M2226 999h-10" />
+<text x="2218" y="998" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_lives_p1_reg[1]_0</text>
+<path d="M2226 1039h-10" />
+<text x="2218" y="1038" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_play</text>
+<path d="M2016 539h10" />
+<text x="2024" y="538" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_play0</text>
+<path d="M2226 1099h-10" />
+<text x="2218" y="1098" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_show_p1</text>
+<path d="M2016 639h10" />
+<text x="2024" y="638" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_show_p1057_out</text>
+<path d="M2016 659h10" />
+<text x="2024" y="658" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_show_p1156_in</text>
+<path d="M2226 1119h-10" />
+<text x="2218" y="1118" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_show_p2</text>
+<path d="M2016 599h10" />
+<text x="2024" y="598" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_show_p20</text>
+<path d="M2016 619h10" />
+<text x="2024" y="618" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_show_p21</text>
+<path d="M2016 679h10" />
+<text x="2024" y="678" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">frame_cnt_reg[4]_1</text>
+<path d="M2016 699h10" />
+<text x="2024" y="698" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">frame_cnt_reg[4]_2</text>
+<path d="M2016 779h10" />
+<text x="2024" y="778" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_42</text>
+<path d="M2016 799h10" />
+<text x="2024" y="798" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_42_0</text>
+<path d="M2016 819h10" />
+<text x="2024" y="818" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_44</text>
+<path d="M2016 739h10" />
+<text x="2024" y="738" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_6</text>
+<path d="M2016 759h10" />
+<text x="2024" y="758" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_6_0</text>
+<path d="M2016 839h10" />
+<text x="2024" y="838" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_88_0</text>
+<path d="M2016 859h10" />
+<text x="2024" y="858" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_88_1</text>
+<path d="M2016 899h10" />
+<text x="2024" y="898" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p1</text>
+<path d="M2016 919h10" />
+<text x="2024" y="918" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p1_q1_reg_i_4</text>
+<path d="M2016 939h10" />
+<text x="2024" y="938" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p1_q1_reg_i_6</text>
+<path d="M2016 959h10" />
+<text x="2024" y="958" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p2</text>
+<path d="M2016 979h10" />
+<text x="2024" y="978" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p2_q1_reg_i_4</text>
+<path d="M2016 999h10" />
+<text x="2024" y="998" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p2_q1_reg_i_4_0</text>
+<path d="M2016 1019h10" />
+<text x="2024" y="1018" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">p_0_out_inferred__2/hud_rgb[11]_i_76_0</text>
+<path d="M2016 1059h10" />
+<text x="2024" y="1058" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">p_0_out_inferred__2/hud_rgb[11]_i_78_0</text>
+<path d="M2016 1079h10" />
+<text x="2024" y="1078" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">p_0_out_inferred__2/hud_rgb[11]_i_91_0</text>
+<path d="M2016 1099h10" />
+<text x="2024" y="1098" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">p_0_out_inferred__2/hud_rgb[11]_i_94_0</text>
+<path d="M2016 1119h10" />
+<text x="2024" y="1118" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">p_0_out_inferred__2/hud_rgb[11]_i_94_1</text>
+<path d="M2016 1139h10" />
+<text x="2024" y="1138" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">p_0_out_inferred__2/hud_rgb[11]_i_94_2</text>
+<path d="M2016 1199h10" />
+<text x="2024" y="1198" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">stripe_reg_0</text>
+<path d="M2226 1179h-10" />
+<text x="2218" y="1178" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[0]</text>
+<path d="M2226 1199h-10" />
+<text x="2218" y="1198" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[0]_0</text>
+<path d="M2226 1219h-10" />
+<text x="2218" y="1218" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[1]</text>
+<path d="M2226 1239h-10" />
+<text x="2218" y="1238" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[1]_0</text>
+<path d="M2016 1219h10" />
+<text x="2024" y="1218" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b_OBUF[0]_inst_i_2</text>
+<path d="M2016 1239h10" />
+<text x="2024" y="1238" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b_OBUF[1]_inst_i_2</text>
+<path d="M2016 1259h10" />
+<text x="2024" y="1258" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b_OBUF[2]_inst_i_2</text>
+<path d="M2016 1279h10" />
+<text x="2024" y="1278" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b_OBUF[3]_inst_i_2</text>
+<path d="M2016 1299h10" />
+<text x="2024" y="1298" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g_OBUF[0]_inst_i_1</text>
+<path d="M2016 1339h10" />
+<text x="2024" y="1338" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g_OBUF[1]_inst_i_2</text>
+<path d="M2016 1359h10" />
+<text x="2024" y="1358" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g_OBUF[3]_inst_i_2</text>
+<path d="M2016 1379h10" />
+<text x="2024" y="1378" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r_OBUF[0]_inst_i_1</text>
+<path d="M2016 1399h10" />
+<text x="2024" y="1398" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r_OBUF[1]_inst_i_4</text>
+<path d="M2016 1419h10" />
+<text x="2024" y="1418" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r_OBUF[2]_inst_i_3</text>
+<path d="M2016 1439h10" />
+<text x="2024" y="1438" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r_OBUF[2]_inst_i_3_0</text>
+<path d="M2016 1459h10" />
+<text x="2024" y="1458" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r_OBUF[3]_inst_i_1</text>
+<path d="M2016 1479h10" />
+<text x="2024" y="1478" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r_OBUF[3]_inst_i_5</text>
+<path d="M2226 1259h-10" />
+<text x="2218" y="1258" fill="black" stroke-width="0" font-size="10" dy="-1.33333">wall_rgb_reg[11]_0</text>
+<path d="M2226 1299h-10" />
+<text x="2218" y="1298" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_0</text>
+<path d="M2226 1319h-10" />
+<text x="2218" y="1318" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_1</text>
+<path d="M2226 1499h-10" />
+<text x="2218" y="1498" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_10</text>
+<path d="M2226 1519h-10" />
+<text x="2218" y="1518" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_11</text>
+<path d="M2226 1539h-10" />
+<text x="2218" y="1538" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_12</text>
+<path d="M2226 1559h-10" />
+<text x="2218" y="1558" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_13</text>
+<path d="M2226 1339h-10" />
+<text x="2218" y="1338" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_2</text>
+<path d="M2226 1359h-10" />
+<text x="2218" y="1358" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_3</text>
+<path d="M2226 1379h-10" />
+<text x="2218" y="1378" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_4</text>
+<path d="M2226 1399h-10" />
+<text x="2218" y="1398" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_5</text>
+<path d="M2226 1419h-10" />
+<text x="2218" y="1418" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_6</text>
+<path d="M2226 1439h-10" />
+<text x="2218" y="1438" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_7</text>
+<path d="M2226 1459h-10" />
+<text x="2218" y="1458" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_8</text>
+<path d="M2226 1479h-10" />
+<text x="2218" y="1478" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg_9</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M2016 179h10" />
+<text x="2024" y="178" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ADDRARDADDR[5:0]</text>
+<path d="M2016 199h10" />
+<text x="2024" y="198" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ADDRBWRADDR[3:0]</text>
+<path d="M2226 199h-10" />
+<text x="2218" y="198" fill="black" stroke-width="0" font-size="10" dy="-1.33333">CO</text>
+<path d="M2016 219h10" />
+<text x="2024" y="218" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">D[10:0]</text>
+<path d="M2226 219h-10" />
+<text x="2218" y="218" fill="black" stroke-width="0" font-size="10" dy="-1.33333">DI[2:0]</text>
+<path d="M2226 239h-10" />
+<text x="2218" y="238" fill="black" stroke-width="0" font-size="10" dy="-1.33333">DOADO</text>
+<path d="M2016 239h10" />
+<text x="2024" y="238" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">E</text>
+<path d="M2016 259h10" />
+<text x="2024" y="258" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">O[2:0]</text>
+<path d="M2226 259h-10" />
+<text x="2218" y="258" fill="black" stroke-width="0" font-size="10" dy="-1.33333">Q[1:0]</text>
+<path d="M2016 279h10" />
+<text x="2024" y="278" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">S</text>
+<path d="M2226 279h-10" />
+<text x="2218" y="278" fill="black" stroke-width="0" font-size="10" dy="-1.33333">bg_rgb_reg[11]_0[2:0]</text>
+<path d="M2016 319h10" />
+<text x="2024" y="318" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">curr_x[3:0]</text>
+<path d="M2016 339h10" />
+<text x="2024" y="338" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">curr_y[4:0]</text>
+<path d="M2226 319h-10" />
+<text x="2218" y="318" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_c[2:0]</text>
+<path d="M2016 379h10" />
+<text x="2024" y="378" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_crown_c0</text>
+<path d="M2226 699h-10" />
+<text x="2218" y="698" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_dir_p1_reg[1]_0[1:0]</text>
+<path d="M2016 419h10" />
+<text x="2024" y="418" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_dir_p1_reg[1]_1[1:0]</text>
+<path d="M2016 439h10" />
+<text x="2024" y="438" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_dir_p2_reg[1]_0[1:0]</text>
+<path d="M2226 719h-10" />
+<text x="2218" y="718" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[0]_0</text>
+<path d="M2226 799h-10" />
+<text x="2218" y="798" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[10]_0</text>
+<path d="M2226 819h-10" />
+<text x="2218" y="818" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[12]_0</text>
+<path d="M2226 839h-10" />
+<text x="2218" y="838" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[12]_1[11:0]</text>
+<path d="M2016 459h10" />
+<text x="2024" y="458" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_head_p1_reg[12]_2[12:0]</text>
+<path d="M2226 739h-10" />
+<text x="2218" y="738" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[1]_0</text>
+<path d="M2226 759h-10" />
+<text x="2218" y="758" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[2]_0</text>
+<path d="M2226 779h-10" />
+<text x="2218" y="778" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[7]_0</text>
+<path d="M2226 859h-10" />
+<text x="2218" y="858" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p2_reg[0]_0</text>
+<path d="M2226 959h-10" />
+<text x="2218" y="958" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p2_reg[10]_0</text>
+<path d="M2226 979h-10" />
+<text x="2218" y="978" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p2_reg[12]_0[11:0]</text>
+<path d="M2016 479h10" />
+<text x="2024" y="478" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_head_p2_reg[12]_1[12:0]</text>
+<path d="M2226 879h-10" />
+<text x="2218" y="878" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p2_reg[1]_0</text>
+<path d="M2226 899h-10" />
+<text x="2218" y="898" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p2_reg[2]_0</text>
+<path d="M2226 919h-10" />
+<text x="2218" y="918" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p2_reg[3]_0[2:0]</text>
+<path d="M2226 939h-10" />
+<text x="2218" y="938" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p2_reg[7]_0</text>
+<path d="M2016 499h10" />
+<text x="2024" y="498" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_lives_p1_reg[1]_1[1:0]</text>
+<path d="M2226 1019h-10" />
+<text x="2218" y="1018" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_lives_p2_reg[1]_0[1:0]</text>
+<path d="M2016 519h10" />
+<text x="2024" y="518" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_lives_p2_reg[1]_1[1:0]</text>
+<path d="M2226 1059h-10" />
+<text x="2218" y="1058" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_pts_p1_reg[6]_0[6:0]</text>
+<path d="M2016 559h10" />
+<text x="2024" y="558" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_pts_p1_reg[6]_1[6:0]</text>
+<path d="M2226 1079h-10" />
+<text x="2218" y="1078" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_pts_p2_reg[6]_0[6:0]</text>
+<path d="M2016 579h10" />
+<text x="2024" y="578" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_pts_p2_reg[6]_1[6:0]</text>
+<path d="M2226 1139h-10" />
+<text x="2218" y="1138" fill="black" stroke-width="0" font-size="10" dy="-1.33333">frame_cnt_reg[4]_0[4:0]</text>
+<path d="M2016 719h10" />
+<text x="2024" y="718" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_next4</text>
+<path d="M2226 1159h-10" />
+<text x="2218" y="1158" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hud_rgb_reg[11]_0[2:0]</text>
+<path d="M2016 879h10" />
+<text x="2024" y="878" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb_reg[11]_1[2:0]</text>
+<path d="M2016 1159h10" />
+<text x="2024" y="1158" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">p0_x_reg[10]_0[10:0]</text>
+<path d="M2016 1039h10" />
+<text x="2024" y="1038" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">...t_inferred__2/hud_rgb[11]_i_76_1[1:0]</text>
+<path d="M2016 1179h10" />
+<text x="2024" y="1178" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">sel0</text>
+<path d="M2016 1319h10" />
+<text x="2024" y="1318" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g_OBUF[0]_inst_i_5</text>
+<path d="M2016 1499h10" />
+<text x="2024" y="1498" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r_OBUF[3]_inst_i_37_0[2:0]</text>
+<path d="M2226 1279h-10" />
+<text x="2218" y="1278" fill="black" stroke-width="0" font-size="10" dy="-1.33333">wall_rgb_reg[11]_1[1:0]</text>
+<path d="M2016 1519h10" />
+<text x="2024" y="1518" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">wall_rgb_reg[11]_2[2:0]</text>
+<path d="M2016 1539h10" />
+<text x="2024" y="1538" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_14[7:0]</text>
+<path d="M2016 1559h10" />
+<text x="2024" y="1558" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_15[2:0]</text>
+<path d="M2016 1579h10" />
+<text x="2024" y="1578" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_16[1:0]</text>
+<path d="M2016 1599h10" />
+<text x="2024" y="1598" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_17[1:0]</text>
+</g>
+<g stroke="black">
+<path d="M2036 299h-10" />
+<path d="M2206 299h10" />
+<path d="M2036 399h-10" />
+<path d="M2036 359h-10" />
+<path d="M2206 339h10" />
+<path d="M2206 359h10" />
+<path d="M2206 539h10" />
+<path d="M2206 559h10" />
+<path d="M2206 579h10" />
+<path d="M2206 599h10" />
+<path d="M2206 619h10" />
+<path d="M2206 639h10" />
+<path d="M2206 659h10" />
+<path d="M2206 379h10" />
+<path d="M2206 399h10" />
+<path d="M2206 419h10" />
+<path d="M2206 439h10" />
+<path d="M2206 459h10" />
+<path d="M2206 479h10" />
+<path d="M2206 499h10" />
+<path d="M2206 519h10" />
+<path d="M2206 679h10" />
+<path d="M2206 999h10" />
+<path d="M2206 1039h10" />
+<path d="M2036 539h-10" />
+<path d="M2206 1099h10" />
+<path d="M2036 639h-10" />
+<path d="M2036 659h-10" />
+<path d="M2206 1119h10" />
+<path d="M2036 599h-10" />
+<path d="M2036 619h-10" />
+<path d="M2036 679h-10" />
+<path d="M2036 699h-10" />
+<path d="M2036 779h-10" />
+<path d="M2036 799h-10" />
+<path d="M2036 819h-10" />
+<path d="M2036 739h-10" />
+<path d="M2036 759h-10" />
+<path d="M2036 839h-10" />
+<path d="M2036 859h-10" />
+<path d="M2036 899h-10" />
+<path d="M2036 919h-10" />
+<path d="M2036 939h-10" />
+<path d="M2036 959h-10" />
+<path d="M2036 979h-10" />
+<path d="M2036 999h-10" />
+<path d="M2036 1019h-10" />
+<path d="M2036 1059h-10" />
+<path d="M2036 1079h-10" />
+<path d="M2036 1099h-10" />
+<path d="M2036 1119h-10" />
+<path d="M2036 1139h-10" />
+<path d="M2036 1199h-10" />
+<path d="M2206 1179h10" />
+<path d="M2206 1199h10" />
+<path d="M2206 1219h10" />
+<path d="M2206 1239h10" />
+<path d="M2036 1219h-10" />
+<path d="M2036 1239h-10" />
+<path d="M2036 1259h-10" />
+<path d="M2036 1279h-10" />
+<path d="M2036 1299h-10" />
+<path d="M2036 1339h-10" />
+<path d="M2036 1359h-10" />
+<path d="M2036 1379h-10" />
+<path d="M2036 1399h-10" />
+<path d="M2036 1419h-10" />
+<path d="M2036 1439h-10" />
+<path d="M2036 1459h-10" />
+<path d="M2036 1479h-10" />
+<path d="M2206 1259h10" />
+<path d="M2206 1299h10" />
+<path d="M2206 1319h10" />
+<path d="M2206 1499h10" />
+<path d="M2206 1519h10" />
+<path d="M2206 1539h10" />
+<path d="M2206 1559h10" />
+<path d="M2206 1339h10" />
+<path d="M2206 1359h10" />
+<path d="M2206 1379h10" />
+<path d="M2206 1399h10" />
+<path d="M2206 1419h10" />
+<path d="M2206 1439h10" />
+<path d="M2206 1459h10" />
+<path d="M2206 1479h10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M2036 179h-10" />
+<path d="M2036 199h-10" />
+<path d="M2206 199h10" />
+<path d="M2036 219h-10" />
+<path d="M2206 219h10" />
+<path d="M2206 239h10" />
+<path d="M2036 239h-10" />
+<path d="M2036 259h-10" />
+<path d="M2206 259h10" />
+<path d="M2036 279h-10" />
+<path d="M2206 279h10" />
+<path d="M2036 319h-10" />
+<path d="M2036 339h-10" />
+<path d="M2206 319h10" />
+<path d="M2036 379h-10" />
+<path d="M2206 699h10" />
+<path d="M2036 419h-10" />
+<path d="M2036 439h-10" />
+<path d="M2206 719h10" />
+<path d="M2206 799h10" />
+<path d="M2206 819h10" />
+<path d="M2206 839h10" />
+<path d="M2036 459h-10" />
+<path d="M2206 739h10" />
+<path d="M2206 759h10" />
+<path d="M2206 779h10" />
+<path d="M2206 859h10" />
+<path d="M2206 959h10" />
+<path d="M2206 979h10" />
+<path d="M2036 479h-10" />
+<path d="M2206 879h10" />
+<path d="M2206 899h10" />
+<path d="M2206 919h10" />
+<path d="M2206 939h10" />
+<path d="M2036 499h-10" />
+<path d="M2206 1019h10" />
+<path d="M2036 519h-10" />
+<path d="M2206 1059h10" />
+<path d="M2036 559h-10" />
+<path d="M2206 1079h10" />
+<path d="M2036 579h-10" />
+<path d="M2206 1139h10" />
+<path d="M2036 719h-10" />
+<path d="M2206 1159h10" />
+<path d="M2036 879h-10" />
+<path d="M2036 1159h-10" />
+<path d="M2036 1039h-10" />
+<path d="M2036 1179h-10" />
+<path d="M2036 1319h-10" />
+<path d="M2036 1499h-10" />
+<path d="M2206 1279h10" />
+<path d="M2036 1519h-10" />
+<path d="M2036 1539h-10" />
+<path d="M2036 1559h-10" />
+<path d="M2036 1579h-10" />
+<path d="M2036 1599h-10" />
+<path d="M5446 3227h140v1022h-140z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M5446 3227h140v1022h-140z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M5457 3232v12" />
+<path d="M5451 3238h12" />
+</g>
+<g stroke="black">
+<path d="M5449 3230h16v16h-16z" />
+<text x="5516" y="3225" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_fast</text>
+<text x="5516" y="4251" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">fast_core</text>
+<path d="M5436 3359h10" />
+<text x="5444" y="3358" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_out1</text>
+<path d="M5436 3379h10" />
+<text x="5444" y="3378" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">cmd_new_match</text>
+<path d="M5436 3399h10" />
+<text x="5444" y="3398" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">cmd_survive_p1</text>
+<path d="M5436 3419h10" />
+<text x="5444" y="3418" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">cmd_survive_p2</text>
+<path d="M5436 3439h10" />
+<text x="5444" y="3438" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">crashed_p1</text>
+<path d="M5436 3459h10" />
+<text x="5444" y="3458" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">crashed_p2</text>
+<path d="M5596 3399h-10" />
+<text x="5588" y="3398" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown0</text>
+<path d="M5436 3499h10" />
+<text x="5444" y="3498" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_crown_c_reg[6]</text>
+<path d="M5596 3419h-10" />
+<text x="5588" y="3418" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_play0</text>
+<path d="M5596 3479h-10" />
+<text x="5588" y="3478" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_show_p1057_out</text>
+<path d="M5596 3499h-10" />
+<text x="5588" y="3498" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_show_p1156_in</text>
+<path d="M5596 3439h-10" />
+<text x="5588" y="3438" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_show_p20</text>
+<path d="M5596 3459h-10" />
+<text x="5588" y="3458" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_show_p21</text>
+<path d="M5596 3519h-10" />
+<text x="5588" y="3518" fill="black" stroke-width="0" font-size="10" dy="-1.33333">g_start</text>
+<path d="M5436 3579h10" />
+<text x="5444" y="3578" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lat_p2_reg[0]_0</text>
+<path d="M5436 3599h10" />
+<text x="5444" y="3598" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lat_p2_reg[1]_0</text>
+<path d="M5436 3619h10" />
+<text x="5444" y="3618" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lat_p2_reg[2]_0</text>
+<path d="M5436 3639h10" />
+<text x="5444" y="3638" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lat_p2_reg[3]_0</text>
+<path d="M5596 3559h-10" />
+<text x="5588" y="3558" fill="black" stroke-width="0" font-size="10" dy="-1.33333">mem_reg</text>
+<path d="M5596 3579h-10" />
+<text x="5588" y="3578" fill="black" stroke-width="0" font-size="10" dy="-1.33333">mem_reg_0</text>
+<path d="M5596 3599h-10" />
+<text x="5588" y="3598" fill="black" stroke-width="0" font-size="10" dy="-1.33333">mem_reg_1</text>
+<path d="M5596 3619h-10" />
+<text x="5588" y="3618" fill="black" stroke-width="0" font-size="10" dy="-1.33333">mem_reg_2</text>
+<path d="M5596 3639h-10" />
+<text x="5588" y="3638" fill="black" stroke-width="0" font-size="10" dy="-1.33333">mem_reg_3</text>
+<path d="M5596 3659h-10" />
+<text x="5588" y="3658" fill="black" stroke-width="0" font-size="10" dy="-1.33333">mem_reg_4</text>
+<path d="M5596 3679h-10" />
+<text x="5588" y="3678" fill="black" stroke-width="0" font-size="10" dy="-1.33333">mem_reg_5</text>
+<path d="M5596 3699h-10" />
+<text x="5588" y="3698" fill="black" stroke-width="0" font-size="10" dy="-1.33333">mem_reg_6</text>
+<path d="M5596 3719h-10" />
+<text x="5588" y="3718" fill="black" stroke-width="0" font-size="10" dy="-1.33333">mem_reg_7</text>
+<path d="M5436 3659h10" />
+<text x="5444" y="3658" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">nxt_start1_out</text>
+<path d="M5436 3679h10" />
+<text x="5444" y="3678" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">page_goal</text>
+<path d="M5436 3699h10" />
+<text x="5444" y="3698" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">page_lives</text>
+<path d="M5436 3719h10" />
+<text x="5444" y="3718" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">paused</text>
+<path d="M5436 3939h10" />
+<text x="5444" y="3938" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">settled_reg</text>
+<path d="M5596 3899h-10" />
+<text x="5588" y="3898" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_page_goal</text>
+<path d="M5596 3919h-10" />
+<text x="5588" y="3918" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_page_lives</text>
+<path d="M5596 3939h-10" />
+<text x="5588" y="3938" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_paused_reg_0</text>
+<path d="M5596 3959h-10" />
+<text x="5588" y="3958" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_paused_reg_1</text>
+<path d="M5596 3979h-10" />
+<text x="5588" y="3978" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_phase_reg[1]_0</text>
+<path d="M5596 3999h-10" />
+<text x="5588" y="3998" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_phase_reg[1]_1</text>
+<path d="M5596 4099h-10" />
+<text x="5588" y="4098" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_result_reg[0]_0</text>
+<path d="M5436 4079h10" />
+<text x="5444" y="4078" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">tick_tgl</text>
+<path d="M5436 4139h10" />
+<text x="5444" y="4138" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b_OBUF[3]_inst_i_4</text>
+<path d="M5436 4159h10" />
+<text x="5444" y="4158" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g_OBUF[0]_inst_i_2</text>
+<path d="M5436 4219h10" />
+<text x="5444" y="4218" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r_OBUF[3]_inst_i_5_0</text>
+<path d="M5596 4179h-10" />
+<text x="5588" y="4178" fill="black" stroke-width="0" font-size="10" dy="-1.33333">wall_rgb_reg[11]</text>
+<path d="M5596 4159h-10" />
+<text x="5588" y="4158" fill="black" stroke-width="0" font-size="10" dy="-1.33333">wall_rgb_reg[5]</text>
+<path d="M5436 4239h10" />
+<text x="5444" y="4238" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">win_cnt_reg[0]_0</text>
+<path d="M5596 4199h-10" />
+<text x="5588" y="4198" fill="black" stroke-width="0" font-size="10" dy="-1.33333">word_reg</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M5436 3259h10" />
+<text x="5444" y="3258" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ADDRBWRADDR[12:0]</text>
+<path d="M5436 3279h10" />
+<text x="5444" y="3278" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">CO</text>
+<path d="M5596 3299h-10" />
+<text x="5588" y="3298" fill="black" stroke-width="0" font-size="10" dy="-1.33333">D[3:0]</text>
+<path d="M5436 3299h10" />
+<text x="5444" y="3298" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">DOADO</text>
+<path d="M5596 3319h-10" />
+<text x="5588" y="3318" fill="black" stroke-width="0" font-size="10" dy="-1.33333">E</text>
+<path d="M5436 3319h10" />
+<text x="5444" y="3318" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">Q</text>
+<path d="M5596 3339h-10" />
+<text x="5588" y="3338" fill="black" stroke-width="0" font-size="10" dy="-1.33333">batch_axes_p1_reg[3]_0[3:0]</text>
+<path d="M5596 3359h-10" />
+<text x="5588" y="3358" fill="black" stroke-width="0" font-size="10" dy="-1.33333">batch_axes_p2_reg[3]_0[3:0]</text>
+<path d="M5436 3339h10" />
+<text x="5444" y="3338" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">btn_pulse[4:0]</text>
+<path d="M5436 3479h10" />
+<text x="5444" y="3478" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_crown_c</text>
+<path d="M5596 3379h-10" />
+<text x="5588" y="3378" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_c0</text>
+<path d="M5436 3519h10" />
+<text x="5444" y="3518" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">goal_sel[1:0]</text>
+<path d="M5436 3539h10" />
+<text x="5444" y="3538" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">head_p1[12:0]</text>
+<path d="M5436 3559h10" />
+<text x="5444" y="3558" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">head_p2[12:0]</text>
+<path d="M5596 3539h-10" />
+<text x="5588" y="3538" fill="black" stroke-width="0" font-size="10" dy="-1.33333">led_OBUF[4:0]</text>
+<path d="M5436 3739h10" />
+<text x="5444" y="3738" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">phase[2:0]</text>
+<path d="M5436 3759h10" />
+<text x="5444" y="3758" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">q_a_p1_reg[12]_0[12:0]</text>
+<path d="M5436 3779h10" />
+<text x="5444" y="3778" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">q_a_p2_reg[12]_0[12:0]</text>
+<path d="M5436 3799h10" />
+<text x="5444" y="3798" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">q_b_p1_reg[12]_0[12:0]</text>
+<path d="M5436 3819h10" />
+<text x="5444" y="3818" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">q_b_p2_reg[12]_0[12:0]</text>
+<path d="M5436 3839h10" />
+<text x="5444" y="3838" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">q_collected_reg[2]_0[2:0]</text>
+<path d="M5436 3859h10" />
+<text x="5444" y="3858" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">q_op_reg[1]_0[1:0]</text>
+<path d="M5436 3879h10" />
+<text x="5444" y="3878" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">q_seed_mix_reg[31]_0[31:0]</text>
+<path d="M5436 3899h10" />
+<text x="5444" y="3898" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">q_seq_reg[3]_0[3:0]</text>
+<path d="M5436 3919h10" />
+<text x="5444" y="3918" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">result[1:0]</text>
+<path d="M5596 3739h-10" />
+<text x="5588" y="3738" fill="black" stroke-width="0" font-size="10" dy="-1.33333">rsp_code_p1_reg[3]_0[3:0]</text>
+<path d="M5596 3759h-10" />
+<text x="5588" y="3758" fill="black" stroke-width="0" font-size="10" dy="-1.33333">rsp_code_p2_reg[3]_0[3:0]</text>
+<path d="M5596 3779h-10" />
+<text x="5588" y="3778" fill="black" stroke-width="0" font-size="10" dy="-1.33333">rsp_seq_reg[3]_0[3:0]</text>
+<path d="M5596 3799h-10" />
+<text x="5588" y="3798" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_goal_sel_reg[1]_0[1:0]</text>
+<path d="M5596 3819h-10" />
+<text x="5588" y="3818" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_head_p1_reg[12]_0[12:0]</text>
+<path d="M5596 3839h-10" />
+<text x="5588" y="3838" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_head_p2_reg[12]_0[12:0]</text>
+<path d="M5596 3859h-10" />
+<text x="5588" y="3858" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_lives_p1_reg[1]_0[1:0]</text>
+<path d="M5436 3959h10" />
+<text x="5444" y="3958" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">snap_lives_p1_reg[1]_1[1:0]</text>
+<path d="M5596 3879h-10" />
+<text x="5588" y="3878" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_lives_p2_reg[1]_0[1:0]</text>
+<path d="M5436 3979h10" />
+<text x="5444" y="3978" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">snap_lives_p2_reg[1]_1[1:0]</text>
+<path d="M5596 4019h-10" />
+<text x="5588" y="4018" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_points_p1_reg[5]_0[5:0]</text>
+<path d="M5596 4039h-10" />
+<text x="5588" y="4038" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_points_p1_reg[5]_1[6:0]</text>
+<path d="M5436 3999h10" />
+<text x="5444" y="3998" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">snap_points_p1_reg[5]_2[5:0]</text>
+<path d="M5596 4059h-10" />
+<text x="5588" y="4058" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_points_p2_reg[5]_0[5:0]</text>
+<path d="M5596 4079h-10" />
+<text x="5588" y="4078" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_points_p2_reg[5]_1[6:0]</text>
+<path d="M5436 4019h10" />
+<text x="5444" y="4018" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">snap_points_p2_reg[5]_2[5:0]</text>
+<path d="M5596 4119h-10" />
+<text x="5588" y="4118" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_shown_p1_reg[1]_0[1:0]</text>
+<path d="M5436 4039h10" />
+<text x="5444" y="4038" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">snap_shown_p1_reg[1]_1[1:0]</text>
+<path d="M5596 4139h-10" />
+<text x="5588" y="4138" fill="black" stroke-width="0" font-size="10" dy="-1.33333">snap_shown_p2_reg[1]_0[1:0]</text>
+<path d="M5436 4059h10" />
+<text x="5444" y="4058" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">snap_shown_p2_reg[1]_1[1:0]</text>
+<path d="M5436 4099h10" />
+<text x="5444" y="4098" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">uart_cmd[1:0]</text>
+<path d="M5436 4119h10" />
+<text x="5444" y="4118" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b_OBUF[0]_inst_i_3[1:0]</text>
+<path d="M5436 4179h10" />
+<text x="5444" y="4178" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g_OBUF[0]_inst_i_3</text>
+<path d="M5436 4199h10" />
+<text x="5444" y="4198" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r_OBUF[3]_inst_i_5[2:0]</text>
+</g>
+<g stroke="black">
+<path d="M5456 3359h-10" />
+<path d="M5456 3379h-10" />
+<path d="M5456 3399h-10" />
+<path d="M5456 3419h-10" />
+<path d="M5456 3439h-10" />
+<path d="M5456 3459h-10" />
+<path d="M5576 3399h10" />
+<path d="M5456 3499h-10" />
+<path d="M5576 3419h10" />
+<path d="M5576 3479h10" />
+<path d="M5576 3499h10" />
+<path d="M5576 3439h10" />
+<path d="M5576 3459h10" />
+<path d="M5576 3519h10" />
+<path d="M5456 3579h-10" />
+<path d="M5456 3599h-10" />
+<path d="M5456 3619h-10" />
+<path d="M5456 3639h-10" />
+<path d="M5576 3559h10" />
+<path d="M5576 3579h10" />
+<path d="M5576 3599h10" />
+<path d="M5576 3619h10" />
+<path d="M5576 3639h10" />
+<path d="M5576 3659h10" />
+<path d="M5576 3679h10" />
+<path d="M5576 3699h10" />
+<path d="M5576 3719h10" />
+<path d="M5456 3659h-10" />
+<path d="M5456 3679h-10" />
+<path d="M5456 3699h-10" />
+<path d="M5456 3719h-10" />
+<path d="M5456 3939h-10" />
+<path d="M5576 3899h10" />
+<path d="M5576 3919h10" />
+<path d="M5576 3939h10" />
+<path d="M5576 3959h10" />
+<path d="M5576 3979h10" />
+<path d="M5576 3999h10" />
+<path d="M5576 4099h10" />
+<path d="M5456 4079h-10" />
+<path d="M5456 4139h-10" />
+<path d="M5456 4159h-10" />
+<path d="M5456 4219h-10" />
+<path d="M5576 4179h10" />
+<path d="M5576 4159h10" />
+<path d="M5456 4239h-10" />
+<path d="M5576 4199h10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M5456 3259h-10" />
+<path d="M5456 3279h-10" />
+<path d="M5576 3299h10" />
+<path d="M5456 3299h-10" />
+<path d="M5576 3319h10" />
+<path d="M5456 3319h-10" />
+<path d="M5576 3339h10" />
+<path d="M5576 3359h10" />
+<path d="M5456 3339h-10" />
+<path d="M5456 3479h-10" />
+<path d="M5576 3379h10" />
+<path d="M5456 3519h-10" />
+<path d="M5456 3539h-10" />
+<path d="M5456 3559h-10" />
+<path d="M5576 3539h10" />
+<path d="M5456 3739h-10" />
+<path d="M5456 3759h-10" />
+<path d="M5456 3779h-10" />
+<path d="M5456 3799h-10" />
+<path d="M5456 3819h-10" />
+<path d="M5456 3839h-10" />
+<path d="M5456 3859h-10" />
+<path d="M5456 3879h-10" />
+<path d="M5456 3899h-10" />
+<path d="M5456 3919h-10" />
+<path d="M5576 3739h10" />
+<path d="M5576 3759h10" />
+<path d="M5576 3779h10" />
+<path d="M5576 3799h10" />
+<path d="M5576 3819h10" />
+<path d="M5576 3839h10" />
+<path d="M5576 3859h10" />
+<path d="M5456 3959h-10" />
+<path d="M5576 3879h10" />
+<path d="M5456 3979h-10" />
+<path d="M5576 4019h10" />
+<path d="M5576 4039h10" />
+<path d="M5456 3999h-10" />
+<path d="M5576 4059h10" />
+<path d="M5576 4079h10" />
+<path d="M5456 4019h-10" />
+<path d="M5576 4119h10" />
+<path d="M5456 4039h-10" />
+<path d="M5576 4139h10" />
+<path d="M5456 4059h-10" />
+<path d="M5456 4099h-10" />
+<path d="M5456 4119h-10" />
+<path d="M5456 4179h-10" />
+<path d="M5456 4199h-10" />
+<path d="M3836 4387h80v622h-80z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M3836 4387h80v622h-80z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3847 4392v12" />
+<path d="M3841 4398h12" />
+</g>
+<g stroke="black">
+<path d="M3839 4390h16v16h-16z" />
+<text x="3876" y="4385" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_game</text>
+<text x="3876" y="5011" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">game_core</text>
+<path d="M3826 4639h10" />
+<text x="3834" y="4638" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_juego</text>
+<path d="M3926 4579h-10" />
+<text x="3918" y="4578" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_new_match</text>
+<path d="M3926 4659h-10" />
+<text x="3918" y="4658" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_survive_p1</text>
+<path d="M3926 4679h-10" />
+<text x="3918" y="4678" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_survive_p2</text>
+<path d="M3926 4699h-10" />
+<text x="3918" y="4698" fill="black" stroke-width="0" font-size="10" dy="-1.33333">crashed_p1</text>
+<path d="M3926 4719h-10" />
+<text x="3918" y="4718" fill="black" stroke-width="0" font-size="10" dy="-1.33333">crashed_p2</text>
+<path d="M3826 4739h10" />
+<text x="3834" y="4738" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">g_start</text>
+<path d="M3826 4759h10" />
+<text x="3834" y="4758" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lives_p1_reg[0]</text>
+<path d="M3826 4779h10" />
+<text x="3834" y="4778" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">out</text>
+<path d="M3926 4819h-10" />
+<text x="3918" y="4818" fill="black" stroke-width="0" font-size="10" dy="-1.33333">page_goal</text>
+<path d="M3926 4839h-10" />
+<text x="3918" y="4838" fill="black" stroke-width="0" font-size="10" dy="-1.33333">page_lives</text>
+<path d="M3926 4859h-10" />
+<text x="3918" y="4858" fill="black" stroke-width="0" font-size="10" dy="-1.33333">paused</text>
+<path d="M3926 4999h-10" />
+<text x="3918" y="4998" fill="black" stroke-width="0" font-size="10" dy="-1.33333">tick_tgl</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3826 4619h10" />
+<text x="3834" y="4618" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">D[3:0]</text>
+<path d="M3926 4419h-10" />
+<text x="3918" y="4418" fill="black" stroke-width="0" font-size="10" dy="-1.33333">E</text>
+<path d="M3926 4439h-10" />
+<text x="3918" y="4438" fill="black" stroke-width="0" font-size="10" dy="-1.33333">Q[1:0]</text>
+<path d="M3926 4459h-10" />
+<text x="3918" y="4458" fill="black" stroke-width="0" font-size="10" dy="-1.33333">blink_ticks_reg[4]_0</text>
+<path d="M3926 4479h-10" />
+<text x="3918" y="4478" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_a_p1_reg[12]_0[12:0]</text>
+<path d="M3926 4499h-10" />
+<text x="3918" y="4498" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_a_p2_reg[12]_0[12:0]</text>
+<path d="M3926 4519h-10" />
+<text x="3918" y="4518" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_b_p1_reg[12]_0[12:0]</text>
+<path d="M3926 4539h-10" />
+<text x="3918" y="4538" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_b_p2_reg[12]_0[12:0]</text>
+<path d="M3926 4559h-10" />
+<text x="3918" y="4558" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_collected_reg[2]_0[2:0]</text>
+<path d="M3926 4599h-10" />
+<text x="3918" y="4598" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_op_reg[1]_0[1:0]</text>
+<path d="M3926 4619h-10" />
+<text x="3918" y="4618" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_seed_mix_reg[31]_0[31:0]</text>
+<path d="M3926 4639h-10" />
+<text x="3918" y="4638" fill="black" stroke-width="0" font-size="10" dy="-1.33333">cmd_seq_reg[3]_0[3:0]</text>
+<path d="M3826 4659h10" />
+<text x="3834" y="4658" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">g_mailbox.cap_axes_p2_reg[3]_0[3:0]</text>
+<path d="M3826 4679h10" />
+<text x="3834" y="4678" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">g_mailbox.cap_code_p1_reg[3]_0[3:0]</text>
+<path d="M3826 4699h10" />
+<text x="3834" y="4698" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">g_mailbox.cap_code_p2_reg[3]_0[3:0]</text>
+<path d="M3826 4719h10" />
+<text x="3834" y="4718" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">g_mailbox.cap_seq_reg[3]_0[3:0]</text>
+<path d="M3926 4739h-10" />
+<text x="3918" y="4738" fill="black" stroke-width="0" font-size="10" dy="-1.33333">goal_sel[1:0]</text>
+<path d="M3926 4759h-10" />
+<text x="3918" y="4758" fill="black" stroke-width="0" font-size="10" dy="-1.33333">head_p1[12:0]</text>
+<path d="M3926 4779h-10" />
+<text x="3918" y="4778" fill="black" stroke-width="0" font-size="10" dy="-1.33333">head_p2[12:0]</text>
+<path d="M3926 4799h-10" />
+<text x="3918" y="4798" fill="black" stroke-width="0" font-size="10" dy="-1.33333">lives_p1_reg[1][1:0]</text>
+<path d="M3926 4879h-10" />
+<text x="3918" y="4878" fill="black" stroke-width="0" font-size="10" dy="-1.33333">phase[2:0]</text>
+<path d="M3926 4899h-10" />
+<text x="3918" y="4898" fill="black" stroke-width="0" font-size="10" dy="-1.33333">points_p1_reg[5][5:0]</text>
+<path d="M3926 4919h-10" />
+<text x="3918" y="4918" fill="black" stroke-width="0" font-size="10" dy="-1.33333">points_p2_reg[5][5:0]</text>
+<path d="M3926 4939h-10" />
+<text x="3918" y="4938" fill="black" stroke-width="0" font-size="10" dy="-1.33333">result[1:0]</text>
+<path d="M3926 4959h-10" />
+<text x="3918" y="4958" fill="black" stroke-width="0" font-size="10" dy="-1.33333">shown_p1_reg[1]_0[1:0]</text>
+<path d="M3926 4979h-10" />
+<text x="3918" y="4978" fill="black" stroke-width="0" font-size="10" dy="-1.33333">shown_p2_reg[1]_0[1:0]</text>
+<path d="M3826 4799h10" />
+<text x="3834" y="4798" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">sw_IBUF[2:0]</text>
+</g>
+<g stroke="black">
+<path d="M3846 4639h-10" />
+<path d="M3906 4579h10" />
+<path d="M3906 4659h10" />
+<path d="M3906 4679h10" />
+<path d="M3906 4699h10" />
+<path d="M3906 4719h10" />
+<path d="M3846 4739h-10" />
+<path d="M3846 4759h-10" />
+<path d="M3846 4779h-10" />
+<path d="M3906 4819h10" />
+<path d="M3906 4839h10" />
+<path d="M3906 4859h10" />
+<path d="M3906 4999h10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3846 4619h-10" />
+<path d="M3906 4419h10" />
+<path d="M3906 4439h10" />
+<path d="M3906 4459h10" />
+<path d="M3906 4479h10" />
+<path d="M3906 4499h10" />
+<path d="M3906 4519h10" />
+<path d="M3906 4539h10" />
+<path d="M3906 4559h10" />
+<path d="M3906 4599h10" />
+<path d="M3906 4619h10" />
+<path d="M3906 4639h10" />
+<path d="M3846 4659h-10" />
+<path d="M3846 4679h-10" />
+<path d="M3846 4699h-10" />
+<path d="M3846 4719h-10" />
+<path d="M3906 4739h10" />
+<path d="M3906 4759h10" />
+<path d="M3906 4779h10" />
+<path d="M3906 4799h10" />
+<path d="M3906 4879h10" />
+<path d="M3906 4899h10" />
+<path d="M3906 4919h10" />
+<path d="M3906 4939h10" />
+<path d="M3906 4959h10" />
+<path d="M3906 4979h10" />
+<path d="M3846 4799h-10" />
+<path d="M2026 3627h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M2026 3627h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M2037 3632v12" />
+<path d="M2031 3638h12" />
+</g>
+<g stroke="black">
+<path d="M2029 3630h16v16h-16z" />
+<text x="2056" y="3625" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_rx</text>
+<text x="2056" y="3771" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">uart_rx</text>
+<path d="M2016 3659h10" />
+<text x="2024" y="3658" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_out1</text>
+<path d="M2096 3659h-10" />
+<text x="2088" y="3658" fill="black" stroke-width="0" font-size="10" dy="-1.33333">framing_error</text>
+<path d="M2016 3699h10" />
+<text x="2024" y="3698" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">out</text>
+<path d="M2096 3679h-10" />
+<text x="2088" y="3678" fill="black" stroke-width="0" font-size="10" dy="-1.33333">rx_valid_reg_0</text>
+<path d="M2096 3699h-10" />
+<text x="2088" y="3698" fill="black" stroke-width="0" font-size="10" dy="-1.33333">rx_valid_reg_1</text>
+<path d="M2096 3719h-10" />
+<text x="2088" y="3718" fill="black" stroke-width="0" font-size="10" dy="-1.33333">rx_valid_reg_2</text>
+<path d="M2096 3739h-10" />
+<text x="2088" y="3738" fill="black" stroke-width="0" font-size="10" dy="-1.33333">rx_valid_reg_3</text>
+<path d="M2096 3759h-10" />
+<text x="2088" y="3758" fill="black" stroke-width="0" font-size="10" dy="-1.33333">rx_valid_reg_4</text>
+<path d="M2016 3719h10" />
+<text x="2024" y="3718" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rx_valid_reg_5</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M2016 3679h10" />
+<text x="2024" y="3678" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">led_OBUF</text>
+<path d="M2016 3739h10" />
+<text x="2024" y="3738" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">uart_cmd[2:0]</text>
+</g>
+<g stroke="black">
+<path d="M2036 3659h-10" />
+<path d="M2076 3659h10" />
+<path d="M2036 3699h-10" />
+<path d="M2076 3679h10" />
+<path d="M2076 3699h10" />
+<path d="M2076 3719h10" />
+<path d="M2076 3739h10" />
+<path d="M2076 3759h10" />
+<path d="M2036 3719h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M2036 3679h-10" />
+<path d="M2036 3739h-10" />
+<path d="M306 4067h60v82h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M306 4067h60v82h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M317 4072v12" />
+<path d="M311 4078h12" />
+</g>
+<g stroke="black">
+<path d="M309 4070h16v16h-16z" />
+<text x="336" y="4065" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_rx_sync</text>
+<text x="336" y="4151" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">uart_sync_2ff</text>
+<path d="M296 4099h10" />
+<text x="304" y="4098" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_out1</text>
+<path d="M376 4119h-10" />
+<text x="368" y="4118" fill="black" stroke-width="0" font-size="10" dy="-1.33333">out</text>
+<path d="M296 4119h10" />
+<text x="304" y="4118" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">stage1_reg_0</text>
+<path d="M296 4139h10" />
+<text x="304" y="4138" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">uart_rx</text>
+<path d="M316 4099h-10" />
+<path d="M356 4119h10" />
+<path d="M316 4119h-10" />
+<path d="M316 4139h-10" />
+<path d="M6706 3887h60v182h-60z" stroke="none" fill="#dfebf8" />
+<path d="M6706 3887h60v182h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M6717 3892v12" />
+<path d="M6711 3898h12" />
+</g>
+<g stroke="black">
+<path d="M6709 3890h16v16h-16z" />
+<text x="6736" y="3885" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_seg7</text>
+<text x="6736" y="4071" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">seg7_driver</text>
+<path d="M6696 3939h10" />
+<text x="6704" y="3938" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_out1</text>
+<path d="M6696 3959h10" />
+<text x="6704" y="3958" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">count_reg[0]_0</text>
+<path d="M6776 3979h-10" />
+<text x="6768" y="3978" fill="black" stroke-width="0" font-size="10" dy="-1.33333">count_reg[7]_0</text>
+<path d="M6696 3979h10" />
+<text x="6704" y="3978" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">snap_page_goal</text>
+<path d="M6696 3999h10" />
+<text x="6704" y="3998" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">snap_page_lives</text>
+<path d="M6696 4039h10" />
+<text x="6704" y="4038" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">value_p2_reg[0]_0</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M6696 3919h10" />
+<text x="6704" y="3918" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">D[1:0]</text>
+<path d="M6776 3959h-10" />
+<text x="6768" y="3958" fill="black" stroke-width="0" font-size="10" dy="-1.33333">an_OBUF[7:0]</text>
+<path d="M6776 3999h-10" />
+<text x="6768" y="3998" fill="black" stroke-width="0" font-size="10" dy="-1.33333">seg_OBUF[6:0]</text>
+<path d="M6696 4019h10" />
+<text x="6704" y="4018" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">value_p1_reg[5]_0[5:0]</text>
+<path d="M6696 4059h10" />
+<text x="6704" y="4058" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">value_p2_reg[5]_0[5:0]</text>
+</g>
+<g stroke="black">
+<path d="M6716 3939h-10" />
+<path d="M6716 3959h-10" />
+<path d="M6756 3979h10" />
+<path d="M6716 3979h-10" />
+<path d="M6716 3999h-10" />
+<path d="M6716 4039h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M6716 3919h-10" />
+<path d="M6756 3959h10" />
+<path d="M6756 3999h10" />
+<path d="M6716 4019h-10" />
+<path d="M6716 4059h-10" />
+<path d="M3836 347h170v1282h-170z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M3836 347h170v1282h-170z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3847 352v12" />
+<path d="M3841 358h12" />
+</g>
+<g stroke="black">
+<path d="M3839 350h16v16h-16z" />
+<text x="3921" y="345" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_vga</text>
+<text x="3921" y="1631" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">vga_out</text>
+<path d="M3826 399h10" />
+<text x="3834" y="398" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_out1</text>
+<path d="M3826 419h10" />
+<text x="3834" y="418" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_crown</text>
+<path d="M4016 779h-10" />
+<text x="4008" y="778" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_lives_p2_reg[0]</text>
+<path d="M3826 459h10" />
+<text x="3834" y="458" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_play</text>
+<path d="M3826 479h10" />
+<text x="3834" y="478" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_show_p1</text>
+<path d="M3826 499h10" />
+<text x="3834" y="498" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_show_p2</text>
+<path d="M4016 799h-10" />
+<text x="4008" y="798" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[0]</text>
+<path d="M4016 819h-10" />
+<text x="4008" y="818" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[0]_0</text>
+<path d="M4016 839h-10" />
+<text x="4008" y="838" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[0]_1</text>
+<path d="M4016 859h-10" />
+<text x="4008" y="858" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[0]_2</text>
+<path d="M4016 1099h-10" />
+<text x="4008" y="1098" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[10]</text>
+<path d="M4016 879h-10" />
+<text x="4008" y="878" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[3]</text>
+<path d="M4016 919h-10" />
+<text x="4008" y="918" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[3]_1</text>
+<path d="M4016 939h-10" />
+<text x="4008" y="938" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[5]</text>
+<path d="M4016 959h-10" />
+<text x="4008" y="958" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[5]_0</text>
+<path d="M4016 979h-10" />
+<text x="4008" y="978" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[5]_1</text>
+<path d="M4016 1019h-10" />
+<text x="4008" y="1018" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[6]_0</text>
+<path d="M4016 1039h-10" />
+<text x="4008" y="1038" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[6]_1</text>
+<path d="M4016 1139h-10" />
+<text x="4008" y="1138" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hud_rgb[11]_i_11</text>
+<path d="M3826 519h10" />
+<text x="3834" y="518" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17</text>
+<path d="M3826 539h10" />
+<text x="3834" y="538" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_0</text>
+<path d="M3826 559h10" />
+<text x="3834" y="558" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_1</text>
+<path d="M3826 579h10" />
+<text x="3834" y="578" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_2</text>
+<path d="M3826 599h10" />
+<text x="3834" y="598" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_3</text>
+<path d="M3826 619h10" />
+<text x="3834" y="618" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_4</text>
+<path d="M3826 639h10" />
+<text x="3834" y="638" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_5</text>
+<path d="M3826 659h10" />
+<text x="3834" y="658" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_6</text>
+<path d="M3826 679h10" />
+<text x="3834" y="678" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_7</text>
+<path d="M3826 699h10" />
+<text x="3834" y="698" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_8</text>
+<path d="M3826 719h10" />
+<text x="3834" y="718" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_17_9</text>
+<path d="M3826 739h10" />
+<text x="3834" y="738" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18</text>
+<path d="M3826 759h10" />
+<text x="3834" y="758" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18_0</text>
+<path d="M3826 779h10" />
+<text x="3834" y="778" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18_1</text>
+<path d="M3826 799h10" />
+<text x="3834" y="798" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18_2</text>
+<path d="M3826 819h10" />
+<text x="3834" y="818" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18_3</text>
+<path d="M3826 839h10" />
+<text x="3834" y="838" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18_4</text>
+<path d="M3826 859h10" />
+<text x="3834" y="858" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18_5</text>
+<path d="M3826 879h10" />
+<text x="3834" y="878" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18_6</text>
+<path d="M3826 899h10" />
+<text x="3834" y="898" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18_7</text>
+<path d="M3826 919h10" />
+<text x="3834" y="918" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_18_8</text>
+<path d="M3826 979h10" />
+<text x="3834" y="978" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb_reg[11]</text>
+<path d="M4016 1159h-10" />
+<text x="4008" y="1158" fill="black" stroke-width="0" font-size="10" dy="-1.33333">in_p1</text>
+<path d="M4016 1179h-10" />
+<text x="4008" y="1178" fill="black" stroke-width="0" font-size="10" dy="-1.33333">in_p2</text>
+<path d="M3826 1139h10" />
+<text x="3834" y="1138" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">p_0_out_inferred__2/hud_rgb[11]_i_84</text>
+<path d="M4016 1219h-10" />
+<text x="4008" y="1218" fill="black" stroke-width="0" font-size="10" dy="-1.33333">stripe_reg_i_3</text>
+<path d="M4016 1239h-10" />
+<text x="4008" y="1238" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[0]</text>
+<path d="M3826 1199h10" />
+<text x="3834" y="1198" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vcnt_reg[0]_0</text>
+<path d="M4016 1279h-10" />
+<text x="4008" y="1278" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[2]_0</text>
+<path d="M4016 1299h-10" />
+<text x="4008" y="1298" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[2]_1</text>
+<path d="M4016 1319h-10" />
+<text x="4008" y="1318" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[5]</text>
+<path d="M4016 1359h-10" />
+<text x="4008" y="1358" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[8]_0</text>
+<path d="M3826 1219h10" />
+<text x="3834" y="1218" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b[0]</text>
+<path d="M3826 1239h10" />
+<text x="3834" y="1238" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b[1]</text>
+<path d="M3826 1259h10" />
+<text x="3834" y="1258" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b[2]</text>
+<path d="M3826 1279h10" />
+<text x="3834" y="1278" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_b[3]</text>
+<path d="M3826 1299h10" />
+<text x="3834" y="1298" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g[0]</text>
+<path d="M3826 1319h10" />
+<text x="3834" y="1318" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g[1]</text>
+<path d="M3826 1339h10" />
+<text x="3834" y="1338" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g[2]</text>
+<path d="M3826 1359h10" />
+<text x="3834" y="1358" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_g[3]</text>
+<path d="M4016 1419h-10" />
+<text x="4008" y="1418" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_hs_OBUF</text>
+<path d="M3826 1399h10" />
+<text x="3834" y="1398" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r[0]_0</text>
+<path d="M3826 1419h10" />
+<text x="3834" y="1418" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r[1]</text>
+<path d="M3826 1439h10" />
+<text x="3834" y="1438" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r[2]</text>
+<path d="M3826 1459h10" />
+<text x="3834" y="1458" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r[3]</text>
+<path d="M4016 1459h-10" />
+<text x="4008" y="1458" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_vs_OBUF</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M4016 519h-10" />
+<text x="4008" y="518" fill="black" stroke-width="0" font-size="10" dy="-1.33333">ADDRARDADDR[5:0]</text>
+<path d="M4016 539h-10" />
+<text x="4008" y="538" fill="black" stroke-width="0" font-size="10" dy="-1.33333">ADDRBWRADDR[12:0]</text>
+<path d="M4016 559h-10" />
+<text x="4008" y="558" fill="black" stroke-width="0" font-size="10" dy="-1.33333">D[10:0]</text>
+<path d="M3826 379h10" />
+<text x="3834" y="378" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">DI[2:0]</text>
+<path d="M4016 579h-10" />
+<text x="4008" y="578" fill="black" stroke-width="0" font-size="10" dy="-1.33333">E</text>
+<path d="M4016 599h-10" />
+<text x="4008" y="598" fill="black" stroke-width="0" font-size="10" dy="-1.33333">O[2:0]</text>
+<path d="M4016 619h-10" />
+<text x="4008" y="618" fill="black" stroke-width="0" font-size="10" dy="-1.33333">Q[1:0]</text>
+<path d="M4016 639h-10" />
+<text x="4008" y="638" fill="black" stroke-width="0" font-size="10" dy="-1.33333">S</text>
+<path d="M3826 439h10" />
+<text x="3834" y="438" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">f_crown_c[2:0]</text>
+<path d="M4016 659h-10" />
+<text x="4008" y="658" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_crown_c_reg[11][2:0]</text>
+<path d="M4016 679h-10" />
+<text x="4008" y="678" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_dir_p2_reg[1][3:0]</text>
+<path d="M4016 699h-10" />
+<text x="4008" y="698" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[0][1:0]</text>
+<path d="M4016 739h-10" />
+<text x="4008" y="738" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[12]</text>
+<path d="M4016 719h-10" />
+<text x="4008" y="718" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p1_reg[7][1:0]</text>
+<path d="M4016 759h-10" />
+<text x="4008" y="758" fill="black" stroke-width="0" font-size="10" dy="-1.33333">f_head_p2_reg[7][2:0]</text>
+<path d="M4016 899h-10" />
+<text x="4008" y="898" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[3]_0[2:0]</text>
+<path d="M4016 999h-10" />
+<text x="4008" y="998" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[6][2:0]</text>
+<path d="M4016 1059h-10" />
+<text x="4008" y="1058" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[8][10:0]</text>
+<path d="M4016 1079h-10" />
+<text x="4008" y="1078" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hcnt_reg[9][4:0]</text>
+<path d="M4016 1119h-10" />
+<text x="4008" y="1118" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hud_next4</text>
+<path d="M3826 939h10" />
+<text x="3834" y="938" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_56[6:0]</text>
+<path d="M3826 959h10" />
+<text x="3834" y="958" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">hud_rgb[11]_i_98[6:0]</text>
+<path d="M3826 999h10" />
+<text x="3834" y="998" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p1_q1_i_2</text>
+<path d="M3826 1019h10" />
+<text x="3834" y="1018" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p1_q1_reg</text>
+<path d="M3826 1039h10" />
+<text x="3834" y="1038" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p1_q1_reg_i_6[11:0]</text>
+<path d="M3826 1059h10" />
+<text x="3834" y="1058" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p2_q1_i_2</text>
+<path d="M3826 1079h10" />
+<text x="3834" y="1078" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p2_q1_reg[2:0]</text>
+<path d="M3826 1119h10" />
+<text x="3834" y="1118" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p2_q1_reg_0</text>
+<path d="M3826 1099h10" />
+<text x="3834" y="1098" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">in_p2_q1_reg_i_6[11:0]</text>
+<path d="M3826 1159h10" />
+<text x="3834" y="1158" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">...t_inferred__2/hud_rgb[11]_i_84_0[1:0]</text>
+<path d="M4016 1199h-10" />
+<text x="4008" y="1198" fill="black" stroke-width="0" font-size="10" dy="-1.33333">sel0</text>
+<path d="M3826 1179h10" />
+<text x="3834" y="1178" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">stripe_reg_i_3_0[4:0]</text>
+<path d="M4016 1259h-10" />
+<text x="4008" y="1258" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[2][6:0]</text>
+<path d="M4016 1339h-10" />
+<text x="4008" y="1338" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vcnt_reg[8][4:0]</text>
+<path d="M4016 1379h-10" />
+<text x="4008" y="1378" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_b_OBUF[3:0]</text>
+<path d="M4016 1399h-10" />
+<text x="4008" y="1398" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_g_OBUF[3:0]</text>
+<path d="M3826 1379h10" />
+<text x="3834" y="1378" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">vga_r[0][2:0]</text>
+<path d="M4016 1439h-10" />
+<text x="4008" y="1438" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vga_r_OBUF[3:0]</text>
+<path d="M3826 1479h10" />
+<text x="3834" y="1478" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg[1:0]</text>
+<path d="M3826 1499h10" />
+<text x="3834" y="1498" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_0[1:0]</text>
+<path d="M3826 1519h10" />
+<text x="3834" y="1518" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_1</text>
+<path d="M3826 1539h10" />
+<text x="3834" y="1538" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_2</text>
+<path d="M3826 1559h10" />
+<text x="3834" y="1558" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_3</text>
+<path d="M3826 1579h10" />
+<text x="3834" y="1578" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_4</text>
+<path d="M3826 1599h10" />
+<text x="3834" y="1598" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_5</text>
+<path d="M3826 1619h10" />
+<text x="3834" y="1618" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">word_reg_6</text>
+</g>
+<g stroke="black">
+<path d="M3846 399h-10" />
+<path d="M3846 419h-10" />
+<path d="M3996 779h10" />
+<path d="M3846 459h-10" />
+<path d="M3846 479h-10" />
+<path d="M3846 499h-10" />
+<path d="M3996 799h10" />
+<path d="M3996 819h10" />
+<path d="M3996 839h10" />
+<path d="M3996 859h10" />
+<path d="M3996 1099h10" />
+<path d="M3996 879h10" />
+<path d="M3996 919h10" />
+<path d="M3996 939h10" />
+<path d="M3996 959h10" />
+<path d="M3996 979h10" />
+<path d="M3996 1019h10" />
+<path d="M3996 1039h10" />
+<path d="M3996 1139h10" />
+<path d="M3846 519h-10" />
+<path d="M3846 539h-10" />
+<path d="M3846 559h-10" />
+<path d="M3846 579h-10" />
+<path d="M3846 599h-10" />
+<path d="M3846 619h-10" />
+<path d="M3846 639h-10" />
+<path d="M3846 659h-10" />
+<path d="M3846 679h-10" />
+<path d="M3846 699h-10" />
+<path d="M3846 719h-10" />
+<path d="M3846 739h-10" />
+<path d="M3846 759h-10" />
+<path d="M3846 779h-10" />
+<path d="M3846 799h-10" />
+<path d="M3846 819h-10" />
+<path d="M3846 839h-10" />
+<path d="M3846 859h-10" />
+<path d="M3846 879h-10" />
+<path d="M3846 899h-10" />
+<path d="M3846 919h-10" />
+<path d="M3846 979h-10" />
+<path d="M3996 1159h10" />
+<path d="M3996 1179h10" />
+<path d="M3846 1139h-10" />
+<path d="M3996 1219h10" />
+<path d="M3996 1239h10" />
+<path d="M3846 1199h-10" />
+<path d="M3996 1279h10" />
+<path d="M3996 1299h10" />
+<path d="M3996 1319h10" />
+<path d="M3996 1359h10" />
+<path d="M3846 1219h-10" />
+<path d="M3846 1239h-10" />
+<path d="M3846 1259h-10" />
+<path d="M3846 1279h-10" />
+<path d="M3846 1299h-10" />
+<path d="M3846 1319h-10" />
+<path d="M3846 1339h-10" />
+<path d="M3846 1359h-10" />
+<path d="M3996 1419h10" />
+<path d="M3846 1399h-10" />
+<path d="M3846 1419h-10" />
+<path d="M3846 1439h-10" />
+<path d="M3846 1459h-10" />
+<path d="M3996 1459h10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M3996 519h10" />
+<path d="M3996 539h10" />
+<path d="M3996 559h10" />
+<path d="M3846 379h-10" />
+<path d="M3996 579h10" />
+<path d="M3996 599h10" />
+<path d="M3996 619h10" />
+<path d="M3996 639h10" />
+<path d="M3846 439h-10" />
+<path d="M3996 659h10" />
+<path d="M3996 679h10" />
+<path d="M3996 699h10" />
+<path d="M3996 739h10" />
+<path d="M3996 719h10" />
+<path d="M3996 759h10" />
+<path d="M3996 899h10" />
+<path d="M3996 999h10" />
+<path d="M3996 1059h10" />
+<path d="M3996 1079h10" />
+<path d="M3996 1119h10" />
+<path d="M3846 939h-10" />
+<path d="M3846 959h-10" />
+<path d="M3846 999h-10" />
+<path d="M3846 1019h-10" />
+<path d="M3846 1039h-10" />
+<path d="M3846 1059h-10" />
+<path d="M3846 1079h-10" />
+<path d="M3846 1119h-10" />
+<path d="M3846 1099h-10" />
+<path d="M3846 1159h-10" />
+<path d="M3996 1199h10" />
+<path d="M3846 1179h-10" />
+<path d="M3996 1259h10" />
+<path d="M3996 1339h10" />
+<path d="M3996 1379h10" />
+<path d="M3996 1399h10" />
+<path d="M3846 1379h-10" />
+<path d="M3996 1439h10" />
+<path d="M3846 1479h-10" />
+<path d="M3846 1499h-10" />
+<path d="M3846 1519h-10" />
+<path d="M3846 1539h-10" />
+<path d="M3846 1559h-10" />
+<path d="M3846 1579h-10" />
+<path d="M3846 1599h-10" />
+<path d="M3846 1619h-10" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M2016 1159h-610v940h3620v-1040h-1010" />
+<path d="M6776 3959h120v-980h120" />
+<path d="M4016 539h1170v2720h250" />
+<path d="M2226 279h1170v2140h1550v1780h490" />
+<path d="M2016 179h-1590v-140h4760v480h-1170" />
+<path d="M126 3119h3700" />
+<path d="M3906 3139h1120v200h410" />
+<path d="M2016 219h-310v-140h3220v480h-910" />
+<path d="M3926 4479h280v-720h1230" />
+<path d="M3926 4499h420v-720h1090" />
+<path d="M3926 4519h580v-720h930" />
+<path d="M3926 4539h540v-720h970" />
+<path d="M3926 4559h900v-720h610" />
+<path d="M3926 4599h980v-740h530" />
+<path d="M3926 4619h1060v-740h450" />
+<path d="M3926 4639h1120v-740h390" />
+<path d="M466 316v1803h4540v-1040h-990" />
+<path d="M466 319h1550" />
+</g>
+<g stroke="black">
+<path d="M466 1534l5 5h1" />
+</g>
+<g stroke-width="2">
+<path d="M471 1539h1545" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M465 314v10l11 -5" stroke="none" fill="black" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M2016 339h-1530v2040h3920v-1040h-390" />
+<path d="M2226 319h1030v2120h1810v1043" />
+<path d="M3256 439h570" />
+<path d="M3253 436h7v7h-7z" stroke="none" fill="green" />
+</g>
+<g>
+<path d="M5066 3479h370" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M5065 3474v10l11 -5" stroke="none" fill="black" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M2226 699h610v780h990" />
+<path d="M2226 259h1210v1240h390" />
+<path d="M2226 979h710v120h890" />
+<path d="M2226 1019h910v140h690" />
+<path d="M2226 1059h930v-100h670" />
+<path d="M2226 1079h570v-140h1030" />
+<path d="M2226 1139h870v40h730" />
+<path d="M3826 4619h-910v-360h1670v180h1740v-1100h-730" />
+<path d="M3826 4659h-850v-380h1590v180h1700v-1100h-670" />
+<path d="M3926 4739h860v-1220h650" />
+<path d="M2016 1499h-370v180h2580v-680h-210" />
+<path d="M3926 4759h880v-1220h630" />
+<path d="M3926 4779h940v-1220h570" />
+<path d="M2226 1159h670v220h930" />
+<path d="M3826 3539h-290v-340h690v-120h1620v220h-250" />
+<path d="M5596 3539h810v-520h510" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M6916 3019h5" />
+</g>
+<g stroke-width="3">
+<path d="M6921 3019h95" />
+</g>
+<g stroke="green" stroke-width="3" stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M1686 3682v-83h730v180h1890v-580h2140" />
+<path d="M6443 3196h7v7h-7z" stroke="none" fill="green" />
+<path d="M6446 3942v-903h490v-15l1 -1" />
+</g>
+<g stroke="black" stroke-width="3" stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M6936 3024l5 -5h1" />
+</g>
+<g stroke-width="3" stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M6941 3019h75" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M1686 3679h330" />
+</g>
+<g>
+<path d="M5596 3939h850" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M6448 3934v10l-12 -5" stroke="none" fill="black" />
+<path d="M1685 3674v10l11 -5" stroke="none" fill="black" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M3926 4799h1180v-840h330" />
+<path d="M3926 4439h320v-460h1190" />
+<path d="M3926 4879h1160v-1140h350" />
+<path d="M3926 4899h1220v-900h290" />
+<path d="M3926 4919h1240v-900h270" />
+<path d="M3926 4939h1200v-1020h310" />
+<path d="M3826 4679h-770v-380h1490v180h1580v-740h-530" />
+<path d="M3826 4699h-370v-360h1070v180h1460v-760h-390" />
+<path d="M3826 4719h-270v-360h930v180h1360v-760h-250" />
+<path d="M6776 3999h220v-940h20" />
+<path d="M3926 4959h1260v-920h250" />
+<path d="M3926 4979h1280v-920h230" />
+<path d="M5596 3799h890v120h210" />
+<path d="M2016 459h-1450v3680h4140v140h1380v-460h-490" />
+<path d="M2016 479h-1290v2060h5320v1300h-450" />
+<path d="M2016 499h-1230v2060h5160v1300h-350" />
+<path d="M2016 519h-1190v2060h4980v1300h-210" />
+<path d="M2016 419h-1350v2180h5720v1520h-790" />
+<path d="M2016 439h-1470v2180h5820v1520h-770" />
+<path d="M126 4279h2290v520h1410" />
+<path d="M2016 559h-1430v2080h5340v1400h-330" />
+<path d="M2226 219h1330v160h270" />
+<path d="M2226 839h990v200h610" />
+<path d="M2226 919h590v160h1010" />
+<path d="M5596 4019h1100" />
+<path d="M5596 4059h1100" />
+<path d="M2016 579h-1050v2160h5380v1340h-750" />
+<path d="M2016 259h-270v-140h2460v480h-190" />
+</g>
+<g stroke-width="3">
+<path d="M2016 1539h-805l-1 1" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1211 1539l-5 5v1" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M1206 1544v755h3360v-1040h-550" />
+<path d="M2016 879h-330v780h2520v-1000h-190" />
+<path d="M2016 199h-1550v-140h4700v620h-1150" />
+<path d="M2016 1579h-290v120h3140v-1000h-850" />
+<path d="M2016 1599h-270v120h2580v-1000h-310" />
+<path d="M2016 1559h-310v180h2600v-980h-290" />
+<path d="M2016 1519h-350v240h2620v-860h-270" />
+<path d="M2016 3739h-270v60h2740" />
+<path d="M4486 4099h950" />
+<path d="M4483 3796h7v7h-7z" stroke="none" fill="green" />
+<path d="M3906 3679h580v423" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M4485 4094v10l11 -5" stroke="none" fill="black" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M2016 1039h-550v960h3500v-1380h-950" />
+<path d="M4016 1379h1210v1680h1260v40h530" />
+<path d="M4016 1399h1190v1720h1810" />
+<path d="M4016 1439h1130v1720h1870" />
+<path d="M2226 1279h210v2820h1990v20h1010" />
+</g>
+<g>
+<path d="M3926 4459h400v-1140h1110" />
+<path d="M126 4179h2530v460h1170" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M126 4199h20v-540h280" />
+<path d="M424 1637h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M424 3657h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M3826 399h-490v3180h490" />
+<path d="M146 4099h150" />
+<path d="M144 4097h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M2016 299h-1590v3360h1590" />
+<path d="M426 1639h2910" />
+<path d="M3336 3139h490" />
+<path d="M3336 3359h1670v1020h1480v-440h210" />
+<path d="M3334 1637h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M3334 3137h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M3334 3357h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M5006 3359h430" />
+<path d="M5004 3357h5v5h-5z" stroke="none" fill="#19b400" />
+</g>
+<g>
+<path d="M3926 4579h720v-1200h790" />
+<path d="M3926 4659h760v-1260h750" />
+<path d="M3926 4679h800v-1260h710" />
+<path d="M126 4219h4480v140h1900v-400h190" />
+<path d="M6776 3979h180v-980h60" />
+<path d="M3926 4699h820v-1260h690" />
+<path d="M3926 4719h840v-1260h670" />
+<path d="M2226 299h1310v120h290" />
+<path d="M2016 379h-1490v1660h5780v1340h-710" />
+<path d="M2016 399h-1390v2060h5460v940h-490" />
+<path d="M2016 239h-290v-140h2560v480h-270" />
+<path d="M2226 1039h510v-580h1090" />
+<path d="M2016 539h-970v1940h4980v940h-430" />
+<path d="M2226 1099h690v-620h910" />
+<path d="M2226 1119h830v-620h770" />
+<path d="M2016 599h-1010v1900h4960v940h-370" />
+<path d="M2016 619h-990v1900h4800v940h-230" />
+<path d="M2016 639h-1410v2400h3660v-20h1800v460h-470" />
+<path d="M2016 659h-1370v2400h3700v-20h1640v460h-390" />
+<path d="M3826 4739h-610v-420h1150v180h1940v-980h-710" />
+<path d="M2016 719h-870v1440h3700v-1040h-830" />
+<path d="M2016 899h-710v1300h3440v-1040h-730" />
+<path d="M2016 959h-730v1260h3440v-1040h-710" />
+<path d="M126 4239h2350v520h1350" />
+<path d="M3906 3659h1530" />
+<path d="M126 4259h2310v520h1390" />
+<path d="M3926 4819h1040v-1140h470" />
+<path d="M3926 4839h1100v-1140h410" />
+<path d="M3926 4859h1140v-1140h370" />
+<path d="M3926 4419h3050v-1380h40" />
+<path d="M2226 819h350v3300h1830v60h1030" />
+<path d="M2226 199h1090v2820h890v260h1230" />
+<path d="M376 4119h110v-420h1530" />
+<path d="M2016 1179h-770v1060h3400v-1040h-630" />
+<path d="M5596 3899h870v80h230" />
+<path d="M5596 3919h830v80h270" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M3826 3559h-270v-340h730v-120h2140" />
+<path d="M6424 3097h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M5596 3319h830v-240h590" />
+</g>
+<g>
+<path d="M3926 4999h1300v-920h210" />
+<path d="M3906 3579h1530" />
+<path d="M3906 3639h1530" />
+<path d="M3906 3599h320v10h1010v10h200" />
+<path d="M3906 3619h500v-20h1030" />
+<path d="M2226 239h1190v2420h1670v640h350" />
+<path d="M2226 1299h1600" />
+<path d="M2226 679h810v300h790" />
+<path d="M2226 339h1290v320h310" />
+<path d="M2226 859h270v660h1330" />
+<path d="M2226 939h550v620h1050" />
+<path d="M2226 719h330v860h1270" />
+<path d="M2226 779h890v840h710" />
+<path d="M2226 999h950v140h650" />
+<path d="M2226 1319h530v70h810v10h260" />
+<path d="M2226 1339h510v70h830v10h260" />
+<path d="M2226 1359h430v80h1170" />
+<path d="M2226 1379h370v80h1230" />
+<path d="M2226 1399h970v-80h630" />
+<path d="M2226 1419h1070v-80h530" />
+<path d="M2226 1439h410v-220h1190" />
+<path d="M2226 1459h250v1220h2370v1540h590" />
+<path d="M2226 1479h490v-240h1110" />
+<path d="M2226 1499h1050v-240h550" />
+<path d="M2226 1519h230v-240h1370" />
+<path d="M2226 1259h310v1440h2390v1440h510" />
+<path d="M2226 1539h450v-180h1150" />
+<path d="M2226 1559h190v1160h2470v1440h550" />
+<path d="M2226 899h750v210h590v10h260" />
+<path d="M2226 759h1150v260h450" />
+<path d="M2226 879h470v660h1130" />
+<path d="M2226 959h730v90h610v10h260" />
+<path d="M2226 739h290v860h1310" />
+<path d="M2226 799h1130v200h470" />
+<path d="M2226 359h1270v400h330" />
+<path d="M2226 1179h850v-620h750" />
+<path d="M2226 379h1250v420h350" />
+<path d="M2226 1199h970v-520h630" />
+<path d="M2226 399h970v200h630" />
+<path d="M2226 419h1230v400h370" />
+<path d="M2226 1219h390v-580h1210" />
+<path d="M2226 439h1010v400h590" />
+<path d="M2226 459h490v420h1110" />
+<path d="M2226 1239h370v-720h1230" />
+<path d="M2226 479h630v440h970" />
+<path d="M2226 499h810v80h790" />
+<path d="M2226 519h350v200h1250" />
+<path d="M2226 539h650v160h950" />
+<path d="M2226 559h790v180h810" />
+<path d="M2226 579h770v320h830" />
+<path d="M2226 599h930v180h670" />
+<path d="M2226 619h310v240h1290" />
+<path d="M2226 639h330v-20h1270" />
+<path d="M2226 659h670v-120h930" />
+<path d="M3826 3699h-290v480h850v140h1580v-340h-370" />
+<path d="M3826 3719h-270v440h1110v140h1380v-340h-450" />
+<path d="M3826 3739h-550v460h1350v140h1180v-340h-210" />
+<path d="M2016 1279h-1090v1480h5360v800h-690" />
+<path d="M2016 359h-1510v2420h5380v1320h-290" />
+<path d="M2016 1219h-1310v1580h5300v1380h-410" />
+<path d="M2016 1239h-1250v1580h5140v1340h-310" />
+<path d="M2016 1359h-1030v1480h5260v740h-650" />
+<path d="M2016 1299h-1070v1560h5280v740h-630" />
+<path d="M2016 1259h-1110v1620h5300v740h-610" />
+<path d="M2016 1339h-1130v1560h4980v1300h-270" />
+<path d="M2016 1459h-1150v1460h5320v720h-590" />
+<path d="M2016 1399h-1170v1540h5320v720h-570" />
+<path d="M2016 1479h-1210v1480h5340v720h-550" />
+<path d="M2016 1419h-1330v1560h5440v720h-530" />
+<path d="M2016 1439h-1270v1560h5360v720h-510" />
+<path d="M2096 3679h580v-60h1150" />
+<path d="M2096 3699h1000v-60h730" />
+<path d="M2096 3719h1400v-60h330" />
+<path d="M2096 3759h1420v-80h310" />
+<path d="M2016 1079h-790v1200h3380v-1040h-590" />
+<path d="M2016 1059h-830v1260h3320v-1040h-490" />
+<path d="M2016 1019h-630v1120h3560v-1040h-930" />
+<path d="M2016 799h-850v1540h3320v-1040h-470" />
+<path d="M2016 1379h-950v1020h3320v-1040h-370" />
+<path d="M2016 1319h-390v460h2620v-1040h-230" />
+<path d="M2016 279h-450v1520h3360v-1160h-910" />
+<path d="M2016 819h-490v1000h3140v-1020h-650" />
+<path d="M2016 1139h-410v700h2860v-1020h-450" />
+<path d="M2016 839h-470v1020h2880v-1020h-410" />
+<path d="M2016 979h-570v1080h3640v-1040h-1070" />
+<path d="M2016 739h-690v1440h3440v-1040h-750" />
+<path d="M2016 699h-930v1320h4020" />
+<path d="M5104 2017h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M4016 859h1090v2640h330" />
+<path d="M2016 759h-510v1120h2840v-1000h-330" />
+<path d="M2016 1099h-590v980h3640v-1040h-1050" />
+<path d="M2016 1119h-530v780h2780v-960h-250" />
+<path d="M2016 859h-430v1060h2600v-960h-170" />
+<path d="M2016 779h-890v1160h3560v-1160h-670" />
+<path d="M2016 939h-910v1420h3340v-1040h-430" />
+<path d="M2016 999h-650v960h3440v-980h-790" />
+<path d="M2016 919h-670v1060h3540v-1060h-870" />
+<path d="M2016 1199h-750v1060h3360v-1040h-610" />
+<path d="M126 4299h40v-160h130" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M126 4319h60v-200h110" />
+<path d="M186 4299h260v-3620h1570" />
+<path d="M446 3719h1570" />
+<path d="M446 3099h3030" />
+<path d="M3476 3159h350" />
+<path d="M3476 3599h350" />
+<path d="M3474 3097h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M3474 3157h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M3474 3597h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M184 4297h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M444 3717h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M444 3097h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M3826 1199h-350v2620h970v580h2080v-360h170" />
+<path d="M4446 3939h990" />
+<path d="M4444 3937h5v5h-5z" stroke="none" fill="#19b400" />
+</g>
+<g>
+<path d="M4016 1419h1150v1720h1850" />
+<path d="M4016 1459h1110v1720h1890" />
+<path d="M126 4339h2690v-100h2620" />
+</g>
+</g>
+</svg>

@@ -18,6 +18,15 @@ So an input given with tick t reaches the game logic at edge t + 2, as does
 a switch change. A Step launched at edge k resolves at k + 2 and its COMMIT
 is seen done at k + 4.
 
+`crossing="qualified"` models the provisional req/ack crossing (research
+note CS-256 Game-Fast Crossing Research; HDL in core_blocks/crossing/):
+responses are used after a 2-FF synchronizer, one edge later, and input
+batches also pass a Gray FIFO's read register, two edges later. Inputs reach
+the game at t + 4, a Step resolves at k + 3 and its COMMIT is seen done at
+k + 6. `crossing="captured"` also copies the response into a game register
+first: a Step resolves at k + 4 and its COMMIT is done at k + 8, so it needs
+step_ticks >= 8 (ADR 0007).
+
 match_ctrl phases (game_pkg G_*): G_IDLE waits for Start after power-up or
 CPU_RESETN. Start captures the goal, resets Points and Lives and issues
 PREPARE (G_PREP); when PREPARE is done the Round is released (G_PLAY). A
@@ -44,6 +53,11 @@ from .turn_unit import TurnUnit
 IDLE, PLAY, CRASH, READY, MATCH_OVER, PREP = G_IDLE, G_PLAY, G_CRASH, G_READY, G_MATCH, G_PREP
 START_PHASES = (G_IDLE, G_READY, G_MATCH)
 TICK_MASK = (1 << 32) - 1
+# Slow-side register stages before a fast->game value is used: (response, input batch)
+CROSSING_STAGES = {"mailbox": (1, 1), "qualified": (2, 3), "captured": (3, 3)}
+# Shortest Step interval each crossing sustains: a Step's COMMIT is seen done at
+# k + 2 * (response stages + 1), and the next launch may come no earlier.
+MIN_STEP_TICKS_BY_CROSSING = {c: 2 * (rsp + 1) for c, (rsp, _) in CROSSING_STAGES.items()}
 
 
 @dataclass(frozen=True)
@@ -76,8 +90,18 @@ class BoardInputs:
 
 
 class Game:
-    def __init__(self, rules: RuleParams = RuleParams(), steplog=None):
-        """`steplog`, if given, is called with each Step-log line (see steplog.py)."""
+    def __init__(self, rules: RuleParams = RuleParams(), steplog=None, crossing: str = "mailbox"):
+        """`steplog`, if given, is called with each Step-log line (see steplog.py).
+        `crossing` is "mailbox" (ADR 0003 working default), "qualified" or
+        "captured"; each has a shortest Step interval (MIN_STEP_TICKS_BY_CROSSING)."""
+        if crossing not in CROSSING_STAGES:
+            raise ValueError(f"unknown crossing {crossing!r}")
+        self.crossing = crossing
+        self.min_step_ticks = MIN_STEP_TICKS_BY_CROSSING[crossing]
+        if rules.step_ticks < self.min_step_ticks:
+            raise ValueError(f"step_ticks={rules.step_ticks} is too short for the {crossing} "
+                             f"crossing: it needs at least {self.min_step_ticks}")
+        self.rsp_stages, self.batch_stages = CROSSING_STAGES[crossing]
         self.geom = GEOMETRY
         self.rules = rules
         self.steplog = steplog
@@ -92,11 +116,11 @@ class Game:
         # fast domain
         self.ctrl = ArenaCtrl(self.grid, r)        # clears the Arena: Walls only
         self.inputs = InputBatch()
-        self.mbox = Mailbox()
+        self.mbox = Mailbox(stages=self.rsp_stages)
         self.batch_bus = EMPTY_BATCH
         # game domain
         self.sw_sync = [0] * SYNC_STAGES
-        self.batch_cap = EMPTY_BATCH
+        self.batch_pipe = [EMPTY_BATCH] * self.batch_stages
         self.turns = [TurnUnit(h) for _, _, h in r.starts]
         self.step = StepUnit(r.starts)
         self.score = ScoreUnit(r)
@@ -133,7 +157,7 @@ class Game:
     def _game_edge(self, sw_pins: int) -> None:
         r = self.rules
         # Values stable before the edge
-        batch = self.batch_cap
+        batch = self.batch_pipe[-1]
         sw = self.sw_sync[-1]
         paused = bool(sw >> SW_PAUSE & 1)
         goal_sw = sw >> SW_GOAL_LSB & 3
@@ -145,15 +169,16 @@ class Game:
         launch = running and self.step_cnt == self.step_period - 1
         resolve = self.step.codes_ready(idle, paused)
         if launch and not self.step.ready(idle):
-            raise RuntimeError("Step cadence overrun: the last COMMIT is not done")
+            raise RuntimeError(f"Step cadence overrun: the last COMMIT is not done (the "
+                               f"{self.crossing} crossing needs step_ticks >= {self.min_step_ticks})")
 
         # Capture registers and synchronizers
-        self.batch_cap = self.batch_bus
+        self.batch_pipe = [self.batch_bus] + self.batch_pipe[:-1]
         self.mbox.capture()
         self.sw_sync = [sw_pins] + self.sw_sync[:-1]
         self.tick_cnt = (self.tick_cnt + 1) & TICK_MASK
         self.ticks += 1
-        self.page.clock()                            # runs through Pause
+        self.page.clock(ph in (G_IDLE, G_MATCH), goal_sw)   # runs through Pause
         self.paused = paused
 
         if paused:
@@ -260,7 +285,8 @@ class Game:
             "crashed": self.crashed,
             "paused": self.paused,
         }
-        self.seg7_digits = digits(self.page.view, self.score.points, self.score.lives)
+        shown_goal = goal_from_switches(self.sw_sync[-1] >> SW_GOAL_LSB & 3)
+        self.seg7_digits = digits(self.page.view, self.score.points, self.score.lives, shown_goal)
 
     # --- read-only views ----------------------------------------------------
     @property

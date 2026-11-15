@@ -1,0 +1,16 @@
+STATS RD_REG=1 accepted=6008 read=6008 dropped=4 steady_at_n+3+RD_REG=2000 writes_within_1ns_of_read_edge=2
+RESULT: PASS batch_fifo_tb
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-batch_fifo_tb-20261029-232239-1926151
+STATS RD_REG=0 accepted=6008 read=6008 dropped=4 steady_at_n+3+RD_REG=2000 writes_within_1ns_of_read_edge=2
+RESULT: PASS batch_fifo_tb
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-batch_fifo_tb-20261029-232239-1926153
+STATS read2=3007 resolved=3006 commands=6195 deferred_edges=702 junk_writes=3379544
+STATS delays: before_edge=758 after_edge=486 long=228 late_sync_injected=7
+STATS RSP_REG=0 STEP=6 READ2 latency k+3=2634 other=372  histogram k+3..k+7: 2634 291 36 0 1
+RESULT: PASS handshake_tb
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-handshake_tb-20261029-232239-1926156
+STATS read2=3005 resolved=3005 commands=6191 deferred_edges=703 junk_writes=3378729
+STATS delays: before_edge=758 after_edge=486 long=228 late_sync_injected=7
+STATS RSP_REG=1 STEP=8 READ2 latency k+4=2630 other=375  histogram k+3..k+7: 0 2630 286 39 0
+RESULT: PASS handshake_tb
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-handshake_tb-20261029-232239-1926159
