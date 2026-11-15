@@ -1,3 +1,5 @@
+// VGA output: sync pulses, blanking and the visible pixel coordinates (curr_x, curr_y).
+// Each line and frame runs in the order sync, back porch, visible, front porch.
 module vga_out (
     input  logic        clk_pix,
     input  logic        rst,
@@ -20,6 +22,8 @@ module vga_out (
         .vcnt   (vcnt)
         );
 
+    // Coordinates relative to the visible area, so (0,0) is the top-left visible pixel.
+    // tick_60hz is unused: the game runs on clk_juego (ADR 0002).
     always_comb begin
         tick_60hz = 1'b0;
         curr_x = hcnt - 11'd336;
@@ -27,6 +31,8 @@ module vga_out (
         visible = (hcnt>=11'd336 && hcnt<11'd1616) && (vcnt>=11'd27 && vcnt<11'd827);
     end
 
+    // Registered outputs. hsync is active low and vsync active high; colour is 0 outside
+    // the visible area, whatever drawcon asks for.
     always_ff @(posedge clk_pix) begin
         hsync <= ~ (hcnt>=11'b0 && hcnt<11'd136);
         vsync <= (vcnt>=11'b0 && vcnt<11'd3);

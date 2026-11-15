@@ -1,3 +1,4 @@
+// Horizontal and vertical VGA counters for 1280x800: hcnt 0-1679 per line, vcnt 0-827 per frame.
 module counters(
     input  logic        clk, 
     input  logic        rst, 

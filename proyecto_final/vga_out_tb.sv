@@ -1,8 +1,8 @@
 module vga_out_tb;
-    //inputs
+    // Inputs
     logic clk_pix, rst;
     logic [3:0]  draw_r, draw_g, draw_b;
-    //outputs
+    // Outputs
     logic [10:0] curr_x;
     logic [10:0] curr_y;
     logic        tick_60hz;
@@ -18,7 +18,7 @@ module vga_out_tb;
     integer      errors = 0;
     logic        it_was_visible;
 
-    //Initialize module
+    // Device under test
     vga_out dut (
         .clk_pix   (clk_pix),
         .rst       (rst),
@@ -35,7 +35,7 @@ module vga_out_tb;
         .vsync     (vsync)
     );
 
-    //Generate clock and reset
+    // Clock, reset and end of the test
     initial begin
         clk_pix = 1'b0;
         rst = 1'b1;
@@ -56,9 +56,8 @@ module vga_out_tb;
 
     always #5 clk_pix = ~clk_pix;
  
-    // Los flancos durante el reset se ignoran: un pulso que empezó en el
-    // reset no se puede medir completo, así que inicio_* se queda en 0
-    // y su duración no se revisa.
+    // Edges during reset are ignored: a pulse that started during reset cannot be
+    // measured in full, so inicio_* stays at 0 and its length is not checked.
     always @(hsync) if (~rst) begin
         if(~hsync) begin
             inicio_hsync = $time ;
