@@ -45,8 +45,19 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
 - [x] **Paso 5a:** `drawcon` con paredes, HUD, bloque y fondo en colores planos
 - [ ] **Paso 5b:** `drawcon` lee de `arena_map` lo que hay en cada celda
 - [ ] **Paso 5c:** sprites desde ROM (`.coe` RGB444, motos de 32x32 y premios de 16x16)
+- [x] **Paso 6a:** una moto que avanza sola en rondas (`round_fsm`, `step_counter`, `bike_move`):
+  Start con BTNC, giros de 90°, choque con la pared y pausa de 2 s. Probada en la tarjeta el
+  12 de noviembre (PR #21)
+- [ ] **Paso 6b:** segunda moto y choques entre motos (mismo destino, cabeza de la otra,
+  intercambio). P2 sale de (59, 27) hacia la izquierda y por ahora avanza recto; su entrada
+  `turn_req2` espera el teclado. `position_logic_tb` pasa en Verilator; falta la tarjeta (PR #25)
+- [ ] **Paso 6c:** paso de 8 a 10 ticks en vez de 6 (ADR 0007, issue #22)
+- [ ] **Paso 6d:** choque con estelas y premios, leyendo las celdas destino de `arena_map`
 
 ## Hito: bloque en movimiento (revisión del 12 de noviembre)
+
+> Este hito describe el bloque de antes del PR #21. Desde entonces `game_top` muestra motos
+> que avanzan solas en rondas (pasos 6a y 6b).
 
 Según el código, `game_top` muestra un bloque de 16x16 que se mueve con los botones y se
 detiene en las paredes. CPU_RESET lo regresa a (320, 432) si se mantiene al menos unos
@@ -62,8 +73,11 @@ Wizard; en la tarjeta se probaron también las paredes y el reset repetido.
 
 - `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasa las pruebas de XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
 - `game_top.sv`: tope del diseño. Conecta el Clocking Wizard, el contador de `clk_juego`, los sincronizadores y los bloques de abajo
-- `position_logic.sv`: posición del bloque, en `clk_juego`
-- `drawcon.sv`: color de cada píxel
+- `position_logic.sv`: las dos motos, en `clk_juego`: control de ronda, ritmo del paso, giros y choques
+- `round_fsm.sv`: ronda provisional: espera Start, corre, pausa tras un choque y espera que se suelte Start
+- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (6) y la pausa de choque (120)
+- `bike_move.sv`: celda, dirección y giro pendiente de una moto; se instancia una vez por moto
+- `drawcon.sv`: color de cada píxel: paredes, HUD, P1 en azul (`0DF`) y P2 en naranja (`F80`)
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
 - `vga_out.sv`: sync, blanking y `curr_x`/`curr_y` (`tick_60hz` todavía en 0)
 - `sync_2ff.sv`: sincronizador de 2 flip-flops para botones y switches
@@ -71,10 +85,10 @@ Wizard; en la tarjeta se probaron también las paredes y el reset repetido.
 - `game_top.xdc`: pines y configuración de la tarjeta para `game_top`
 - `game_top_timing.xdc`: reloj generado de `clk_juego` y excepciones de temporización; solo para implementación
 - `ip/clk_wiz_0/clk_wiz_0.xci`: IP del reloj de píxel para el proyecto de Roman; `build_game_top.tcl` no lo lee y genera el Wizard. Ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
-- `game_top_tb.sv`: revisa `game_top` desde sus pines, con 6 escenarios
-- `position_logic_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
+- `game_top_tb.sv`: revisa `game_top` desde sus pines, con 6 escenarios. Todavía describe el bloque de antes del PR #21 (issue #24)
+- `position_logic_tb.sv`, `round_fsm_tb.sv`, `step_counter_tb.sv`, `bike_move_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
 - `sim_clocks/`: relojes ideales **solo para simulación**. La síntesis usa siempre la IP que genera Vivado; ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
-- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`
+- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`. Desde el PR #21 le faltan `round_fsm.sv`, `step_counter.sv` y `bike_move.sv` (issue #24)
 - `bitstreams/`: bitstreams probados y lo que se comprobó de cada uno
 - `prototypes/vga_106mhz/`: experimento a 106.5 MHz, fuera del hito; conserva el error del reset de PR 11
 - `Contrato de interfaces game_top (CS 256).md`: contrato del equipo

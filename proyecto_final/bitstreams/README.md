@@ -2,9 +2,46 @@
 
 Aquí va solo el último bitstream probado, para llevarlo a la revisión con el TA y poder repetir las pruebas. Los anteriores se borran de la carpeta, pero su registro se queda abajo y el archivo se recupera del historial de Git. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
 
-## `game_top_one_wizard.bit`
+## `game_top_two_bikes.bit`
 
-El bitstream para mostrar: el Paso 4c del [ADR 0006](../../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md), con un solo Clocking Wizard y `clk_juego` de un contador sobre `clk_pix`. **Este es el probado en la tarjeta.**
+El bitstream para mostrar: dos motos que avanzan solas en rondas, con choques contra la pared y entre motos (PR 25). P1 gira con los botones; P2 va recto, porque `turn_req2` está fijo en `4'b0000` hasta que llegue el teclado. **Este es el probado en la tarjeta.**
+
+| | |
+|---|---|
+| SHA-256 | `ab46d0e8d52e19e16dd05d44a3d41c4bfdef7f40f364ef16a21e76083a88fb92` |
+| Fuente | Rama `hdl/second-bike`. El diseño (`.sv`, `.xdc`, IP) es el mismo desde `01cdcc8` hasta `80b55f2`; los commits de en medio solo cambian documentos. No se registró el commit exacto del checkout |
+| Cómo se construye | Proyecto de Vivado en la estación remota `myws.kaust.edu.sa`, con las fuentes cargadas desde un clon del repo como en [comandos_vivado_myws.md](../comandos_vivado_myws.md). No usa `build_game_top.tcl`, que todavía describe el diseño de antes de PR 21 (issue 24) |
+| Herramienta | Vivado 2020.2 de la estación remota, 15 de noviembre de 2026. Es otra versión que la 2025.2 de `alan-desktop`, con la que se hicieron los bitstreams anteriores |
+| Parte | `xc7a100tcsg324-1` |
+
+### Prueba en la tarjeta
+
+Nexys A7 serial `210292B1820D`, programada por JTAG con `openFPGALoader` desde la Mac de Roman (DONE en alto). Observó Roman el 15 de noviembre de 2026. Todas pasan.
+
+| Prueba | Esperado |
+|---|---|
+| Arranque | P1 (azul claro) a la izquierda avanza a la derecha; P2 (naranja) a la derecha avanza a la izquierda |
+| Sin tocar nada | P2 va recto; las motos se encuentran de frente y la ronda termina |
+| P1 contra una pared, con los botones | P1 se detiene, P2 completa su paso y la ronda termina |
+| CPU_RESET | Las dos motos regresan a sus posiciones de inicio |
+
+**Observación sin confirmar:** a Roman le pareció que P1 se dibuja unos píxeles más abajo que P2. En el código las dos salen en la misma fila (`START_CY = 27`, píxel y = 432) y `drawcon` las dibuja igual, así que puede ser una impresión por los colores. Para confirmarlo, dejar que choquen de frente y comparar los bordes de arriba con las dos juntas.
+
+### Simulación y reportes
+
+- **Testbenches:** `position_logic_tb`, `bike_move_tb` y `round_fsm_tb` pasan en Verilator 5.052 (ver PR 25). `game_top_tb` no se corrió: todavía describe el diseño de antes de PR 21 (issue 24).
+- **Capturas de Vivado:** [setup y uso](evidencia/game_top_two_bikes_setup.png), [hold y critical warnings](evidencia/game_top_two_bikes_hold_y_mensajes.png).
+- **Temporización con el diseño ya ruteado** (*Project Summary* de Vivado): setup +3.828 ns (WNS), TNS 0 ns, 0 de 110 extremos fallan; hold +0.156 ns (WHS), THS 0 ns, 0 de 110 extremos fallan. El ancho de pulso no se registró.
+- **DRC:** sin violaciones. **CDC:** no se corrió `report_cdc`.
+- **Mensajes:** síntesis con 5 warnings e implementación con 2 warnings, sin revisar todavía. Los 2 critical warnings de la implementación son `[Designutils 20-1280] Could not find module 'clk_wiz_1'`, uno por cada `.xdc` del IP (`clk_wiz_1.xdc` y `clk_wiz_1_board.xdc`). El proyecto de la estación todavía tiene el IP `clk_wiz_1`, que el diseño dejó de usar en el Paso 4c; como nada lo instancia, sus restricciones no se aplican y no afectan este build. Se quitan sacando el IP del proyecto (ver [comandos_vivado_myws.md](../comandos_vivado_myws.md)).
+
+## Bitstreams anteriores
+
+Ya no están en la carpeta. Para recuperar uno: `git show COMMIT:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`, con `80b55f2` para `game_top_one_wizard.bit` y `dc029bf` para los demás.
+
+## `game_top_one_wizard.bit` (anterior)
+
+El Paso 4c del [ADR 0006](../../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md), con un solo Clocking Wizard y `clk_juego` de un contador sobre `clk_pix`. Fue el probado en la tarjeta hasta `game_top_two_bikes.bit`.
 
 | | |
 |---|---|
@@ -37,10 +74,6 @@ Nexys A7 serial `210292B1820D`, programada por JTAG (DONE en alto). Observó Ala
 - **Log de construcción:** sin warnings.
 
 Siguen pendientes los puntos de [Lo que falta](#lo-que-falta), salvo el de `clk_wiz_1`.
-
-## Bitstreams anteriores
-
-Ya no están en la carpeta. Para recuperar uno: `git show dc029bf:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`.
 
 ## `game_top_fixes.bit` (anterior)
 

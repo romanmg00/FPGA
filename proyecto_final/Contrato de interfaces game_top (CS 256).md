@@ -97,11 +97,11 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | Módulo | Resp. | Qué hace | Estado |
 | --- | --- | --- | --- |
 | Clocking Wizard + contador de `clk_juego` | Roman | `clk_pix` de 83.46 MHz; `clk_juego` de ~60 Hz desde un contador sobre `clk_pix` (ADR 0006) | Un solo Wizard en el código desde el 5 nov: testbenches y temporización ruteada pasan; falta probar el bitstream en la tarjeta |
-| `vga_out` | Roman | Contadores, pulsos de sync, blanking y `curr_x`/`curr_y` | Escrito, falta correr el testbench |
-| `drawcon` | Roman | Color de cada píxel: borde, arena, premios y motos | Por hacer |
+| `vga_out` | Roman | Contadores, pulsos de sync, blanking y `curr_x`/`curr_y` | Escrito; `vga_out_tb` pasa en XSim. Falta decidir `tick_60hz` |
+| `drawcon` | Roman | Color de cada píxel: borde, arena, premios y motos | Paredes, HUD y dos motos en colores planos (PR #25); falta leer `arena_map`, premios, sprites y borde de 10 px |
 | `sprite_rom` | Roman | Motos de 32 × 32 (1024 palabras) y premios de 16 × 16 (256 palabras), `.coe` RGB444 | Por hacer |
-| Movimiento y choques (G1/G2) | Roman | Giros, giro pendiente, lectura de las dos celdas destino y resultado de cada moto | Por hacer |
-| Rondas, partida, vidas y puntos (G3/G5) | Alan | Estados de la partida, Start, choque, meta, bono y empate | Por hacer |
+| Movimiento y choques (G1/G2) | Roman | Giros, giro pendiente, lectura de las dos celdas destino y resultado de cada moto | Dos motos con giros, giro pendiente y choques con pared y entre motos en `position_logic` (PR #25). Falta leer las celdas destino de `arena_map` (estelas y premios) |
+| Rondas, partida, vidas y puntos (G3/G5) | Alan | Estados de la partida, Start, choque, meta, bono y empate | Por hacer. Mientras tanto, `round_fsm` provisional de Roman dentro de `position_logic` |
 | `arena_map` + controlador (A1/A2) | Alan | BRAM de 8192 × 4 bits y servicio de pedidos del juego | Por hacer; servicio **pendiente** |
 | Premios (G4) | Alan | Generador pseudoaleatorio y colocación de los tres premios | Por hacer; generador **pendiente** |
 | `btn_debounce` | Alan | Sincroniza los 5 botones, quita rebotes y genera un pulso al presionar | Por hacer |
