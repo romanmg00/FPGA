@@ -1,0 +1,8 @@
+model CLEAR accesses=8192 EMPTY=3432 WALL=4760; HDL measured cycles=8192
+model READ2 accesses=2; HDL acceptance-to-done=3 (registered response overhead=1)
+COMMIT survive_p1=True survive_p2=True: model supplied-write accesses=4, HDL cycles=4
+COMMIT survive_p1=False survive_p2=True: model supplied-write accesses=3, HDL cycles=3
+COMMIT survive_p1=True survive_p2=False: model supplied-write accesses=3, HDL cycles=3
+COMMIT survive_p1=False survive_p2=False: model supplied-write accesses=2, HDL cycles=2
+Crash writes supplied explicitly here: model gameplay does not yet emit ADR 0003 code 6.
+PASS compare_model

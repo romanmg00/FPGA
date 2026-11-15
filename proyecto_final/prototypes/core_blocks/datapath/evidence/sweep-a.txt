@@ -1,0 +1,52 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed Oct 28 21:29:42 2026
+# Process ID         : 53096
+# Current directory  : /builds/core-datapath_tb-20261029-002935-630134
+# Command line       : xsim -log sim.log -mode tcl -source {xsim.dir/datapath_tb/xsim_script.tcl}
+# Log file           : /builds/core-datapath_tb-20261029-002935-630134/sim.log
+# Journal file       : /builds/core-datapath_tb-20261029-002935-630134/xsim.jou
+# Running On         : 46a6ecb52e54
+# Platform           : ubuntu
+# Operating System   : Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+# Processor Detail   : Intel(R) Xeon(R) Gold 6230R CPU @ 2.10GHz
+# CPU Frequency      : 2100.000 MHz
+# CPU Physical cores : 26
+# CPU Logical cores  : 52
+# Host memory        : 132266 MB
+# Swap memory        : 8589 MB
+# Total Virtual      : 140856 MB
+# Available Virtual  : 127180 MB
+#-----------------------------------------------------------
+source xsim.dir/datapath_tb/xsim_script.tcl
+# xsim {datapath_tb} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+REPLAY 01-walls rows=1040
+REPLAY 02-own-trail rows=41
+REPLAY 03-other-trail rows=173
+REPLAY 04-head-on-same-cell rows=131
+REPLAY 05-head-on-swap rows=137
+REPLAY 06-reversal-ignored rows=245
+REPLAY 07-two-inputs rows=185
+REPLAY 08-reward-respawn rows=293
+REPLAY 09-goal rows=10226
+REPLAY 10-both-last-life rows=751
+REPLAY 11-new-match rows=892
+REPLAY 12-long-random rows=20011
+MEASURE N=10000 phase=0 forward=4997 backward=4997 outcomes=3175 overruns=0
+MAX_RTT_FAST read=9997.5 commit=10006.5
+PASS datapath_tb
+$finish called at time : 3414950002 ns : File "/builds/core-datapath_tb-20261029-002935-630134/src/prototypes/core_blocks/datapath/datapath_tb.sv" Line 117
+run: Time (s): cpu = 00:00:00.25 ; elapsed = 00:01:35 . Memory (MB): peak = 1442.215 ; gain = 0.000 ; free physical = 84558 ; free virtual = 117781
+exit
+INFO: xsimkernel Simulation Memory Usage: 286220 KB (Peak: 334780 KB), Simulation CPU Usage: 96590 ms
+INFO: [Common 17-206] Exiting xsim at Wed Oct 28 21:31:20 2026...
+xelab.out:WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+RESULT: PASS datapath_tb
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-002935-630134

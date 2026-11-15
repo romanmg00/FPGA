@@ -256,7 +256,6 @@ Every effect here is an extra: the agreement puts the HUD, glow, scanlines and a
 | Reward spin | Reward turns through four Headings | Heading from `frame[4:3]`, using ROM addressing |
 | speed streaks | Flickering lines behind a moving Bike, only during Play | Rectangle compares against the head position and Heading |
 | HUD | Points digits, Life pips and a state icon in the 64 px band | Box comparators plus the digit font and icon ROMs |
-| neon digits | Lit segments over faint unlit segments | Ghost from segment-area comparators |
 | chrome digits | Row shading with a dark centre split | Row LUT, 2 × 16 × 12 bits |
 | Welcome/Pause | Start/control instructions or Pause/resume instructions in neon-edged bands over the scene | Band comparators plus 32 × 8 × 8-bit monochrome glyph ROM (proposal) |
 | screen title | TRON or PAUSED in the sun's colours and cut stripes, over a neon drop shadow | Row LUT, 56 × 13 bits; second glyph ROM read for the shadow (proposal) |
@@ -264,7 +263,7 @@ Every effect here is an extra: the agreement puts the HUD, glow, scanlines and a
 
 Pulse Trail stripe pixels take `c/4 + 12` per channel, near white for any Player colour; a fixed add was invisible on cyan because its green and blue channels were already 15.
 
-The neon digit ghost is the union of the segment rectangles, using comparators on glyph x/y in hardware. It does not need a second ROM read.
+Synthwave's digits are the plain seven-segment font. The faint "ghost" of the unlit segments that it used until 12 November 2026 was removed in the viewer and the HDL: on the board it read as a bar across every 0 (`proyecto_final/prototypes/core_blocks/game/FINDINGS.md`, section 10.1).
 
 `fx.lut_items` adds the screen text font and title row LUT, and the active sky gradient, sun row, floor row, pulse colour and chrome row tables to the BRAM budget. Small tables may become LUT ROM; the synthesis report decides the mapping.
 

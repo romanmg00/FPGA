@@ -1,0 +1,13 @@
+latches: 0
+| Design Timing Summary
+    WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+    -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+        inf        0.000                      0                   39          inf        0.000                      0                   39        9.038        0.000                       0                     2  
+
+| Slice LUTs*             |    0 |     0 |          0 |     63400 |  0.00 |
+| Slice Registers         |    0 |     0 |          0 |    126800 |  0.00 |
+| F7 Muxes                |    0 |     0 |          0 |     31700 |  0.00 |
+| Block RAM Tile    |    1 |     0 |          0 |       135 |  0.74 |
+| DSPs      |    0 |     0 |          0 |       240 |  0.00 |
+RESULT: synthesized arena_map
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-synth-arena_map-20261029-000514-603343

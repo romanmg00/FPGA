@@ -1,0 +1,9 @@
+/home/alan/.local/share/cs256-vivado/builds/core-sync_2ff_tb-20261029-000558-606896
+ERROR: [XSIM 43-4099] "/builds/core-sync_2ff_tb-20261029-000558-606896/src/prototypes/core_blocks/io/sync_2ff.sv" Line 4. Module sync_2ff doesn't have a timescale but at least one module in design has a timescale.
+/home/alan/.local/share/cs256-vivado/builds/core-btn_debounce_tb-20261029-000625-608831
+ERROR: [XSIM 43-4099] "/builds/core-btn_debounce_tb-20261029-000625-608831/src/prototypes/core_blocks/game_pkg.sv" Line 6. Module game_pkg doesn't have a timescale but at least one module in design has a timescale.
+/home/alan/.local/share/cs256-vivado/builds/core-sync_2ff_tb-20261029-000645-609303
+ERROR: [XSIM 43-4099] "/builds/core-sync_2ff_tb-20261029-000645-609303/src/prototypes/core_blocks/io/sync_2ff.sv" Line 4. Module sync_2ff doesn't have a timescale but at least one module in design has a timescale.
+/home/alan/.local/share/cs256-vivado/builds/core-seg7_driver_tb-20261029-000731-611029
+Fatal: not exactly one active-low anode
+Time: 6 ns  Iteration: 0  Process: /seg7_driver_tb/tick  Scope: seg7_driver_tb.tick  File: /builds/core-seg7_driver_tb-20261029-000731-611029/src/prototypes/core_blocks/io/seg7_driver_tb.sv Line: 23

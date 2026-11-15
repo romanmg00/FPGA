@@ -1,0 +1,96 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1340' height='720' viewBox='0 0 1340 720'><defs><marker id='ah' markerWidth='10' markerHeight='8' refX='9' refY='4' orient='auto-start-reverse'><path d='M0,0 L10,4 L0,8 z' fill='black'/></marker></defs><rect width='1340' height='720' fill='white'/>
+<text x='670.0' y='22' text-anchor='middle' font-size='16' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>One Step: game_core (clk_juego) and fast_core (clk_pix)</text>
+<rect x='20' y='40' width='560' height='660' fill='#fdf0e3' stroke='#999' stroke-dasharray='6 4' rx='6'/>
+<text x='28' y='56' font-size='12' fill='#555' font-style='italic' font-family='Helvetica, Arial, sans-serif'>game_core  · clk_juego ≈ 60 Hz</text>
+<rect x='760' y='40' width='560' height='660' fill='#eaf2fb' stroke='#999' stroke-dasharray='6 4' rx='6'/>
+<text x='768' y='56' font-size='12' fill='#555' font-style='italic' font-family='Helvetica, Arial, sans-serif'>fast_core  · clk_pix 83.46 MHz</text>
+<rect x='50' y='80' width='230' height='60' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='165.0' y='98' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>sw sync</text>
+<text x='165.0' y='113' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>Pause, Goal: 2-FF</text>
+<rect x='50' y='170' width='230' height='70' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='165.0' y='188' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>turn_unit ×2</text>
+<text x='165.0' y='203' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>pending Turn, reversal ignored</text>
+<rect x='50' y='270' width='230' height='50' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='165.0' y='288' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>next_cell ×2</text>
+<text x='165.0' y='303' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>head + Heading → target</text>
+<rect x='320' y='75' width='230' height='140' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='435.0' y='93' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>Step sequencer (FSM)</text>
+<text x='435.0' y='108' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>every STEP_TICKS ticks</text>
+<text x='328' y='123' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>PREPARE: clear Arena, heads,</text>
+<text x='328' y='137' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>  three Rewards</text>
+<text x='328' y='151' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>READ2: read both targets</text>
+<text x='328' y='165' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>COMMIT: write heads/Trails,</text>
+<text x='328' y='179' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>  replace collected Rewards</text>
+<rect x='320' y='270' width='230' height='110' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='435.0' y='288' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>step_resolve</text>
+<text x='435.0' y='303' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>codes → Crash / collect</text>
+<text x='328' y='318' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>Walls, Trails, head-on,</text>
+<text x='328' y='332' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>swap = both Crash</text>
+<rect x='50' y='360' width='230' height='110' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='165.0' y='378' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>score_unit</text>
+<text x='165.0' y='393' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>Points, Lives, result</text>
+<text x='58' y='408' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>+1 / +1 / +3 Rewards</text>
+<text x='58' y='422' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>+3 Survival Bonus</text>
+<text x='58' y='436' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>Goal 10/20/30/40</text>
+<rect x='320' y='410' width='230' height='110' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='435.0' y='428' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>phase</text>
+<text x='435.0' y='443' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>IDLE · PLAY · CRASH ·</text>
+<text x='328' y='458' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>READY · MATCH</text>
+<text x='328' y='472' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>phase_ticks, blink_ticks</text>
+<rect x='50' y='500' width='230' height='60' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='165.0' y='518' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>seg7_page</text>
+<text x='165.0' y='533' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>Points → Lives (→ Goal)</text>
+<polyline points='165,140 165,170' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<text x='171.0' y='159.0' text-anchor='start' font-size='11' fill='black' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>pause</text>
+<polyline points='165,240 165,270' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<polyline points='280,295 320,295' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<text x='300.0' y='290.0' text-anchor='middle' font-size='11' fill='black' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>targets</text>
+<polyline points='320,340 280,400' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<text x='296.0' y='366.0' text-anchor='middle' font-size='11' fill='black' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>outcome</text>
+<polyline points='280,440 320,450' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<polyline points='550,120 790,120' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<text x='670.0' y='114.0' text-anchor='middle' font-size='11' fill='black' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>tick_tgl (toggle each tick)</text>
+<polyline points='550,170 790,170' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<text x='670.0' y='164.0' text-anchor='middle' font-size='11' fill='black' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>cmd_op, cmd_seq, cmd_a/b_p1/p2, cmd_*</text>
+<polyline points='1060,330 550,330' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<text x='805.0' y='324.0' text-anchor='middle' font-size='11' fill='black' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>rsp_seq, rsp_code_p1/p2 (target codes)</text>
+<polyline points='790,260 600,260 600,228 280,228' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<text x='440.0' y='223.0' text-anchor='middle' font-size='11' fill='black' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>batch_axes_p1/p2, batch_start</text>
+<polyline points='550,470 790,470' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<text x='670.0' y='464.0' text-anchor='middle' font-size='11' fill='black' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>g_phase, g_head_*, g_points_*, g_lives_*, g_result…</text>
+<text x='670' y='600' text-anchor='middle' font-size='10.5' fill='#555' font-style='italic' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>Crossing: every bus is latched on tick_seen or sampled a whole tick later</text>
+<text x='670' y='616' text-anchor='middle' font-size='10.5' fill='#555' font-style='italic' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>(mailbox, ADR 0003); QUALIFIED = 1 adds req/ack and batch_fifo</text>
+<rect x='790' y='80' width='230' height='70' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='905.0' y='98' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>sync_2ff → tick_seen</text>
+<text x='905.0' y='113' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>edge of tick_tgl</text>
+<rect x='790' y='160' width='230' height='50' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='905.0' y='178' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>command queue</text>
+<text x='905.0' y='193' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>start arena_svc</text>
+<rect x='1060' y='80' width='230' height='280' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='1175.0' y='98' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>arena_svc</text>
+<text x='1175.0' y='113' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>Arena service FSM</text>
+<text x='1068' y='128' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>PREPARE: clear 8192 Cells,</text>
+<text x='1068' y='142' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>  Walls, heads, Rewards</text>
+<text x='1068' y='156' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>READ2: codes at 2 targets</text>
+<text x='1068' y='170' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>COMMIT: Trails, heads,</text>
+<text x='1068' y='184' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>  Crash Cells, Rewards</text>
+<text x='1068' y='198' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>Reward LFSR (seed + Start</text>
+<text x='1068' y='212' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>  tick), 3 slots</text>
+<text x='1068' y='226' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'></text>
+<text x='1068' y='240' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>arena_map: dual-port BRAM</text>
+<text x='1068' y='254' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>  A: service read/write</text>
+<text x='1068' y='268' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>  B: drawcon read-only</text>
+<polyline points='1020,185 1060,185' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<rect x='790' y='240' width='230' height='70' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='905.0' y='258' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>input batch</text>
+<text x='905.0' y='273' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>btn_pulse, uart_cmd → axes</text>
+<text x='798' y='288' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>per-tick latches, gated by phase</text>
+<rect x='790' y='400' width='230' height='110' fill='white' stroke='black' stroke-width='1.5'/>
+<text x='905.0' y='418' text-anchor='middle' font-size='13' font-weight='bold' font-family='Helvetica, Arial, sans-serif'>render snapshot</text>
+<text x='905.0' y='433' text-anchor='middle' font-size='10.5' fill='#444' font-family='Helvetica, Arial, sans-serif'>registers, updated on tick_seen</text>
+<text x='798' y='448' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>snap_phase, heads, Headings,</text>
+<text x='798' y='462' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>points, lives, result, blink</text>
+<text x='798' y='476' font-size='10.5' fill='#333' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>→ drawcon_game, seg7</text>
+<polyline points='1175,360 1175,560 1290,560' fill='none' stroke='black' stroke-width='1.4' marker-end='url(#ah)'/>
+<text x='1232.5' y='555.0' text-anchor='middle' font-size='11' fill='black' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>b_addr / b_rdata</text>
+<text x='1300' y='590' text-anchor='end' font-size='11' fill='black' font-style='italic' xml:space='preserve' font-family='Helvetica, Arial, sans-serif'>drawcon_game</text></svg>

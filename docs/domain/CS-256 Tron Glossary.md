@@ -119,7 +119,7 @@ _Avoid_: Wake, tail, estela (use Trail in English documents)
 ## Feedback
 
 **Scoreboard**:
-The board's eight 7-segment digits, used to show each Player's Points and Lives. Digit mapping and view timing are defined in the agreed specification.
+The board's eight 7-segment digits, used to show each Player's Points and Lives and, while waiting for a new Match, the Points Goal (`GOAL  nn`). Digit mapping and view timing are defined in the agreed specification; [ADR 0008](../adr/0008-scoreboard-goal-page-before-a-match.md) adds the Goal view.
 _Avoid_: HUD (reserve for an on-screen display)
 
 **HUD**:
