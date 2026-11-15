@@ -82,6 +82,7 @@ module game_top (
 
     drawcon u_drawcon(
         // Inputs
+        .clk(clk_pix),
         .curr_x(curr_x),
         .curr_y(curr_y),
         .blkpos1_x(blkpos1_x), 
