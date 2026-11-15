@@ -60,6 +60,18 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
   13, 16 con 6 ticks) hacia su celda; el juego sigue por celdas y lo dibujado va un paso atrás.
   Su salida es un registro, así que la cuenta no entra a la ruta de `clk_pix`
 - [ ] **Paso 6d:** choque con estelas y premios, leyendo las celdas destino de `arena_map`
+- [ ] **Paso 7:** marcador físico en los 8 dígitos de 7 segmentos (especificación, *Physical
+  Scoreboard*, y [ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)), por partes:
+  - [x] **7a:** `sevenseg` y `multidigit` de la tarea 1 del curso, con las letras P, L, G, A y
+    el dígito en blanco (códigos 16–20 de `game_pkg.sv`; 0–F siguen siendo hex). `multidigit`
+    barre en `clk_pix` y avanza de dígito con una habilitación cada 10,432 ciclos (~1 kHz por
+    dígito), sin reloj nuevo (ADR 0006). Solo en simulación: `sevenseg_tb` y `multidigit_tb`
+    pasan en XSim; todavía no están en `game_top`
+  - [ ] **7b:** las vistas: temporizador de 3 s en `clk_juego` (puntos → vidas, y meta mientras
+    se espera una partida nueva) y los códigos de los 8 dígitos
+  - [ ] **7c:** partida, vidas y puntos (G3/G5), sin premios
+  - [ ] **7d:** en `game_top`: `sw[15:0]`, pines `seg`, `dp` y `an`, y el cruce de los valores a
+    `clk_pix` (issue #30)
 
 ## Hito: bloque en movimiento (revisión del 12 de noviembre)
 
@@ -88,6 +100,9 @@ probaron también las paredes y el reset repetido. Ese archivo ya no está en el
 - `bike_glide.sv`: posición dibujada de una moto, que se desliza de su celda anterior a la nueva durante un paso (ADR 0010); una instancia por moto
 - `bike_move.sv`: celda, dirección y giro pendiente de una moto; se instancia una vez por moto
 - `drawcon.sv`: color de cada píxel: paredes, HUD, P1 en azul (`0DF`) y P2 en naranja (`F80`)
+- `game_pkg.sv`: constantes compartidas del contrato (sección 5). Por ahora solo los códigos de glifo del marcador; cada constante se agrega cuando un módulo la usa
+- `sevenseg.sv`: decodificador de 7 segmentos de la tarea 1, activo en bajo: códigos de 5 bits, 0–F como en la tarea y P, L, G, A y blanco del marcador
+- `multidigit.sv`: los 8 dígitos con un solo juego de segmentos, como en la tarea 1, en `clk_pix` con una habilitación (~1 kHz por dígito)
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
 - `vga_out.sv`: sync, blanking y `curr_x`/`curr_y` (`tick_60hz` todavía en 0)
 - `sync_2ff.sv`: sincronizador de 2 flip-flops para botones y switches
@@ -96,9 +111,9 @@ probaron también las paredes y el reset repetido. Ese archivo ya no está en el
 - `game_top_timing.xdc`: reloj generado de `clk_juego` y excepciones de temporización; solo para implementación
 - `ip/clk_wiz_0/clk_wiz_0.xci`: IP del reloj de píxel para el proyecto de Roman; `build_game_top.tcl` no lo lee y genera el Wizard. Ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
 - `game_top_tb.sv`: revisa `game_top` desde sus pines, con 6 escenarios. Todavía describe el bloque de antes del PR #21 (issue #24)
-- `position_logic_tb.sv`, `round_fsm_tb.sv`, `step_counter_tb.sv`, `bike_move_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
+- `position_logic_tb.sv`, `round_fsm_tb.sv`, `step_counter_tb.sv`, `bike_move_tb.sv`, `sevenseg_tb.sv`, `multidigit_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
 - `sim_clocks/`: relojes ideales **solo para simulación**. La síntesis usa siempre la IP que genera Vivado; ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
-- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`. Corre también `round_fsm_tb`, `step_counter_tb`, `bike_move_tb`, `bike_glide_tb` y los 7 escenarios de `game_top_tb` (PR #28)
+- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`. Corre también `round_fsm_tb`, `step_counter_tb`, `bike_move_tb`, `bike_glide_tb` y los 7 escenarios de `game_top_tb` (PR #28), y `sevenseg_tb` y `multidigit_tb` (Paso 7a)
 - `bitstreams/`: bitstreams probados y lo que se comprobó de cada uno
 - `prototypes/vga_106mhz/`: experimento a 106.5 MHz, fuera del hito; conserva el error del reset de PR 11
 - `Contrato de interfaces game_top (CS 256).md`: contrato del equipo

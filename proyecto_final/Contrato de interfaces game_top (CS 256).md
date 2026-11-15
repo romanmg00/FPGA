@@ -107,7 +107,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | `btn_debounce` | Alan | Sincroniza los 5 botones, quita rebotes y genera un pulso al presionar | Por hacer |
 | `uart_rx` + decodificador | Alan | Bytes de la UART a pedidos de giro de P2 y Start | Por hacer; Enter **pendiente** |
 | Página web de control | Alan | WASD, Espacio/Enter por Web Serial | Por hacer |
-| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | Por hacer |
+| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | `sevenseg` y `multidigit` (tarea 1 del curso, con P, L, G, A y blanco; barrido en `clk_pix` con habilitación) pasan en XSim (Paso 7a). Faltan las vistas, la partida y la integración en `game_top` |
 | `game_top` + XDC | Alan | Instancia y conecta todo; relojes, reset, pines, automatización del build | Por hacer |
 | Marcador en pantalla (`texto_capa`, `font_rom`) | Roman | Puntos y vidas en la franja de 64 px, con texto de 32 px | Después del núcleo (*Should*) |
 
@@ -200,6 +200,8 @@ module uart_rx (
 
 **`seg7_driver`** (Alan, propuesta). Los 8 dígitos, de izquierda a derecha: P2 en `an[7:4]` y P1 en `an[3:0]`. Cada lado muestra dos letras y dos dígitos decimales: `P2 nn  P1 nn` durante 3 s y `L2 nn  L1 nn` durante 3 s, los dos lados juntos y sin apagarse. Mientras se espera una partida nueva (antes de la primera y al terminar una), se agrega una tercera vista, `GOAL  nn` en los 8 dígitos (`GOAL` en el lado de P2, dos dígitos en blanco y la meta que tomaría Start: 10, 20, 30 o 40), y las vistas rotan puntos → vidas → meta, 3 s cada una. Mover `{SW15, SW14}` en esa espera salta a la vista de meta y reinicia sus 3 s. Durante la partida solo se alternan puntos y vidas ([ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)). Una partida nueva empieza en la vista de puntos. El multiplexado rápido de dígitos es aparte del temporizador de 3 s. El decodificador del proyecto necesita las letras P, L, G y A (la O es el mismo glifo que el 0); la referencia de la tarea del curso no se toca.
 
+Se arma con los módulos de la tarea 1 del curso, en copias del proyecto. `sevenseg` recibe un código de 5 bits: 0–F como en la tarea, y P, L, G, A y blanco en 16–20 (`GLYPH_*` de `game_pkg.sv`), sin reusar los códigos hex. `multidigit` conserva el contador `sel` de 3 bits, el mux 8:1 y el decodificador 3:8 de la tarea, con `dig0`..`dig7` de 5 bits (`dig0` a la derecha), `a`..`g` y `an` activos en bajo. Corre en `clk_pix` y avanza de dígito con una habilitación de un ciclo cada `SLOT_CYCLES` = 10,432 ciclos (~1 kHz por dígito), en vez de usar un bit de un contador como reloj (ADR 0006). En `game_top`, `seg[0]` es `a` y `seg[6]` es `g`.
+
 **`game_top`** (Alan) conecta el Clocking Wizard y el contador de `clk_juego`, los dos puertos de `arena_map`, sincroniza botones, switches y `uart_rx`, e invierte `cpu_resetn`. Cada quien agrega la instancia de sus propios módulos.
 
 ## 5. Constantes compartidas (`game_pkg.sv`)
@@ -254,6 +256,11 @@ package game_pkg;
     localparam int SCORE_VIEW_TICKS = 180; // ~3 s por vista del display
     // Meta según {SW15, SW14}: 10, 20, 30, 40
 
+    // Marcador: códigos de glifo de sevenseg (num de 5 bits). 0-15 son 0-9 y A-F, como en la
+    // tarea 1 del curso; la O de GOAL es el 0. Los códigos 21-31 también quedan en blanco.
+    localparam logic [4:0] GLYPH_P = 5'd16, GLYPH_L = 5'd17, GLYPH_G = 5'd18, GLYPH_A = 5'd19;
+    localparam logic [4:0] GLYPH_BLANK = 5'd20;
+
     // Salidas: P1 en (20, 27) hacia la derecha, P2 en (59, 27) hacia la izquierda
     localparam logic [6:0] SAL_P1_CX = 7'd20, SAL_P2_CX = 7'd59;
     localparam logic [5:0] SAL_CY    = 6'd27;
@@ -265,7 +272,7 @@ package game_pkg;
 endpackage
 ```
 
-Nadie ha compilado este paquete. Corre una síntesis rápida en Vivado al agregarlo.
+`proyecto_final/game_pkg.sv` existe desde el Paso 7a y solo trae los códigos de glifo del marcador. Cada constante de esta lista se copia ahí cuando un módulo la usa por primera vez, y se compila con los testbenches de ese módulo; el resto del paquete nadie lo ha compilado.
 
 **Quién edita `game_pkg.sv`:** Roman fija los tiempos VGA, el borde, los sprites y los colores; Alan, la cuadrícula, los códigos de celda y las reglas de la partida. Los dos acuerdan los estados. Un cambio no se da por bueno hasta que pasan los testbenches de los módulos que lo usan.
 
