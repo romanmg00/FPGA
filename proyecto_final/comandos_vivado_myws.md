@@ -41,6 +41,18 @@ No edites archivos dentro del clon: si cambias algo aquí y también cambia en G
 
 ## 2. Cargar las fuentes de diseño (Tcl de Vivado)
 
+Si Vivado avisa que los archivos ya existen, o el proyecto tiene versiones viejas, primero quita del proyecto todas las fuentes `.sv` y `.v` de diseño:
+
+```tcl
+set old [get_files -quiet -norecurse -of_objects [get_filesets sources_1] -filter {FILE_TYPE == SystemVerilog || FILE_TYPE == Verilog}]
+if {[llength $old]} { remove_files $old }
+```
+
+- Solo las saca del proyecto; no borra nada del disco ni del clon.
+- No toca el IP `clk_wiz_0` (`-norecurse` y el filtro dejan fuera el `.xci` y los archivos que genera), ni las restricciones (`constrs_1`), ni los testbenches (`sim_1`).
+
+Luego carga las fuentes del clon:
+
 ```tcl
 cd ~/FPGA/proyecto_final
 set design [lsearch -all -inline -not [glob *.sv] *_tb.sv]
@@ -51,14 +63,16 @@ set_property top game_top [current_fileset]
 - Toma solo los `.sv` de primer nivel de `proyecto_final`, sin los testbenches (`*_tb.sv`).
 - `-norecurse` deja fuera las subcarpetas. **`sim_clocks/clk_wiz_0.sv` nunca entra a la síntesis**: es un reloj ideal para simulación con el mismo nombre que el IP real. `prototypes/` tampoco es del juego.
 - `add_files` referencia los archivos, no los copia: después de un `git pull`, Vivado ve la versión nueva.
-- Si el proyecto tiene copias viejas de estos archivos (creado con *Copy sources into project*), quítalas antes para no tener módulos duplicados.
+- Si el proyecto tiene copias viejas de estos archivos (creado con *Copy sources into project*), quítalas antes con el bloque de arriba para no tener módulos duplicados.
 - El IP `clk_wiz_0` y las restricciones (`game_top.xdc`, `game_top_timing.xdc`) se quedan como están en el proyecto.
 
 Para ver qué archivos quedaron cargados:
 
 ```tcl
-get_files -of_objects [get_filesets sources_1]
+get_files -norecurse -of_objects [get_filesets sources_1]
 ```
+
+Debe salir la lista de `.sv` desde `~/FPGA/proyecto_final` y el `.xci` de `clk_wiz_0`, sin rutas dentro de la carpeta del proyecto (`.srcs`).
 
 ## 3. Después de cada `git pull`
 
