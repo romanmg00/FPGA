@@ -1,8 +1,9 @@
 // Gives a 1-tick pulse every STEP_TICKS ticks while run = 1, and restarts from 0 whenever run = 0.
-// With STEP_TICKS = 8 and clk_juego at ~60 Hz, a bike moves 7.5 cells per second.
-// With STEP_TICKS = 120 it measures the 2 s pause after a crash.
+// With STEP_TICKS = 6 and clk_juego at ~60 Hz, a bike moves about 10 cells per second
+// (ADR 0010; game_top sets the value). With STEP_TICKS = 120 it measures the 2 s pause
+// after a crash.
 module step_counter #(
-    parameter int STEP_TICKS = 8
+    parameter int STEP_TICKS = 6
 ) (
     input  logic clk,     // clk_juego (~60 Hz)
     input  logic rst,
