@@ -3,22 +3,52 @@
 // counter-generated clk_juego (ADR 0006) runs near 60 Hz; its 16.4-16.9 ms window cannot
 // tell nearby N apart, so build_game_top.tcl checks N against the XDC. It does not test
 // the Wizard itself, lock behaviour, or a CPU_RESET shorter than one clk_juego period.
+//
+// The design is two bikes moving on their own in Rounds (PRs #21, #25, #26): BTNC starts a
+// Round, P1 turns with the buttons, P2 goes straight because game_top ties turn_req2 to 0,
+// a step every STEP_TICKS ticks of clk_juego, a crash ends the Round, and after the 2 s
+// pause both bikes go back to their starts. The crash rules themselves are checked in
+// position_logic_tb; this bench checks that game_top wires them to the pins.
+//
+// Bike Cells are read from dut.blkpos1_x/y and dut.blkpos2_x/y; the Round state from
+// dut.u_position_logic.run; the step length from u_step_counter's STEP_TICKS. The squares
+// are drawn at dut.glide1_x/y and dut.glide2_x/y, which slide toward the Cell over one step
+// (ADR 0010): frames taken while the bikes move use those, and glide_check compares the
+// slide with the offsets the ADR gives.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
-// own simulator: xsim game_top_tb -runall -testplusarg scenario=moves_x
+// own simulator: xsim game_top_tb -runall -testplusarg scenario=steps
 // Without +scenario they all run one after another in one simulation.
 `timescale 1ns/1ps
 module game_top_tb;
     localparam int H_TOTAL = 1680, V_TOTAL = 828;
     localparam real PIX_NS = 11.982;
+    // Board buttons: [0] U, [1] D, [2] L, [3] R, [4] centre (Start)
+    localparam logic [4:0] B_NONE = 5'b00000, B_U = 5'b00001, B_D = 5'b00010,
+                           B_L = 5'b00100, B_R = 5'b01000, B_C = 5'b10000;
+    // Start cells (20,27) and (59,27), as top-left pixels (x16)
+    localparam int P1_X0 = 320, P1_Y0 = 432, P2_X0 = 944, P2_Y0 = 432;
+    // Colours from the specification and the Python prototype, not read from drawcon
+    localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h444, C_P1 = 12'h0DF,
+                            C_P2 = 12'hF80, C_EMPTY = 12'h000;
 
     logic clk = 1'b0, cpu_resetn = 1'b1;
     logic [11:0] sw = 12'h000;
-    logic [4:0] btn = 5'b0;
+    logic [4:0] btn = B_NONE;
     logic [3:0] r, g, b;
     logic hs, vs;
     int rises_in_reset = 0;
     realtime last_rise = 0;
     string scenario = "all";
+    int STEP;                 // ticks per step, read from the design
+    int ticks = 0;            // clk_juego rises since power-up
+    int last_step_tick = -1;  // tick of the last step seen; -1 before the first of a Round
+    // Drawn positions as vga_out samples them: drawcon's colour at a clk_pix edge comes from
+    // the glide registers just before that edge.
+    logic [10:0] e1x, e1y, e2x, e2y;
+    always @(posedge dut.clk_pix) begin
+        e1x <= dut.glide1_x; e1y <= dut.glide1_y;
+        e2x <= dut.glide2_x; e2y <= dut.glide2_y;
+    end
 
     game_top dut (.clk, .cpu_resetn, .sw, .btn, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs));
     always #5 clk = ~clk;
@@ -28,12 +58,14 @@ module game_top_tb;
         $fatal(1, "game_top_tb failed");
     endfunction
 
+    // The longest scenario (head_on) takes about 5.5 s of simulated time; all of them, 15 s.
     initial begin
-        #6s fail("watchdog: the bench did not finish");
+        #20s fail("watchdog: the bench did not finish");
     end
 
     // clk_juego must never stop, in or out of reset: position_logic needs its edges.
     always @(posedge dut.clk_juego) begin
+        ticks++;
         if (!cpu_resetn) rises_in_reset++;
         if (last_rise != 0 && ($realtime - last_rise < 16.4e6 || $realtime - last_rise > 16.9e6))
             fail($sformatf("clk_juego period is %0.0f ns, expected about 16.67 ms", $realtime - last_rise));
@@ -48,16 +80,20 @@ module game_top_tb;
     end
 
     // What the screen must show, written from the specification, not from drawcon.
-    function automatic logic [11:0] expected_colour(int x, int y, int bx, int by, logic [11:0] blk);
-        if (y >= 64 && (x < 16 || x >= 1264 || y < 80 || y >= 784)) return 12'hFFF;
-        if (y < 64) return 12'h444;
-        if (x >= bx && x < bx + 16 && y >= by && y < by + 16) return blk;
-        return 12'h000;
+    // Walls cover the HUD's lower edge; P1 is drawn over P2 if they ever overlap.
+    function automatic logic [11:0] expected_colour(int x, int y, int p1x, int p1y, int p2x, int p2y);
+        if (y >= 64 && (x < 16 || x >= 1264 || y < 80 || y >= 784)) return C_WALL;
+        if (y < 64) return C_HUD;
+        if (x >= p1x && x < p1x + 16 && y >= p1y && y < p1y + 16) return C_P1;
+        if (x >= p2x && x < p2x + 16 && y >= p2y && y < p2y + 16) return C_P2;
+        return C_EMPTY;
     endfunction
 
     // Rebuilds one whole frame from the pins: sync widths, line and frame length,
     // blanking, and the colour of every pixel. The frame starts where vga_vs rises.
-    task automatic check_frame(string what, int bx, int by, logic [11:0] blk);
+    // With live = 1 the expected squares follow the drawn positions pixel by pixel, so the
+    // check also holds while the bikes slide.
+    task automatic check_frame(string what, int p1x, int p1y, int p2x, int p2y, bit live = 1'b0);
         realtime t0, frame_ns;
         logic [11:0] want;
         int x, y;
@@ -80,7 +116,8 @@ module game_top_tb;
                 if (h >= 336 && h < 1616 && v >= 27 && v < 827) begin
                     x = h - 336;
                     y = v - 27;
-                    want = expected_colour(x, y, bx, by, blk);
+                    want = live ? expected_colour(x, y, e1x, e1y, e2x, e2y)
+                                : expected_colour(x, y, p1x, p1y, p2x, p2y);
                 end
                 if ({r, g, b} !== want)
                     fail($sformatf("%s: pins show %03h, expected %03h at h=%0d v=%0d", what, {r, g, b}, want, h, v));
@@ -90,32 +127,97 @@ module game_top_tb;
         frame_ns = $realtime - t0;
         if (frame_ns < 0.995 * H_TOTAL * V_TOTAL * PIX_NS || frame_ns > 1.005 * H_TOTAL * V_TOTAL * PIX_NS)
             fail($sformatf("%s: frame took %0.0f ns", what, frame_ns));
-        $display("ok   %s: whole frame correct, block at (%0d,%0d), colour %03h", what, bx, by, blk);
+        if (live) $display("ok   %s: whole frame correct at the drawn positions", what);
+        else $display("ok   %s: whole frame correct, P1 at (%0d,%0d), P2 at (%0d,%0d)", what, p1x, p1y, p2x, p2y);
     endtask
 
-    // Holds a direction, then checks only that axis moved, in the right direction, by
-    // about the right amount. The exact step is checked in position_logic_tb.
-    task automatic move(string what, logic [4:0] b, int want_dx, int want_dy, logic [11:0] colour);
-        int x0 = dut.blkpos_x, y0 = dut.blkpos_y, dx, dy;
-        btn = b;
-        #100ms;
-        btn = 5'b0;
+    // Checks the frame at the bikes' drawn positions, which may be sliding.
+    task automatic check_frame_here(string what);
+        check_frame(what, 0, 0, 0, 0, 1'b1);
+    endtask
+
+    // ADR 0010: after a one-Cell step the square has covered round(16 t / STEP) px t ticks later.
+    function automatic int glide_offset(int t);
+        return (16 * t + STEP / 2) / STEP;
+    endfunction
+
+    // Called right after next_step saw a step of (dx1,dy1) for P1 and (dx2,dy2) for P2: the
+    // drawn squares stay on the old Cells until the next tick, then slide one offset per tick
+    // and reach the new Cells exactly STEP ticks after the step.
+    task automatic glide_check(string what, int dx1, int dy1, int dx2, int dy2);
+        int o1x, o1y, o2x, o2y, g1x, g1y, g2x, g2y;
+        o1x = dut.blkpos1_x; o1y = dut.blkpos1_y; o2x = dut.blkpos2_x; o2y = dut.blkpos2_y;
+        o1x -= 16 * dx1; o1y -= 16 * dy1; o2x -= 16 * dx2; o2y -= 16 * dy2;
+        for (int t = 0; t <= STEP; t++) begin
+            if (t > 0) begin
+                @(posedge dut.clk_juego);
+                #1;
+            end
+            g1x = dut.glide1_x; g1y = dut.glide1_y; g2x = dut.glide2_x; g2y = dut.glide2_y;
+            if (g1x != o1x + dx1 * glide_offset(t) || g1y != o1y + dy1 * glide_offset(t)
+                || g2x != o2x + dx2 * glide_offset(t) || g2y != o2y + dy2 * glide_offset(t))
+                fail($sformatf("%s, tick %0d: drawn P1 (%0d,%0d) P2 (%0d,%0d); expected P1 (%0d,%0d) P2 (%0d,%0d)",
+                               what, t, g1x, g1y, g2x, g2y, o1x + dx1 * glide_offset(t),
+                               o1y + dy1 * glide_offset(t), o2x + dx2 * glide_offset(t), o2y + dy2 * glide_offset(t)));
+        end
+        $display("ok   %s: both squares slid one Cell in %0d ticks", what, STEP);
+    endtask
+
+    task automatic expect_at(string what, int p1x, int p1y, int p2x, int p2y);
+        if (dut.blkpos1_x !== 11'(p1x) || dut.blkpos1_y !== 11'(p1y)
+            || dut.blkpos2_x !== 11'(p2x) || dut.blkpos2_y !== 11'(p2y))
+            fail($sformatf("%s: P1 at (%0d,%0d), P2 at (%0d,%0d); expected P1 (%0d,%0d), P2 (%0d,%0d)",
+                           what, dut.blkpos1_x, dut.blkpos1_y, dut.blkpos2_x, dut.blkpos2_y,
+                           p1x, p1y, p2x, p2y));
+    endtask
+
+    // Presses BTNC long enough to pass the 2-flip-flop synchroniser, then releases it.
+    task automatic press_start();
+        btn = B_C;
         #60ms;
-        dx = int'(dut.blkpos_x) - x0;
-        dy = int'(dut.blkpos_y) - y0;
-        // 100 ms is 6 ticks, plus or minus one for where the press falls: 20 to 28 px.
-        if (dx * want_dx < 20 * want_dx * want_dx || dx * want_dx > 28 * want_dx * want_dx
-            || dy * want_dy < 20 * want_dy * want_dy || dy * want_dy > 28 * want_dy * want_dy
-            || (want_dx == 0 && dx != 0) || (want_dy == 0 && dy != 0))
-            fail($sformatf("%s: moved by (%0d,%0d)", what, dx, dy));
-        check_frame(what, dut.blkpos_x, dut.blkpos_y, colour);
+        btn = B_NONE;
+        if (dut.u_position_logic.run !== 1'b1) fail("BTNC did not start the Round");
+        last_step_tick = -1;
+    endtask
+
+    // Waits for the next clk_juego edge where a bike moves or the Round stops, and checks
+    // how far each bike moved (in cells) and, after the first step of a Round, that the
+    // step came exactly STEP ticks after the previous one. Returns 1 if the Round stopped.
+    task automatic next_step(string what, int dx1, int dy1, int dx2, int dy2, output logic crashed);
+        int x1 = dut.blkpos1_x, y1 = dut.blkpos1_y, x2 = dut.blkpos2_x, y2 = dut.blkpos2_y;
+        int nx1, ny1, nx2, ny2;
+        int waited = 0;
+        do begin
+            @(posedge dut.clk_juego);
+            #1;
+            if (++waited > 3 * STEP) fail($sformatf("%s: no step within %0d ticks", what, 3 * STEP));
+        end while (dut.blkpos1_x == x1 && dut.blkpos1_y == y1 && dut.blkpos2_x == x2
+                   && dut.blkpos2_y == y2 && dut.u_position_logic.run === 1'b1);
+        crashed = (dut.u_position_logic.run !== 1'b1);
+        if (last_step_tick >= 0 && ticks - last_step_tick != STEP)
+            fail($sformatf("%s: step came %0d ticks after the previous one, expected %0d",
+                           what, ticks - last_step_tick, STEP));
+        last_step_tick = ticks;
+        // Copied to ints first: XSim 2025.2 evaluated int'(dut.blkpos1_x) - x1 here as 0 - x1.
+        nx1 = dut.blkpos1_x; ny1 = dut.blkpos1_y; nx2 = dut.blkpos2_x; ny2 = dut.blkpos2_y;
+        if (nx1 - x1 != 16 * dx1 || ny1 - y1 != 16 * dy1 || nx2 - x2 != 16 * dx2 || ny2 - y2 != 16 * dy2)
+            fail($sformatf("%s: P1 moved (%0d,%0d) px and P2 (%0d,%0d) px; expected (%0d,%0d) and (%0d,%0d) cells",
+                           what, nx1 - x1, ny1 - y1, nx2 - x2, ny2 - y2, dx1, dy1, dx2, dy2));
+    endtask
+
+    // A step in which neither bike may crash.
+    task automatic step_ok(string what, int dx1, int dy1, int dx2, int dy2);
+        logic crashed;
+        next_step(what, dx1, dy1, dx2, dy2, crashed);
+        if (crashed) fail($sformatf("%s: the Round stopped", what));
     endtask
 
     task automatic reset_test(int hold_ms);
         int min_rises = hold_ms / 17 - 1;
-        // Start the press away from the block's start so a return is visible.
-        btn = 5'b01000; #100ms; btn = 5'b0; #60ms;
-        if (dut.blkpos_x == 320) fail("buttons did not move the block before reset");
+        // Move the bikes away from their starts so a return is visible.
+        press_start();
+        step_ok("before reset", 1, 0, -1, 0);
+        step_ok("before reset", 1, 0, -1, 0);
         cpu_resetn = 1'b0;
         rises_in_reset = 0;
         // Watch a whole frame's worth of pixels, so this cannot land only on black pixels.
@@ -130,66 +232,126 @@ module game_top_tb;
         if (rises_in_reset < min_rises)
             fail($sformatf("reset of %0d ms: only %0d clk_juego rises, expected at least %0d", hold_ms, rises_in_reset, min_rises));
         #60ms;
-        check_frame($sformatf("after a reset of %0d ms", hold_ms), 320, 432, sw);
+        expect_at($sformatf("after a reset of %0d ms", hold_ms), P1_X0, P1_Y0, P2_X0, P2_Y0);
+        if (dut.u_position_logic.run !== 1'b0) fail("the Round runs after reset without Start");
+        check_frame($sformatf("after a reset of %0d ms", hold_ms), P1_X0, P1_Y0, P2_X0, P2_Y0);
     endtask
 
-    task automatic colours();
-        sw = 12'hF00; #1ms;
-        check_frame("red switches", 320, 432, 12'hF00);
-        sw = 12'h0A5; #1ms;
-        check_frame("mixed switches", 320, 432, 12'h0A5);
-    endtask
-
-    task automatic moves_x();
+    // Without Start the bikes wait at their starts, and the switches change nothing.
+    task automatic idle();
+        #300ms;
+        expect_at("no Start for 300 ms", P1_X0, P1_Y0, P2_X0, P2_Y0);
         sw = 12'hFFF; #1ms;
-        move("right", 5'b01000,  1,  0, 12'hFFF);
-        move("left",  5'b00100, -1,  0, 12'hFFF);
+        check_frame("switches up: same colours", P1_X0, P1_Y0, P2_X0, P2_Y0);
     endtask
 
-    task automatic moves_y();
-        sw = 12'hFFF; #1ms;
-        move("down",  5'b00010,  0,  1, 12'hFFF);
-        move("up",    5'b00001,  0, -1, 12'hFFF);
+    // BTNC starts the Round; both bikes move one cell on the same edge, every STEP ticks, and
+    // their squares slide between Cells.
+    task automatic steps();
+        press_start();
+        for (int i = 1; i <= 5; i++) step_ok($sformatf("step %0d", i), 1, 0, -1, 0);
+        expect_at("after 5 steps", P1_X0 + 5 * 16, P1_Y0, P2_X0 - 5 * 16, P2_Y0);
+        check_frame_here("moving, between steps 5 and 6");
+        step_ok("step 6", 1, 0, -1, 0);
+        glide_check("step 6", 1, 0, -1, 0);
+    endtask
+
+    // P1 turns with the buttons; a reversal is ignored; P2 keeps going straight.
+    task automatic turns();
+        press_start();
+        btn = B_L;                                   // reverse of RIGHT: ignored
+        step_ok("L held while heading right", 1, 0, -1, 0);
+        step_ok("L held while heading right", 1, 0, -1, 0);
+        btn = B_U;
+        step_ok("U: turn up", 0, -1, -1, 0);
+        btn = B_D;                                   // reverse of UP: ignored
+        step_ok("D held while heading up", 0, -1, -1, 0);
+        btn = B_NONE;
+        step_ok("released: keeps going up", 0, -1, -1, 0);
+        btn = B_R;
+        step_ok("R: turn right", 1, 0, -1, 0);
+        btn = B_NONE;
+        check_frame_here("after the turns");
+    endtask
+
+    // The bikes meet head-on: on step 20 each aims at the other's head, both stop, and the
+    // Round ends. They stay put for the 2 s pause, then both go back to their starts and a
+    // new Start runs a new Round.
+    task automatic head_on();
+        logic crashed;
+        press_start();
+        for (int i = 1; i <= 19; i++) step_ok($sformatf("step %0d", i), 1, 0, -1, 0);
+        next_step("step 20: head-on", 0, 0, 0, 0, crashed);
+        if (!crashed) fail("step 20: the bikes did not crash head-on");
+        expect_at("head-on crash", 39 * 16, P1_Y0, 40 * 16, P2_Y0);
+        check_frame_here("head-on crash");
+        #1s;
+        expect_at("1 s into the crash pause", 39 * 16, P1_Y0, 40 * 16, P2_Y0);
+        #1.2s;
+        expect_at("after the crash pause", P1_X0, P1_Y0, P2_X0, P2_Y0);
+        if (dut.u_position_logic.run !== 1'b0) fail("a new Round started without Start");
+        check_frame("back at the starts", P1_X0, P1_Y0, P2_X0, P2_Y0);
+        press_start();
+        step_ok("new Round, step 1", 1, 0, -1, 0);
+    endtask
+
+    // P1 drives up into the top Wall: on the crash step it stays at row 5 (y = 80) while P2
+    // completes its step, and the Round ends.
+    task automatic wall_crash();
+        logic crashed;
+        int rows;
+        press_start();
+        btn = B_U;
+        step_ok("U: turn up", 0, -1, -1, 0);
+        btn = B_NONE;
+        rows = (P1_Y0 - 80) / 16 - 1;                // steps left until row 5
+        for (int i = 1; i <= rows; i++) step_ok($sformatf("up %0d", i), 0, -1, -1, 0);
+        if (dut.blkpos1_y !== 11'd80) fail($sformatf("P1 at y=%0d, expected 80", dut.blkpos1_y));
+        next_step("into the Wall", 0, 0, -1, 0, crashed);
+        if (!crashed) fail("P1 did not crash into the top Wall");
+        check_frame_here("P1 crashed into the top Wall");
     endtask
 
     task automatic resets_short();
-        sw = 12'hFFF; #1ms;
         reset_test(50);
         reset_test(100);
     endtask
 
     task automatic reset_long();
-        sw = 12'hFFF; #1ms;
         reset_test(500);
-    endtask
-
-    task automatic btnc();
-        sw = 12'hFFF; #1ms;
-        btn = 5'b10000; #60ms; btn = 5'b0; #40ms;
-        check_frame("BTNC centres the block", 632, 392, 12'hFFF);
     endtask
 
     initial begin
         void'($value$plusargs("scenario=%s", scenario));
-        #1 if (dut.blkpos_x !== 11'd320 || dut.blkpos_y !== 11'd432)
-            fail($sformatf("power-up position is (%0d,%0d)", dut.blkpos_x, dut.blkpos_y));
-        #1ms;
-        check_frame("power-up, all switches down: block black", 320, 432, 12'h000);
+        STEP = dut.u_position_logic.u_step_counter.STEP_TICKS;
+        $display("STEP_TICKS = %0d", STEP);
+        // board_reset_sync starts asserted, so the first clk_juego edge (about 8 ms) puts the
+        // bikes at their starts; the Round waits for Start.
+        #20ms;
+        expect_at("power-up", P1_X0, P1_Y0, P2_X0, P2_Y0);
+        if (dut.u_position_logic.run !== 1'b0) fail("the Round runs at power-up without Start");
+        check_frame("power-up", P1_X0, P1_Y0, P2_X0, P2_Y0);
 
         case (scenario)
-            "colours":      colours();
-            "moves_x":      moves_x();
-            "moves_y":      moves_y();
+            "idle":         idle();
+            "steps":        steps();
+            "turns":        turns();
+            "head_on":      head_on();
+            "wall_crash":   wall_crash();
             "resets_short": resets_short();
             "reset_long":   reset_long();
-            "btnc":         btnc();
             "all": begin
-                colours();
-                moves_x();
-                moves_y();
+                idle();
+                steps();
+                cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
+                turns();
+                cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
+                head_on();
+                cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
+                wall_crash();
+                cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
                 resets_short();
                 reset_long();
-                btnc();
             end
             default: fail($sformatf("unknown scenario %s", scenario));
         endcase
