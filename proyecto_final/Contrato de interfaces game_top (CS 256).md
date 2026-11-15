@@ -1,8 +1,8 @@
 # Contrato de interfaces: game\_top (CS 256)
 
-Oct 11, 2026 · @Román · actualizado el 20 oct 2026 a la [especificación acordada](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md) el 5 nov 2026 a los relojes de [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) y el 15 nov 2026 al intervalo de paso del ADR 0007 · Juego: **Tron** (motos de luz, 2 jugadores) · Fuente: `cs256-project1-fall26.pdf` (las diapositivas citadas son de esa presentación)
+Oct 11, 2026 · @Román · actualizado el 20 oct 2026 a la [especificación acordada](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md) el 5 nov 2026 a los relojes de [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) y el 15 nov 2026 al intervalo de paso del ADR 0007 y a la vista de meta del ADR 0008 · Juego: **Tron** (motos de luz, 2 jugadores) · Fuente: `cs256-project1-fall26.pdf` (las diapositivas citadas son de esa presentación)
 
-> **Cómo leer este contrato.** Las reglas, entradas, relojes, códigos y el reparto ya siguen la especificación del 20 de octubre, que es la que manda si algo no coincide, salvo en los puntos que cambian los ADR aceptados después: el [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) quita el segundo Clocking Wizard y la instrucción de seguir el handout al pie de la letra, y el ADR 0007 (`configurable-step-interval`, hoy solo en la rama `hdl/core-blocks-on-main`) cambia el paso fijo de 6 ticks por un intervalo configurable. Lo que la especificación deja como trabajo de ingeniería está marcado como **Pendiente**: ahí se anotan los requisitos, no puertos inventados. Cuando el equipo decida una de esas interfaces, se escribe aquí (y, si cambia una regla, como ADR 0003 en adelante en `docs/adr/`). La versión anterior, para 3 personas y un solo reloj, está en [`deprecated/`](deprecated/).
+> **Cómo leer este contrato.** Las reglas, entradas, relojes, códigos y el reparto ya siguen la especificación del 20 de octubre, que es la que manda si algo no coincide, salvo en los puntos que cambian los ADR aceptados después: el [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) quita el segundo Clocking Wizard y la instrucción de seguir el handout al pie de la letra, el [ADR 0007](../docs/adr/0007-configurable-step-interval.md) cambia el paso fijo de 6 ticks por un intervalo configurable, y el [ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md) agrega al marcador la vista de la meta de puntos. Lo que la especificación deja como trabajo de ingeniería está marcado como **Pendiente**: ahí se anotan los requisitos, no puertos inventados. Cuando el equipo decida una de esas interfaces, se escribe aquí (y, si cambia una regla, como ADR 0003 en adelante en `docs/adr/`). La versión anterior, para 3 personas y un solo reloj, está en [`deprecated/`](deprecated/).
 
 ## 0. El juego
 
@@ -107,7 +107,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | `btn_debounce` | Alan | Sincroniza los 5 botones, quita rebotes y genera un pulso al presionar | Por hacer |
 | `uart_rx` + decodificador | Alan | Bytes de la UART a pedidos de giro de P2 y Start | Por hacer; Enter **pendiente** |
 | Página web de control | Alan | WASD, Espacio/Enter por Web Serial | Por hacer |
-| `seg7_driver` | Alan | Display alternado de puntos y vidas | Por hacer |
+| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | Por hacer |
 | `game_top` + XDC | Alan | Instancia y conecta todo; relojes, reset, pines, automatización del build | Por hacer |
 | Marcador en pantalla (`texto_capa`, `font_rom`) | Roman | Puntos y vidas en la franja de 64 px, con texto de 32 px | Después del núcleo (*Should*) |
 
@@ -198,7 +198,7 @@ module uart_rx (
 
 115200 baudios, 8N1. El decodificador de bytes a pedidos (W A S D, Espacio, Enter) y su cruce a `clk_juego` están **pendientes**.
 
-**`seg7_driver`** (Alan, propuesta). Los 8 dígitos, de izquierda a derecha: P2 en `an[7:4]` y P1 en `an[3:0]`. Cada lado muestra dos letras y dos dígitos decimales: `P2 nn  P1 nn` durante 3 s y `L2 nn  L1 nn` durante 3 s, los dos lados juntos y sin apagarse. Una partida nueva empieza en la vista de puntos. El multiplexado rápido de dígitos es aparte del temporizador de 3 s. El decodificador del proyecto necesita las letras P y L; la referencia de la tarea del curso no se toca.
+**`seg7_driver`** (Alan, propuesta). Los 8 dígitos, de izquierda a derecha: P2 en `an[7:4]` y P1 en `an[3:0]`. Cada lado muestra dos letras y dos dígitos decimales: `P2 nn  P1 nn` durante 3 s y `L2 nn  L1 nn` durante 3 s, los dos lados juntos y sin apagarse. Mientras se espera una partida nueva (antes de la primera y al terminar una), se agrega una tercera vista, `GOAL  nn` en los 8 dígitos (`GOAL` en el lado de P2, dos dígitos en blanco y la meta que tomaría Start: 10, 20, 30 o 40), y las vistas rotan puntos → vidas → meta, 3 s cada una. Mover `{SW15, SW14}` en esa espera salta a la vista de meta y reinicia sus 3 s. Durante la partida solo se alternan puntos y vidas ([ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)). Una partida nueva empieza en la vista de puntos. El multiplexado rápido de dígitos es aparte del temporizador de 3 s. El decodificador del proyecto necesita las letras P, L, G y A (la O es el mismo glifo que el 0); la referencia de la tarea del curso no se toca.
 
 **`game_top`** (Alan) conecta el Clocking Wizard y el contador de `clk_juego`, los dos puertos de `arena_map`, sincroniza botones, switches y `uart_rx`, e invierte `cpu_resetn`. Cada quien agrega la instancia de sus propios módulos.
 

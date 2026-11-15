@@ -1,6 +1,6 @@
 ---
 title: Show the Points Goal on the Scoreboard before a Match
-status: proposed
+status: accepted
 created_at: "2026-11-12"
 ---
 
@@ -10,8 +10,8 @@ On the 12 November board check of the playable core, Alan could not see which
 Points Goal `{SW15, SW14}` selected: nothing on the board showed it until a
 Match ended. He asked for the Scoreboard to show it. This adds a third view
 to the Physical Scoreboard of the locked specification, which only alternates
-Points and Lives. Alan chose this design; Roman's agreement has not been
-recorded.
+Points and Lives. Alan chose this design, and Roman accepted it on 14 November
+2026 ([issue #22](https://github.com/romanmg00/FPGA/issues/22)).
 
 ## Decision
 
@@ -42,12 +42,15 @@ stored goal, so the Match uses the value the specification samples at Start.
 
 ## Consequences
 
-- Supersedes, if accepted, only the Physical Scoreboard view list and the
-  Match-over behaviour of the locked specification. The 20 October records
+- Supersedes only the Physical Scoreboard view list and the Match-over
+  behaviour of the locked specification. The 20 October records
   stay byte-identical.
 - Implemented in the shared model (`prototipos/tron_fpga/model/seg7.py`,
-  `game_top.py`) and in `proyecto_final/prototypes/core_blocks/` (`seg7_page`,
-  `seg7_driver`, the game-to-fast snapshot). Evidence and the board check are
-  in `core_blocks/game/FINDINGS.md`, sections 8 and 9.
+  `game_top.py`) and, as a prototype only, in
+  `proyecto_final/prototypes/core_blocks/` (`seg7_page`, `seg7_driver`, the
+  game-to-fast snapshot). Evidence and the board check are in
+  `core_blocks/game/FINDINGS.md`, sections 8 and 9.
 - The contract's `seg7_driver` description and the Glossary's Scoreboard
-  entry change only after the team accepts this ADR.
+  entry include the Goal view. The top-level `proyecto_final/` design has no
+  Scoreboard yet; its `seg7_driver` is written there, using the prototype only
+  as a reference.

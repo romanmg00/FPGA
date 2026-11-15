@@ -10,8 +10,8 @@ created_at: "2026-10-29"
 
 On 29 October 2026 Alan accepted relaxing the six-tick movement cadence so
 the game can accommodate a verified crossing and memory-service schedule.
-This records his instruction in the project discussion; Roman's separate
-acknowledgement has not been recorded. Acceptance of this timing policy does
+This records his instruction in the project discussion. Roman accepted it on
+14 November 2026 ([issue #22](https://github.com/romanmg00/FPGA/issues/22)). Acceptance of this timing policy does
 not select a crossing or establish hardware verification.
 
 ## Decision
@@ -60,8 +60,12 @@ routine service-dependent movement timing is not the selected behavior.
 
 ## Implementation and verification consequences
 
-This ADR changes documentation only. Existing model and HDL defaults still
-use six ticks. When implementing the selected interval, reconcile the shared
+Since PR #26 (15 November 2026), `proyecto_final/` steps every eight ticks
+(`step_counter`, `position_logic`) and the interface contract says eight; the
+board playtest that selects the final value is still pending. The shared model
+(`prototipos/tron_fpga/model/params.py`) and the `core_blocks` prototype's
+`game_pkg.sv` still default to six; the prototype passes the interval as a
+parameter. When implementing the selected interval, reconcile the shared
 contract, model configuration, HDL parameters and timing expectations. Review
 intentional Step-log changes explicitly rather than regenerating logs only
 to hide differences.
