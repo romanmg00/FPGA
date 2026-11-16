@@ -7,7 +7,7 @@
 //       -> advance (move) or crash. step_counter sets how often a step happens.
 module position_logic #(
     // Ticks of clk_juego per step. game_top passes the same value to bike_glide (ADR 0010).
-    parameter int STEP_TICKS = 6,
+    parameter int STEP_TICKS = 8,
     // P2's start column. Only a testbench changes it, to arrange a same-target crash.
     parameter logic [6:0] P2_START_CX = 7'd59
 ) (
