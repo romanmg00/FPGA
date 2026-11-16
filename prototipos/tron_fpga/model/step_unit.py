@@ -13,17 +13,18 @@ PROPOSAL (review section 5.6, option D2-A), not yet agreed. A Step:
 
 Both targets are read before anything is written, so the two Bikes move at
 the same time and neither has priority. A crashed Bike stays on its last
-valid head Cell, which COMMIT overwrites with CELL_CRASH (ADR 0003 item 4).
-Since ADR 0011 a Crash stops both Bikes: the survivor stays on its head Cell too,
-collects nothing and writes nothing in that Step. The writes come in
-arena_svc's order: P1 old head, P1 target, P2 old head, P2 target (a Bike that
-moves writes both). While paused, a Step waiting for its codes
-does not resolve; a COMMIT already issued still completes.
+valid head Cell, which keeps its head code: the Arena never holds CELL_CRASH,
+as in the HDL's arena_ctrl (contract section 3). Since ADR 0011 a Crash stops
+both Bikes: the survivor stays on its head Cell too and collects nothing, so a
+Crash Step writes nothing and leaves the Arena unchanged. Otherwise the writes
+come in arena_svc's order: P1 old head, P1 target, P2 old head, P2 target.
+While paused, a Step waiting for its codes does not resolve; a COMMIT already
+issued still completes.
 """
 
 from dataclasses import dataclass
 
-from .arena_map import CRASH, HEAD, REWARD_SLOT0, TRAIL, is_blocking, is_reward
+from .arena_map import HEAD, REWARD_SLOT0, TRAIL, is_blocking, is_reward
 from .turn_unit import next_cell
 
 S_IDLE, S_READ, S_COMMIT = 0, 1, 2
@@ -44,17 +45,10 @@ def step_resolve(heads, targets, codes) -> StepOutcome:
     swap = targets[0] == heads[1] and targets[1] == heads[0]
     head_on = same_cell or swap
     crashed = tuple(head_on or is_blocking(code) for code in codes)
+    if any(crashed):                                    # ADR 0011: neither Bike moves
+        return StepOutcome(tuple(heads), crashed, head_on, (None, None), ())
     new_heads, collected, writes = [], [], []
     for i in (0, 1):
-        if crashed[i]:
-            new_heads.append(heads[i])
-            collected.append(None)
-            writes.append((*heads[i], CRASH))           # code 6 blocks like a head
-            continue
-        if any(crashed):                                # ADR 0011: the survivor stays too
-            new_heads.append(heads[i])
-            collected.append(None)
-            continue
         collected.append(codes[i] - REWARD_SLOT0 if is_reward(codes[i]) else None)
         writes.append((*heads[i], TRAIL[i]))            # old head joins the Trail
         writes.append((*targets[i], HEAD[i]))

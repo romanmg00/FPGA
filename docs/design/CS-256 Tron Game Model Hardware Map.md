@@ -78,7 +78,7 @@ With the agreed values, a Turn has to arrive at least two ticks before the launc
 | Reset | Both domains reset together and the controller clears to Walls; no Bikes or Rewards until Start. The HDL also needs a stretched reset or an epoch tag, which the model does not show | Review D5(iii), F7 |
 | Scoreboard while idle | Points 00 and Lives 03 | Review D5(iv) |
 | Reward generator | 32-bit LFSR advanced only per draw; 64 draws, then a wrapping scan; replacements in ascending slot order inside COMMIT. Seed: reset value `LFSR_SEED`; at each new Match, either reload it (fixed-seed parameter) or XOR in the game-domain tick counter captured at Start | Review E1, with the game-tick counter in place of a pixel-clock counter so that the model can reproduce it |
-| Crash code 6 | Not written; a crashed Bike's head Cell keeps its head code | This model, against review E6. ADR 0003's working default is to write it; the model is not updated yet |
+| Crash code 6 | Not written; a crashed Bike's head Cell keeps its head code, and a Crash Step writes nothing (ADR 0011) | Alan's choice after the 16 November board test, matching `arena_ctrl` (contract §3). Departs from review E6 and ADR 0003 item 4's working default |
 | Displayed Heading | The Heading of the last committed Step, not the launched one, so a sprite turns when it moves | Review §5.7 |
 | Start Cells | A parameter (`starts`), the agreed Cells by default. Scenario 4 moves P2 to (58,27) for a same-Cell Head-on | Testbench parameter |
 | Seed capture | PREPARE carries `tick_cnt` as it was before the Start edge, as a capture register would | This model |
