@@ -36,10 +36,10 @@ module game_top_tb;
     // P2 left (0 up, 1 right, 2 down, 3 left, as heading1/2)
     localparam int P1_X0 = 320, P1_Y0 = 432, P2_X0 = 944, P2_Y0 = 432;
     localparam int P1_H0 = 1, P2_H0 = 3;
-    // Colours from the specification and the Python prototype, not read from drawcon. C_KEY is
-    // the sprite colour drawn in the Player's colour (PR #35).
+    // Colours from the specification and the Python prototype, not read from drawcon. In the
+    // sprites (tools/png2coe.py), C_KEY is drawn in the Player's colour and C_CLEAR is transparent.
     localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h444, C_P1 = 12'h0DF,
-                            C_P2 = 12'hF80, C_EMPTY = 12'h000, C_KEY = 12'h0F0;
+                            C_P2 = 12'hF80, C_EMPTY = 12'h000, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
     // Known deviation (see above): how many pixels late drawcon looks up each sprite.
     localparam int SPRITE_SHIFT = 2;
 
@@ -115,9 +115,9 @@ module game_top_tb;
 
     // What the screen must show, written from the specification and PR #35's sprite format,
     // not from drawcon. Walls cover the HUD's lower edge; P1 is drawn over P2 if they ever
-    // overlap, black sprite pixels included (no transparency yet). (bNx, bNy) place each
-    // 32 x 32 box; its word is looked up SPRITE_SHIFT pixels earlier on the same line, with
-    // the drawn position (sNx, sNy) and heading sNh of that pixel.
+    // overlap. Sprite words 000 are transparent (tools/png2coe.py): the pixel shows P2, then
+    // the empty Arena. (bNx, bNy) place each 32 x 32 box; its word is looked up SPRITE_SHIFT
+    // pixels earlier on the same line, with the drawn position (sNx, sNy) and heading sNh.
     function automatic logic [11:0] expected_colour(int x, int y,
             int b1x, int b1y, int s1x, int s1y, int s1h,
             int b2x, int b2y, int s2x, int s2y, int s2h);
@@ -126,11 +126,11 @@ module game_top_tb;
         if (y < 64) return C_HUD;
         if (x >= b1x - 8 && x < b1x + 24 && y >= b1y - 8 && y < b1y + 24) begin
             w = sprite_word(x - SPRITE_SHIFT, y, s1x, s1y, s1h);
-            return w == C_KEY ? C_P1 : w;
+            if (w != C_CLEAR) return w == C_KEY ? C_P1 : w;
         end
         if (x >= b2x - 8 && x < b2x + 24 && y >= b2y - 8 && y < b2y + 24) begin
             w = sprite_word(x - SPRITE_SHIFT, y, s2x, s2y, s2h);
-            return w == C_KEY ? C_P2 : w;
+            if (w != C_CLEAR) return w == C_KEY ? C_P2 : w;
         end
         return C_EMPTY;
     endfunction
