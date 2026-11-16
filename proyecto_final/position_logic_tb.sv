@@ -33,13 +33,23 @@ module position_logic_tb;
     position_logic dut (
         .clk(clk), .rst(rst), .btn(btn), .turn_req2(turn2),
         .blkpos1_x(p1x), .blkpos1_y(p1y), .blkpos2_x(p2x), .blkpos2_y(p2y),
-        .heading1(h1), .heading2(h2)
+        .heading1(h1), .heading2(h2),
+        // Arena codes all empty and valid: the bikes behave as before the Arena
+        .load(), .step(),
+        .code1_u(4'd0), .code1_r(4'd0), .code1_d(4'd0), .code1_l(4'd0),
+        .code2_u(4'd0), .code2_r(4'd0), .code2_d(4'd0), .code2_l(4'd0),
+        .codes_valid(1'b1)
     );
 
     position_logic #(.P2_START_CX(7'd58)) dut_b (
         .clk(clk), .rst(rst), .btn(btn), .turn_req2(turn2),
         .blkpos1_x(b1x), .blkpos1_y(b1y), .blkpos2_x(b2x), .blkpos2_y(b2y),
-        .heading1(bh1), .heading2(bh2)
+        .heading1(bh1), .heading2(bh2),
+        // Arena codes all empty and valid: the bikes behave as before the Arena
+        .load(), .step(),
+        .code1_u(4'd0), .code1_r(4'd0), .code1_d(4'd0), .code1_l(4'd0),
+        .code2_u(4'd0), .code2_r(4'd0), .code2_d(4'd0), .code2_l(4'd0),
+        .codes_valid(1'b1)
     );
 
     initial clk = 1'b0;

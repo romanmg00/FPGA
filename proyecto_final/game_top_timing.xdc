@@ -21,3 +21,11 @@ set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/draw_*_reg[*]}] -
 ## con esas posiciones y con heading_reg de bike_move (clk_juego), sin cruce explicito (X1, issue
 ## #30). Mismo limite de un pixel; build_game_top.tcl revisa los origenes y las 2 BRAM.
 set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/draw_*_reg[*] u_position_logic/u_bike_move*/heading_reg[*]}] -to [get_cells -hierarchical -filter {NAME =~ u_drawcon/bike_rom_*/* && REF_NAME =~ RAMB*}]
+
+## Cruce de la arena (contrato, sección 3). clk_juego y clk_pix no tienen un periodo común que
+## Vivado pueda expandir, así que esas rutas se tratan como asíncronas: los toggles van a
+## sync_2ff y el pedido y los códigos se copian solo después de su toggle; aquí se acota su retardo.
+set_max_delay -datapath_only 11.982 -from [get_cells u_arena_link/req_q_reg] -to [get_cells u_arena_ctrl/u_sync_req/meta_reg]
+set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_link/req_*_reg*}] -to [get_cells {u_arena_ctrl/*_q_reg*}]
+set_max_delay -datapath_only 11.982 -from [get_cells u_arena_ctrl/ack_q_reg] -to [get_cells u_arena_link/u_sync_ack/meta_reg]
+set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_ctrl/codes_reg[*]}] -to [get_cells {u_arena_link/codes_reg[*]}]

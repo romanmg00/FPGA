@@ -43,7 +43,7 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
   orilla: las 10 filas de arriba y las 10 columnas de cada lado. Abajo de `y = 64`, las
   paredes de 16 px ya lo cubren
 - [x] **Paso 5a:** `drawcon` con paredes, HUD, bloque y fondo en colores planos
-- [ ] **Paso 5b:** `drawcon` lee de `arena_map` lo que hay en cada celda
+- [x] **Paso 5b:** `drawcon` lee de `arena_map` lo que hay en cada celda y pinta las estelas (PR #40)
 - [ ] **Paso 5c:** sprites desde ROM (`.coe` RGB444, motos de 32x32 y premios de 16x16)
 - [x] **Paso 6a:** una moto que avanza sola en rondas (`round_fsm`, `step_counter`, `bike_move`):
   Start con BTNC, giros de 90°, choque con la pared y pausa de 2 s. Probada en la tarjeta el
@@ -59,13 +59,13 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
 - [x] **Paso 6e:** `bike_glide` dibuja cada moto avanzando unos píxeles por tick (2 px por tick
   con 8 ticks) hacia su celda; el juego sigue por celdas y lo dibujado va un paso atrás.
   Su salida es un registro, así que la cuenta no entra a la ruta de `clk_pix`
-- [ ] **Paso 6d:** choque con estelas y premios, leyendo de `arena_map` las 4 celdas vecinas de cada
-  cabeza (sección 3 del contrato, issue #38)
+- [x] **Paso 6d:** choque con estelas, leyendo de `arena_map` las 4 celdas vecinas de cada cabeza
+  (sección 3 del contrato, issue #38; PR #40). Faltan los premios
 - [x] **Paso 6f:** arena (A1/A2): `arena_map` (BRAM de 8192 × 4, puerto B con 2 ciclos),
   `arena_ctrl` (único que escribe, en `clk_pix`) y `arena_link` (lado del juego, en `clk_juego`).
   Después de cada paso devuelve las 4 vecinas de cada cabeza en el flanco *k*+4. Sus pruebas
-  corren en `build_game_top.tcl`; todavía no están en `game_top`, así que el bitstream no cambia.
-  El 16 de noviembre se probó en la tarjeta con un build aparte (PR #39 + PR #40, conectada a mano):
+  corren en `build_game_top.tcl`, y `game_top_tb` revisa las estelas en pantalla y la arena entera.
+  Conectada en `game_top` (PR #40, sobre el #39); probada en la tarjeta el 16 de noviembre:
   estelas, choque con estelas y paredes, ronda nueva, reset y choque de frente
 
 ## Hito: bloque en movimiento (revisión del 12 de noviembre)

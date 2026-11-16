@@ -61,7 +61,7 @@ proc check_no_handwritten_ip {files} {
 # dibuja cada moto deslizandose entre celdas (ADR 0010).
 set movement [list $here/round_fsm.sv $here/step_counter.sv $here/bike_move.sv $here/position_logic.sv]
 set design [concat [list $here/counters.sv $here/vga_out.sv $here/drawcon.sv $here/sync_2ff.sv \
-    $here/board_reset_sync.sv] $movement [list $here/bike_glide.sv $here/game_top.sv]]
+    $here/board_reset_sync.sv $here/arena_map.sv $here/arena_ctrl.sv $here/arena_link.sv] $movement [list $here/bike_glide.sv $here/game_top.sv]]
 check_no_handwritten_ip $design
 
 # CLK_JUEGO_N vive en game_top.sv y 2 * N en game_top_timing.xdc, porque el XDC no puede
@@ -100,7 +100,7 @@ start_bench step_counter_tb step_counter_tb "PRUEBAS OK" [list $here/step_counte
 start_bench bike_move_tb bike_move_tb "PRUEBAS OK" [list $here/bike_move_tb.sv $here/bike_move.sv]
 start_bench position_logic_tb position_logic_tb "PRUEBAS OK" [concat [list $here/position_logic_tb.sv] $movement]
 start_bench bike_glide_tb bike_glide_tb "PASS bike_glide_tb" [list $here/bike_glide_tb.sv $here/bike_glide.sv]
-# Arena: arena_map and arena_ctrl (clk_pix) and arena_link (clk_juego). Not in game_top yet.
+# Arena: arena_map and arena_ctrl (clk_pix) and arena_link (clk_juego), alone.
 set arena [list $here/sync_2ff.sv $here/arena_map.sv $here/arena_ctrl.sv $here/arena_link.sv]
 start_bench arena_map_tb arena_map_tb "PASS arena_map_tb" [list $here/arena_map_tb.sv $here/arena_map.sv]
 start_bench arena_ctrl_tb arena_ctrl_tb "PASS arena_ctrl_tb" [concat [list $here/arena_ctrl_tb.sv] $arena]
