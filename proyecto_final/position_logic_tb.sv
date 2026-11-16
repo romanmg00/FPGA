@@ -127,18 +127,18 @@ module position_logic_tb;
         pasos(1, B_D, K_NADA);        revisa("3 BTND gira hacia abajo", 32, 27, 2, 45, 27, 3, 1);
 
         // Case 4: P1 reaches the bottom wall (cy = 48) and its next step is a crash.
-        // P2 does not crash, so it completes that last step (spec: the survivor completes it).
+        // P2 does not crash, but a crash stops both bikes, so P2 stays too (ADR 0011).
         pasos(21, B_NADA, K_NADA);    revisa("4 P1 llega a la ultima celda", 32, 48, 2, 24, 27, 3, 1);
         choques = 0;
         ticks(0, B_NADA, K_NADA, STEP - 1);  revisa_choque("4 choca solo P1 (pared)", 1, 0);
-        ticks(0, B_NADA, K_NADA, 1);  revisa("4 P1 se queda, P2 completa su paso", 32, 48, 2, 23, 27, 3, 0);
+        ticks(0, B_NADA, K_NADA, 1);  revisa("4 P1 se queda y P2 tambien", 32, 48, 2, 24, 27, 3, 0);
         if (choques !== 1) begin
             $display("ERROR 4: %0d pulsos de crash, se esperaba 1", choques);
             errores++;
         end
 
         // Case 5: during the ~2 s pause the bikes stay where they are and Start is ignored
-        ticks(0, B_C, K_NADA, 100);   revisa("5 pausa con Start sostenido", 32, 48, 2, 23, 27, 3, 0);
+        ticks(0, B_C, K_NADA, 100);   revisa("5 pausa con Start sostenido", 32, 48, 2, 24, 27, 3, 0);
 
         // Case 6: after 120 ticks both return to their starts, but Start must be released first
         ticks(0, B_C, K_NADA, 30);    revisa("6 de vuelta en la salida, sin arrancar", 20, 27, 1, 59, 27, 3, 0);
@@ -152,14 +152,14 @@ module position_logic_tb;
 
         // Case 8: turn_req2 steers P2 in the U,R,D,L order. P2 goes up one row, then left
         // along row 26, then turns down into the cell where P1's head is (40,27).
-        // Only P2 crashes; P1 completes its step to (41,27).
+        // Only P2 crashes; P1 stays at (40,27) too (ADR 0011).
         nueva_ronda();
         pasos(1, B_NADA, K_U);        revisa("8 turn_req2[0] = arriba", 21, 27, 1, 59, 26, 0, 1);
         pasos(1, B_NADA, K_L);        revisa("8 turn_req2[3] = izquierda", 22, 27, 1, 58, 26, 3, 1);
         pasos(1, B_NADA, K_R);        revisa("8 media vuelta de P2 se ignora", 23, 27, 1, 57, 26, 3, 1);
         pasos(17, B_NADA, K_NADA);    revisa("8 P2 justo arriba de P1", 40, 27, 1, 40, 26, 3, 1);
         ticks(0, B_NADA, K_D, STEP - 1);     revisa_choque("8 P2 entra a la cabeza de P1: choca solo P2", 0, 1);
-        ticks(0, B_NADA, K_D, 1);     revisa("8 P2 se queda, P1 completa su paso", 41, 27, 1, 40, 26, 3, 0);
+        ticks(0, B_NADA, K_D, 1);     revisa("8 P2 se queda y P1 tambien", 40, 27, 1, 40, 26, 3, 0);
 
         // Cases 9 and 10, in one round with both DUTs. Everyone goes straight along row 27.
         nueva_ronda();

@@ -18,7 +18,7 @@ tags:
 
 # CS-256 Tron Game Mechanics
 
-This note is a short topic index for the locked team rules. The canonical rule details live in [[CS-256 Tron Agreed Specification 2026-10-20]]; [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] records how they were chosen. Course requirements and TA instructions take precedence over the team baseline. Since [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) the handout is general guidance, and that ADR overrides the locked records' second-Wizard and strict-handout provisions. [ADR 0007](../adr/0007-configurable-step-interval.md) supersedes the fixed six-tick movement cadence only.
+This note is a short topic index for the locked team rules. The canonical rule details live in [[CS-256 Tron Agreed Specification 2026-10-20]]; [[CS-256 Tron Team Decisions 2026-10-20#Live decision record]] records how they were chosen. Course requirements and TA instructions take precedence over the team baseline. Since [ADR 0006](../adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) the handout is general guidance, and that ADR overrides the locked records' second-Wizard and strict-handout provisions. [ADR 0007](../adr/0007-configurable-step-interval.md) supersedes the fixed six-tick movement cadence only. [ADR 0011](../adr/0011-a-crash-stops-both-bikes.md), proposed, would replace the survivor's move in a Crash Step: no Bike moves in that Step.
 
 Use [[CS-256 Tron Glossary]] for domain terms. A rule agreement records intended behavior; it does not show that a prototype, HDL block, or remote contract implements or verifies it. See [[CS-256 Tron Architecture and Documentation Map]] for document status, implementation links, and evidence paths.
 
@@ -53,7 +53,7 @@ Current rules: [[CS-256 Tron Agreed Specification 2026-10-20#Movement, Turns and
 
 ### Trails and Crashes
 
-Current rules: [[CS-256 Tron Agreed Specification 2026-10-20#Movement, Turns and Crashes]].
+Current rules: [[CS-256 Tron Agreed Specification 2026-10-20#Movement, Turns and Crashes]], with the survivor's move in a Crash Step replaced by [ADR 0011](../adr/0011-a-crash-stops-both-bikes.md) (proposed).
 
 ### Points
 

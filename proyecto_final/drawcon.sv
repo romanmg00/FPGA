@@ -70,6 +70,8 @@ module drawcon(
     // ---------------------------------------------------------------
     // Colors
     // Priorities: walls -> HUD -> bike 1 -> bike 2 -> empty arena
+    // Sprite pixels 000 are transparent (tools/png2coe.py), so a bike's box only covers
+    // what is under its drawn pixels
     // ---------------------------------------------------------------
     always_comb begin
         if ((curr_x < 11'd16 && (curr_y>=11'd64 && curr_y < 11'd800)) || 
@@ -85,9 +87,10 @@ module drawcon(
             draw_g = 4'b0100;
             draw_b = 4'b0100;
         end else if ((curr_x>= (blkpos1_x - 8)) && (curr_y>= (blkpos1_y - 8)) && 
-                   (curr_x < (blkpos1_x + 24)) && (curr_y < (blkpos1_y + 24))) begin // bike 1
+                   (curr_x < (blkpos1_x + 24)) && (curr_y < (blkpos1_y + 24)) &&
+                   (color1 != 12'h000)) begin // bike 1, not transparent
             // P1: Blue
-            if(color1 == 12'h0F0) begin // TODO: add elseif h000 transparent
+            if(color1 == 12'h0F0) begin
                 draw_r = 4'b0000;
                 draw_g = 4'b1101;
                 draw_b = 4'b1111;
@@ -97,9 +100,10 @@ module drawcon(
                 draw_b = color1[3:0];
             end
         end else if ((curr_x>= (blkpos2_x - 8)) && (curr_y>= (blkpos2_y - 8)) && 
-                   (curr_x < (blkpos2_x + 24)) && (curr_y < (blkpos2_y + 24))) begin // bike 2
+                   (curr_x < (blkpos2_x + 24)) && (curr_y < (blkpos2_y + 24)) &&
+                   (color2 != 12'h000)) begin // bike 2, not transparent
             // P2: Orange
-            if(color2 == 12'h0F0) begin // TODO: add elseif h000 transparent
+            if(color2 == 12'h0F0) begin
                 draw_r = 4'b1111;
                 draw_g = 4'b1000;
                 draw_b = 4'b0000;

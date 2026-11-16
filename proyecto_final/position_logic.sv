@@ -125,8 +125,9 @@ module position_logic #(
     // ---------------------------------------------------------------
     assign valid1   = (next_cx1 >= 1 && next_cx1 <= 78 && next_cy1 >= 5 && next_cy1 <= 48);
     assign valid2   = (next_cx2 >= 1 && next_cx2 <= 78 && next_cy2 >= 5 && next_cy2 <= 48);
-    assign advance1 = step && !crash1;
-    assign advance2 = step && !crash2;
+    // A crash stops both bikes: the one that did not crash stays in its cell too (ADR 0011)
+    assign advance1 = step && !crash;
+    assign advance2 = step && !crash;
     assign crash1 = step && 
                     (!valid1 || 
                     (next_cx1 == next_cx2 && next_cy1 == next_cy2) || 
