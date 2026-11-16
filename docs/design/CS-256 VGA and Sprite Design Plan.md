@@ -223,7 +223,7 @@ Status key:
 | Step 8: all `drawcon` logic combinational | Combinational. ROM and prefetch logic sit outside `drawcon` | ✅ |
 | Step 9: instantiate in `game_top` and connect to `vga_out` | Connect current coordinates and matching prefetched texels, without delaying the handout timing | ✅ ➕ |
 | Step 10: second clock divider + counter → ~60 Hz game clock | One pixel Clocking Wizard plus a counter on `clk_pix` (Decision A, ADR 0006) | ✅ |
-| Steps 11–12: five buttons; centre resets to the centre; ±4 per tick | Literal ±4 version at M1. The selected game moves one 16 px Cell every six approximately 60 Hz game-clock ticks | ✅ M1 / ➕ game |
+| Steps 11–12: five buttons; centre resets to the centre; ±4 per tick | Literal ±4 version at M1. The selected game moves one 16 px Cell at a configurable interval, currently eight approximately 60 Hz game-clock ticks ([ADR 0007](../adr/0007-configurable-step-interval.md)) | ✅ M1 / ➕ game |
 | Step 13: the block cannot hit the border | Selected 16 px Cells use side Wall columns 0/79; preserve the 10 px white border, keep head Cells inside the playable bounds and clip cosmetic sprite overlap as needed | ✅ |
 | `game_top` diagram: position logic / `drawcon` / `vga_out` / two clock dividers | Retain the handout blocks with one Clocking Wizard plus the `clk_juego` counter (ADR 0006); add sprite/grid/Scoreboard modules | ✅ ➕ |
 

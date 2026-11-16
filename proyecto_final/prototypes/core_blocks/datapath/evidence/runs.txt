@@ -1,0 +1,6 @@
+baseline /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003045-632247
+sweep-a /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-002935-630134
+sweep-b /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-002938-630350
+sweep-c /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-002940-630625
+sweep-d /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095
+sweep-e /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003011-631478

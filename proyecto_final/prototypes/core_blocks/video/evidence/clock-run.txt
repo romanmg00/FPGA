@@ -1,0 +1,13 @@
+Vivado v2025.2 (64-bit)
+SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+Tool Version Limit: 2025.11
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+
+video_pixel_clock requested_MHz=83.460 M=28.375 D=4 O=8.500 achieved_hz=83455882.35294117 VCO_hz=709375000.0 PFD_hz=25000000.0
+video_game_clock requested_MHz=4.6875 M=6.000 D=1 O=128.000 achieved_hz=4687500.0 VCO_hz=600000000.0 PFD_hz=100000000.0
+half_cycles=39063 divide_by=78126 game_hz=59.99923200983027 error_Hz=-0.000767990169727284 error_ppm=-12.799836162091793
+frame_hz=59.995314550941146 game_ticks_per_frame=1.0000652960805099
+Artifacts (host): /home/alan/.local/share/cs256-vivado/builds/core-video-clocks-20261029-000432-602140

@@ -1,0 +1,279 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Thu Oct 29 20:35:16 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_bus_skew -file /builds/tron-qualified-20261029-233200-2009520/report_bus_skew.rpt
+| Design       : tron_top
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Bus Skew Report
+
+Table of Contents
+-----------------
+1. Bus Skew Report Summary
+2. Bus Skew Report Per Constraint
+
+1. Bus Skew Report Summary
+--------------------------
+
+Id  Position  From                            To                              Corner  Requirement(ns)  Actual(ns)  Slack(ns)
+--  --------  ------------------------------  ------------------------------  ------  ---------------  ----------  ---------
+1   16        [get_cells {{u_system/g_batch_fifo.u_batch/wgray_reg[0]} {u_system/g_batch_fifo.u_batch/wgray_reg[1]} {u_system/g_batch_fifo.u_batch/wgray_reg[2]} {u_system/g_batch_fifo.u_batch/wgray_reg[3]}}]
+                                              [get_cells -hier -regexp {.*u_batch/wgray_s1_reg\[[0-9]+\]}]
+                                                                              Slow             11.982       0.720     11.262
+2   17        [get_cells {{u_system/g_batch_fifo.u_batch/rgray_reg[0]} {u_system/g_batch_fifo.u_batch/rgray_reg[1]} {u_system/g_batch_fifo.u_batch/rgray_reg[2]} {u_system/g_batch_fifo.u_batch/rgray_reg[3]}}]
+                                              [get_cells -hier -regexp {.*u_batch/rgray_s1_reg\[[0-9]+\]}]
+                                                                              Slow             11.982       0.986     10.996
+
+
+2. Bus Skew Report Per Constraint
+---------------------------------
+
+Id: 1
+set_bus_skew -from [get_cells {{u_system/g_batch_fifo.u_batch/wgray_reg[0]} {u_system/g_batch_fifo.u_batch/wgray_reg[1]} {u_system/g_batch_fifo.u_batch/wgray_reg[2]} {u_system/g_batch_fifo.u_batch/wgray_reg[3]}}] -to [get_cells -hier -regexp {.*u_batch/wgray_s1_reg\[[0-9]+\]}] 11.982
+Requirement: 11.982ns
+Endpoints: 4
+
+From Clock            To Clock              Endpoint Pin                    Reference Pin                   Corner  Actual(ns)  Slack(ns)
+--------------------  --------------------  ------------------------------  ------------------------------  ------  ----------  ---------
+clk_out1_tron_pixel_clock
+                      clk_juego             u_system/g_batch_fifo.u_batch/wgray_s1_reg[1]/D
+                                                                            u_system/g_batch_fifo.u_batch/wgray_s1_reg[0]/D
+                                                                                                            Slow         0.720     11.262
+
+
+Slack (MET) :             11.262ns  (requirement - actual skew)
+  Endpoint Source:        u_system/g_batch_fifo.u_batch/wgray_reg[1]/C
+                            (rising edge-triggered cell FDRE clocked by clk_out1_tron_pixel_clock)
+  Endpoint Destination:   u_system/g_batch_fifo.u_batch/wgray_s1_reg[1]/D
+                            (rising edge-triggered cell FDRE clocked by clk_juego)
+  Reference Source:       u_system/g_batch_fifo.u_batch/wgray_reg[0]/C
+                            (rising edge-triggered cell FDRE clocked by clk_out1_tron_pixel_clock)
+  Reference Destination:  u_system/g_batch_fifo.u_batch/wgray_s1_reg[0]/D
+                            (rising edge-triggered cell FDRE clocked by clk_juego)
+  Path Type:              Bus Skew (Max at Slow Process Corner)
+  Requirement:            11.982ns
+  Endpoint Relative Delay:   -0.954ns
+  Reference Relative Delay:  -3.006ns
+  Relative CRPR:              1.332ns
+  Actual Bus Skew:            0.720ns  (Endpoint Relative Delay - Reference Relative Delay - Relative CRPR)
+
+Endpoint path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_out1_tron_pixel_clock rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.482     1.482 r  u_clk_ibuf/O
+                         net (fo=2, routed)           1.233     2.715    u_pixel_wiz/inst/clk_in1
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.070    -4.355 r  u_pixel_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.719    -2.636    u_pixel_wiz/inst/clk_out1_tron_pixel_clock
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.096    -2.540 r  u_pixel_wiz/inst/clkout1_buf/O
+                         net (fo=690, routed)         1.692    -0.848    u_system/g_batch_fifo.u_batch/clk_out1
+    SLICE_X73Y134        FDRE                                         r  u_system/g_batch_fifo.u_batch/wgray_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X73Y134        FDRE (Prop_fdre_C_Q)         0.419    -0.429 r  u_system/g_batch_fifo.u_batch/wgray_reg[1]/Q
+                         net (fo=2, routed)           0.534     0.104    u_system/g_batch_fifo.u_batch/wgray[1]
+    SLICE_X71Y134        FDRE                                         r  u_system/g_batch_fifo.u_batch/wgray_s1_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_juego rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.411     1.411 r  u_clk_ibuf/O
+                         net (fo=2, routed)           1.302     2.713    u_base_wiz/inst/clk_in1
+    MMCME2_ADV_X1Y1      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.338    -4.624 r  u_base_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.639    -2.985    u_base_wiz/inst/clk_out1_tron_base_clock
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    -2.894 r  u_base_wiz/inst/clkout1_buf/O
+                         net (fo=39, routed)          1.508    -1.386    u_div/clk_out1
+    SLICE_X50Y96         FDRE (Prop_fdre_C_Q)         0.418    -0.968 r  u_div/game_toggle_reg/Q
+                         net (fo=2, routed)           0.639    -0.329    u_div/game_toggle
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    -0.238 r  u_div/u_game_buf/O
+                         net (fo=285, routed)         1.493     1.255    u_system/g_batch_fifo.u_batch/clk_juego
+    SLICE_X71Y134        FDRE                                         r  u_system/g_batch_fifo.u_batch/wgray_s1_reg[1]/C
+                         clock pessimism              0.071     1.326    
+    SLICE_X71Y134        FDRE (Setup_fdre_C_D)       -0.267     1.059    u_system/g_batch_fifo.u_batch/wgray_s1_reg[1]
+  -------------------------------------------------------------------
+                         data arrival                           0.104    
+                         clock arrival                          1.059    
+  -------------------------------------------------------------------
+                         relative delay                        -0.954    
+
+Reference path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_out1_tron_pixel_clock rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.411     1.411 r  u_clk_ibuf/O
+                         net (fo=2, routed)           1.162     2.573    u_pixel_wiz/inst/clk_in1
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.324    -4.751 r  u_pixel_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.639    -3.112    u_pixel_wiz/inst/clk_out1_tron_pixel_clock
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    -3.021 r  u_pixel_wiz/inst/clkout1_buf/O
+                         net (fo=690, routed)         1.573    -1.448    u_system/g_batch_fifo.u_batch/clk_out1
+    SLICE_X73Y134        FDRE                                         r  u_system/g_batch_fifo.u_batch/wgray_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X73Y134        FDRE (Prop_fdre_C_Q)         0.367    -1.081 r  u_system/g_batch_fifo.u_batch/wgray_reg[0]/Q
+                         net (fo=2, routed)           0.427    -0.654    u_system/g_batch_fifo.u_batch/wgray[0]
+    SLICE_X73Y136        FDRE                                         r  u_system/g_batch_fifo.u_batch/wgray_s1_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_juego rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.482     1.482 r  u_clk_ibuf/O
+                         net (fo=2, routed)           1.380     2.862    u_base_wiz/inst/clk_in1
+    MMCME2_ADV_X1Y1      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.085    -4.223 r  u_base_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.719    -2.503    u_base_wiz/inst/clk_out1_tron_base_clock
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096    -2.407 r  u_base_wiz/inst/clkout1_buf/O
+                         net (fo=39, routed)          1.630    -0.777    u_div/clk_out1
+    SLICE_X50Y96         FDRE (Prop_fdre_C_Q)         0.518    -0.259 r  u_div/game_toggle_reg/Q
+                         net (fo=2, routed)           0.720     0.461    u_div/game_toggle
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.096     0.557 r  u_div/u_game_buf/O
+                         net (fo=285, routed)         1.696     2.253    u_system/g_batch_fifo.u_batch/clk_juego
+    SLICE_X73Y136        FDRE                                         r  u_system/g_batch_fifo.u_batch/wgray_s1_reg[0]/C
+                         clock pessimism             -0.071     2.183    
+    SLICE_X73Y136        FDRE (Hold_fdre_C_D)         0.169     2.352    u_system/g_batch_fifo.u_batch/wgray_s1_reg[0]
+  -------------------------------------------------------------------
+                         data arrival                          -0.654    
+                         clock arrival                          2.352    
+  -------------------------------------------------------------------
+                         relative delay                        -3.006    
+
+
+
+Id: 2
+set_bus_skew -from [get_cells {{u_system/g_batch_fifo.u_batch/rgray_reg[0]} {u_system/g_batch_fifo.u_batch/rgray_reg[1]} {u_system/g_batch_fifo.u_batch/rgray_reg[2]} {u_system/g_batch_fifo.u_batch/rgray_reg[3]}}] -to [get_cells -hier -regexp {.*u_batch/rgray_s1_reg\[[0-9]+\]}] 11.982
+Requirement: 11.982ns
+Endpoints: 4
+
+From Clock            To Clock              Endpoint Pin                    Reference Pin                   Corner  Actual(ns)  Slack(ns)
+--------------------  --------------------  ------------------------------  ------------------------------  ------  ----------  ---------
+clk_juego             clk_out1_tron_pixel_clock
+                                            u_system/g_batch_fifo.u_batch/rgray_s1_reg[1]/D
+                                                                            u_system/g_batch_fifo.u_batch/rgray_s1_reg[2]/D
+                                                                                                            Slow         0.986     10.996
+
+
+Slack (MET) :             10.996ns  (requirement - actual skew)
+  Endpoint Source:        u_system/g_batch_fifo.u_batch/rgray_reg[1]/C
+                            (rising edge-triggered cell FDRE clocked by clk_juego)
+  Endpoint Destination:   u_system/g_batch_fifo.u_batch/rgray_s1_reg[1]/D
+                            (rising edge-triggered cell FDRE clocked by clk_out1_tron_pixel_clock)
+  Reference Source:       u_system/g_batch_fifo.u_batch/rgray_reg[2]/C
+                            (rising edge-triggered cell FDRE clocked by clk_juego)
+  Reference Destination:  u_system/g_batch_fifo.u_batch/rgray_s1_reg[2]/D
+                            (rising edge-triggered cell FDRE clocked by clk_out1_tron_pixel_clock)
+  Path Type:              Bus Skew (Max at Slow Process Corner)
+  Requirement:            11.982ns
+  Endpoint Relative Delay:    5.301ns
+  Reference Relative Delay:   2.966ns
+  Relative CRPR:              1.349ns
+  Actual Bus Skew:            0.986ns  (Endpoint Relative Delay - Reference Relative Delay - Relative CRPR)
+
+Endpoint path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_juego rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.482     1.482 r  u_clk_ibuf/O
+                         net (fo=2, routed)           1.380     2.862    u_base_wiz/inst/clk_in1
+    MMCME2_ADV_X1Y1      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.085    -4.223 r  u_base_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.719    -2.503    u_base_wiz/inst/clk_out1_tron_base_clock
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096    -2.407 r  u_base_wiz/inst/clkout1_buf/O
+                         net (fo=39, routed)          1.630    -0.777    u_div/clk_out1
+    SLICE_X50Y96         FDRE (Prop_fdre_C_Q)         0.518    -0.259 r  u_div/game_toggle_reg/Q
+                         net (fo=2, routed)           0.720     0.461    u_div/game_toggle
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.096     0.557 r  u_div/u_game_buf/O
+                         net (fo=285, routed)         1.696     2.253    u_system/g_batch_fifo.u_batch/clk_juego
+    SLICE_X73Y135        FDRE                                         r  u_system/g_batch_fifo.u_batch/rgray_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X73Y135        FDRE (Prop_fdre_C_Q)         0.419     2.672 r  u_system/g_batch_fifo.u_batch/rgray_reg[1]/Q
+                         net (fo=2, routed)           0.975     3.647    u_system/g_batch_fifo.u_batch/rgray[1]
+    SLICE_X72Y134        FDRE                                         r  u_system/g_batch_fifo.u_batch/rgray_s1_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_out1_tron_pixel_clock rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.411     1.411 r  u_clk_ibuf/O
+                         net (fo=2, routed)           1.162     2.573    u_pixel_wiz/inst/clk_in1
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.324    -4.751 r  u_pixel_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.639    -3.112    u_pixel_wiz/inst/clk_out1_tron_pixel_clock
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    -3.021 r  u_pixel_wiz/inst/clkout1_buf/O
+                         net (fo=690, routed)         1.573    -1.448    u_system/g_batch_fifo.u_batch/clk_out1
+    SLICE_X72Y134        FDRE                                         r  u_system/g_batch_fifo.u_batch/rgray_s1_reg[1]/C
+                         clock pessimism              0.071    -1.377    
+    SLICE_X72Y134        FDRE (Setup_fdre_C_D)       -0.277    -1.654    u_system/g_batch_fifo.u_batch/rgray_s1_reg[1]
+  -------------------------------------------------------------------
+                         data arrival                           3.647    
+                         clock arrival                         -1.654    
+  -------------------------------------------------------------------
+                         relative delay                         5.301    
+
+Reference path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_juego rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.411     1.411 r  u_clk_ibuf/O
+                         net (fo=2, routed)           1.302     2.713    u_base_wiz/inst/clk_in1
+    MMCME2_ADV_X1Y1      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.338    -4.624 r  u_base_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.639    -2.985    u_base_wiz/inst/clk_out1_tron_base_clock
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    -2.894 r  u_base_wiz/inst/clkout1_buf/O
+                         net (fo=39, routed)          1.508    -1.386    u_div/clk_out1
+    SLICE_X50Y96         FDRE (Prop_fdre_C_Q)         0.418    -0.968 r  u_div/game_toggle_reg/Q
+                         net (fo=2, routed)           0.639    -0.329    u_div/game_toggle
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    -0.238 r  u_div/u_game_buf/O
+                         net (fo=285, routed)         1.577     1.339    u_system/g_batch_fifo.u_batch/clk_juego
+    SLICE_X73Y135        FDRE                                         r  u_system/g_batch_fifo.u_batch/rgray_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X73Y135        FDRE (Prop_fdre_C_Q)         0.367     1.706 r  u_system/g_batch_fifo.u_batch/rgray_reg[2]/Q
+                         net (fo=2, routed)           0.509     2.215    u_system/g_batch_fifo.u_batch/rgray[2]
+    SLICE_X72Y133        FDRE                                         r  u_system/g_batch_fifo.u_batch/rgray_s1_reg[2]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_out1_tron_pixel_clock rise edge)
+                                                      0.000     0.000 r  
+    E3                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    E3                   IBUF (Prop_ibuf_I_O)         1.482     1.482 r  u_clk_ibuf/O
+                         net (fo=2, routed)           1.233     2.715    u_pixel_wiz/inst/clk_in1
+    MMCME2_ADV_X1Y2      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.070    -4.355 r  u_pixel_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.719    -2.636    u_pixel_wiz/inst/clk_out1_tron_pixel_clock
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.096    -2.540 r  u_pixel_wiz/inst/clkout1_buf/O
+                         net (fo=690, routed)         1.691    -0.849    u_system/g_batch_fifo.u_batch/clk_out1
+    SLICE_X72Y133        FDRE                                         r  u_system/g_batch_fifo.u_batch/rgray_s1_reg[2]/C
+                         clock pessimism             -0.071    -0.920    
+    SLICE_X72Y133        FDRE (Hold_fdre_C_D)         0.169    -0.751    u_system/g_batch_fifo.u_batch/rgray_s1_reg[2]
+  -------------------------------------------------------------------
+                         data arrival                           2.215    
+                         clock arrival                         -0.751    
+  -------------------------------------------------------------------
+                         relative delay                         2.966    
+
+
+

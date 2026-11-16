@@ -1,0 +1,14 @@
+game_pkg_tb          RESULT: PASS game_pkg_tb                 core-game_pkg_tb-20261029-002750-625388
+arena_map_tb         RESULT: PASS arena_map_tb                core-arena_map_tb-20261029-002751-625551
+arena_ctrl_tb        RESULT: PASS arena_ctrl_tb               core-arena_ctrl_tb-20261029-002752-625762
+turn_unit_tb         RESULT: PASS turn_unit_tb                core-turn_unit_tb-20261029-002753-626137
+step_resolve_tb      RESULT: PASS step_resolve_tb             core-step_resolve_tb-20261029-002754-626384
+score_directed_tb    RESULT: PASS score_directed_tb           core-score_directed_tb-20261029-002755-626730
+score_model_tb       RESULT: PASS score_model_tb              core-score_model_tb-20261029-002756-626944
+sync_2ff_tb          RESULT: PASS sync_2ff_tb                 core-sync_2ff_tb-20261029-002757-627290
+btn_debounce_tb      RESULT: PASS btn_debounce_tb             core-btn_debounce_tb-20261029-002758-627599
+seg7_page_tb         RESULT: PASS seg7_page_tb                core-seg7_page_tb-20261029-002759-627867
+seg7_driver_tb       RESULT: PASS seg7_driver_tb              core-seg7_driver_tb-20261029-002800-628188
+game_clk_div_tb      RESULT: PASS game_clk_div_tb             core-game_clk_div_tb-20261029-002801-628496
+vga_out_check_tb     RESULT: missing PASS vga_out_check_tb    core-vga_out_check_tb-20261029-002802-628784
+Logs: /tmp/tmp.HzoTxE17sF

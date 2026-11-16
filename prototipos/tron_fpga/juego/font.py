@@ -99,8 +99,11 @@ def _life(c):
 
 
 def _life_lost(c):
+    """The full diamond with a diamond hole. The hole's edge (0.26) sits off
+    the pixel centres, so the ring is 3 px thick on every side (at 0.25 the
+    centres fall on the edge and the left and right sides rasterize 3 and 4)."""
     _life(c)
-    c.polygon([(0.5, 0.25), (0.75, 0.5), (0.5, 0.75), (0.25, 0.5)], 0)
+    c.polygon([(0.5, 0.24), (0.76, 0.5), (0.5, 0.76), (0.24, 0.5)], 0)
 
 
 def _play(c):

@@ -1,0 +1,12 @@
+01-walls.model: lines=91/91 fields={'tick': 87} tick_delta={0: 4, 1: 87}
+02-own-trail.model: lines=5/5 fields={'tick': 4} tick_delta={0: 1, 1: 4}
+03-other-trail.model: lines=27/27 fields={'tick': 26} tick_delta={0: 1, 1: 26}
+04-head-on-same-cell.model: lines=20/20 fields={'tick': 19} tick_delta={0: 1, 1: 19}
+05-head-on-swap.model: lines=21/21 fields={'tick': 20} tick_delta={0: 1, 1: 20}
+06-reversal-ignored.model: lines=39/39 fields={'tick': 38} tick_delta={0: 1, 1: 38}
+07-two-inputs.model: lines=29/29 fields={'tick': 28} tick_delta={0: 1, 1: 28}
+08-reward-respawn.model: lines=47/47 fields={'tick': 46} tick_delta={0: 1, 1: 46}
+09-goal.model: lines=1621/1621 fields={'tick': 1612, 'points': 1446, 'result': 5} tick_delta={0: 9, 1: 1612}
+10-both-last-life.model: lines=63/63 fields={'tick': 60} tick_delta={0: 3, 1: 60}
+11-new-match.model: lines=86/86 fields={'tick': 82} tick_delta={0: 4, 1: 82}
+12-long-random.model: lines=1212/1212 fields={'tick': 1153} tick_delta={0: 59, 1: 1153}

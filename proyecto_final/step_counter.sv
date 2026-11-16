@@ -1,8 +1,9 @@
 // Gives a 1-tick pulse every STEP_TICKS ticks while run = 1, and restarts from 0 whenever run = 0.
-// With STEP_TICKS = 8 and clk_juego at ~60 Hz, a bike moves 7.5 cells per second.
-// With STEP_TICKS = 120 it measures the 2 s pause after a crash.
+// With STEP_TICKS = 6 and clk_juego at ~60 Hz, a bike moves about 10 cells per second
+// (ADR 0010; game_top sets the value). With STEP_TICKS = 120 it measures the 2 s pause
+// after a crash.
 module step_counter #(
-    parameter int STEP_TICKS = 8
+    parameter int STEP_TICKS = 6
 ) (
     input  logic clk,     // clk_juego (~60 Hz)
     input  logic rst,
@@ -11,20 +12,24 @@ module step_counter #(
 );
 
     // Counts 0 to STEP_TICKS-1; $clog2 gives just enough bits for each instance.
-    logic [$clog2(STEP_TICKS)-1:0] counter; 
+    // LAST has the same width as counter, so every comparison and assignment matches in width.
+    localparam int W = $clog2(STEP_TICKS);
+    localparam logic [W-1:0] LAST = W'(STEP_TICKS - 1);
+
+    logic [W-1:0] counter;
     // Priority: rst or run = 0 restarts; the last value wraps to 0; otherwise count up.
     always_ff @(posedge clk) begin
         if (rst || !run) begin
-            counter <= 3'b0;
+            counter <= '0;
         end
-        else if (counter == STEP_TICKS - 1'b1) begin
-            counter <= 3'b0;
+        else if (counter == LAST) begin
+            counter <= '0;
         end
         else begin
-            counter <= counter + 3'b1;
+            counter <= counter + 1'b1;
         end
     end
     // step is 1 while the counter holds its last value, so the step is taken on the next edge.
-    assign step = (counter == STEP_TICKS - 1);
+    assign step = (counter == LAST);
 
 endmodule

@@ -1,0 +1,48 @@
+01-walls.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/01-walls.model.log: tick=13 round=1 step=1 phase=PLAY p1=20,26,U p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/01-walls.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=20,26,U p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 13 != 14
+02-own-trail.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/02-own-trail.model.log: tick=13 round=1 step=1 phase=PLAY p1=20,26,U p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/02-own-trail.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=20,26,U p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 13 != 14
+03-other-trail.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/03-other-trail.model.log: tick=13 round=1 step=1 phase=PLAY p1=20,26,U p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/03-other-trail.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=20,26,U p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 13 != 14
+04-head-on-same-cell.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/04-head-on-same-cell.model.log: tick=13 round=1 step=1 phase=PLAY p1=21,27,R p2=57,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/04-head-on-same-cell.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=21,27,R p2=57,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 13 != 14
+05-head-on-swap.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/05-head-on-swap.model.log: tick=13 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/05-head-on-swap.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 13 != 14
+06-reversal-ignored.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/06-reversal-ignored.model.log: tick=13 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/06-reversal-ignored.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 13 != 14
+07-two-inputs.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/07-two-inputs.model.log: tick=13 round=1 step=1 phase=PLAY p1=20,28,D p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/07-two-inputs.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=20,28,D p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 13 != 14
+08-reward-respawn.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/08-reward-respawn.model.log: tick=13 round=1 step=1 phase=PLAY p1=21,27,R p2=59,28,D crash=00 points=0,0 lives=3,3 goal=10 r0=9,5 r1=36,35 r2=44,48 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/08-reward-respawn.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=21,27,R p2=59,28,D crash=00 points=0,0 lives=3,3 goal=10 r0=9,5 r1=36,35 r2=44,48 result=-
+  tick: 13 != 14
+09-goal.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/09-goal.model.log: tick=13 round=1 step=1 phase=PLAY p1=21,27,R p2=59,28,D crash=00 points=0,0 lives=3,3 goal=10 r0=11,5 r1=34,33 r2=66,35 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/09-goal.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=21,27,R p2=59,28,D crash=00 points=0,0 lives=3,3 goal=10 r0=11,5 r1=34,33 r2=66,35 result=-
+  tick: 13 != 14
+10-both-last-life.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/10-both-last-life.model.log: tick=13 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/10-both-last-life.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 13 != 14
+11-new-match.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/11-new-match.model.log: tick=13 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/11-new-match.hdl.log: tick=14 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 13 != 14
+12-long-random.hdl.log: DIFFERENCE first difference at line 2:
+  /home/alan/.t3/worktrees/FPGA/t3-0484e773/proyecto_final/prototypes/core_blocks/datapath/12-long-random.model.log: tick=15 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  /home/alan/.local/share/cs256-vivado/builds/core-datapath_tb-20261029-003007-631095/12-long-random.hdl.log: tick=16 round=1 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+  tick: 15 != 16

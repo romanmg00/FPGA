@@ -1,0 +1,36 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Thu Oct 29 09:43:09 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_cdc -details -file /builds/crossing-clock-probe-20261029-124232-970852/cdc.rpt
+| Design       : probe
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Synthesized
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+CDC Report
+
+ID     Severity  Count  Description
+-----  --------  -----  ---------------------------
+CDC-1  Critical      2  1-bit unknown CDC circuitry
+
+Source Clock: game
+Destination Clock: clk_out1_probe_shared
+CDC Type: No Common Period
+
+Row  ID     Severity  Description                  Depth  Exception  Source (From)  Destination (To)
+---  -----  --------  ---------------------------  -----  ---------  -------------  ----------------
+  1  CDC-1  Critical  1-bit unknown CDC circuitry      0  None       g_reg/C        p_reg/D
+
+Source Clock: clk_out1_probe_shared
+Destination Clock: game
+CDC Type: No Common Period
+
+Row  ID     Severity  Description                  Depth  Exception  Source (From)  Destination (To)
+---  -----  --------  ---------------------------  -----  ---------  -------------  ----------------
+  1  CDC-1  Critical  1-bit unknown CDC circuitry      0  None       p_reg/C        g_reg/D
+

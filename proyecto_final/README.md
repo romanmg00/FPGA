@@ -48,10 +48,17 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
 - [x] **Paso 6a:** una moto que avanza sola en rondas (`round_fsm`, `step_counter`, `bike_move`):
   Start con BTNC, giros de 90°, choque con la pared y pausa de 2 s. Probada en la tarjeta el
   12 de noviembre (PR #21)
-- [ ] **Paso 6b:** segunda moto y choques entre motos (mismo destino, cabeza de la otra,
+- [x] **Paso 6b:** segunda moto y choques entre motos (mismo destino, cabeza de la otra,
   intercambio). P2 sale de (59, 27) hacia la izquierda y por ahora avanza recto; su entrada
-  `turn_req2` espera el teclado. `position_logic_tb` pasa en Verilator; falta la tarjeta (PR #25)
-- [ ] **Paso 6c:** paso de 8 a 10 ticks en vez de 6 (ADR 0007, issue #22)
+  `turn_req2` espera el teclado. `position_logic_tb` pasa en Verilator; probada en la tarjeta
+  el 15 de noviembre con `game_top_two_bikes.bit` (PR #25)
+- [x] **Paso 6c:** intervalo del paso (ADR 0007, issue #22). En la tarjeta, el 15 de noviembre,
+  8 ticks se veían lentos y a saltos; se eligió **6** (unas 10 celdas/s) con las motos
+  deslizándose entre celdas ([ADR 0010](../docs/adr/0010-six-tick-steps-and-bikes-sliding-between-cells.md),
+  propuesto; PR #28). `STEP_TICKS` vive en `game_top`; cambiarlo de nuevo es una línea
+- [x] **Paso 6e:** `bike_glide` dibuja cada moto avanzando unos píxeles por tick (0, 3, 5, 8, 11,
+  13, 16 con 6 ticks) hacia su celda; el juego sigue por celdas y lo dibujado va un paso atrás.
+  Su salida es un registro, así que la cuenta no entra a la ruta de `clk_pix`
 - [ ] **Paso 6d:** choque con estelas y premios, leyendo las celdas destino de `arena_map`
 
 ## Hito: bloque en movimiento (revisión del 12 de noviembre)
@@ -65,17 +72,20 @@ detiene en las paredes. CPU_RESET lo regresa a (320, 432) si se mantiene al meno
 lo lleva al centro, (632, 392). Su color sale de `SW0`–`SW11`: **con todos abajo es negro
 y no se ve.**
 
-El bitstream probado, los resultados en la tarjeta y los límites están en
-[`bitstreams/README.md`](bitstreams/README.md). Es `game_top_one_wizard.bit`, con un solo
-Wizard; en la tarjeta se probaron también las paredes y el reset repetido.
+Ese hito se probó con `game_top_one_wizard.bit`, con un solo Wizard; en la tarjeta se
+probaron también las paredes y el reset repetido. Ese archivo ya no está en el repositorio:
+[`bitstreams/README.md`](bitstreams/README.md) guarda solo el último bitstream probado
+(`game_top_two_bikes.bit`), con sus resultados y límites.
 
 ## Archivos
 
+- `prototypes/core_blocks/`: [bloques básicos y núcleo jugable provisionales](prototypes/core_blocks/README.md) (29 oct 2026). **Solo prototipo:** muestra cómo se podría implementar el juego (con el look synthwave) y no se usa directamente en el diseño de `proyecto_final/` ni es lo que se entrega a los TAs. Pruebas por bloque, comparación con los 12 escenarios M2 del modelo y un bitstream `tron_top`, probado en la tarjeta y grabado en su flash el 12 de noviembre. Trae sus propios scripts de host en `prototypes/core_blocks/tools/`. No seleccionan interfaces (ADR 0005). Usan su propia copia de `vga_out` con salidas combinacionales (`video/vga_out.sv`), que todavía no es la de `game_top`.
 - `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasa las pruebas de XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
 - `game_top.sv`: tope del diseño. Conecta el Clocking Wizard, el contador de `clk_juego`, los sincronizadores y los bloques de abajo
 - `position_logic.sv`: las dos motos, en `clk_juego`: control de ronda, ritmo del paso, giros y choques
 - `round_fsm.sv`: ronda provisional: espera Start, corre, pausa tras un choque y espera que se suelte Start
-- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (6) y la pausa de choque (120)
+- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (6, ADR 0010) y la pausa de choque (120)
+- `bike_glide.sv`: posición dibujada de una moto, que se desliza de su celda anterior a la nueva durante un paso (ADR 0010); una instancia por moto
 - `bike_move.sv`: celda, dirección y giro pendiente de una moto; se instancia una vez por moto
 - `drawcon.sv`: color de cada píxel: paredes, HUD, P1 en azul (`0DF`) y P2 en naranja (`F80`)
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
@@ -88,7 +98,7 @@ Wizard; en la tarjeta se probaron también las paredes y el reset repetido.
 - `game_top_tb.sv`: revisa `game_top` desde sus pines, con 6 escenarios. Todavía describe el bloque de antes del PR #21 (issue #24)
 - `position_logic_tb.sv`, `round_fsm_tb.sv`, `step_counter_tb.sv`, `bike_move_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
 - `sim_clocks/`: relojes ideales **solo para simulación**. La síntesis usa siempre la IP que genera Vivado; ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
-- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`. Desde el PR #21 le faltan `round_fsm.sv`, `step_counter.sv` y `bike_move.sv` (issue #24)
+- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`. Corre también `round_fsm_tb`, `step_counter_tb`, `bike_move_tb`, `bike_glide_tb` y los 7 escenarios de `game_top_tb` (PR #28)
 - `bitstreams/`: bitstreams probados y lo que se comprobó de cada uno
 - `prototypes/vga_106mhz/`: experimento a 106.5 MHz, fuera del hito; conserva el error del reset de PR 11
 - `Contrato de interfaces game_top (CS 256).md`: contrato del equipo

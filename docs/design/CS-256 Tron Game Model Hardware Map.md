@@ -59,7 +59,7 @@ Times are game-clock edges. An input given with tick *t* means it arrived during
 | Release at edge *r* | first launch at *r* + `STEP_TICKS` | `step_cnt` counts 0 to 5 |
 | Launch at edge *k* | READ2 issued at *k* | Headings take the Pending Turns at launch, so later batches are judged against the new Heading (review F3) |
 | Outcome | *k* + 2 (`STEP_LATENCY`) | Codes captured at *k* + 1. New heads, Crash flags, Points, Lives, result and phase all register on the same edge; COMMIT is issued |
-| COMMIT done | seen at *k* + 4 | The next launch needs it, so `MIN_STEP_TICKS` = 4. The agreed 6 leaves two ticks of slack |
+| COMMIT done | seen at *k* + 4 | The next launch needs it, so `MIN_STEP_TICKS` = 4. The model's six-tick default leaves two ticks of slack; the top-level HDL uses eight ticks under ADR 0007 |
 | Crash display | from the outcome edge, `CRASH_TICKS` edges | Then PREPARE for the next Round, or G_MATCH if the Match is decided |
 
 With the agreed values, a Turn has to arrive at least two ticks before the launch edge, or it applies at the next Step. These edges are the current model timing, not a hardware requirement. The HDL may differ where evidence calls for it; review each difference through the Step logs and independent checks rather than regenerating the logs to hide it ([ADR 0005](../adr/0005-build-with-provisional-interfaces.md), proposed).
