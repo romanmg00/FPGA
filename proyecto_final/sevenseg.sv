@@ -1,6 +1,5 @@
-// Seven-segment decoder from the course's homework 1, extended for the Physical Scoreboard.
-// Codes 0-15 are the homework's table unchanged (0-9, A-F). The Scoreboard also needs P, L,
-// G, A and a blank digit, so num is 5 bits wide and those get codes 16-20 (game_pkg).
+// Seven-segment decoder
+// Leters
 // Outputs a-g are active low, as the Nexys A7 needs: 0 lights a segment.
 module sevenseg
     import game_pkg::*;
@@ -29,11 +28,12 @@ module sevenseg
             5'h0D:   disp = 7'b0111101;
             5'h0E:   disp = 7'b1001111;
             5'h0F:   disp = 7'b1000111;
+            // GOAL on the scoreboard.
             GLYPH_P: disp = 7'b1100111;
             GLYPH_L: disp = 7'b0001110;
             GLYPH_G: disp = 7'b1011110;
             GLYPH_A: disp = 7'b1110111;
-            default: disp = 7'b0000000;   // GLYPH_BLANK and the unused codes 21-31
+            default: disp = 7'b0000000;   // Default case blank
         endcase
     end
 

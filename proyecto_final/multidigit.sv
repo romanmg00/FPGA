@@ -1,17 +1,8 @@
-// Eight seven-segment digits from one set of a-g pins, as in the course's homework 1: a 3-bit
+// Eight seven-segment digits from one set of a-g pins
 // counter sel picks one digit at a time, an 8:1 mux sends its code to sevenseg, and a 3:8
-// decoder lights its anode. Digit 0 is the rightmost. Scanning fast enough makes all eight
-// look lit at once.
-//
-// Differences from the homework:
-// - The homework clocked this module from bit 16 of a counter, used as a clock. The design
-//   has one Clocking Wizard and clk_juego, and no other clock (ADR 0006), so here clk is
-//   clk_pix and a counter makes scan_en, one cycle every SLOT_CYCLES: sel only advances then.
-// - Digit codes are 5 bits, for sevenseg's extra glyphs (P, L, G, A, blank).
-//
+// decoder lights its anode.
 // SLOT_CYCLES = 10,432 at 83,455,882 Hz lights each digit for 125 us, so every digit is
-// refreshed at about 1 kHz (1 ms per scan of all eight). SLOT_CYCLES = 1 advances every
-// cycle, as the homework did. Exactly one anode is low in every cycle: no dark periods.
+// refreshed at about 1 kHz (1 ms per scan of all eight).
 module multidigit #(
     parameter int SLOT_CYCLES = 10_432
 ) (
@@ -60,7 +51,7 @@ module multidigit #(
             3'd5: cur_digit = dig5;
             3'd6: cur_digit = dig6;
             3'd7: cur_digit = dig7;
-            default: cur_digit = 5'h00;        // unreachable: sel has 8 values
+            default: cur_digit = 5'h00;
         endcase
     end
 
@@ -75,7 +66,7 @@ module multidigit #(
             3'd5: an_decode = 8'b00100000;
             3'd6: an_decode = 8'b01000000;
             3'd7: an_decode = 8'b10000000;
-            default: an_decode = 8'b00000000;   // unreachable
+            default: an_decode = 8'b00000000;
         endcase
     end
 

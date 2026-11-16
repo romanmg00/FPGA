@@ -2,8 +2,8 @@
 // Outputs: load = keep the bikes at their start cells, run = the bikes move.
 // s_release waits for Start to be released, so a held button cannot start a new round.
 module round_fsm (
-    input  logic       clk, rst, s, c, t,
-    output logic       load, run
+    input  logic clk, rst, s, c, t,
+    output logic load, run
 );
 
     typedef enum logic [1:0] {s_wait, s_run, s_crash, s_release} state_t; // state names
