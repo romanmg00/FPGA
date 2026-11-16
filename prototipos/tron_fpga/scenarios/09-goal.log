@@ -477,7 +477,7 @@ tick=2859 round=1 step=293 phase=PLAY p1=78,14,R p2=76,19,U crash=00 points=14,9
 tick=2865 round=1 step=294 phase=PLAY p1=78,15,D p2=76,18,U crash=00 points=14,9 lives=3,3 goal=20 r0=14,15 r1=25,25 r2=21,32 result=-
 tick=2871 round=1 step=295 phase=PLAY p1=77,15,L p2=76,17,U crash=00 points=14,9 lives=3,3 goal=20 r0=14,15 r1=25,25 r2=21,32 result=-
 tick=2877 round=1 step=296 phase=PLAY p1=76,15,L p2=76,16,U crash=00 points=14,9 lives=3,3 goal=20 r0=14,15 r1=25,25 r2=21,32 result=-
-tick=2883 round=1 step=297 phase=CRASH p1=76,15,L p2=77,16,R crash=10 points=14,12 lives=2,3 goal=20 r0=14,15 r1=25,25 r2=21,32 result=-
+tick=2883 round=1 step=297 phase=CRASH p1=76,15,L p2=76,16,R crash=10 points=14,12 lives=2,3 goal=20 r0=14,15 r1=25,25 r2=21,32 result=-
 tick=3005 round=2 step=0 phase=READY p1=20,27,R p2=59,27,L crash=00 points=14,12 lives=2,3 goal=20 r0=51,9 r1=65,45 r2=36,7 result=-
 tick=3016 round=2 step=1 phase=PLAY p1=21,27,R p2=59,28,D crash=00 points=14,12 lives=2,3 goal=20 r0=51,9 r1=65,45 r2=36,7 result=-
 tick=3022 round=2 step=2 phase=PLAY p1=21,26,U p2=60,28,R crash=00 points=14,12 lives=2,3 goal=20 r0=51,9 r1=65,45 r2=36,7 result=-
@@ -809,7 +809,7 @@ tick=4973 round=1 step=235 phase=PLAY p1=2,36,R p2=61,16,R crash=00 points=12,14
 tick=4979 round=1 step=236 phase=PLAY p1=2,37,D p2=61,17,D crash=00 points=12,14 lives=3,3 goal=20 r0=48,8 r1=48,17 r2=36,27 result=-
 tick=4985 round=1 step=237 phase=PLAY p1=2,38,D p2=62,17,R crash=00 points=12,14 lives=3,3 goal=20 r0=48,8 r1=48,17 r2=36,27 result=-
 tick=4991 round=1 step=238 phase=PLAY p1=1,38,L p2=62,16,U crash=00 points=12,14 lives=3,3 goal=20 r0=48,8 r1=48,17 r2=36,27 result=-
-tick=4997 round=1 step=239 phase=CRASH p1=1,39,D p2=62,16,U crash=01 points=15,14 lives=3,2 goal=20 r0=48,8 r1=48,17 r2=36,27 result=-
+tick=4997 round=1 step=239 phase=CRASH p1=1,38,D p2=62,16,U crash=01 points=15,14 lives=3,2 goal=20 r0=48,8 r1=48,17 r2=36,27 result=-
 tick=5119 round=2 step=0 phase=READY p1=20,27,R p2=59,27,L crash=00 points=15,14 lives=3,2 goal=20 r0=14,15 r1=69,9 r2=25,25 result=-
 tick=5130 round=2 step=1 phase=PLAY p1=20,26,U p2=59,26,U crash=00 points=15,14 lives=3,2 goal=20 r0=14,15 r1=69,9 r2=25,25 result=-
 tick=5136 round=2 step=2 phase=PLAY p1=20,25,U p2=59,25,U crash=00 points=15,14 lives=3,2 goal=20 r0=14,15 r1=69,9 r2=25,25 result=-
@@ -1143,7 +1143,7 @@ tick=7099 round=1 step=270 phase=PLAY p1=61,46,D p2=48,48,L crash=00 points=9,14
 tick=7105 round=1 step=271 phase=PLAY p1=61,47,D p2=47,48,L crash=00 points=9,14 lives=3,3 goal=20 r0=9,24 r1=21,32 r2=48,17 result=-
 tick=7111 round=1 step=272 phase=PLAY p1=60,47,L p2=46,48,L crash=00 points=9,14 lives=3,3 goal=20 r0=9,24 r1=21,32 r2=48,17 result=-
 tick=7117 round=1 step=273 phase=PLAY p1=60,46,U p2=45,48,L crash=00 points=9,14 lives=3,3 goal=20 r0=9,24 r1=21,32 r2=48,17 result=-
-tick=7123 round=1 step=274 phase=CRASH p1=60,46,U p2=44,48,L crash=10 points=9,17 lives=2,3 goal=20 r0=9,24 r1=21,32 r2=48,17 result=-
+tick=7123 round=1 step=274 phase=CRASH p1=60,46,U p2=45,48,L crash=10 points=9,17 lives=2,3 goal=20 r0=9,24 r1=21,32 r2=48,17 result=-
 tick=7245 round=2 step=0 phase=READY p1=20,27,R p2=59,27,L crash=00 points=9,17 lives=2,3 goal=20 r0=36,27 r1=48,8 r2=14,15 result=-
 tick=7256 round=2 step=1 phase=PLAY p1=21,27,R p2=58,27,L crash=00 points=9,17 lives=2,3 goal=20 r0=36,27 r1=48,8 r2=14,15 result=-
 tick=7262 round=2 step=2 phase=PLAY p1=22,27,R p2=57,27,L crash=00 points=9,17 lives=2,3 goal=20 r0=36,27 r1=48,8 r2=14,15 result=-
@@ -1571,7 +1571,7 @@ tick=9789 round=1 step=320 phase=PLAY p1=10,45,L p2=52,26,D crash=00 points=10,1
 tick=9795 round=1 step=321 phase=PLAY p1=10,44,U p2=52,27,D crash=00 points=10,12 lives=3,3 goal=20 r0=48,17 r1=36,27 r2=21,32 result=-
 tick=9801 round=1 step=322 phase=PLAY p1=9,44,L p2=52,28,D crash=00 points=10,12 lives=3,3 goal=20 r0=48,17 r1=36,27 r2=21,32 result=-
 tick=9807 round=1 step=323 phase=PLAY p1=9,43,U p2=52,29,D crash=00 points=10,12 lives=3,3 goal=20 r0=48,17 r1=36,27 r2=21,32 result=-
-tick=9813 round=1 step=324 phase=CRASH p1=9,43,U p2=51,29,L crash=10 points=10,15 lives=2,3 goal=20 r0=48,17 r1=36,27 r2=21,32 result=-
+tick=9813 round=1 step=324 phase=CRASH p1=9,43,U p2=52,29,L crash=10 points=10,15 lives=2,3 goal=20 r0=48,17 r1=36,27 r2=21,32 result=-
 tick=9935 round=2 step=0 phase=READY p1=20,27,R p2=59,27,L crash=00 points=10,15 lives=2,3 goal=20 r0=48,8 r1=14,15 r2=69,9 result=-
 tick=9946 round=2 step=1 phase=PLAY p1=20,26,U p2=59,26,U crash=00 points=10,15 lives=2,3 goal=20 r0=48,8 r1=14,15 r2=69,9 result=-
 tick=9952 round=2 step=2 phase=PLAY p1=20,25,U p2=60,26,R crash=00 points=10,15 lives=2,3 goal=20 r0=48,8 r1=14,15 r2=69,9 result=-

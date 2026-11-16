@@ -78,7 +78,7 @@ Los anchos de video salen de los contadores de la diapositiva 7: `hcnt` llega a 
 | Señal | De → A | Ancho | Nota |
 | --- | --- | --- | --- |
 | `clk_juego` | Contador de 20 bits sobre `clk_pix` → juego | 1 | ~60 Hz |
-| Pasos | interno | — | Un paso cada **6** ticks de `clk_juego` (unas 10 celdas/s). Por el ADR 0007 es un parámetro fijo durante el juego; el [ADR 0010](../docs/adr/0010-six-tick-steps-and-bikes-sliding-between-cells.md) (propuesto) elige 6 tras la prueba en la tarjeta del 15 nov: 8 se veía lento. Es `STEP_TICKS` de `game_top`, que lo pasa a `position_logic` y a `bike_glide`. Cada moto se **dibuja** deslizándose de su celda anterior a la nueva durante el paso; el juego sigue moviéndose por celdas |
+| Pasos | interno | — | Un paso cada **8** ticks de `clk_juego` (7.5 celdas/s). Por el ADR 0007 es un parámetro fijo durante el juego; el [ADR 0010](../docs/adr/0010-bikes-sliding-between-cells.md) (aceptado por Roman el 16 nov) elige 8 con las motos deslizándose: así se ve suave, y la arena cruza de reloj sin excepciones de CDC. Es `STEP_TICKS` de `game_top`, que lo pasa a `position_logic` y a `bike_glide`. Cada moto se **dibuja** deslizándose de su celda anterior a la nueva durante el paso; el juego sigue moviéndose por celdas |
 
 **Arena y memoria** — **Propuesta** (Alan, [issue #38](https://github.com/romanmg00/FPGA/issues/38); módulos y pruebas en `arena_map.sv`, `arena_ctrl.sv` y `arena_link.sv`, todavía sin conectar en `game_top`). El controlador rápido de la arena, `arena_ctrl`, es el **único que escribe** en `arena_map`; `drawcon` lee por el puerto B. Requisitos que cumple: no perder ni repetir pedidos, y que un reset no deje la memoria a medias. Faltan la colocación de premios (G4), los puntos y una foto coherente de las motos para dibujar (X1, issue #30).
 
@@ -210,7 +210,7 @@ Lectura síncrona en los dos puertos, para que Vivado la infiera como BRAM (8192
 
 1. **Giros:** se guarda **un solo giro pendiente**, el último pedido válido contra la dirección actual; uno nuevo reemplaza al anterior. Los giros de 180° y los que repiten la dirección se ignoran sin borrar el pendiente. Fuera del juego (pantalla de choque, espera de Start, pausa) se ignoran.
 2. **Lecturas:** se leen las dos celdas destino **antes de escribir nada**. Chocar con pared, con cualquier estela o con la otra moto es fatal. Ir a la misma celda o cruzarse es choque para las dos.
-3. **Escrituras:** en una moto que sobrevive, la cabeza vieja pasa a estela y se escribe la nueva; puede tomar un premio. Una moto que chocó se queda en su **última celda válida** y pierde una vida.
+3. **Escrituras:** si ninguna choca, en cada moto la cabeza vieja pasa a estela y se escribe la nueva; puede tomar un premio. Si alguna choca, **ninguna se mueve** en ese paso ([ADR 0011](../docs/adr/0011-a-crash-stops-both-bikes.md), propuesto): la que chocó se queda en su **última celda válida** y pierde una vida, y la otra se queda en su celda sin tomar premio.
 4. **Puntos:** premio tomado (+1, +1 o +3) y bono de +3 si solo el otro chocó. Después se revisa la meta.
 5. **Fin:** si alguien llegó a la meta, termina la partida. Si los dos, gana el de más puntos; con los mismos puntos es empate. Si nadie llegó y los dos perdieron su última vida en el mismo paso, se decide igual por puntos.
 
@@ -219,7 +219,7 @@ El movimiento reporta qué pasó con cada moto; rondas y puntos es dueño del ci
 **Estados de la partida** (nombres en `game_pkg.sv`, propuesta):
 
 - `G_IDLE`: al encender, espera Start. Start toma la meta, pone 3 vidas y 0 puntos, prepara paredes, motos y los **tres** premios, y arranca la primera ronda, sin cuenta regresiva.
-- `G_PLAY`: un paso cada `STEP_TICKS` ticks (6, ADR 0007 y ADR 0010).
+- `G_PLAY`: un paso cada `STEP_TICKS` ticks (8, ADR 0007 y ADR 0010).
 - `G_CRASH`: choque que no termina la partida: el juego se congela y las motos chocadas parpadean **~2 s**; Start y los giros se ignoran. Luego se prepara la siguiente ronda y se pasa a `G_READY`.
 - `G_READY`: espera un Start nuevo, sin giros previos ni cuenta regresiva.
 - `G_MATCH`: fin de la partida, con puntos y vidas finales. Si terminó por choque, primero se muestran los 2 s de choque. Un Start nuevo prepara y arranca otra partida.
@@ -300,7 +300,7 @@ package game_pkg;
     localparam int BTN_U = 0, BTN_D = 1, BTN_L = 2, BTN_R = 3, BTN_C = 4;
 
     // Reglas (en ticks de clk_juego, ~60 Hz)
-    localparam int STEP_TICKS     = 6;     // un paso cada 6 ticks (ADR 0007, ADR 0010: prueba en la tarjeta)
+    localparam int STEP_TICKS     = 8;     // un paso cada 8 ticks (ADR 0007, ADR 0010: prueba en la tarjeta)
     localparam int LIVES_START    = 3;
     localparam int REWARD_PTS0    = 1, REWARD_PTS1 = 1, REWARD_PTS2 = 3;
     localparam int SURVIVAL_BONUS = 3;

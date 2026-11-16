@@ -16,3 +16,8 @@ set_false_path -from [get_ports {sw[*]}] -to [get_cells {g_sw[*].u_sync/meta_reg
 ## bike_glide, que son registros (ADR 0010). Esto limita el retardo a un pixel; no hace seguro
 ## el cruce. build_game_top.tcl revisa que el origen no quede vacio.
 set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/draw_*_reg[*]}] -to [get_cells {u_vga_out/pix_*_reg[*]}]
+
+## drawcon (PR #35) tambien calcula la direccion de cada bike_rom (una BRAM por moto, en clk_pix)
+## con esas posiciones y con heading_reg de bike_move (clk_juego), sin cruce explicito (X1, issue
+## #30). Mismo limite de un pixel; build_game_top.tcl revisa los origenes y las 2 BRAM.
+set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/draw_*_reg[*] u_position_logic/u_bike_move*/heading_reg[*]}] -to [get_cells -hierarchical -filter {NAME =~ u_drawcon/bike_rom_*/* && REF_NAME =~ RAMB*}]

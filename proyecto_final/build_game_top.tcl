@@ -45,13 +45,14 @@ proc wait_benches {} {
     if {[llength $failed]} {error "Testbenches failed: $failed (see $out/tests/<name>/run.log)"}
     emit $out/tests/PASS.txt "All testbenches passed"
 }
-# Regla de docs/design/CS-256 Vivado IP Inventory.md: los Wizards son IP generada por Vivado.
-# Primera revision: ningun archivo del diseno define un modulo con el nombre de un Wizard.
+# Regla de docs/design/CS-256 Vivado IP Inventory.md: los Wizards y bike_rom son IP generada
+# por Vivado. Primera revision: ningun archivo del diseno define un modulo con el nombre de una
+# de ellas. Los modelos de sim_clocks/ y sim_models/ solo van a los testbenches.
 proc check_no_handwritten_ip {files} {
     foreach file $files {
         set f [open $file]; set text [read $f]; close $f
-        if {[regexp -line {^\s*module\s+clk_wiz_\w*} $text found]} {
-            error "$file define un Wizard a mano: $found"
+        if {[regexp -line {^\s*module\s+(clk_wiz_\w*|bike_rom)\M} $text found]} {
+            error "$file define a mano un modulo de IP: $found"
         }
     }
 }
@@ -76,6 +77,20 @@ if {![regexp -line {^\s*create_generated_clock\s+-name\s+clk_juego\s.*-divide_by
 if {$xdc_divide != 2 * $clk_juego_n} {
     error "game_top_timing.xdc usa -divide_by $xdc_divide, pero game_top.sv pide 2 * $clk_juego_n = [expr {2 * $clk_juego_n}]"
 }
+# sim_models/bike_rom.sv y game_top_tb leen los datos de sprites/bike_synth.coe, la misma
+# fuente que la IP, convertidos aqui a .mem para $readmemh.
+proc coe_to_mem {coe mem words} {
+    set text [read_file_text $coe]
+    if {![regexp {memory_initialization_radix\s*=\s*16\s*;} $text]} {error "$coe no esta en base 16"}
+    if {![regexp {memory_initialization_vector\s*=([^;]*);} $text -> vector]} {error "$coe no tiene memory_initialization_vector"}
+    set values [regexp -all -inline {[0-9A-Fa-f]+} $vector]
+    if {[llength $values] != $words} {error "$coe tiene [llength $values] palabras; se esperaban $words"}
+    emit $mem [join $values \n]
+}
+file mkdir $out/tests
+set bike_mem $out/tests/bike_synth.mem
+coe_to_mem $here/sprites/bike_synth.coe $bike_mem 1024
+
 start_bench sync_2ff_tb sync_2ff_tb "PASS sync_2ff_tb" [list $here/sync_2ff_tb.sv $here/sync_2ff.sv]
 start_bench board_reset_sync_tb board_reset_sync_tb "PASS board_reset_sync_tb" [list $here/board_reset_sync_tb.sv $here/board_reset_sync.sv]
 start_bench vga_out_tb vga_out_tb "PRUEBAS OK" [list $here/vga_out_tb.sv $here/vga_out.sv $here/counters.sv]
@@ -95,8 +110,8 @@ foreach ticks {6 8} {
 }
 foreach scenario {idle steps turns head_on wall_crash resets_short reset_long} {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
-        [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv] $design] \
-        "-testplusarg scenario=$scenario"
+        [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
+        "-testplusarg scenario=$scenario -testplusarg 'bike_mem=$bike_mem'"
 }
 
 proc build_bitstream {} {
@@ -131,6 +146,33 @@ if {[llength $ip] != 1 || ![string match xilinx.com:ip:clk_wiz:* [get_property I
 # archivo: este script no lo lee, asi que si cambia hay que actualizarlos aqui.
 if {[get_property CONFIG.MMCM_CLKFBOUT_MULT_F $ip] != 28.375 || [get_property CONFIG.MMCM_DIVCLK_DIVIDE $ip] != 4 || [get_property CONFIG.MMCM_CLKOUT0_DIVIDE_F $ip] != 8.5} {
     error "clk_wiz_0 no da los valores esperados (M 28.375, D 4, O 8.5)"
+}
+
+# bike_rom (Block Memory Generator) tambien se genera aqui, con los valores de
+# ip/bike_rom/bike_rom.tcl y los datos de sprites/bike_synth.coe. ip/bike_rom/bike_rom.xci se
+# queda como registro del proyecto de Roman (Vivado 2020.2); este script no lo lee.
+create_ip -name blk_mem_gen -vendor xilinx.com -library ip -module_name bike_rom -dir $out/ip
+set rom [get_ips bike_rom]
+set_property -dict [list CONFIG.Interface_Type Native CONFIG.Memory_Type Single_Port_ROM \
+    CONFIG.Write_Width_A 12 CONFIG.Read_Width_A 12 CONFIG.Write_Depth_A 1024 CONFIG.Enable_A Use_ENA_Pin \
+    CONFIG.Register_PortA_Output_of_Memory_Primitives true CONFIG.Register_PortA_Output_of_Memory_Core false \
+    CONFIG.Use_RSTA_Pin false CONFIG.Port_A_Write_Rate 0 CONFIG.Load_Init_File true \
+    CONFIG.Coe_File $here/sprites/bike_synth.coe] $rom
+set_property generate_synth_checkpoint false [get_files */bike_rom.xci]
+generate_target all $rom
+emit $out/bike_rom-properties.txt [report_property -return_string $rom]
+# Segunda revision, para la ROM: es Block Memory Generator del catalogo, 1024 x 12, con el
+# registro de salida de la primitiva (2 ciclos de latencia, como sim_models/bike_rom.sv) y
+# los datos del .coe del repositorio. Valores copiados de bike_rom.tcl, que este script no lee.
+if {[llength $rom] != 1 || ![string match xilinx.com:ip:blk_mem_gen:* [get_property IPDEF $rom]]} {
+    error "bike_rom no es IP del catalogo: [get_property IPDEF $rom]"
+}
+foreach {key want} {Memory_Type Single_Port_ROM Write_Depth_A 1024 Write_Width_A 12 Read_Width_A 12
+        Register_PortA_Output_of_Memory_Primitives true Register_PortA_Output_of_Memory_Core false
+        Load_Init_File true} {
+    if {[get_property CONFIG.$key $rom] ne $want} {
+        error "bike_rom: $key es [get_property CONFIG.$key $rom], se esperaba $want"
+    }
 }
 
 read_verilog -sv $design
@@ -173,6 +215,18 @@ set bike_cells [get_cells -quiet {u_glide*/draw_*_reg[*]}]
 emit $out/bike_cells.txt "[llength $bike_cells] registros: [lsort $bike_cells]"
 if {[llength $bike_cells] == 0} {
     error "game_top_timing.xdc: el set_max_delay no encuentra los registros draw_* de bike_glide"
+}
+# El segundo set_max_delay va de draw_* y de heading_reg de bike_move a las BRAM de bike_rom.
+# Cada origen se revisa aparte, para que un cambio de nombres no deje uno sin restriccion. Solo
+# P1 gira (turn_req2 = 0), asi que la sintesis quita los heading_reg de P2.
+set heading_cells [get_cells -quiet {u_position_logic/u_bike_move*/heading_reg[*]}]
+set rom_cells [get_cells -quiet -hierarchical -filter {NAME =~ u_drawcon/bike_rom_*/* && REF_NAME =~ RAMB*}]
+emit $out/bike_rom_cells.txt "[llength $heading_cells] registros heading: [lsort $heading_cells]\n[llength $rom_cells] BRAM: [lsort $rom_cells]"
+if {[llength $heading_cells] == 0} {
+    error "game_top_timing.xdc: el set_max_delay de bike_rom no encuentra los heading_reg de bike_move"
+}
+if {[llength $rom_cells] != 2} {
+    error "game_top_timing.xdc: el set_max_delay de bike_rom deberia llegar a 2 BRAM (una por moto), no a [llength $rom_cells]"
 }
 
 # Lista de reportes de CS-256 Official FPGA Coding Practices.

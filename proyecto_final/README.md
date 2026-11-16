@@ -53,11 +53,11 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
   `turn_req2` espera el teclado. `position_logic_tb` pasa en Verilator; probada en la tarjeta
   el 15 de noviembre con `game_top_two_bikes.bit` (PR #25)
 - [x] **Paso 6c:** intervalo del paso (ADR 0007, issue #22). En la tarjeta, el 15 de noviembre,
-  8 ticks se veían lentos y a saltos; se eligió **6** (unas 10 celdas/s) con las motos
-  deslizándose entre celdas ([ADR 0010](../docs/adr/0010-six-tick-steps-and-bikes-sliding-between-cells.md),
-  propuesto; PR #28). `STEP_TICKS` vive en `game_top`; cambiarlo de nuevo es una línea
-- [x] **Paso 6e:** `bike_glide` dibuja cada moto avanzando unos píxeles por tick (0, 3, 5, 8, 11,
-  13, 16 con 6 ticks) hacia su celda; el juego sigue por celdas y lo dibujado va un paso atrás.
+  8 ticks se veían lentos y a saltos. Con las motos deslizándose entre celdas se ven suaves, y
+  Roman eligió **8** (7.5 celdas/s) el 16 de noviembre
+  ([ADR 0010](../docs/adr/0010-bikes-sliding-between-cells.md), aceptado; PRs #28 y #35). `STEP_TICKS` vive en `game_top`; cambiarlo de nuevo es una línea
+- [x] **Paso 6e:** `bike_glide` dibuja cada moto avanzando unos píxeles por tick (2 px por tick
+  con 8 ticks) hacia su celda; el juego sigue por celdas y lo dibujado va un paso atrás.
   Su salida es un registro, así que la cuenta no entra a la ruta de `clk_pix`
 - [ ] **Paso 6d:** choque con estelas y premios, leyendo de `arena_map` las 4 celdas vecinas de cada
   cabeza (sección 3 del contrato, issue #38)
@@ -91,7 +91,7 @@ probaron también las paredes y el reset repetido. Ese archivo ya no está en el
 - `game_top.sv`: tope del diseño. Conecta el Clocking Wizard, el contador de `clk_juego`, los sincronizadores y los bloques de abajo
 - `position_logic.sv`: las dos motos, en `clk_juego`: control de ronda, ritmo del paso, giros y choques
 - `round_fsm.sv`: ronda provisional: espera Start, corre, pausa tras un choque y espera que se suelte Start
-- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (6, ADR 0010) y la pausa de choque (120)
+- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (8, ADR 0010) y la pausa de choque (120)
 - `bike_glide.sv`: posición dibujada de una moto, que se desliza de su celda anterior a la nueva durante un paso (ADR 0010); una instancia por moto
 - `bike_move.sv`: celda, dirección y giro pendiente de una moto; se instancia una vez por moto
 - `arena_map.sv`: memoria de la arena, una palabra de 4 bits por celda; puerto A de `arena_ctrl` (1 ciclo), puerto B de `drawcon` (2 ciclos)
@@ -105,11 +105,12 @@ probaron también las paredes y el reset repetido. Ese archivo ya no está en el
 - `game_top.xdc`: pines y configuración de la tarjeta para `game_top`
 - `game_top_timing.xdc`: reloj generado de `clk_juego` y excepciones de temporización; solo para implementación
 - `ip/clk_wiz_0/clk_wiz_0.xci`: IP del reloj de píxel para el proyecto de Roman; `build_game_top.tcl` no lo lee y genera el Wizard. Ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
-- `game_top_tb.sv`: revisa `game_top` desde sus pines, con 6 escenarios. Todavía describe el bloque de antes del PR #21 (issue #24)
+- `game_top_tb.sv`: revisa `game_top` desde sus pines, con 7 escenarios. Espera las motos dibujadas desde `bike_synth.coe`, giradas con su dirección, con el corrimiento de 2 px de `drawcon` (sin lectura adelantada) como desviación conocida: `SPRITE_SHIFT = 2`, que vuelve a 0 cuando `drawcon` lea adelantado
 - `arena_map_tb.sv`, `arena_ctrl_tb.sv`, `arena_tb.sv`: pruebas de la arena; `arena_tb` usa los dos relojes y corre con 6 y 8 ticks por paso
 - `position_logic_tb.sv`, `round_fsm_tb.sv`, `step_counter_tb.sv`, `bike_move_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
 - `sim_clocks/`: relojes ideales **solo para simulación**. La síntesis usa siempre la IP que genera Vivado; ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
-- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`. Corre también `round_fsm_tb`, `step_counter_tb`, `bike_move_tb`, `bike_glide_tb`, los 7 escenarios de `game_top_tb` (PR #28) y las 4 pruebas de la arena
+- `sim_models/bike_rom.sv`: modelo de `bike_rom` **solo para simulación**, con los mismos puertos y 2 ciclos de latencia. Lee el `.mem` que `build_game_top.tcl` saca de `sprites/bike_synth.coe` (`-testplusarg bike_mem=<archivo>`)
+- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`. Corre también `round_fsm_tb`, `step_counter_tb`, `bike_move_tb`, `bike_glide_tb`, los 7 escenarios de `game_top_tb` (PR #28), estos con `sim_models/bike_rom.sv`, y las 4 pruebas de la arena. En `full` genera `clk_wiz_0` y `bike_rom` del catálogo de IP
 - `bitstreams/`: bitstreams probados y lo que se comprobó de cada uno
 - `prototypes/vga_106mhz/`: experimento a 106.5 MHz, fuera del hito; conserva el error del reset de PR 11
 - `Contrato de interfaces game_top (CS 256).md`: contrato del equipo
