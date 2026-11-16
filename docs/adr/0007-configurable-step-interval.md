@@ -62,11 +62,11 @@ routine service-dependent movement timing is not the selected behavior.
 
 PR #26 (15 November 2026) made `proyecto_final/` step every eight ticks. The
 board playtest the same day found eight too slow, and
-[ADR 0010](0010-six-tick-steps-and-bikes-sliding-between-cells.md) (proposed)
-selects six, as a `STEP_TICKS` parameter of `game_top`, with the Bikes drawn
-sliding between Cells. The interface contract, the shared model
-(`prototipos/tron_fpga/model/params.py`) and the `core_blocks` prototype's
-`game_pkg.sv` all use six. When implementing the selected interval, reconcile the shared
+[ADR 0010](0010-bikes-sliding-between-cells.md) proposed six. Roman accepted
+it on 16 November with eight, once the Bikes slide between Cells. The
+interval is a `STEP_TICKS` parameter of `game_top`. The interface contract
+uses eight; the shared model (`prototipos/tron_fpga/model/params.py`) and the
+`core_blocks` prototype's `game_pkg.sv` still use six. When implementing the selected interval, reconcile the shared
 contract, model configuration, HDL parameters and timing expectations. Review
 intentional Step-log changes explicitly rather than regenerating logs only
 to hide differences.

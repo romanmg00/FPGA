@@ -22,6 +22,16 @@ cd ~/FPGA
 git pull
 ```
 
+Para cambiar a una rama nueva que se creó en GitHub (por ejemplo `hdl/sprites`):
+
+```bash
+cd ~/FPGA
+git fetch
+git checkout hdl/sprites
+```
+
+`git fetch` baja la lista de ramas nuevas sin cambiar tus archivos; `git checkout` cambia los archivos a esa rama. Después, en esa rama, basta `git pull` para traer lo nuevo.
+
 Cuando la rama ya esté fusionada en `main`:
 
 ```bash
@@ -64,7 +74,7 @@ set_property top game_top [current_fileset]
 - `-norecurse` deja fuera las subcarpetas. **`sim_clocks/clk_wiz_0.sv` nunca entra a la síntesis**: es un reloj ideal para simulación con el mismo nombre que el IP real. `prototypes/` tampoco es del juego.
 - `add_files` referencia los archivos, no los copia: después de un `git pull`, Vivado ve la versión nueva.
 - Si el proyecto tiene copias viejas de estos archivos (creado con *Copy sources into project*), quítalas antes con el bloque de arriba para no tener módulos duplicados.
-- El IP `clk_wiz_0` y las restricciones (`game_top.xdc`, `game_top_timing.xdc`) se quedan como están en el proyecto.
+- Los IP (`clk_wiz_0`, `bike_rom`, `reward_rom`) se quedan como están en el proyecto.
 
 Para ver qué archivos quedaron cargados:
 
@@ -72,7 +82,69 @@ Para ver qué archivos quedaron cargados:
 get_files -norecurse -of_objects [get_filesets sources_1]
 ```
 
-Debe salir la lista de `.sv` desde `~/FPGA/proyecto_final` y el `.xci` de `clk_wiz_0`, sin rutas dentro de la carpeta del proyecto (`.srcs`).
+Debe salir la lista de `.sv` desde `~/FPGA/proyecto_final` y los `.xci` de los IP, sin rutas dentro de la carpeta del proyecto (`.srcs`).
+
+### Restricciones (`.xdc`)
+
+Para ver qué `.xdc` usa el proyecto:
+
+```tcl
+get_files -of_objects [get_filesets constrs_1]
+```
+
+Deben salir los dos del clon: `/home/<usuario>/FPGA/proyecto_final/game_top.xdc` (pines) y `game_top_timing.xdc` (reloj `clk_juego`). Si sale otra ruta, por ejemplo una copia en otra carpeta, cámbialos por los del clon:
+
+```tcl
+remove_files -fileset constrs_1 [get_files -of_objects [get_filesets constrs_1]]
+add_files -fileset constrs_1 -norecurse [glob ~/FPGA/proyecto_final/game_top*.xdc]
+```
+
+- `glob` es necesario: dentro de `[list ...]` Tcl no expande `~` y Vivado responde `File or Directory '~/FPGA/...' does not exist`. Una ruta escrita a mano debe empezar con `/home/...`.
+- `remove_files` solo los saca del proyecto; no borra nada del disco.
+- Si lanzaste una síntesis antes de arreglar las restricciones, esa corrida no sirve: vuelve a correr la sección 4.
+
+### IP del proyecto
+
+```tcl
+get_ips
+```
+
+Deben salir `clk_wiz_0`, `bike_rom` y `reward_rom`. Si falta alguna ROM, créala en este proyecto:
+
+```tcl
+source ~/FPGA/proyecto_final/ip/bike_rom/bike_rom.tcl
+source ~/FPGA/proyecto_final/ip/reward_rom/reward_rom.tcl
+```
+
+## Revisar antes de sintetizar
+
+Si la placa no muestra el cambio nuevo, revisa en este orden.
+
+1. El clon tiene el código nuevo (terminal):
+
+   ```bash
+   cd ~/FPGA
+   git status
+   git log --oneline -1
+   ```
+
+   `git status` dice la rama y si estás al día; `git log` muestra el último commit, que debe ser el mismo que en GitHub. Si no, `git pull`.
+
+2. Vivado usa los archivos del clon y tiene los IP: los tres bloques de arriba (`get_files` de `sources_1`, `get_files` de `constrs_1`, `get_ips`).
+
+3. El `.bit` viene de la corrida nueva (Tcl):
+
+   ```tcl
+   get_property STATUS [get_runs impl_1]
+   ```
+
+   Debe decir `write_bitstream Complete!`. Para ver la hora del `.bit` (terminal; cambia la carpeta por la de tu proyecto):
+
+   ```bash
+   ls -l ~/DigitalDesignsFinalProject/DigitalDesignsFinalProject.runs/impl_1/*.bit
+   ```
+
+   La hora debe ser posterior a tu último `git pull` y al último cambio de restricciones.
 
 ## 3. Después de cada `git pull`
 

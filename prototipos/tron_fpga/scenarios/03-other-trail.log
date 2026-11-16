@@ -24,4 +24,4 @@ tick=139 round=1 step=22 phase=PLAY p1=41,26,R p2=37,27,L crash=00 points=0,0 li
 tick=145 round=1 step=23 phase=PLAY p1=42,26,R p2=36,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
 tick=151 round=1 step=24 phase=PLAY p1=43,26,R p2=35,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
 tick=157 round=1 step=25 phase=PLAY p1=44,26,R p2=34,27,L crash=00 points=0,0 lives=3,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
-tick=163 round=1 step=26 phase=CRASH p1=44,26,D p2=33,27,L crash=10 points=0,3 lives=2,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-
+tick=163 round=1 step=26 phase=CRASH p1=44,26,D p2=34,27,L crash=10 points=0,3 lives=2,3 goal=10 r0=39,32 r1=10,9 r2=1,12 result=-

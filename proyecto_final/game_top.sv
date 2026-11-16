@@ -11,9 +11,9 @@ module game_top (
     logic [10:0] glide1_x, glide1_y;       // bike_glide -> drawcon: drawn position, registered
     logic [10:0] glide2_x, glide2_y;
 
-    // Ticks of clk_juego per step (ADR 0007, ADR 0010): 6 gives about 10 Cells/s. One value
+    // Ticks of clk_juego per step (ADR 0007, ADR 0010): 8 gives about 7.5 Cells/s. One value
     // for position_logic and both bike_glide, so the slide always lasts exactly one step.
-    localparam int STEP_TICKS = 6;
+    localparam int STEP_TICKS = 8;
     logic [10:0] curr_x, curr_y;
     logic [3:0]  draw_r, draw_g, draw_b;
     logic [1:0]  heading1, heading2;
@@ -83,9 +83,9 @@ module game_top (
         .blkpos1_x(blkpos1_x), 
         .blkpos1_y(blkpos1_y),
         .blkpos2_x(blkpos2_x), 
-        .blkpos2_y(blkpos2_y) 
-        //.heading1(),
-        //.heading2()            // for the sprites, later
+        .blkpos2_y(blkpos2_y), 
+        .heading1(heading1),
+        .heading2(heading2)
     );
 
     // Each bike's square slides a few pixels every tick toward its current Cell (ADR 0010).
@@ -113,6 +113,7 @@ module game_top (
 
     drawcon u_drawcon(
         // Inputs
+        .clk(clk_pix),
         .curr_x(curr_x),
         .curr_y(curr_y),
         .blkpos1_x(glide1_x), 
@@ -120,8 +121,8 @@ module game_top (
         .blkpos2_x(glide2_x),
         .blkpos2_y(glide2_y),
         .sw(sw_sync),
-        //.heading1(heading1),
-        //.heading2(heading2),
+        .heading1(heading1),
+        .heading2(heading2),
         // Outputs
         .draw_r(draw_r),
         .draw_g(draw_g),
