@@ -53,14 +53,17 @@ can collect a Reward". The locked records are not edited.
 - **Drawing:** in a Crash Step neither Cell changes, so `bike_glide` starts no
   slide. ADR 0010's "the square finishes its slide into the last Cell and stops"
   now means the slide of the Step before the Crash.
-- **Arena:** a Crash Step writes only the Crash code at each crashed Bike's
-  head. The survivor's head stays a Head Cell. The Arena request after a Step
-  may still send each Bike's old and new head; for a Bike that did not move
-  they are the same Cell, and writing Trail then Head leaves it a Head Cell.
+- **Arena:** a Crash Step changes no Cell. No Crash code is written (code 6
+  is unused, contract §3), so each Bike's head, crashed or not, stays a Head
+  Cell in its Bike's colour. The Arena request after a Step may still send each
+  Bike's old and new head; for a Bike that did not move they are the same Cell,
+  and writing Trail then Head leaves it a Head Cell.
 - **Points:** a Reward ahead of the survivor is not collected. A survivor can
   still reach the Points Goal through the Survival Bonus.
 - **Shared model:** `prototipos/tron_fpga/model/step_unit.py` follows this
   rule ([ADR 0004](0004-shared-headless-model-base.md)). Its M2 scenario logs
-  were rebuilt: only Crash lines change, each by the survivor's Cell.
+  were rebuilt: only Crash lines change, each by the survivor's Cell. Its
+  `step_resolve` writes nothing in a Crash Step, so its Arena image matches
+  the HDL's.
 - **Not updated:** Roman's viewer (`prototipos/tron/`) and the `core_blocks`
   prototype keep the old rule; neither is part of the delivered design.

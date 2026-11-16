@@ -186,7 +186,7 @@ class StepResolveTests(unittest.TestCase):
     def test_head_on_same_cell_crashes_both(self):
         out = self.resolve(((40, 20), (41, 19)), (RIGHT, DOWN), (EMPTY, EMPTY))
         self.assertEqual((out.crashed, out.head_on), ((True, True), True))
-        self.assertEqual(out.writes, ((40, 20, arena_map.CRASH), (41, 19, arena_map.CRASH)))
+        self.assertEqual(out.writes, ())                # both heads keep their head codes
 
     def test_head_on_swap_crashes_both(self):
         out = self.resolve(((40, 20), (41, 20)), (RIGHT, LEFT), (HEAD_P2, HEAD_P1))
@@ -196,12 +196,13 @@ class StepResolveTests(unittest.TestCase):
         out = self.resolve(((40, 20), (42, 20)), (RIGHT, LEFT), (REWARD_SLOT0 + 2,) * 2)
         self.assertEqual((out.crashed, out.collected), ((True, True), (None, None)))
 
-    def test_a_crash_stops_both_and_only_the_crashed_bike_writes(self):
+    def test_a_crash_stops_both_and_writes_nothing(self):
         # ADR 0011: the survivor stays on its head Cell and skips the Reward ahead.
+        # No Crash code: the crashed head keeps its head code, so the Arena is unchanged.
         out = self.resolve(((40, 20), (60, 20)), (RIGHT, LEFT), (WALL, REWARD_SLOT0 + 1))
         self.assertEqual(out.heads, ((40, 20), (60, 20)))
         self.assertEqual(out.collected, (None, None))
-        self.assertEqual(out.writes, ((40, 20, arena_map.CRASH),))
+        self.assertEqual(out.writes, ())
 
 
 class TurnUnitTests(unittest.TestCase):
@@ -410,6 +411,18 @@ class RoundTests(unittest.TestCase):
             step(game)
             self.assertEqual(game.crashed, (True, False), heading)
             self.assertEqual(game.step.head[0], cell)
+
+    def test_a_crash_step_leaves_the_arena_unchanged(self):
+        # No Crash code (contract section 3) and ADR 0011: both heads keep their
+        # head codes, so the whole Arena image is the same as the HDL's.
+        game = started()
+        arrange(game, 0, (40, 5), UP)
+        before = bytes(game.grid.words)
+        step(game)
+        for _ in range(4):                                  # the COMMIT completes
+            tick(game)
+        self.assertEqual((game.phase, game.crashed), (CRASH, (True, False)))
+        self.assertEqual(bytes(game.grid.words), before)
 
     def test_wall_crash_costs_a_life_and_pays_the_survival_bonus(self):
         game = started()
@@ -763,9 +776,8 @@ class LongGameTests(unittest.TestCase):
                     self.assertTrue(GEOMETRY.in_interior(*cell))
                     self.assertEqual(game.grid.read(*cell), REWARD_SLOT0 + slot)
             if game.phase != PREP:
-                for i, head in enumerate(game.step.head):
-                    code = arena_map.CRASH if game.crashed[i] else arena_map.HEAD[i]
-                    self.assertEqual(game.grid.read(*head), code)
+                for i, head in enumerate(game.step.head):    # crashed heads too
+                    self.assertEqual(game.grid.read(*head), arena_map.HEAD[i])
             self.assertLessEqual(max(game.points), params.POINTS_MAX)
             self.assertTrue(all(0 <= n <= 3 for n in game.lives))
             if game.phase == PLAY:
