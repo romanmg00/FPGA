@@ -85,6 +85,14 @@ start_bench step_counter_tb step_counter_tb "PRUEBAS OK" [list $here/step_counte
 start_bench bike_move_tb bike_move_tb "PRUEBAS OK" [list $here/bike_move_tb.sv $here/bike_move.sv]
 start_bench position_logic_tb position_logic_tb "PRUEBAS OK" [concat [list $here/position_logic_tb.sv] $movement]
 start_bench bike_glide_tb bike_glide_tb "PASS bike_glide_tb" [list $here/bike_glide_tb.sv $here/bike_glide.sv]
+# Arena: arena_map and arena_ctrl (clk_pix) and arena_link (clk_juego). Not in game_top yet.
+set arena [list $here/sync_2ff.sv $here/arena_map.sv $here/arena_ctrl.sv $here/arena_link.sv]
+start_bench arena_map_tb arena_map_tb "PASS arena_map_tb" [list $here/arena_map_tb.sv $here/arena_map.sv]
+start_bench arena_ctrl_tb arena_ctrl_tb "PASS arena_ctrl_tb" [concat [list $here/arena_ctrl_tb.sv] $arena]
+foreach ticks {6 8} {
+    start_bench arena_tb_s$ticks arena_tb "PASS arena_tb STEP_TICKS=$ticks" \
+        [concat [list $here/arena_tb.sv] $arena] "-testplusarg step_ticks=$ticks"
+}
 foreach scenario {idle steps turns head_on wall_crash resets_short reset_long} {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
         [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv] $design] \
