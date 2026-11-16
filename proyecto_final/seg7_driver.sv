@@ -20,7 +20,7 @@ module seg7_driver #(parameter int COUNT_BITS = 17) (   // multidigit's scan cou
             2'd1:                        // Lives:  L 2 0 n   L 1 0 n
             begin
                 dig7 = 4'd11;            // L
-                dig6 = 4'd2;             // 0
+                dig6 = 4'd2;
                 dig5 = 4'd0;
                 dig4 = lives_p2;
                 dig3 = 4'd11;            // L
