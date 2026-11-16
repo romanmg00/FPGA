@@ -1,9 +1,6 @@
-// Which view the Scoreboard shows, on clk_juego (spec, Physical Scoreboard; ADR 0008).
-// Points and Lives alternate, VIEW_TICKS ticks each (180, about 3 s). While waiting for a new
-// Match (before the first one, and at Match-over), the Goal view joins them:
-// Points -> Lives -> Goal -> Points. A change of {SW15, SW14} while waiting jumps to the Goal
-// view and restarts its time, so the switches show their effect at once. A new Match starts
-// on Points. Views: 0 Points, 1 Lives, 2 Goal (seg7_driver uses the same numbers).
+// Scoreboard view on clk_juego: 0 Points, 1 Lives, 2 Goal, 180 ticks (3 s) each. Goal joins
+// only while waiting for a new Match, where a {SW15, SW14} change jumps to it; a new Match
+// starts on Points.
 module seg7_view #(parameter int VIEW_TICKS = 180) (   // 180 ticks at 59.99997 Hz = 3.0 s
     input  logic       clk,         // clk_juego
     input  logic       rst,

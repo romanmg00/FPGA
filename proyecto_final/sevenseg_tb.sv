@@ -1,6 +1,5 @@
-// Self-checking bench for sevenseg: all 16 codes. The expected segments of each glyph are
-// written as the letters of the lit segments (a top, b top right, c bottom right, d bottom,
-// e bottom left, f top left, g middle), from the glyph drawings, not copied from the design.
+// Self-checking bench for sevenseg: all 16 codes against the segments each glyph should
+// light, written from the glyph drawings.
 module sevenseg_tb;
 
     logic [3:0] num;
@@ -13,7 +12,8 @@ module sevenseg_tb;
         $fatal(1, "sevenseg_tb failed");
     endfunction
 
-    // Letters of the lit segments to the active-low pins {a, b, c, d, e, f, g}.
+    // Letters of the lit segments (a top, b top right, c bottom right, d bottom, e bottom left,
+    // f top left, g middle) to the active-low pins {a, b, c, d, e, f, g}.
     function automatic logic [6:0] pins_for(string lit);
         logic [6:0] on = '0;   // bit 6 = a ... bit 0 = g
         for (int i = 0; i < lit.len(); i++)

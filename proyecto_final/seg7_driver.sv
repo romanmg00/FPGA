@@ -1,11 +1,6 @@
-// The Physical Scoreboard on the eight 7-segment digits, on clk_pix (contract section 4,
-// ADR 0008). It turns the values into eight digit codes and multidigit scans them.
-// Left (dig7) to right (dig0):
-//   Points  P 2 n n P 1 n n    P2 on an[7:4], P1 on an[3:0]; two decimal digits each
-//   Lives   L 2 0 n L 1 0 n    with the leading zero
-//   Goal    G O A L _ _ n 0    the goal {SW15, SW14} selects: 10, 20, 30 or 40
-// Codes as in sevenseg: 0-9 digits, 10 P, 11 L, 12 G, 13 A, 15 blank. The inputs must be
-// clk_pix registers that change together: game_top crosses them from clk_juego.
+// Scoreboard on clk_pix: turns Points, Lives and the goal into the eight digits of the view
+// (P2 on the left four, P1 on the right four) and multidigit scans them.
+// Inputs must already be clk_pix registers.
 module seg7_driver #(parameter int COUNT_BITS = 17) (   // multidigit's scan counter
     input  logic       clk,                    // clk_pix
     input  logic       rst,

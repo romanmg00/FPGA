@@ -1,6 +1,5 @@
-// Seven-segment decoder from homework 1. Codes 0-9 show the digits; instead of the hex
-// letters A-F, codes 10-13 show the Scoreboard's letters P, L, G, A, and 14-15 are blank.
-// Outputs a-g are active low, as the Nexys A7 needs: 0 lights a segment.
+// Seven-segment decoder: num 0-9 shows the digit, 10-13 show P, L, G, A for the Scoreboard
+// and 14-15 are blank. Outputs a-g are active low (0 lights a segment).
 module sevenseg(
     input  logic [3:0] num,
     output logic a, b, c, d, e, f, g

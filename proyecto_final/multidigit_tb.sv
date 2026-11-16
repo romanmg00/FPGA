@@ -1,10 +1,5 @@
-// Self-checking bench for multidigit, from its pins only. Two instances share the digit codes:
-// - fast, COUNT_BITS = 2: every cycle exactly one anode is low (no dark periods), its
-//   segments show that digit's current code, the scan goes 0, 1, ..., 7, 0 and each digit
-//   stays lit exactly 2^COUNT_BITS cycles. Frames are read back as text, dig7 on the left.
-// - real, the default COUNT_BITS (17): the same checks over more than one full scan, to
-//   measure the time each digit gets on the board.
-// Segments are decoded with a table written from the glyph drawings, not from sevenseg.
+// Self-checking bench for multidigit, from its pins: one low anode every cycle, the right
+// glyph, scan order, digit time (COUNT_BITS = 2 and the default 17) and whole frames.
 module multidigit_tb;
     localparam int FAST_SLOT = 4;         // 2^2
     localparam int REAL_SLOT = 131_072;   // 2^17: 1.57 ms per digit at 83,455,882 Hz
@@ -35,6 +30,7 @@ module multidigit_tb;
     endfunction
 
     // Active-low pins {a, ..., g} to the character they show; "?" if no glyph matches.
+    // Written from the glyph drawings, not from sevenseg.
     function automatic byte decode(logic [6:0] pins);
         case (~pins)       // abcdefg, 1 = lit
             7'b1111110: return "0";   7'b0110000: return "1";   7'b1101101: return "2";

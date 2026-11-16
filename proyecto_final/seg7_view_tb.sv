@@ -1,9 +1,5 @@
-// Self-checking bench for seg7_view: one block per rule of the spec's Physical Scoreboard and
-// ADR 0008. Each clk edge is one clk_juego tick; inputs change between edges, as clk_juego
-// registers would. The view after every edge (0 Points, 1 Lives, 2 Goal) is logged as P, L
-// or G, and each block compares
-// the log with the trace its rule asks for. fast has VIEW_TICKS = 4, so every view lasts
-// 4 letters; real has the default (180, about 3 s) and is measured at the end.
+// Self-checking bench for seg7_view: one expected view trace (P, L, G per tick) for each
+// Scoreboard rule, with VIEW_TICKS = 4 and the default 180.
 module seg7_view_tb;
     localparam int FAST_TICKS = 4;
 
@@ -40,7 +36,7 @@ module seg7_view_tb;
         return s;
     endfunction
 
-    // The view after every clock edge.
+    // The view after every clock edge (one clk_juego tick). Inputs change between edges.
     string fast_log = "", real_log = "";
     always begin
         @(posedge clk);

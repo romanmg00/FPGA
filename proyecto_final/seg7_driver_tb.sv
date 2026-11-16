@@ -1,8 +1,5 @@
-// Self-checking bench for seg7_driver, from its pins only, with COUNT_BITS = 1. Every cycle
-// exactly one anode is low. Each check reads one whole scan back as eight characters, dig7
-// first, with a segment table written from the glyph drawings, and compares it with the
-// text the spec and ADR 0008 give for that view (built with $sformatf, not by the design's
-// arithmetic). seg is decoded as seg[0] = a ... seg[6] = g.
+// Self-checking bench for seg7_driver, from its pins (COUNT_BITS = 1): every view read back
+// as eight characters, with Points 0-63, Lives 0-3 and the four goals.
 module seg7_driver_tb;
     logic       clk = 1'b0, rst = 1'b1;
     logic [5:0] points_p1 = '0, points_p2 = '0;
@@ -20,6 +17,7 @@ module seg7_driver_tb;
     endfunction
 
     // Active-low pins {a, ..., g} to the character they show; "?" if no glyph matches.
+    // Written from the glyph drawings; the pins are read as seg[0] = a ... seg[6] = g.
     function automatic byte decode(logic [6:0] pins);
         case (~pins)       // abcdefg, 1 = lit
             7'b1111110: return "0";   7'b0110000: return "1";   7'b1101101: return "2";

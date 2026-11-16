@@ -1,10 +1,6 @@
-// Eight seven-segment digits from one set of a-g pins, as in homework 1: the 3-bit counter
-// sel picks one digit at a time, an 8:1 mux sends its code to sevenseg, and a 3:8 decoder
-// lights its anode. Digit 0 is the rightmost.
-// The homework used bit 16 of a 17-bit counter as this module's clock. Here clk is clk_pix,
-// because the design has no other clocks (ADR 0006): the same 17-bit counter runs on clk_pix
-// and sel moves to the next digit each time the counter is full. At 83,455,882 Hz that is
-// every 2^17 cycles = 1.57 ms per digit, so all eight are refreshed every 12.6 ms.
+// Eight 7-segment digits on one set of a-g pins; digit 0 is the rightmost.
+// On clk_pix, sel moves to the next digit each time the 17-bit counter is full:
+// 2^17 cycles = 1.57 ms per digit, 12.6 ms for all eight.
 module multidigit #(parameter int COUNT_BITS = 17) (
     input  logic       clk,     // clk_pix
     input  logic       rst,
