@@ -11,9 +11,9 @@ module game_top (
     logic [10:0] glide1_x, glide1_y;       // bike_glide -> drawcon: drawn position, registered
     logic [10:0] glide2_x, glide2_y;
 
-    // Ticks of clk_juego per step (ADR 0007, ADR 0010): 6 gives about 10 Cells/s. One value
+    // Ticks of clk_juego per step (ADR 0007, ADR 0010): 8 gives about 7.5 Cells/s. One value
     // for position_logic and both bike_glide, so the slide always lasts exactly one step.
-    localparam int STEP_TICKS = 6;
+    localparam int STEP_TICKS = 8;
     logic [10:0] curr_x, curr_y;
     logic [3:0]  draw_r, draw_g, draw_b;
     logic [1:0]  heading1, heading2;
@@ -33,6 +33,17 @@ module game_top (
     logic        rst_pix, rst_juego;
     logic [4:0]  btn_sync;
     logic [11:0] sw_sync;
+
+    // Arena (contract section 3): position_logic <-> arena_link (clk_juego) <-> arena_ctrl
+    // (clk_pix), the only writer of arena_map; drawcon reads arena_map's port B.
+    logic        load, step, codes_valid;
+    logic [3:0]  code1_u, code1_r, code1_d, code1_l, code2_u, code2_r, code2_d, code2_l;
+    logic        req_tgl, req_prepare, ack_tgl;
+    logic [12:0] req_old1, req_old2, req_new1, req_new2;
+    logic [15:0] nbr1, nbr2;
+    logic [12:0] a_addr, arena_addr;
+    logic        a_we;
+    logic [3:0]  a_wdata, a_rdata, arena_code;
 
     assign rst_request = ~cpu_resetn;   // se invierte una sola vez (contrato 1)
 
@@ -83,9 +94,43 @@ module game_top (
         .blkpos1_x(blkpos1_x), 
         .blkpos1_y(blkpos1_y),
         .blkpos2_x(blkpos2_x), 
-        .blkpos2_y(blkpos2_y) 
-        //.heading1(),
-        //.heading2()            // for the sprites, later
+        .blkpos2_y(blkpos2_y), 
+        .heading1(heading1),
+        .heading2(heading2),
+        // Arena
+        .load(load),
+        .step(step),
+        .code1_u(code1_u), .code1_r(code1_r), .code1_d(code1_d), .code1_l(code1_l),
+        .code2_u(code2_u), .code2_r(code2_r), .code2_d(code2_d), .code2_l(code2_l),
+        .codes_valid(codes_valid)
+    );
+
+    // After each step, the heads go to the Arena and the codes of their neighbours come back.
+    arena_link u_arena_link (
+        .clk(clk_juego), .rst(rst_juego),
+        .load(load), .step(step),
+        .blkpos1_x(blkpos1_x), .blkpos1_y(blkpos1_y),
+        .blkpos2_x(blkpos2_x), .blkpos2_y(blkpos2_y),
+        .code1_u(code1_u), .code1_r(code1_r), .code1_d(code1_d), .code1_l(code1_l),
+        .code2_u(code2_u), .code2_r(code2_r), .code2_d(code2_d), .code2_l(code2_l),
+        .codes_valid(codes_valid),
+        .req_tgl(req_tgl), .req_prepare(req_prepare),
+        .req_old1(req_old1), .req_old2(req_old2), .req_new1(req_new1), .req_new2(req_new2),
+        .ack_tgl(ack_tgl), .nbr1(nbr1), .nbr2(nbr2)
+    );
+
+    arena_ctrl u_arena_ctrl (
+        .clk(clk_pix), .rst(rst_pix),
+        .req_tgl(req_tgl), .req_prepare(req_prepare),
+        .req_old1(req_old1), .req_old2(req_old2), .req_new1(req_new1), .req_new2(req_new2),
+        .ack_tgl(ack_tgl), .nbr1(nbr1), .nbr2(nbr2),
+        .a_addr(a_addr), .a_we(a_we), .a_wdata(a_wdata), .a_rdata(a_rdata)
+    );
+
+    arena_map u_arena_map (
+        .clk(clk_pix),
+        .a_addr(a_addr), .a_we(a_we), .a_wdata(a_wdata), .a_rdata(a_rdata),   // arena_ctrl
+        .b_addr(arena_addr), .b_rdata(arena_code)                             // drawcon
     );
 
     // Each bike's square slides a few pixels every tick toward its current Cell (ADR 0010).
@@ -113,6 +158,7 @@ module game_top (
 
     drawcon u_drawcon(
         // Inputs
+        .clk(clk_pix),
         .curr_x(curr_x),
         .curr_y(curr_y),
         .blkpos1_x(glide1_x), 
@@ -120,12 +166,14 @@ module game_top (
         .blkpos2_x(glide2_x),
         .blkpos2_y(glide2_y),
         .sw(sw_sync),
-        //.heading1(heading1),
-        //.heading2(heading2),
+        .heading1(heading1),
+        .heading2(heading2),
         // Outputs
         .draw_r(draw_r),
         .draw_g(draw_g),
-        .draw_b(draw_b)
+        .draw_b(draw_b),
+        .arena_addr(arena_addr),
+        .arena_code(arena_code)
     );
 
     vga_out u_vga_out(

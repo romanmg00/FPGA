@@ -3,11 +3,13 @@
 // its own in rounds instead of following the buttons. Everything runs on clk_juego (~60 Hz).
 // See the "position logic" figure in the report.
 //
-// Flow: buttons -> turn_req -> bike_move -> next_cx/next_cy -> wall check
+// Flow: buttons -> turn_req -> bike_move -> next_cx/next_cy -> wall, bikes and Arena check
 //       -> advance (move) or crash. step_counter sets how often a step happens.
+// The Arena (arena_link in game_top) gives the codes of the 4 neighbour Cells of each head;
+// the code of the next Cell decides whether it is occupied (contract section 3).
 module position_logic #(
     // Ticks of clk_juego per step. game_top passes the same value to bike_glide (ADR 0010).
-    parameter int STEP_TICKS = 6,
+    parameter int STEP_TICKS = 8,
     // P2's start column. Only a testbench changes it, to arrange a same-target crash.
     parameter logic [6:0] P2_START_CX = 7'd59
 ) (
@@ -19,16 +21,22 @@ module position_logic #(
     output logic [10:0] blkpos1_y,              // top-left corner of the bike 1, in pixels
     output logic [10:0] blkpos2_x,              // top-left corner of the bike 2, in pixels
     output logic [10:0] blkpos2_y,              // top-left corner of the bike 2, in pixels
-    output logic [1:0]  heading1, heading2      // bike direction: 0 U, 1 R, 2 D, 3 L (for the sprites)
+    output logic [1:0]  heading1, heading2,     // bike direction: 0 U, 1 R, 2 D, 3 L (for the sprites)
+    // Arena (arena_link): load and step go out; the neighbour codes of each head come back
+    output logic        load,                   // Bikes at their starts; its rise prepares the Arena
+    output logic        step,                   // the Step taken: the Bikes move at this edge
+    input  logic [3:0]  code1_u, code1_r, code1_d, code1_l,   // neighbours of bike 1's head
+    input  logic [3:0]  code2_u, code2_r, code2_d, code2_l,   // neighbours of bike 2's head
+    input  logic        codes_valid             // 1 when the codes are those of the current heads
 );
 
     // ---------------------------------------------------------------
     // Internal signals (source -> destination)
     // ---------------------------------------------------------------
     logic [3:0] turn_req1;                       // reordered buttons -> bike_move
-    logic       load;                            // round_fsm -> bike_move: hold the bike at its start cell
     logic       run;                             // round_fsm -> bike_move, u_step_counter: the round is running
-    logic       step;                            // u_step_counter -> wall check: a step is due
+    logic       step_due;                        // u_step_counter -> step: a step is due
+    logic [3:0] code_next1, code_next2;          // Arena code of the cell of the next step
     logic [6:0] cx1, cy1, cx2, cy2;              // bike_move -> pixel conversion: current cell
     logic [6:0] next_cx1, next_cy1, 
                 next_cx2, next_cy2;              // bike_move -> wall check: cell of the next step
@@ -37,14 +45,12 @@ module position_logic #(
     logic       crash1, crash2;                  // wall and bikes check -> round_fsm (c): the bike crashed
     logic       crash_done;                      // u_crash_timer -> round_fsm (t): the crash pause is over
     logic       crash;                           // either bike crashed -> round_fsm (c): the bike crashed
-    logic       occupied1, occupied2;            //check occupied cells
+    logic       occupied1, occupied2;            // the cell of the next step is a wall, trail or head
     // ---------------------------------------------------------------
     // 1. Inputs: the board gives U,D,L,R; bike_move expects U,R,D,L
     // ---------------------------------------------------------------
     
     assign turn_req1 = {btn[2], btn[1], btn[3], btn[0]};
-    assign occupied1 = 1'b0;
-    assign occupied2 = 1'b0;
     
     // ---------------------------------------------------------------
     // 2. Round control
@@ -78,8 +84,13 @@ module position_logic #(
         .clk(clk),
         .rst(rst),
         .run(run),
-        .step(step)
+        .step(step_due)
     );
+
+    // A step is taken only with the codes of the current heads. They arrive 4 ticks after the
+    // previous step, so with 6 or 8 ticks per step this always holds; if not, the step waits
+    // for the next period and the pending turn is kept.
+    assign step = step_due && codes_valid;
 
     // ---------------------------------------------------------------
     // 4. The bikes
@@ -121,12 +132,28 @@ module position_logic #(
     );
 
     // ---------------------------------------------------------------
-    // 5. Wall check: valid cells are cx 1..78, cy 5..48
+    // 5. Wall, bikes and Arena check: valid cells are cx 1..78, cy 5..48
     // ---------------------------------------------------------------
+    // The next cell's code is the neighbour in the direction of the move: compare the next cell
+    // with the current one. Only 0 (empty) and 8-10 (Rewards) are free; anything else blocks.
+    always_comb begin
+        if (next_cy1 != cy1)
+            code_next1 = (next_cy1 < cy1) ? code1_u : code1_d;
+        else
+            code_next1 = (next_cx1 > cx1) ? code1_r : code1_l;
+        if (next_cy2 != cy2)
+            code_next2 = (next_cy2 < cy2) ? code2_u : code2_d;
+        else
+            code_next2 = (next_cx2 > cx2) ? code2_r : code2_l;
+    end
+    assign occupied1 = !(code_next1 == 4'd0 || code_next1 == 4'd8 || code_next1 == 4'd9 || code_next1 == 4'd10);
+    assign occupied2 = !(code_next2 == 4'd0 || code_next2 == 4'd8 || code_next2 == 4'd9 || code_next2 == 4'd10);
+
     assign valid1   = (next_cx1 >= 1 && next_cx1 <= 78 && next_cy1 >= 5 && next_cy1 <= 48);
     assign valid2   = (next_cx2 >= 1 && next_cx2 <= 78 && next_cy2 >= 5 && next_cy2 <= 48);
-    assign advance1 = step && !crash1;
-    assign advance2 = step && !crash2;
+    // A crash stops both bikes: the one that did not crash stays in its cell too (ADR 0011)
+    assign advance1 = step && !crash;
+    assign advance2 = step && !crash;
     assign crash1 = step && 
                     (!valid1 || 
                     (next_cx1 == next_cx2 && next_cy1 == next_cy2) || 
