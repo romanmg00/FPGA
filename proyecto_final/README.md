@@ -53,11 +53,11 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
   `turn_req2` espera el teclado. `position_logic_tb` pasa en Verilator; probada en la tarjeta
   el 15 de noviembre con `game_top_two_bikes.bit` (PR #25)
 - [x] **Paso 6c:** intervalo del paso (ADR 0007, issue #22). En la tarjeta, el 15 de noviembre,
-  8 ticks se veían lentos y a saltos; se eligió **6** (unas 10 celdas/s) con las motos
-  deslizándose entre celdas ([ADR 0010](../docs/adr/0010-six-tick-steps-and-bikes-sliding-between-cells.md),
-  propuesto; PR #28). `STEP_TICKS` vive en `game_top`; cambiarlo de nuevo es una línea
-- [x] **Paso 6e:** `bike_glide` dibuja cada moto avanzando unos píxeles por tick (0, 3, 5, 8, 11,
-  13, 16 con 6 ticks) hacia su celda; el juego sigue por celdas y lo dibujado va un paso atrás.
+  8 ticks se veían lentos y a saltos. Con las motos deslizándose entre celdas se ven suaves, y
+  Roman eligió **8** (7.5 celdas/s) el 16 de noviembre
+  ([ADR 0010](../docs/adr/0010-bikes-sliding-between-cells.md), aceptado; PRs #28 y #35). `STEP_TICKS` vive en `game_top`; cambiarlo de nuevo es una línea
+- [x] **Paso 6e:** `bike_glide` dibuja cada moto avanzando unos píxeles por tick (2 px por tick
+  con 8 ticks) hacia su celda; el juego sigue por celdas y lo dibujado va un paso atrás.
   Su salida es un registro, así que la cuenta no entra a la ruta de `clk_pix`
 - [ ] **Paso 6d:** choque con estelas y premios, leyendo las celdas destino de `arena_map`
 
@@ -84,7 +84,7 @@ probaron también las paredes y el reset repetido. Ese archivo ya no está en el
 - `game_top.sv`: tope del diseño. Conecta el Clocking Wizard, el contador de `clk_juego`, los sincronizadores y los bloques de abajo
 - `position_logic.sv`: las dos motos, en `clk_juego`: control de ronda, ritmo del paso, giros y choques
 - `round_fsm.sv`: ronda provisional: espera Start, corre, pausa tras un choque y espera que se suelte Start
-- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (6, ADR 0010) y la pausa de choque (120)
+- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (8, ADR 0010) y la pausa de choque (120)
 - `bike_glide.sv`: posición dibujada de una moto, que se desliza de su celda anterior a la nueva durante un paso (ADR 0010); una instancia por moto
 - `bike_move.sv`: celda, dirección y giro pendiente de una moto; se instancia una vez por moto
 - `drawcon.sv`: color de cada píxel: paredes, HUD, P1 en azul (`0DF`) y P2 en naranja (`F80`)
