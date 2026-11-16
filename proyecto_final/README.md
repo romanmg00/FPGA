@@ -67,6 +67,22 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
   corren en `build_game_top.tcl`, y `game_top_tb` revisa las estelas en pantalla y la arena entera.
   Conectada en `game_top` (PR #40, sobre el #39); probada en la tarjeta el 16 de noviembre:
   estelas, choque con estelas y paredes, ronda nueva, reset y choque de frente
+- [ ] **Paso 7:** marcador físico en los 8 dígitos de 7 segmentos (especificación, *Physical
+  Scoreboard*, y [ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)), por partes:
+  - [x] **7a:** `sevenseg` y `multidigit` de la tarea 1 del curso, en su mismo estilo. En
+    `sevenseg`, los códigos 10–13 son P, L, G y A en lugar de las letras hex, y 14–15 quedan en
+    blanco. `multidigit` usa el contador de 17 bits de la tarea, ahora en `clk_pix`, sin reloj
+    nuevo (ADR 0006): pasa al siguiente dígito cada vez que se llena (1.57 ms por dígito). Solo en simulación: `sevenseg_tb` y `multidigit_tb`
+    pasan en XSim; todavía no están en `game_top`
+  - [x] **7b:** las vistas. `seg7_view`, en `clk_juego`, cambia de vista cada 180 ticks (3 s):
+    puntos → vidas y, mientras se espera una partida nueva, → meta; mover `{SW15, SW14}` en esa
+    espera salta a la meta y reinicia sus 3 s, y una partida nueva empieza en puntos. Sigue a
+    `PageTimer` del modelo. `seg7_driver`, en `clk_pix`, arma los 8 dígitos (`P2nnP1nn`,
+    `L20nL10n`, `G0AL  n0`) y los barre con `multidigit`. Solo en simulación: `seg7_view_tb`
+    (una prueba por regla del ADR 0008) y `seg7_driver_tb` pasan en XSim
+  - [ ] **7c:** partida, vidas y puntos (G3/G5), sin premios
+  - [ ] **7d:** en `game_top`: `sw[15:0]`, pines `seg`, `dp` y `an`, y el cruce de los valores a
+    `clk_pix` (issue #30)
 
 ## Hito: bloque en movimiento (revisión del 12 de noviembre)
 
@@ -98,6 +114,10 @@ probaron también las paredes y el reset repetido. Ese archivo ya no está en el
 - `arena_ctrl.sv`: en `clk_pix`, el único que escribe en `arena_map`: prepara la ronda (limpieza y cabezas) o escribe el paso, y lee las 4 vecinas de cada cabeza
 - `arena_link.sv`: en `clk_juego`, manda las cabezas a `arena_ctrl` después de cada paso y al subir `load`, y entrega los 8 códigos con `codes_valid`
 - `drawcon.sv`: color de cada píxel: paredes, HUD, P1 en azul (`0DF`) y P2 en naranja (`F80`)
+- `sevenseg.sv`: decodificador de 7 segmentos de la tarea 1, activo en bajo: 0–9, y P, L, G, A y blanco del marcador en 10–15
+- `multidigit.sv`: los 8 dígitos con un solo juego de segmentos, como en la tarea 1; su contador de 17 bits corre en `clk_pix`
+- `seg7_view.sv`: qué vista muestra el marcador (puntos, vidas o meta), en `clk_juego`, cada 3 s (ADR 0008)
+- `seg7_driver.sv`: el marcador en `clk_pix`: de puntos, vidas, vista y meta a los 8 dígitos, con `multidigit`
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
 - `vga_out.sv`: sync, blanking y `curr_x`/`curr_y` (`tick_60hz` todavía en 0)
 - `sync_2ff.sv`: sincronizador de 2 flip-flops para botones y switches
@@ -107,10 +127,10 @@ probaron también las paredes y el reset repetido. Ese archivo ya no está en el
 - `ip/clk_wiz_0/clk_wiz_0.xci`: IP del reloj de píxel para el proyecto de Roman; `build_game_top.tcl` no lo lee y genera el Wizard. Ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
 - `game_top_tb.sv`: revisa `game_top` desde sus pines, con 7 escenarios. Espera las motos dibujadas desde `bike_synth.coe`, giradas con su dirección, con el corrimiento de 2 px de `drawcon` (sin lectura adelantada) como desviación conocida: `SPRITE_SHIFT = 2`, que vuelve a 0 cuando `drawcon` lea adelantado
 - `arena_map_tb.sv`, `arena_ctrl_tb.sv`, `arena_tb.sv`: pruebas de la arena; `arena_tb` usa los dos relojes y corre con 6 y 8 ticks por paso
-- `position_logic_tb.sv`, `round_fsm_tb.sv`, `step_counter_tb.sv`, `bike_move_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
+- `position_logic_tb.sv`, `round_fsm_tb.sv`, `step_counter_tb.sv`, `bike_move_tb.sv`, `sevenseg_tb.sv`, `multidigit_tb.sv`, `seg7_view_tb.sv`, `seg7_driver_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
 - `sim_clocks/`: relojes ideales **solo para simulación**. La síntesis usa siempre la IP que genera Vivado; ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
 - `sim_models/bike_rom.sv`: modelo de `bike_rom` **solo para simulación**, con los mismos puertos y 2 ciclos de latencia. Lee el `.mem` que `build_game_top.tcl` saca de `sprites/bike_synth.coe` (`-testplusarg bike_mem=<archivo>`)
-- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`. Corre también `round_fsm_tb`, `step_counter_tb`, `bike_move_tb`, `bike_glide_tb`, los 7 escenarios de `game_top_tb` (PR #28), estos con `sim_models/bike_rom.sv`, y las 4 pruebas de la arena. En `full` genera `clk_wiz_0` y `bike_rom` del catálogo de IP
+- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]`. Corre también `round_fsm_tb`, `step_counter_tb`, `bike_move_tb`, `bike_glide_tb`, los 7 escenarios de `game_top_tb` (PR #28), estos con `sim_models/bike_rom.sv`, las 4 pruebas de la arena y `sevenseg_tb`, `multidigit_tb`, `seg7_view_tb` y `seg7_driver_tb` (Pasos 7a y 7b). En `full` genera `clk_wiz_0` y `bike_rom` del catálogo de IP
 - `bitstreams/`: bitstreams probados y lo que se comprobó de cada uno
 - `prototypes/vga_106mhz/`: experimento a 106.5 MHz, fuera del hito; conserva el error del reset de PR 11
 - `Contrato de interfaces game_top (CS 256).md`: contrato del equipo

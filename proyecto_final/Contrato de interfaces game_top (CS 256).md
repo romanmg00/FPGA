@@ -161,7 +161,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | `btn_debounce` | Alan | Sincroniza los 5 botones, quita rebotes y genera un pulso al presionar | Por hacer |
 | `uart_rx` + decodificador | Alan | Bytes de la UART a pedidos de giro de P2 y Start | Por hacer; Enter **pendiente** |
 | Página web de control | Alan | WASD, Espacio/Enter por Web Serial | Por hacer |
-| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | Por hacer |
+| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | `sevenseg` y `multidigit` (tarea 1 del curso, con P, L, G, A y blanco; barrido en `clk_pix` con habilitación), `seg7_view` y `seg7_driver` pasan en XSim (Pasos 7a y 7b). Faltan la partida (G3/G5) y la integración en `game_top` |
 | `game_top` + XDC | Alan | Instancia y conecta todo; relojes, reset, pines, automatización del build | Por hacer |
 | Marcador en pantalla (`texto_capa`, `font_rom`) | Roman | Puntos y vidas en la franja de 64 px, con texto de 32 px | Después del núcleo (*Should*) |
 
@@ -253,6 +253,40 @@ module uart_rx (
 115200 baudios, 8N1. El decodificador de bytes a pedidos (W A S D, Espacio, Enter) y su cruce a `clk_juego` están **pendientes**.
 
 **`seg7_driver`** (Alan, propuesta). Los 8 dígitos, de izquierda a derecha: P2 en `an[7:4]` y P1 en `an[3:0]`. Cada lado muestra dos letras y dos dígitos decimales: `P2 nn  P1 nn` durante 3 s y `L2 nn  L1 nn` durante 3 s, los dos lados juntos y sin apagarse. Mientras se espera una partida nueva (antes de la primera y al terminar una), se agrega una tercera vista, `GOAL  nn` en los 8 dígitos (`GOAL` en el lado de P2, dos dígitos en blanco y la meta que tomaría Start: 10, 20, 30 o 40), y las vistas rotan puntos → vidas → meta, 3 s cada una. Mover `{SW15, SW14}` en esa espera salta a la vista de meta y reinicia sus 3 s. Durante la partida solo se alternan puntos y vidas ([ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)). Una partida nueva empieza en la vista de puntos. El multiplexado rápido de dígitos es aparte del temporizador de 3 s. El decodificador del proyecto necesita las letras P, L, G y A (la O es el mismo glifo que el 0); la referencia de la tarea del curso no se toca.
+
+Se arma con los módulos de la tarea 1 del curso, en copias del proyecto y con el mismo estilo (números con un comentario, sin paquetes ni constantes con nombre). `sevenseg` recibe `num` de 4 bits como en la tarea: 0–9 son los dígitos y, en lugar de las letras hex A–F, 10–13 son P, L, G y A, y 14–15 quedan en blanco. `multidigit` conserva el contador `sel` de 3 bits, el mux 8:1 y el decodificador 3:8 de la tarea, con `dig0`..`dig7` de 4 bits (`dig0` a la derecha) y `a`..`g` y `an` activos en bajo. La tarea usaba el bit 16 de un contador de 17 bits como reloj; aquí ese contador corre en `clk_pix` y `sel` pasa al siguiente dígito cada vez que se llena (ADR 0006: sin relojes nuevos). Son 2^17 ciclos, 1.57 ms por dígito y 12.6 ms por vuelta de los 8. En `game_top`, `seg[0]` es `a` y `seg[6]` es `g`.
+
+**`seg7_view`** (Alan, propuesta). En `clk_juego`, elige la vista cada `VIEW_TICKS` ticks (180, ~3 s) con las reglas de arriba. Las vistas son 0 puntos, 1 vidas y 2 meta, los mismos números en `seg7_driver`. Sigue a `PageTimer` del modelo (`prototipos/tron_fpga/model/seg7.py`). No tiene entrada de pausa, así que las vistas siguen durante la pausa, el choque y la espera de ronda. Si al salir del reset los switches de la meta no están en `00`, su valor sincronizado cambia y aparece la vista de meta, como en el modelo.
+
+```systemverilog
+module seg7_view #(
+    parameter int VIEW_TICKS = 180                 // ~3 s
+) (
+    input  logic       clk,                        // clk_juego
+    input  logic       rst,
+    input  logic       new_match,                  // 1 en el tick en que Start empieza una partida nueva
+    input  logic       waiting,                    // esperando una partida nueva (G_IDLE o G_MATCH)
+    input  logic [1:0] goal_sel,                   // {SW15, SW14} sincronizados
+    output logic [1:0] view                        // 0 puntos, 1 vidas, 2 meta
+);
+```
+
+**`seg7_driver`** (Alan, propuesta). En `clk_pix`, arma los 8 dígitos de la vista y los barre con `multidigit`. Las entradas tienen que llegar a `clk_pix` como registros que cambian juntos: el cruce desde `clk_juego` va en `game_top`, con el mismo patrón que el issue #30. Los puntos usan 6 bits porque el total legal más alto es 45 (39 + 3 + 3).
+
+```systemverilog
+module seg7_driver #(
+    parameter int COUNT_BITS = 17                  // contador del barrido de multidigit
+) (
+    input  logic       clk,                        // clk_pix
+    input  logic       rst,
+    input  logic [5:0] points_p1, points_p2,       // 0-45 en una partida
+    input  logic [1:0] lives_p1, lives_p2,         // 0-3
+    input  logic [1:0] view,                       // de seg7_view: 0 puntos, 1 vidas, 2 meta
+    input  logic [1:0] goal_sel,                   // {SW15, SW14}
+    output logic [6:0] seg,                        // seg[0] = a ... seg[6] = g, activo en bajo
+    output logic [7:0] an                          // activo en bajo; an[0] es el dígito de la derecha
+);
+```
 
 **`game_top`** (Alan) conecta el Clocking Wizard y el contador de `clk_juego`, los dos puertos de `arena_map`, sincroniza botones, switches y `uart_rx`, e invierte `cpu_resetn`. Cada quien agrega la instancia de sus propios módulos.
 
