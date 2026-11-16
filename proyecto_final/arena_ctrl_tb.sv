@@ -1,11 +1,11 @@
 // Builder's own check of arena_ctrl with arena_map, on clk_pix only: the bench plays arena_link.
-// A golden Arena is built here from the contract rules (clear, Trail, head, Crash codes), not
+// A golden Arena is built here from the contract rules (clear, Trail and head codes), not
 // read from the design, and compared word by word through port B, as drawcon would read it.
 // Not the official bench of contract section 7.
 `timescale 1ns/1ps
 module arena_ctrl_tb;
     logic        clk = 1'b0, rst = 1'b1;
-    logic        req_tgl = 1'b0, req_prepare = 1'b0, req_crash1 = 1'b0, req_crash2 = 1'b0;
+    logic        req_tgl = 1'b0, req_prepare = 1'b0;
     logic [12:0] req_old1 = '0, req_old2 = '0, req_new1 = '0, req_new2 = '0;
     logic        ack_tgl;
     logic [15:0] nbr1, nbr2;
@@ -16,7 +16,7 @@ module arena_ctrl_tb;
     logic [3:0]  gold [0:8191];
     int          checks = 0;
 
-    arena_ctrl dut (.clk, .rst, .req_tgl, .req_prepare, .req_crash1, .req_crash2,
+    arena_ctrl dut (.clk, .rst, .req_tgl, .req_prepare,
                     .req_old1, .req_old2, .req_new1, .req_new2, .ack_tgl, .nbr1, .nbr2,
                     .a_addr, .a_we, .a_wdata, .a_rdata);
     arena_map map (.clk, .a_addr, .a_we, .a_wdata, .a_rdata, .b_addr, .b_rdata);
@@ -70,10 +70,10 @@ module arena_ctrl_tb;
 
     // One request as arena_link sends it: bundle and toggle together, then wait for ack_tgl.
     // Returns the clk_pix edges from the toggle to the answer.
-    task automatic request(bit prep, bit c1, bit c2, logic [12:0] o1, logic [12:0] o2,
+    task automatic request(bit prep, logic [12:0] o1, logic [12:0] o2,
                            logic [12:0] n1, logic [12:0] n2, output int cycles);
         @(negedge clk);
-        req_prepare = prep; req_crash1 = c1; req_crash2 = c2;
+        req_prepare = prep;
         req_old1 = o1; req_old2 = o2; req_new1 = n1; req_new2 = n2;
         req_tgl = ~req_tgl;
         cycles = 0;
@@ -94,25 +94,25 @@ module arena_ctrl_tb;
         checks += 2;
     endtask
 
-    // Step as the rules give it: Trail at each old head of a Bike that moved, then the new
-    // head, or code 6 at the head of a Bike that crashed (it did not move).
-    task automatic step(string what, bit c1, bit c2, logic [12:0] o1, logic [12:0] o2,
+    // Step as the rules give it: Trail at each old head, then the new heads. A Bike that did
+    // not move (a Crash) has old = new, and its Cell stays a head.
+    task automatic step(string what, logic [12:0] o1, logic [12:0] o2,
                         logic [12:0] n1, logic [12:0] n2);
         int cyc;
-        request(1'b0, c1, c2, o1, o2, n1, n2, cyc);
+        request(1'b0, o1, o2, n1, n2, cyc);
         // 3 edges to see and copy the toggle, 1 to choose, 4 writes, 8 reads, 1 to answer
         expect_cycles(what, cyc, 17);
-        if (!c1) gold[o1] = 4'd2;
-        if (!c2) gold[o2] = 4'd4;
-        gold[n1] = c1 ? 4'd6 : 4'd3;
-        gold[n2] = c2 ? 4'd6 : 4'd5;
+        gold[o1] = 4'd2;
+        gold[o2] = 4'd4;
+        gold[n1] = 4'd3;
+        gold[n2] = 4'd5;
         expect_nbr(what, n1, n2);
         scan(what);
     endtask
 
     task automatic prepare(string what, logic [12:0] n1, logic [12:0] n2);
         int cyc;
-        request(1'b1, 1'b0, 1'b0, 13'd0, 13'd0, n1, n2, cyc);
+        request(1'b1, 13'd0, 13'd0, n1, n2, cyc);
         // 3 edges to see and copy the toggle, 1 to choose, 8192 clear writes, 2 heads, 8 reads,
         // 1 to answer
         expect_cycles(what, cyc, 8207);
@@ -141,24 +141,24 @@ module arena_ctrl_tb;
         gold[p1] = 4'd3; gold[p2] = 4'd5;
 
         // Both Bikes move: P1 right, P2 left; the Trails and heads appear.
-        step("both move", 0, 0, p1, p2, at(21, 27), at(58, 27));
-        step("P1 up, P2 left", 0, 0, at(21, 27), at(58, 27), at(21, 26), at(57, 27));
+        step("both move", p1, p2, at(21, 27), at(58, 27));
+        step("P1 up, P2 left", at(21, 27), at(58, 27), at(21, 26), at(57, 27));
         // P2 turns down next to its own Trail: its up neighbour holds code 4 later.
-        step("P2 down", 0, 0, at(21, 26), at(57, 27), at(21, 25), at(57, 28));
-        step("P2 left", 0, 0, at(21, 25), at(57, 28), at(21, 24), at(56, 28));
+        step("P2 down", at(21, 26), at(57, 27), at(21, 25), at(57, 28));
+        step("P2 left", at(21, 25), at(57, 28), at(21, 24), at(56, 28));
         if (nbr2[15:12] !== 4'd0 || gold[nb(at(56, 28), 0)] !== 4'd0) fail("P2 up neighbour should be EMPTY");
-        step("P2 up into the row of its Trail", 0, 0, at(21, 24), at(56, 28), at(21, 23), at(56, 27));
+        step("P2 up into the row of its Trail", at(21, 24), at(56, 28), at(21, 23), at(56, 27));
         if (nbr2[11:8] !== 4'd4 || nbr2[7:4] !== 4'd4)
             fail($sformatf("P2 at (56,27): right and down should be its Trail (4), got nbr2 %h", nbr2));
 
-        // P1 Crashes alone: code 6 at its head, no Trail; P2 completes its Step.
-        step("P1 Crash", 1, 0, at(21, 23), at(56, 27), at(21, 23), at(55, 27));
-        if (gold[at(21, 23)] !== 4'd6) fail("golden P1 head is not 6");
+        // P1 Crashes (it does not move) while P2 moves: P1's Cell stays a head, no code 6.
+        step("P1 Crash", at(21, 23), at(56, 27), at(21, 23), at(55, 27));
+        if (gold[at(21, 23)] !== 4'd3) fail("golden P1 head is not 3");
 
         // A new Round from the starts: everything is cleared again.
         prepare("second Prepare", p1, p2);
-        step("P2 Crash", 0, 1, p1, p2, at(20, 26), p2);
-        step("both Crash", 1, 1, at(20, 26), p2, at(20, 26), p2);
+        step("P2 Crash", p1, p2, at(20, 26), p2);
+        step("both Crash", at(20, 26), p2, at(20, 26), p2);
 
         // Heads next to the Walls: (1, 5) and (78, 48). Their up/left and right/down are Walls.
         prepare("Prepare in the corners", at(1, 5), at(78, 48));
@@ -168,14 +168,14 @@ module arena_ctrl_tb;
         // (cx 127, same cy), not the row above. A marked word in the row above tells them apart.
         prepare("Prepare at the padding", at(0, 30), at(10, 63));
         map.mem[at(127, 29)] = 4'd7; gold[at(127, 29)] = 4'd7;
-        step("left neighbour at cx = 0", 1, 1, at(0, 30), at(10, 63), at(0, 30), at(10, 63));
+        step("left neighbour at cx = 0", at(0, 30), at(10, 63), at(0, 30), at(10, 63));
         if (nbr1[3:0] !== 4'd1) fail($sformatf("left of (0,30) read %0d, expected WALL", nbr1[3:0]));
 
         // Reward codes (written by hand into the memory here) come back like any other code.
         prepare("Prepare for Rewards", p1, p2);
         map.mem[at(21, 26)] = 4'd8;  gold[at(21, 26)] = 4'd8;
         map.mem[at(22, 27)] = 4'd10; gold[at(22, 27)] = 4'd10;
-        step("Rewards as neighbours", 0, 0, p1, p2, at(21, 27), at(58, 27));
+        step("Rewards as neighbours", p1, p2, at(21, 27), at(58, 27));
         if (nbr1[15:12] !== 4'd8 || nbr1[11:8] !== 4'd10)
             fail($sformatf("Reward neighbours: nbr1 %h", nbr1));
 
@@ -202,7 +202,7 @@ module arena_ctrl_tb;
         // Reset in the middle of a clear: ack_tgl is not touched, so the held Prepare is still
         // open and is served again from the start. The old Trails must not survive.
         @(negedge clk);
-        req_prepare = 1'b1; req_crash1 = 1'b0; req_crash2 = 1'b0;
+        req_prepare = 1'b1;
         req_new1 = p1; req_new2 = p2;
         req_tgl = ~req_tgl;
         repeat (3000) @(posedge clk);
@@ -238,7 +238,7 @@ module arena_ctrl_tb;
 
         // drawcon reads port B during a whole Prepare: the result is the same.
         fork
-            request(1'b1, 1'b0, 1'b0, 13'd0, 13'd0, p1, p2, cyc);
+            request(1'b1, 13'd0, 13'd0, p1, p2, cyc);
             repeat (8300) @(negedge clk) b_addr = 13'($urandom_range(0, 8191));
         join
         expect_cycles("Prepare with port B busy", cyc, 8207);

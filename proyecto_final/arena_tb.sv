@@ -1,7 +1,7 @@
 // Builder's own check of arena_link + arena_ctrl + arena_map with two free-running clocks: clk_pix
 // at 12 ns and clk_juego scaled down to ~12,000 clk_pix cycles per tick, with a fractional period
-// so the phase between them drifts. The driver plays position_logic: load, step, crash1/2 and the
-// heads change just after a clk_juego edge, and a Step waits while codes_valid = 0 (the proposed
+// so the phase between them drifts. The driver plays position_logic: load, step and the heads
+// change just after a clk_juego edge, and a Step waits while codes_valid = 0 (the proposed
 // policy). A golden Arena is kept from the rules and read back through port B, as drawcon would.
 // STEP_TICKS comes from +step_ticks=N (default 8). Not the official bench of contract section 7.
 `timescale 1ns/1ps
@@ -9,14 +9,14 @@ module arena_tb;
     logic        clk_pix = 1'b0, clk_juego = 1'b0;
     logic        rst_pix = 1'b1, rst_juego = 1'b1;
     // position_logic side
-    logic        load = 1'b1, step = 1'b0, crash1 = 1'b0, crash2 = 1'b0;
+    logic        load = 1'b1, step = 1'b0;
     logic [6:0]  cx1 = 7'd20, cx2 = 7'd59;
     logic [5:0]  cy1 = 6'd27, cy2 = 6'd27;
     logic [10:0] blkpos1_x, blkpos1_y, blkpos2_x, blkpos2_y;
     logic [3:0]  code1_u, code1_r, code1_d, code1_l, code2_u, code2_r, code2_d, code2_l;
     logic        codes_valid;
     // the crossing
-    logic        req_tgl, req_prepare, req_crash1, req_crash2, ack_tgl;
+    logic        req_tgl, req_prepare, ack_tgl;
     logic [12:0] req_old1, req_old2, req_new1, req_new2;
     logic [15:0] nbr1, nbr2;
     // arena_map
@@ -39,13 +39,13 @@ module arena_tb;
     assign blkpos2_y = {1'b0, cy2, 4'b0000};
 
     arena_link u_link (
-        .clk(clk_juego), .rst(rst_juego), .load, .step, .crash1, .crash2,
+        .clk(clk_juego), .rst(rst_juego), .load, .step,
         .blkpos1_x, .blkpos1_y, .blkpos2_x, .blkpos2_y,
         .code1_u, .code1_r, .code1_d, .code1_l, .code2_u, .code2_r, .code2_d, .code2_l, .codes_valid,
-        .req_tgl, .req_prepare, .req_crash1, .req_crash2, .req_old1, .req_old2, .req_new1, .req_new2,
+        .req_tgl, .req_prepare, .req_old1, .req_old2, .req_new1, .req_new2,
         .ack_tgl, .nbr1, .nbr2);
     arena_ctrl u_ctrl (
-        .clk(clk_pix), .rst(rst_pix), .req_tgl, .req_prepare, .req_crash1, .req_crash2,
+        .clk(clk_pix), .rst(rst_pix), .req_tgl, .req_prepare,
         .req_old1, .req_old2, .req_new1, .req_new2, .ack_tgl, .nbr1, .nbr2,
         .a_addr, .a_we, .a_wdata, .a_rdata);
     arena_map u_map (.clk(clk_pix), .a_addr, .a_we, .a_wdata, .a_rdata, .b_addr, .b_rdata);
@@ -97,9 +97,9 @@ module arena_tb;
 
     // Monitors. Whenever codes_valid = 1 the codes are those of the current heads; the bundle
     // never changes while a request is open; every req_tgl toggle is counted.
-    logic [54:0] bundle, bundle_prev;
+    logic [52:0] bundle, bundle_prev;
     logic        open_prev = 1'b0;
-    assign bundle = {req_prepare, req_crash1, req_crash2, req_old1, req_old2, req_new1, req_new2};
+    assign bundle = {req_prepare, req_old1, req_old2, req_new1, req_new2};
     always @(posedge clk_pix) begin
         if (bundle !== bundle_prev && open_prev)
             fail("the request changed while it was open");
@@ -171,20 +171,20 @@ module arena_tb;
             tick();
             if (++waited > 40) fail("codes_valid never came back");
         end
-        step = 1'b1; crash1 = c1; crash2 = c2;
+        step = 1'b1;                                    // c1/c2 only decide whether the Bikes move
         tick();                                         // edge k
         o1 = head1(); o2 = head2();
         if (!c1 && !c2) begin
             move(1, d1);
             move(2, d2);
         end
-        step = 1'b0; crash1 = 1'b0; crash2 = 1'b0;
+        step = 1'b0;
         last_step = tk;
         want_reqs++;
-        if (!c1) gold[o1] = 4'd2;
-        if (!c2) gold[o2] = 4'd4;
-        gold[head1()] = c1 ? 4'd6 : 4'd3;
-        gold[head2()] = c2 ? 4'd6 : 4'd5;
+        gold[o1] = 4'd2;                                // a Bike that did not move: o = head,
+        gold[o2] = 4'd4;                                // and the head write comes last
+        gold[head1()] = 4'd3;
+        gold[head2()] = 4'd5;
     endtask
 
     task automatic step_on_time(string what, int d1, int d2, bit c1 = 0, bit c2 = 0);
@@ -236,9 +236,9 @@ module arena_tb;
         if (code2_l !== 4'd2) fail($sformatf("P2 at (22,27): left should be P1's Trail, got %0d", code2_l));
         if (code1_l !== 4'd0 || code1_u !== 4'd1) fail("P1 on the top row: left EMPTY, up WALL");
 
-        // ---- P2 Crashes into P1's Trail; P1 stays on its head. Code 6 at P2's head, no Trail.
+        // ---- P2 Crashes into P1's Trail; neither Bike moves, and both Cells stay heads.
         step_on_time("P2 Crash", 3, 3, 0, 1);
-        if (gold[at(22, 27)] !== 4'd6 || gold[at(23, 27)] !== 4'd4 || gold[head1()] !== 4'd3)
+        if (gold[at(22, 27)] !== 4'd5 || gold[at(23, 27)] !== 4'd4 || gold[head1()] !== 4'd3)
             fail("golden Crash image");
 
         // ---- Crash pause, then a new Round: the Arena is prepared from the starts again.
@@ -322,7 +322,7 @@ module arena_tb;
         step_on_time("Round 5 first Step", 1, 3);
         step_on_time("Round 5 second Step", 2, 0);
         step_on_time("both Crash", 2, 0, 1, 1);
-        if (gold[head1()] !== 4'd6 || gold[head2()] !== 4'd6) fail("golden double Crash");
+        if (gold[head1()] !== 4'd3 || gold[head2()] !== 4'd5) fail("golden double Crash");
 
         repeat (4) tick();
         if (ack_tgl !== req_tgl) fail("a request is still open at the end");

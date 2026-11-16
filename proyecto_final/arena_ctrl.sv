@@ -1,15 +1,14 @@
 // Arena controller on clk_pix, the only writer of arena_map (port A). It serves one request
-// from arena_link at a time: Prepare (8192-word clear, both start heads) or Step (Trails, heads
-// or Crash), then reads the 4 neighbour Cells of each head. Step 17 cycles, Prepare 8,207.
+// from arena_link at a time: Prepare (8192-word clear, both start heads) or Step (Trails and
+// heads), then reads the 4 neighbour Cells of each head. Step 17 cycles, Prepare 8,207.
 module arena_ctrl (
     input  logic        clk,                    // clk_pix
     input  logic        rst,                    // rst_pix, synchronous, active high
     // Request from arena_link (clk_juego), held until ack_tgl answers it
     input  logic        req_tgl,                // toggles once per request
     input  logic        req_prepare,            // 1 Prepare, 0 Step
-    input  logic        req_crash1, req_crash2, // the Bike crashed on this Step
     input  logic [12:0] req_old1, req_old2,     // heads in the Arena now, {cy, cx}: become Trail
-    input  logic [12:0] req_new1, req_new2,     // heads after the Step, {cy, cx}: head or Crash
+    input  logic [12:0] req_new1, req_new2,     // heads after the Step, {cy, cx}: become head
     // Answer to arena_link
     output logic        ack_tgl,                // takes the value of req_tgl once it is served
     output logic [15:0] nbr1, nbr2,             // codes of the neighbour Cells {up, right, down, left}
@@ -25,7 +24,7 @@ module arena_ctrl (
 
     logic        req_sync;                      // req_tgl after sync_2ff
     logic        ack_q = 1'b0;                  // ack_tgl; never reset (see below)
-    logic        prepare_q, crash1_q, crash2_q; // the request, copied when req_sync changes
+    logic        prepare_q;                     // the request, copied when req_sync changes
     logic [12:0] old1_q, old2_q, new1_q, new2_q;
     logic [12:0] cnt;                           // s_clear: address; s_read: read number 0..7
     logic [12:0] head;                          // s_read: head whose neighbours are read
@@ -56,25 +55,27 @@ module arena_ctrl (
                 else
                     a_wdata = 4'd1;             // WALL
             end
+            // A Bike that did not move (it crashed, or the other one did) has old = new: the
+            // head write comes last, so that Cell stays a head.
             s_trail1: begin
                 a_addr  = old1_q;
-                a_we    = !crash1_q;            // a crashed Bike did not move: no Trail
+                a_we    = 1'b1;
                 a_wdata = 4'd2;                 // P1 Trail
             end
             s_trail2: begin
                 a_addr  = old2_q;
-                a_we    = !crash2_q;
+                a_we    = 1'b1;
                 a_wdata = 4'd4;                 // P2 Trail
             end
             s_head1: begin
                 a_addr  = new1_q;
                 a_we    = 1'b1;
-                a_wdata = crash1_q ? 4'd6 : 4'd3;   // Crash or P1 head
+                a_wdata = 4'd3;                 // P1 head
             end
             s_head2: begin
                 a_addr  = new2_q;
                 a_we    = 1'b1;
-                a_wdata = crash2_q ? 4'd6 : 4'd5;   // Crash or P2 head
+                a_wdata = 4'd5;                 // P2 head
             end
             s_read: begin
                 case (cnt[1:0])
@@ -98,8 +99,6 @@ module arena_ctrl (
         if (rst) begin
             st        <= s_idle;
             prepare_q <= 1'b0;
-            crash1_q  <= 1'b0;
-            crash2_q  <= 1'b0;
             old1_q    <= 13'd0;
             old2_q    <= 13'd0;
             new1_q    <= 13'd0;
@@ -115,8 +114,6 @@ module arena_ctrl (
                 s_idle: begin
                     if (req_sync != ack_q) begin        // a new request: copy it
                         prepare_q <= req_prepare;
-                        crash1_q  <= req_crash1;
-                        crash2_q  <= req_crash2;
                         old1_q    <= req_old1;
                         old2_q    <= req_old2;
                         new1_q    <= req_new1;

@@ -7,7 +7,6 @@ module arena_link (
     // From position_logic
     input  logic        load,                   // Bikes held at their starts; its rise prepares the Round
     input  logic        step,                   // Step tick: the Bikes move at this edge
-    input  logic        crash1, crash2,         // the Bike crashes on this Step (read while step = 1)
     input  logic [10:0] blkpos1_x, blkpos1_y,   // heads in pixels (Cell x 16)
     input  logic [10:0] blkpos2_x, blkpos2_y,
     // To position_logic: neighbour codes of the current heads
@@ -17,7 +16,6 @@ module arena_link (
     // To arena_ctrl (clk_pix), held until ack_tgl answers
     output logic        req_tgl,                // toggles once per request
     output logic        req_prepare,            // 1 Prepare, 0 Step
-    output logic        req_crash1, req_crash2,
     output logic [12:0] req_old1, req_old2,     // heads sent last time {cy, cx}: become Trail
     output logic [12:0] req_new1, req_new2,     // heads now {cy, cx}
     // From arena_ctrl
@@ -27,7 +25,6 @@ module arena_link (
 
     logic        load_q;                        // load one tick ago, for its rise
     logic        prep_wait, step_wait;          // an event waits to be sent
-    logic        crash1_q, crash2_q;            // crashes of the waiting Step
     logic        ack_sync;                      // ack_tgl after sync_2ff
     logic        ack_seen = 1'b0;               // ack_sync one tick ago; never reset
     logic        req_q = 1'b0;                  // req_tgl; never reset
@@ -60,8 +57,6 @@ module arena_link (
             load_q      <= 1'b0;
             prep_wait   <= 1'b0;
             step_wait   <= 1'b0;
-            crash1_q    <= 1'b0;
-            crash2_q    <= 1'b0;
             codes       <= 32'd0;
             codes_valid <= 1'b0;
         end else begin
@@ -74,11 +69,9 @@ module arena_link (
             else if (send_prep)
                 prep_wait <= 1'b0;
 
-            if (step) begin
+            if (step)
                 step_wait <= 1'b1;
-                crash1_q  <= crash1;
-                crash2_q  <= crash2;
-            end else if (send_step || send_prep)
+            else if (send_step || send_prep)
                 step_wait <= 1'b0;
 
             if (answer)
@@ -97,15 +90,11 @@ module arena_link (
         ack_seen <= ack_sync;
         if (send_prep) begin
             req_prepare <= 1'b1;
-            req_crash1  <= 1'b0;
-            req_crash2  <= 1'b0;
             req_new1    <= head1;
             req_new2    <= head2;
             req_q       <= ~req_q;
         end else if (send_step) begin
             req_prepare <= 1'b0;
-            req_crash1  <= crash1_q;
-            req_crash2  <= crash2_q;
             req_old1    <= req_new1;            // the heads in the Arena become Trail
             req_old2    <= req_new2;
             req_new1    <= head1;

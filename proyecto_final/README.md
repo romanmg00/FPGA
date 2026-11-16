@@ -64,7 +64,9 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
 - [x] **Paso 6f:** arena (A1/A2): `arena_map` (BRAM de 8192 × 4, puerto B con 2 ciclos),
   `arena_ctrl` (único que escribe, en `clk_pix`) y `arena_link` (lado del juego, en `clk_juego`).
   Después de cada paso devuelve las 4 vecinas de cada cabeza en el flanco *k*+4. Sus pruebas
-  corren en `build_game_top.tcl`; todavía no están en `game_top`, así que el bitstream no cambia
+  corren en `build_game_top.tcl`; todavía no están en `game_top`, así que el bitstream no cambia.
+  El 16 de noviembre se probó en la tarjeta con un build aparte (PR #39 + PR #40, conectada a mano):
+  estelas, choque con estelas y paredes, ronda nueva, reset y choque de frente
 
 ## Hito: bloque en movimiento (revisión del 12 de noviembre)
 

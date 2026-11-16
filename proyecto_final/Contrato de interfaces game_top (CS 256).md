@@ -88,7 +88,7 @@ Los anchos de video salen de los contadores de la diapositiva 7: `hcnt` llega a 
   | Flanco | Qué pasa |
   | --- | --- |
   | *k* | Las motos se mueven; `codes_valid` baja |
-  | *k*+1 | `arena_link` manda el pedido: cabezas viejas → estela, nuevas → cabeza, moto que chocó → código 6 en su cabeza (sin estela). `arena_ctrl` hace las 4 escrituras y luego las 8 lecturas: 17 ciclos de `clk_pix` desde el toggle, unos 0.2 µs |
+  | *k*+1 | `arena_link` manda el pedido: cabezas viejas → estela, nuevas → cabeza. Una moto que no se movió (choque) tiene la misma celda vieja y nueva, y sigue siendo cabeza: la arena **no usa el código 6**. `arena_ctrl` hace las 4 escrituras y luego las 8 lecturas: 17 ciclos de `clk_pix` desde el toggle, unos 0.2 µs |
   | *k*+4 | Los 8 códigos llegan a `clk_juego`; `codes_valid` = 1 |
   | *k*+6 u *k*+8 | Siguiente paso: sobran 2 ticks con 6 y 4 con 8 |
 
@@ -103,15 +103,15 @@ Los anchos de video salen de los contadores de la diapositiva 7: `hcnt` llega a 
 ```systemverilog
 // clk_juego
 arena_link u_arena_link (.clk(clk_juego), .rst(rst_juego),
-    .load, .step, .crash1, .crash2,                                // de position_logic
+    .load, .step,                                                  // de position_logic
     .blkpos1_x, .blkpos1_y, .blkpos2_x, .blkpos2_y,                // cabezas (celda x 16)
     .code1_u, .code1_r, .code1_d, .code1_l,
     .code2_u, .code2_r, .code2_d, .code2_l, .codes_valid,          // a position_logic
-    .req_tgl, .req_prepare, .req_crash1, .req_crash2,
+    .req_tgl, .req_prepare,
     .req_old1, .req_old2, .req_new1, .req_new2, .ack_tgl, .nbr1, .nbr2);
 // clk_pix
 arena_ctrl u_arena_ctrl (.clk(clk_pix), .rst(rst_pix),
-    .req_tgl, .req_prepare, .req_crash1, .req_crash2,
+    .req_tgl, .req_prepare,
     .req_old1, .req_old2, .req_new1, .req_new2, .ack_tgl, .nbr1, .nbr2,
     .a_addr, .a_we, .a_wdata, .a_rdata);
 arena_map u_arena_map (.clk(clk_pix), .a_addr, .a_we, .a_wdata, .a_rdata,
@@ -132,8 +132,8 @@ set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_ctrl/codes_reg[*]}
 
 Lo que necesita cada lado:
 
-- **`position_logic`:** sacar `load`, `step` (el paso que se dio), `crash1` y `crash2` (válidos mientras `step` = 1, como hoy) y recibir los 8 códigos y `codes_valid`. `pending_turn` es interno de `bike_move`: la vecina se elige comparando `next_cx/next_cy` con `cx/cy`. Se pasa solo a una celda con 0 (vacía) o 8–10 (premio); todo lo demás choca, también el 7 reservado. Siguen haciendo falta las comparaciones de mismo destino y de cruce entre motos, porque los códigos son de antes del paso.
-- **`drawcon`:** `arena_addr = {cy[5:0], cx[6:0]}` de la celda del píxel adelantado 2, y `arena_code` llega 2 ciclos después, como las ROM. Las filas del marcador (`cy` 0–3) tienen código WALL: el marcador se dibuja por coordenadas antes de colorear por código, y el borde blanco de 10 px va encima de todo. Una celda con código 6 se colorea con la posición de la moto o con un color de choque; el parpadeo sale del estado del juego (X1), no del código. Si el puerto A escribe la misma celda en ese ciclo, el puerto B puede dar el código viejo o el nuevo: un píxel, nada depende de eso. Al configurar la FPGA la BRAM está en 0 (vacía) hasta la primera preparación, unos 4 ticks; un reset no la borra, así que la arena vieja se ve hasta esa preparación. La limpieza dura 98 µs, unas 5 líneas de video.
+- **`position_logic`:** sacar `load` y `step` (el paso que se dio) y recibir los 8 códigos y `codes_valid`. La arena no necesita `crash1`/`crash2`: una moto que chocó no se mueve, y su celda queda como cabeza. `pending_turn` es interno de `bike_move`: la vecina se elige comparando `next_cx/next_cy` con `cx/cy`. Se pasa solo a una celda con 0 (vacía) o 8–10 (premio); todo lo demás choca, también el 7 reservado. Siguen haciendo falta las comparaciones de mismo destino y de cruce entre motos, porque los códigos son de antes del paso.
+- **`drawcon`:** `arena_addr = {cy[5:0], cx[6:0]}` de la celda del píxel adelantado 2, y `arena_code` llega 2 ciclos después, como las ROM. Las filas del marcador (`cy` 0–3) tienen código WALL: el marcador se dibuja por coordenadas antes de colorear por código, y el borde blanco de 10 px va encima de todo. Cada celda se colorea con el color de su moto (estela o cabeza), también la del choque; el parpadeo sale del estado del juego (X1), no del código. Si el puerto A escribe la misma celda en ese ciclo, el puerto B puede dar el código viejo o el nuevo: un píxel, nada depende de eso. Al configurar la FPGA la BRAM está en 0 (vacía) hasta la primera preparación, unos 4 ticks; un reset no la borra, así que la arena vieja se ve hasta esa preparación. La limpieza dura 98 µs, unas 5 líneas de video.
 - **Premios (después):** el código de la celda elige la imagen del premio en su ROM, así que esas dos lecturas van en serie (2 + 2 ciclos) y no caben en una sola anticipación de 2 píxeles. Además, un premio colocado después de leer las vecinas cambiaría la arena entre la lectura y el paso; G4 necesita definir cuándo coloca y cómo reporta qué premio tomó cada moto.
 
 **Entradas** — **Pendiente** en detalle.
@@ -156,7 +156,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | `sprite_rom` | Roman | Motos de 32 × 32 (1024 palabras) y premios de 16 × 16 (256 palabras), `.coe` RGB444 | Por hacer |
 | Movimiento y choques (G1/G2) | Roman | Giros, giro pendiente, lectura de las dos celdas destino y resultado de cada moto | Dos motos con giros, giro pendiente y choques con pared y entre motos en `position_logic` (PR #25). Falta leer las celdas destino de `arena_map` (estelas y premios) |
 | Rondas, partida, vidas y puntos (G3/G5) | Alan | Estados de la partida, Start, choque, meta, bono y empate | Por hacer. Mientras tanto, `round_fsm` provisional de Roman dentro de `position_logic` |
-| `arena_map` + controlador (A1/A2) | Alan | BRAM de 8192 × 4 bits y servicio de pedidos del juego | `arena_map`, `arena_ctrl` y `arena_link` con sus pruebas (propuesta, sección 3); falta conectarlos en `game_top` |
+| `arena_map` + controlador (A1/A2) | Alan | BRAM de 8192 × 4 bits y servicio de pedidos del juego | `arena_map`, `arena_ctrl` y `arena_link` con sus pruebas (propuesta, sección 3); probados en la tarjeta con un build aparte el 16 nov; falta conectarlos en `game_top` |
 | Premios (G4) | Alan | Generador pseudoaleatorio y colocación de los tres premios | Por hacer; generador **pendiente** |
 | `btn_debounce` | Alan | Sincroniza los 5 botones, quita rebotes y genera un pulso al presionar | Por hacer |
 | `uart_rx` + decodificador | Alan | Bytes de la UART a pedidos de giro de P2 y Start | Por hacer; Enter **pendiente** |
