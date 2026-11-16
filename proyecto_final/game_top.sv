@@ -83,9 +83,9 @@ module game_top (
         .blkpos1_x(blkpos1_x), 
         .blkpos1_y(blkpos1_y),
         .blkpos2_x(blkpos2_x), 
-        .blkpos2_y(blkpos2_y) 
-        //.heading1(),
-        //.heading2()            // for the sprites, later
+        .blkpos2_y(blkpos2_y), 
+        .heading1(heading1),
+        .heading2(heading2)
     );
 
     // Each bike's square slides a few pixels every tick toward its current Cell (ADR 0010).
@@ -121,8 +121,8 @@ module game_top (
         .blkpos2_x(glide2_x),
         .blkpos2_y(glide2_y),
         .sw(sw_sync),
-        //.heading1(heading1),
-        //.heading2(heading2),
+        .heading1(heading1),
+        .heading2(heading2),
         // Outputs
         .draw_r(draw_r),
         .draw_g(draw_g),
