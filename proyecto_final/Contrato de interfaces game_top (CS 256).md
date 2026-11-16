@@ -156,7 +156,7 @@ Lectura síncrona en los dos puertos, para que Vivado la infiera como BRAM (8192
 
 1. **Giros:** se guarda **un solo giro pendiente**, el último pedido válido contra la dirección actual; uno nuevo reemplaza al anterior. Los giros de 180° y los que repiten la dirección se ignoran sin borrar el pendiente. Fuera del juego (pantalla de choque, espera de Start, pausa) se ignoran.
 2. **Lecturas:** se leen las dos celdas destino **antes de escribir nada**. Chocar con pared, con cualquier estela o con la otra moto es fatal. Ir a la misma celda o cruzarse es choque para las dos.
-3. **Escrituras:** en una moto que sobrevive, la cabeza vieja pasa a estela y se escribe la nueva; puede tomar un premio. Una moto que chocó se queda en su **última celda válida** y pierde una vida.
+3. **Escrituras:** si ninguna choca, en cada moto la cabeza vieja pasa a estela y se escribe la nueva; puede tomar un premio. Si alguna choca, **ninguna se mueve** en ese paso ([ADR 0011](../docs/adr/0011-a-crash-stops-both-bikes.md), propuesto): la que chocó se queda en su **última celda válida** y pierde una vida, y la otra se queda en su celda sin tomar premio.
 4. **Puntos:** premio tomado (+1, +1 o +3) y bono de +3 si solo el otro chocó. Después se revisa la meta.
 5. **Fin:** si alguien llegó a la meta, termina la partida. Si los dos, gana el de más puntos; con los mismos puntos es empate. Si nadie llegó y los dos perdieron su última vida en el mismo paso, se decide igual por puntos.
 

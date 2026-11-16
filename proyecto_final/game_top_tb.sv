@@ -352,8 +352,8 @@ module game_top_tb;
         step_ok("new Round, step 1", 1, 0, -1, 0);
     endtask
 
-    // P1 drives up into the top Wall: on the crash step it stays at row 5 (y = 80) while P2
-    // completes its step, and the Round ends.
+    // P1 drives up into the top Wall: on the crash step it stays at row 5 (y = 80), P2 stays
+    // too because a Crash stops both Bikes (ADR 0011), and the Round ends.
     task automatic wall_crash();
         logic crashed;
         int rows;
@@ -364,7 +364,7 @@ module game_top_tb;
         rows = (P1_Y0 - 80) / 16 - 1;                // steps left until row 5
         for (int i = 1; i <= rows; i++) step_ok($sformatf("up %0d", i), 0, -1, -1, 0);
         if (dut.blkpos1_y !== 11'd80) fail($sformatf("P1 at y=%0d, expected 80", dut.blkpos1_y));
-        next_step("into the Wall", 0, 0, -1, 0, crashed);
+        next_step("into the Wall", 0, 0, 0, 0, crashed);
         if (!crashed) fail("P1 did not crash into the top Wall");
         check_frame_here("P1 crashed into the top Wall");
     endtask

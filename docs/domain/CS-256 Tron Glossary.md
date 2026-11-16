@@ -38,6 +38,10 @@ _Avoid_: Collision (reserve for the general hardware-check sense), death
 Both Bikes Crash in the same Step because they meet: they enter the same Cell, or they swap Cells (each enters the Cell the other is in). Both Players lose a Life.
 _Avoid_: Head-on collision
 
+**Crash Step**:
+The Step in which at least one Bike Crashes. It ends the Round; no Bike advances in it.
+_Avoid_: Crash tick, last step
+
 **Draw**:
 A Round in which both Bikes Crash in the same Step, or a Match with equal final Points when both Players reach the Points Goal or lose their final Life in the same Step.
 _Avoid_: Tie
@@ -109,7 +113,7 @@ A 90° change of a Bike's Heading, requested by its Player. A 180° reversal is 
 The last valid Turn requested since the previous Step, waiting to be applied at the next Step; a later valid request replaces it. Validity is judged against the Bike's current Heading.
 
 **Step**:
-The moment in which every Bike advances one Cell along its Heading. Steps occur at a fixed rate during a Round.
+The moment in which every Bike advances one Cell along its Heading, unless it is a Crash Step. Steps occur at a fixed rate during a Round.
 _Avoid_: Tick, move (when the timing unit is meant)
 
 **Trail**:

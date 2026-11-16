@@ -83,4 +83,4 @@ tick=858 round=1 step=18 phase=PLAY p1=20,9,U p2=59,45,D crash=00 points=0,0 liv
 tick=864 round=1 step=19 phase=PLAY p1=20,8,U p2=59,46,D crash=00 points=0,0 lives=3,3 goal=30 r0=39,32 r1=10,9 r2=1,12 result=-
 tick=870 round=1 step=20 phase=PLAY p1=20,7,U p2=59,47,D crash=00 points=0,0 lives=3,3 goal=30 r0=39,32 r1=10,9 r2=1,12 result=-
 tick=876 round=1 step=21 phase=PLAY p1=20,6,U p2=59,48,D crash=00 points=0,0 lives=3,3 goal=30 r0=39,32 r1=10,9 r2=1,12 result=-
-tick=882 round=1 step=22 phase=CRASH p1=20,5,U p2=59,48,D crash=01 points=3,0 lives=3,2 goal=30 r0=39,32 r1=10,9 r2=1,12 result=-
+tick=882 round=1 step=22 phase=CRASH p1=20,6,U p2=59,48,D crash=01 points=3,0 lives=3,2 goal=30 r0=39,32 r1=10,9 r2=1,12 result=-

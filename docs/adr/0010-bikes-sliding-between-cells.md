@@ -68,7 +68,9 @@ smooth and playable. His reasons:
 ## Consequences
 
 - **What the player sees lags the game by one Step** (133 ms at 8 ticks). At
-  a Crash the square finishes its slide into the last Cell and stops. A jump
+  a Crash the square finishes its slide into the last Cell and stops. Since
+  [ADR 0011](0011-a-crash-stops-both-bikes.md) no Bike moves in a Crash Step,
+  so that last slide is the one from the Step before the Crash. A jump
   of more than one Cell (back to the start) is drawn at once.
 - **Sprite heading.** `heading` changes on the same `advance` edge as the
   Cell, so the sprite points along the slide it starts. It turns one tick

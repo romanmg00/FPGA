@@ -196,12 +196,12 @@ class StepResolveTests(unittest.TestCase):
         out = self.resolve(((40, 20), (42, 20)), (RIGHT, LEFT), (REWARD_SLOT0 + 2,) * 2)
         self.assertEqual((out.crashed, out.collected), ((True, True), (None, None)))
 
-    def test_crashed_bike_stays_and_survivor_writes_trail_then_head(self):
+    def test_a_crash_stops_both_and_only_the_crashed_bike_writes(self):
+        # ADR 0011: the survivor stays on its head Cell and skips the Reward ahead.
         out = self.resolve(((40, 20), (60, 20)), (RIGHT, LEFT), (WALL, REWARD_SLOT0 + 1))
-        self.assertEqual(out.heads, ((40, 20), (59, 20)))
-        self.assertEqual(out.collected, (None, 1))
-        self.assertEqual(out.writes,
-                         ((40, 20, arena_map.CRASH), (60, 20, TRAIL_P2), (59, 20, HEAD_P2)))
+        self.assertEqual(out.heads, ((40, 20), (60, 20)))
+        self.assertEqual(out.collected, (None, None))
+        self.assertEqual(out.writes, ((40, 20, arena_map.CRASH),))
 
 
 class TurnUnitTests(unittest.TestCase):
@@ -439,15 +439,18 @@ class RoundTests(unittest.TestCase):
         self.assertEqual(game.points, [0, 0])
         self.assertEqual(game.step.head, ((39, 27), (40, 27)))   # last valid head Cells
 
-    def test_survivor_moves_and_collects_in_the_crash_step(self):
+    def test_survivor_stays_and_collects_nothing_in_the_crash_step(self):
+        # ADR 0011: a Crash stops both Bikes; the survivor still gets the Survival Bonus.
         game = started()
         arrange(game, 0, (78, 27), RIGHT)                   # P1 faces the right Wall
+        head = game.step.head[1]
         cell = put_reward_ahead(game, 1, 2)
+        reward = game.grid.read(*cell)
         step(game)
         self.assertEqual(game.crashed, (True, False))
-        self.assertEqual(game.step.head[1], cell)
-        self.assertEqual(game.grid.read(*cell), HEAD_P2)
-        self.assertEqual(game.points, [0, 3 + 3])
+        self.assertEqual(game.step.head[1], head)
+        self.assertEqual(game.grid.read(*cell), reward)
+        self.assertEqual(game.points, [0, 3])
 
     def test_crash_display_ignores_start_then_next_round_needs_a_fresh_start(self):
         game = started()
@@ -553,9 +556,10 @@ class RewardTests(unittest.TestCase):
     def test_full_arena_leaves_a_collected_slot_absent(self):
         game = started()
         cell = put_reward_ahead(game, 0, 1)
+        p2_next = next_cell(game.step.head[1], game.turns[1].heading)
         for y in range(GEOMETRY.y0, GEOMETRY.y1):
             for x in range(GEOMETRY.x0, GEOMETRY.x1):
-                if game.grid.read(x, y) == EMPTY:
+                if game.grid.read(x, y) == EMPTY and (x, y) != p2_next:   # P2 must not Crash (ADR 0011)
                     game.grid.write(x, y, TRAIL_P2)
         step(game)
         self.assertEqual(game.step.head[0], cell)
@@ -590,7 +594,7 @@ class MatchTests(unittest.TestCase):
         put_reward_ahead(game, 0, 2)
         arrange(game, 1, (78, 30), RIGHT)                   # P2 drives into the right Wall
         step(game, goal_sw=3)
-        self.assertEqual(game.points[0], 45)
+        self.assertEqual(game.points[0], 39 + 3)            # Survival Bonus only (ADR 0011)
         self.assertEqual((game.phase, game.result), (CRASH, 0))
         rounds, heads = game.round_index, game.step.head
         run_until_phase_leaves(game, CRASH, start=True, goal_sw=3)
