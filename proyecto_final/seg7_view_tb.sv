@@ -1,11 +1,10 @@
 // Self-checking bench for seg7_view: one block per rule of the spec's Physical Scoreboard and
 // ADR 0008. Each clk edge is one clk_juego tick; inputs change between edges, as clk_juego
-// registers would. The view after every edge is logged as P, L or G, and each block compares
+// registers would. The view after every edge (0 Points, 1 Lives, 2 Goal) is logged as P, L
+// or G, and each block compares
 // the log with the trace its rule asks for. fast has VIEW_TICKS = 4, so every view lasts
 // 4 letters; real has the default (180, about 3 s) and is measured at the end.
 module seg7_view_tb;
-    import game_pkg::*;
-
     localparam int FAST_TICKS = 4;
 
     logic       clk = 1'b0, rst = 1'b1, new_match = 1'b0, waiting = 1'b1;
@@ -28,10 +27,10 @@ module seg7_view_tb;
 
     function automatic byte letter(logic [1:0] view);
         case (view)
-            VIEW_POINTS: return "P";
-            VIEW_LIVES:  return "L";
-            VIEW_GOAL:   return "G";
-            default:     return "?";
+            2'd0:    return "P";
+            2'd1:    return "L";
+            2'd2:    return "G";
+            default: return "?";
         endcase
     endfunction
 
@@ -164,10 +163,10 @@ module seg7_view_tb;
 
         // The default VIEW_TICKS: 180 ticks per view, about 3 s at 59.99997 Hz.
         start(1'b1, 2'b00);
-        ticks(4 * SCORE_VIEW_TICKS - 1);
+        ticks(4 * 180 - 1);
         check_real("180 ticks, waiting", {rep("P", 180), rep("L", 180), rep("G", 180), rep("P", 180)});
         start(1'b0, 2'b00);
-        ticks(3 * SCORE_VIEW_TICKS - 1);
+        ticks(3 * 180 - 1);
         check_real("180 ticks, in a Match", {rep("P", 180), rep("L", 180), rep("P", 180)});
 
         $display("PASS seg7_view_tb");

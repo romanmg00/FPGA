@@ -200,20 +200,20 @@ module uart_rx (
 
 **`seg7_driver`** (Alan, propuesta). Los 8 dígitos, de izquierda a derecha: P2 en `an[7:4]` y P1 en `an[3:0]`. Cada lado muestra dos letras y dos dígitos decimales: `P2 nn  P1 nn` durante 3 s y `L2 nn  L1 nn` durante 3 s, los dos lados juntos y sin apagarse. Mientras se espera una partida nueva (antes de la primera y al terminar una), se agrega una tercera vista, `GOAL  nn` en los 8 dígitos (`GOAL` en el lado de P2, dos dígitos en blanco y la meta que tomaría Start: 10, 20, 30 o 40), y las vistas rotan puntos → vidas → meta, 3 s cada una. Mover `{SW15, SW14}` en esa espera salta a la vista de meta y reinicia sus 3 s. Durante la partida solo se alternan puntos y vidas ([ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)). Una partida nueva empieza en la vista de puntos. El multiplexado rápido de dígitos es aparte del temporizador de 3 s. El decodificador del proyecto necesita las letras P, L, G y A (la O es el mismo glifo que el 0); la referencia de la tarea del curso no se toca.
 
-Se arma con los módulos de la tarea 1 del curso, en copias del proyecto. `sevenseg` recibe un código de 5 bits: 0–F como en la tarea, y P, L, G, A y blanco en 16–20 (`GLYPH_*` de `game_pkg.sv`), sin reusar los códigos hex. `multidigit` conserva el contador `sel` de 3 bits, el mux 8:1 y el decodificador 3:8 de la tarea, con `dig0`..`dig7` de 5 bits (`dig0` a la derecha), `a`..`g` y `an` activos en bajo. Corre en `clk_pix` y avanza de dígito con una habilitación de un ciclo cada `SLOT_CYCLES` = 10,432 ciclos (~1 kHz por dígito), en vez de usar un bit de un contador como reloj (ADR 0006). En `game_top`, `seg[0]` es `a` y `seg[6]` es `g`.
+Se arma con los módulos de la tarea 1 del curso, en copias del proyecto y con el mismo estilo (números con un comentario, sin paquetes ni constantes con nombre). `sevenseg` recibe `num` de 4 bits como en la tarea: 0–9 son los dígitos y, en lugar de las letras hex A–F, 10–13 son P, L, G y A, y 14–15 quedan en blanco. `multidigit` conserva el contador `sel` de 3 bits, el mux 8:1 y el decodificador 3:8 de la tarea, con `dig0`..`dig7` de 4 bits (`dig0` a la derecha) y `a`..`g` y `an` activos en bajo. La tarea usaba el bit 16 de un contador de 17 bits como reloj; aquí ese contador corre en `clk_pix` y `sel` pasa al siguiente dígito cada vez que se llena (ADR 0006: sin relojes nuevos). Son 2^17 ciclos, 1.57 ms por dígito y 12.6 ms por vuelta de los 8. En `game_top`, `seg[0]` es `a` y `seg[6]` es `g`.
 
-**`seg7_view`** (Alan, propuesta). En `clk_juego`, elige la vista cada `SCORE_VIEW_TICKS` ticks con las reglas de arriba. Sigue a `PageTimer` del modelo (`prototipos/tron_fpga/model/seg7.py`). No tiene entrada de pausa, así que las vistas siguen durante la pausa, el choque y la espera de ronda. Si al salir del reset los switches de la meta no están en `00`, su valor sincronizado cambia y aparece la vista de meta, como en el modelo.
+**`seg7_view`** (Alan, propuesta). En `clk_juego`, elige la vista cada `VIEW_TICKS` ticks (180, ~3 s) con las reglas de arriba. Las vistas son 0 puntos, 1 vidas y 2 meta, los mismos números en `seg7_driver`. Sigue a `PageTimer` del modelo (`prototipos/tron_fpga/model/seg7.py`). No tiene entrada de pausa, así que las vistas siguen durante la pausa, el choque y la espera de ronda. Si al salir del reset los switches de la meta no están en `00`, su valor sincronizado cambia y aparece la vista de meta, como en el modelo.
 
 ```systemverilog
 module seg7_view #(
-    parameter int VIEW_TICKS = SCORE_VIEW_TICKS    // 180, ~3 s
+    parameter int VIEW_TICKS = 180                 // ~3 s
 ) (
     input  logic       clk,                        // clk_juego
     input  logic       rst,
     input  logic       new_match,                  // 1 en el tick en que Start empieza una partida nueva
     input  logic       waiting,                    // esperando una partida nueva (G_IDLE o G_MATCH)
     input  logic [1:0] goal_sel,                   // {SW15, SW14} sincronizados
-    output logic [1:0] view                        // VIEW_POINTS, VIEW_LIVES o VIEW_GOAL
+    output logic [1:0] view                        // 0 puntos, 1 vidas, 2 meta
 );
 ```
 
@@ -221,13 +221,13 @@ module seg7_view #(
 
 ```systemverilog
 module seg7_driver #(
-    parameter int SLOT_CYCLES = 10_432             // ~1 kHz por dígito
+    parameter int COUNT_BITS = 17                  // contador del barrido de multidigit
 ) (
     input  logic       clk,                        // clk_pix
     input  logic       rst,
     input  logic [5:0] points_p1, points_p2,       // 0-45 en una partida
     input  logic [1:0] lives_p1, lives_p2,         // 0-3
-    input  logic [1:0] view,                       // de seg7_view
+    input  logic [1:0] view,                       // de seg7_view: 0 puntos, 1 vidas, 2 meta
     input  logic [1:0] goal_sel,                   // {SW15, SW14}
     output logic [6:0] seg,                        // seg[0] = a ... seg[6] = g, activo en bajo
     output logic [7:0] an                          // activo en bajo; an[0] es el dígito de la derecha
@@ -286,13 +286,7 @@ package game_pkg;
     localparam int SURVIVAL_BONUS = 3;
     localparam int CRASH_TICKS    = 120;   // ~2 s de parpadeo
     localparam int SCORE_VIEW_TICKS = 180; // ~3 s por vista del display
-    localparam logic [1:0] VIEW_POINTS = 2'd0, VIEW_LIVES = 2'd1, VIEW_GOAL = 2'd2; // vistas (seg7_view)
     // Meta según {SW15, SW14}: 10, 20, 30, 40
-
-    // Marcador: códigos de glifo de sevenseg (num de 5 bits). 0-15 son 0-9 y A-F, como en la
-    // tarea 1 del curso; la O de GOAL es el 0. Los códigos 21-31 también quedan en blanco.
-    localparam logic [4:0] GLYPH_P = 5'd16, GLYPH_L = 5'd17, GLYPH_G = 5'd18, GLYPH_A = 5'd19;
-    localparam logic [4:0] GLYPH_BLANK = 5'd20;
 
     // Salidas: P1 en (20, 27) hacia la derecha, P2 en (59, 27) hacia la izquierda
     localparam logic [6:0] SAL_P1_CX = 7'd20, SAL_P2_CX = 7'd59;
@@ -305,7 +299,7 @@ package game_pkg;
 endpackage
 ```
 
-`proyecto_final/game_pkg.sv` existe desde el Paso 7a y solo trae lo del marcador: los códigos de glifo, `SCORE_VIEW_TICKS` y las vistas. Cada constante de esta lista se copia ahí cuando un módulo la usa por primera vez, y se compila con los testbenches de ese módulo; el resto del paquete nadie lo ha compilado.
+Nadie ha compilado este paquete. Corre una síntesis rápida en Vivado al agregarlo.
 
 **Quién edita `game_pkg.sv`:** Roman fija los tiempos VGA, el borde, los sprites y los colores; Alan, la cuadrícula, los códigos de celda y las reglas de la partida. Los dos acuerdan los estados. Un cambio no se da por bueno hasta que pasan los testbenches de los módulos que lo usan.
 

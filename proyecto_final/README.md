@@ -62,10 +62,10 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
 - [ ] **Paso 6d:** choque con estelas y premios, leyendo las celdas destino de `arena_map`
 - [ ] **Paso 7:** marcador físico en los 8 dígitos de 7 segmentos (especificación, *Physical
   Scoreboard*, y [ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)), por partes:
-  - [x] **7a:** `sevenseg` y `multidigit` de la tarea 1 del curso, con las letras P, L, G, A y
-    el dígito en blanco (códigos 16–20 de `game_pkg.sv`; 0–F siguen siendo hex). `multidigit`
-    barre en `clk_pix` y avanza de dígito con una habilitación cada 10,432 ciclos (~1 kHz por
-    dígito), sin reloj nuevo (ADR 0006). Solo en simulación: `sevenseg_tb` y `multidigit_tb`
+  - [x] **7a:** `sevenseg` y `multidigit` de la tarea 1 del curso, en su mismo estilo. En
+    `sevenseg`, los códigos 10–13 son P, L, G y A en lugar de las letras hex, y 14–15 quedan en
+    blanco. `multidigit` usa el contador de 17 bits de la tarea, ahora en `clk_pix`, sin reloj
+    nuevo (ADR 0006): pasa al siguiente dígito cada vez que se llena (1.57 ms por dígito). Solo en simulación: `sevenseg_tb` y `multidigit_tb`
     pasan en XSim; todavía no están en `game_top`
   - [x] **7b:** las vistas. `seg7_view`, en `clk_juego`, cambia de vista cada 180 ticks (3 s):
     puntos → vidas y, mientras se espera una partida nueva, → meta; mover `{SW15, SW14}` en esa
@@ -104,9 +104,8 @@ probaron también las paredes y el reset repetido. Ese archivo ya no está en el
 - `bike_glide.sv`: posición dibujada de una moto, que se desliza de su celda anterior a la nueva durante un paso (ADR 0010); una instancia por moto
 - `bike_move.sv`: celda, dirección y giro pendiente de una moto; se instancia una vez por moto
 - `drawcon.sv`: color de cada píxel: paredes, HUD, P1 en azul (`0DF`) y P2 en naranja (`F80`)
-- `game_pkg.sv`: constantes compartidas del contrato (sección 5). Por ahora solo las del marcador: códigos de glifo, `SCORE_VIEW_TICKS` y las vistas; cada constante se agrega cuando un módulo la usa
-- `sevenseg.sv`: decodificador de 7 segmentos de la tarea 1, activo en bajo: códigos de 5 bits, 0–F como en la tarea y P, L, G, A y blanco del marcador
-- `multidigit.sv`: los 8 dígitos con un solo juego de segmentos, como en la tarea 1, en `clk_pix` con una habilitación (~1 kHz por dígito)
+- `sevenseg.sv`: decodificador de 7 segmentos de la tarea 1, activo en bajo: 0–9, y P, L, G, A y blanco del marcador en 10–15
+- `multidigit.sv`: los 8 dígitos con un solo juego de segmentos, como en la tarea 1; su contador de 17 bits corre en `clk_pix`
 - `seg7_view.sv`: qué vista muestra el marcador (puntos, vidas o meta), en `clk_juego`, cada 3 s (ADR 0008)
 - `seg7_driver.sv`: el marcador en `clk_pix`: de puntos, vidas, vista y meta a los 8 dígitos, con `multidigit`
 - `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)

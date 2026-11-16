@@ -1,18 +1,16 @@
-// Self-checking bench for seg7_driver, from its pins only, with SLOT_CYCLES = 2. Every cycle
+// Self-checking bench for seg7_driver, from its pins only, with COUNT_BITS = 1. Every cycle
 // exactly one anode is low. Each check reads one whole scan back as eight characters, dig7
 // first, with a segment table written from the glyph drawings, and compares it with the
 // text the spec and ADR 0008 give for that view (built with $sformatf, not by the design's
 // arithmetic). seg is decoded as seg[0] = a ... seg[6] = g.
 module seg7_driver_tb;
-    import game_pkg::*;
-
     logic       clk = 1'b0, rst = 1'b1;
     logic [5:0] points_p1 = '0, points_p2 = '0;
-    logic [1:0] lives_p1 = '0, lives_p2 = '0, view = VIEW_POINTS, goal_sel = 2'b00;
+    logic [1:0] lives_p1 = '0, lives_p2 = '0, view = 2'd0, goal_sel = 2'b00;   // view 0: Points
     logic [6:0] seg;
     logic [7:0] an;
 
-    seg7_driver #(.SLOT_CYCLES(2)) dut (.*);
+    seg7_driver #(.COUNT_BITS(1)) dut (.*);
 
     always #5 clk = ~clk;
 
@@ -82,7 +80,7 @@ module seg7_driver_tb;
         end
 
         // Lives 0-3, with the leading zero.
-        view = VIEW_LIVES;
+        view = 2'd1;   // Lives
         for (int l = 0; l < 4; l++) begin
             lives_p1 = 2'(l);
             lives_p2 = 2'(3 - l);
@@ -90,7 +88,7 @@ module seg7_driver_tb;
         end
 
         // Goal: GOAL, two blanks and the goal of {SW15, SW14}; Points and Lives do not show.
-        view = VIEW_GOAL;
+        view = 2'd2;   // Goal
         points_p1 = 6'd45;
         lives_p2 = 2'd3;
         for (int s = 0; s < 4; s++) begin
@@ -105,7 +103,7 @@ module seg7_driver_tb;
         expect_frame("view code 3", "P210P109");
 
         // Back to Points from Goal.
-        view = VIEW_POINTS;
+        view = 2'd0;   // Points
         expect_frame("Points again", "P210P109");
 
         $display("PASS seg7_driver_tb");
