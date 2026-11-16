@@ -74,7 +74,7 @@ set_property top game_top [current_fileset]
 - `-norecurse` deja fuera las subcarpetas. **`sim_clocks/clk_wiz_0.sv` nunca entra a la síntesis**: es un reloj ideal para simulación con el mismo nombre que el IP real. `prototypes/` tampoco es del juego.
 - `add_files` referencia los archivos, no los copia: después de un `git pull`, Vivado ve la versión nueva.
 - Si el proyecto tiene copias viejas de estos archivos (creado con *Copy sources into project*), quítalas antes con el bloque de arriba para no tener módulos duplicados.
-- Los IP (`clk_wiz_0`, `bike_rom`) se quedan como están en el proyecto.
+- Los IP (`clk_wiz_0`, `bike_rom`, `reward_rom`) se quedan como están en el proyecto.
 
 Para ver qué archivos quedaron cargados:
 
@@ -109,10 +109,11 @@ add_files -fileset constrs_1 -norecurse [glob ~/FPGA/proyecto_final/game_top*.xd
 get_ips
 ```
 
-Deben salir `clk_wiz_0` y `bike_rom`. Si falta `bike_rom`, créalo en este proyecto:
+Deben salir `clk_wiz_0`, `bike_rom` y `reward_rom`. Si falta alguna ROM, créala en este proyecto:
 
 ```tcl
 source ~/FPGA/proyecto_final/ip/bike_rom/bike_rom.tcl
+source ~/FPGA/proyecto_final/ip/reward_rom/reward_rom.tcl
 ```
 
 ## Revisar antes de sintetizar
