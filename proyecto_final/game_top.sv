@@ -11,17 +11,20 @@ module game_top (
     logic [10:0] glide1_x, glide1_y;       // bike_glide -> drawcon: drawn position, registered
     logic [10:0] glide2_x, glide2_y;
 
-    // Ticks of clk_juego per step: 6 gives about 10 Cells/s.
-    localparam int STEP_TICKS = 6; 
-    logic [10:0] curr_x, curr_y; 
+    // Ticks of clk_juego per step (ADR 0007, ADR 0010): 6 gives about 10 Cells/s. One value
+    // for position_logic and both bike_glide, so the slide always lasts exactly one step.
+    localparam int STEP_TICKS = 6;
+    logic [10:0] curr_x, curr_y;
     logic [3:0]  draw_r, draw_g, draw_b;
     logic [1:0]  heading1, heading2;
     logic        clk_juego;
     logic        clk_juego_toggle = 1'b0;
     logic        clk_pix;
 
-    // clk_juego sale de un contador sobre clk_pix
+    // clk_juego sale de un contador sobre clk_pix, sin segundo Clocking Wizard (ADR 0006):
     // alterna cada CLK_JUEGO_N ciclos, 83,455,882 Hz / (2 * 695,466) = 59.99997 Hz.
+    // game_top_timing.xdc usa -divide_by 2 * CLK_JUEGO_N, y build_game_top.tcl revisa que
+    // coincidan. El contador cuenta de 0 a N-1, asi que necesita $clog2(N) = 20 bits.
     localparam int CLK_JUEGO_N = 695_466;
     localparam int CLK_CNT_W   = $clog2(CLK_JUEGO_N);
     logic [CLK_CNT_W-1:0] clk_cnt = '0;
