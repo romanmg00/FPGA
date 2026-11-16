@@ -160,7 +160,9 @@ module arena_tb;
     endtask
 
     // A Step: step = 1 for the tick before edge k, STEP_TICKS ticks after the last one, but
-    // only once codes_valid = 1. At edge k a Bike that does not crash moves one Cell in d.
+    // only once codes_valid = 1. At edge k each Bike moves one Cell in d, unless either Bike
+    // crashes: then neither moves (ADR 0011, proposed), and a survivor's old and new head are
+    // the same Cell, which stays a head.
     task automatic do_step(int d1, int d2, bit c1, bit c2, output int waited);
         logic [12:0] o1, o2;
         waited = 0;
@@ -172,8 +174,10 @@ module arena_tb;
         step = 1'b1; crash1 = c1; crash2 = c2;
         tick();                                         // edge k
         o1 = head1(); o2 = head2();
-        if (!c1) move(1, d1);
-        if (!c2) move(2, d2);
+        if (!c1 && !c2) begin
+            move(1, d1);
+            move(2, d2);
+        end
         step = 1'b0; crash1 = 1'b0; crash2 = 1'b0;
         last_step = tk;
         want_reqs++;
@@ -232,9 +236,10 @@ module arena_tb;
         if (code2_l !== 4'd2) fail($sformatf("P2 at (22,27): left should be P1's Trail, got %0d", code2_l));
         if (code1_l !== 4'd0 || code1_u !== 4'd1) fail("P1 on the top row: left EMPTY, up WALL");
 
-        // ---- P2 Crashes into P1's Trail; P1 completes its Step. Code 6 at P2's head, no Trail.
+        // ---- P2 Crashes into P1's Trail; P1 stays on its head. Code 6 at P2's head, no Trail.
         step_on_time("P2 Crash", 3, 3, 0, 1);
-        if (gold[at(22, 27)] !== 4'd6 || gold[at(23, 27)] !== 4'd4) fail("golden Crash image");
+        if (gold[at(22, 27)] !== 4'd6 || gold[at(23, 27)] !== 4'd4 || gold[head1()] !== 4'd3)
+            fail("golden Crash image");
 
         // ---- Crash pause, then a new Round: the Arena is prepared from the starts again.
         repeat (5) tick();
