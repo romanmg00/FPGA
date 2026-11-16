@@ -22,6 +22,10 @@
 // left edge of its box (PR #35, note 3). The bench expects that image; set SPRITE_SHIFT to 0
 // once drawcon reads ahead. The sprite data is the .mem build_game_top.tcl makes from the
 // .coe, given with -testplusarg bike_mem=<file>, as for sim_models/bike_rom.sv.
+// Arena (contract section 3): every visible pixel's Trail colour must match the code drawcon
+// received, and that code must come from the pixel's own Cell (dut.arena_addr two cycles
+// earlier, port B's latency). arena_check compares the whole of arena_map with a Trail model
+// kept here from the bike moves: the Cells a bike left are its Trail, its head is a head.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
 // own simulator: xsim game_top_tb -runall -testplusarg scenario=steps
 // Without +scenario they all run one after another in one simulation.
@@ -40,6 +44,8 @@ module game_top_tb;
     // sprites (tools/png2coe.py), C_KEY is drawn in the Player's colour and C_CLEAR is transparent.
     localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h444, C_P1 = 12'h0DF,
                             C_P2 = 12'hF80, C_EMPTY = 12'h000, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
+    // Trail colours: a darker shade of each Player's colour
+    localparam logic [11:0] C_T1 = 12'h068, C_T2 = 12'h840;
     // Known deviation (see above): how many pixels late drawcon looks up each sprite.
     localparam int SPRITE_SHIFT = 2;
 
@@ -69,6 +75,18 @@ module game_top_tb;
         e1x[0] <= dut.glide1_x; e1y[0] <= dut.glide1_y; e1h[0] <= dut.heading1;
         e2x[0] <= dut.glide2_x; e2y[0] <= dut.glide2_y; e2h[0] <= dut.heading2;
     end
+    // Arena code and port B address, sampled the same way: e_code is the code drawcon used
+    // for the pins' pixel, and e_addr[2] the address it was read with, two cycles earlier.
+    logic [3:0]  e_code;
+    logic [12:0] e_addr [0:2];
+    always @(posedge dut.clk_pix) begin
+        e_code    <= dut.arena_code;
+        e_addr[2] <= e_addr[1];
+        e_addr[1] <= e_addr[0];
+        e_addr[0] <= dut.arena_addr;
+    end
+    // Arena model: what arena_map must hold after the last step's writes.
+    logic [3:0] arena_want [0:8191];
 
     game_top dut (.clk, .cpu_resetn, .sw, .btn, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs));
     always #5 clk = ~clk;
@@ -120,7 +138,7 @@ module game_top_tb;
     // pixels earlier on the same line, with the drawn position (sNx, sNy) and heading sNh.
     function automatic logic [11:0] expected_colour(int x, int y,
             int b1x, int b1y, int s1x, int s1y, int s1h,
-            int b2x, int b2y, int s2x, int s2y, int s2h);
+            int b2x, int b2y, int s2x, int s2y, int s2h, logic [3:0] code);
         logic [11:0] w;
         if (y >= 64 && (x < 16 || x >= 1264 || y < 80 || y >= 784)) return C_WALL;
         if (y < 64) return C_HUD;
@@ -132,6 +150,8 @@ module game_top_tb;
             w = sprite_word(x - SPRITE_SHIFT, y, s2x, s2y, s2h);
             if (w != C_CLEAR) return w == C_KEY ? C_P2 : w;
         end
+        if (code == 4'd2) return C_T1;    // Trails only; heads are not painted
+        if (code == 4'd4) return C_T2;
         return C_EMPTY;
     endfunction
 
@@ -163,13 +183,16 @@ module game_top_tb;
                 if (h >= 336 && h < 1616 && v >= 27 && v < 827) begin
                     x = h - 336;
                     y = v - 27;
+                    if (e_addr[2] !== {6'(y >> 4), 7'(x >> 4)})
+                        fail($sformatf("%s: Arena read for pixel (%0d,%0d) used address %h, expected Cell (%0d,%0d)",
+                                       what, x, y, e_addr[2], x >> 4, y >> 4));
                     if (live)
                         want = expected_colour(x, y,
                             e1x[0], e1y[0], e1x[SPRITE_SHIFT], e1y[SPRITE_SHIFT], e1h[SPRITE_SHIFT],
-                            e2x[0], e2y[0], e2x[SPRITE_SHIFT], e2y[SPRITE_SHIFT], e2h[SPRITE_SHIFT]);
+                            e2x[0], e2y[0], e2x[SPRITE_SHIFT], e2y[SPRITE_SHIFT], e2h[SPRITE_SHIFT], e_code);
                     else
                         want = expected_colour(x, y, p1x, p1y, p1x, p1y, P1_H0,
-                                               p2x, p2y, p2x, p2y, P2_H0);
+                                               p2x, p2y, p2x, p2y, P2_H0, e_code);
                 end
                 if ({r, g, b} !== want)
                     fail($sformatf("%s: pins show %03h, expected %03h at h=%0d v=%0d", what, {r, g, b}, want, h, v));
@@ -223,8 +246,33 @@ module game_top_tb;
                            p1x, p1y, p2x, p2y));
     endtask
 
+    // Arena after a Prepare: EMPTY on cx 1..78, cy 5..48, WALL elsewhere, heads at the bikes.
+    task automatic arena_model_prepare();
+        for (int a = 0; a < 8192; a++)
+            arena_want[a] = ((a % 128) >= 1 && (a % 128) <= 78 && (a / 128) >= 5 && (a / 128) <= 48) ? 4'd0 : 4'd1;
+        arena_want[(dut.blkpos1_y / 16) * 128 + dut.blkpos1_x / 16] = 4'd3;
+        arena_want[(dut.blkpos2_y / 16) * 128 + dut.blkpos2_x / 16] = 4'd5;
+    endtask
+
+    // Once codes_valid says the last step's request was answered, the whole Arena must match.
+    task automatic arena_check(string what);
+        int waited = 0;
+        while (dut.codes_valid !== 1'b1) begin
+            @(posedge dut.clk_juego);
+            #1;
+            if (++waited > 6) fail($sformatf("%s: codes_valid did not come back", what));
+        end
+        for (int a = 0; a < 8192; a++)
+            if (dut.u_arena_map.mem[a] !== arena_want[a])
+                fail($sformatf("%s: Arena Cell (%0d,%0d) holds %0d, expected %0d",
+                               what, a % 128, a / 128, dut.u_arena_map.mem[a], arena_want[a]));
+        $display("ok   %s: the whole Arena matches the Trail model", what);
+    endtask
+
     // Presses BTNC long enough to pass the 2-flip-flop synchroniser, then releases it.
+    // The Arena was prepared when the bikes went back to their starts.
     task automatic press_start();
+        arena_model_prepare();
         btn = B_C;
         #60ms;
         btn = B_NONE;
@@ -252,6 +300,15 @@ module game_top_tb;
         last_step_tick = ticks;
         // Copied to ints first: XSim 2025.2 evaluated int'(dut.blkpos1_x) - x1 here as 0 - x1.
         nx1 = dut.blkpos1_x; ny1 = dut.blkpos1_y; nx2 = dut.blkpos2_x; ny2 = dut.blkpos2_y;
+        // Arena model: a bike that moved leaves its Trail; its new Cell is its head.
+        if (nx1 != x1 || ny1 != y1) begin
+            arena_want[(y1 / 16) * 128 + x1 / 16] = 4'd2;
+            arena_want[(ny1 / 16) * 128 + nx1 / 16] = 4'd3;
+        end
+        if (nx2 != x2 || ny2 != y2) begin
+            arena_want[(y2 / 16) * 128 + x2 / 16] = 4'd4;
+            arena_want[(ny2 / 16) * 128 + nx2 / 16] = 4'd5;
+        end
         if (nx1 - x1 != 16 * dx1 || ny1 - y1 != 16 * dy1 || nx2 - x2 != 16 * dx2 || ny2 - y2 != 16 * dy2)
             fail($sformatf("%s: P1 moved (%0d,%0d) px and P2 (%0d,%0d) px; expected (%0d,%0d) and (%0d,%0d) cells",
                            what, nx1 - x1, ny1 - y1, nx2 - x2, ny2 - y2, dx1, dy1, dx2, dy2));
@@ -304,6 +361,7 @@ module game_top_tb;
         for (int i = 1; i <= 5; i++) step_ok($sformatf("step %0d", i), 1, 0, -1, 0);
         expect_at("after 5 steps", P1_X0 + 5 * 16, P1_Y0, P2_X0 - 5 * 16, P2_Y0);
         check_frame_here("moving, between steps 5 and 6");
+        arena_check("after 5 steps");
         step_ok("step 6", 1, 0, -1, 0);
         glide_check("step 6", 1, 0, -1, 0);
     endtask
@@ -329,6 +387,7 @@ module game_top_tb;
         step_ok("D: turn down", 0, 1, -1, 0);
         btn = B_NONE;
         check_frame_here("heading down");
+        arena_check("after the turns");
     endtask
 
     // The bikes meet head-on: on step 20 each aims at the other's head, both stop, and the
@@ -342,6 +401,7 @@ module game_top_tb;
         if (!crashed) fail("step 20: the bikes did not crash head-on");
         expect_at("head-on crash", 39 * 16, P1_Y0, 40 * 16, P2_Y0);
         check_frame_here("head-on crash");
+        arena_check("head-on crash");
         #1s;
         expect_at("1 s into the crash pause", 39 * 16, P1_Y0, 40 * 16, P2_Y0);
         #1.2s;
@@ -350,6 +410,7 @@ module game_top_tb;
         check_frame("back at the starts", P1_X0, P1_Y0, P2_X0, P2_Y0);
         press_start();
         step_ok("new Round, step 1", 1, 0, -1, 0);
+        arena_check("new Round: the old Trails are gone");
     endtask
 
     // P1 drives up into the top Wall: on the crash step it stays at row 5 (y = 80), P2 stays
@@ -367,6 +428,7 @@ module game_top_tb;
         next_step("into the Wall", 0, 0, 0, 0, crashed);
         if (!crashed) fail("P1 did not crash into the top Wall");
         check_frame_here("P1 crashed into the top Wall");
+        arena_check("P1 crashed into the top Wall");
     endtask
 
     task automatic resets_short();

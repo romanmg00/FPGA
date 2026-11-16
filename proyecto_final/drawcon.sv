@@ -1,5 +1,5 @@
-// Colour of each pixel, from top to bottom priority: walls, HUD, block, empty arena.
-// The block colour comes from the switches.
+// Colour of each pixel, from top to bottom priority: walls, HUD, bikes, Trails, empty arena.
+// Trails come from arena_map's port B, read 2 pixels ahead (its latency is 2 cycles).
 module drawcon(
     input              clk,                     // clk_pix (83.46 MHz)
     input logic [10:0] curr_x, curr_y,          // coordinates of the current pixel
@@ -10,7 +10,9 @@ module drawcon(
     
     output logic [3:0] draw_r,                  // R component of the current pixel
     output logic [3:0] draw_g,                  // G component of the current pixel
-    output logic [3:0] draw_b                   // B component of the current pixel
+    output logic [3:0] draw_b,                  // B component of the current pixel
+    output logic [12:0] arena_addr,             // arena_map port B: {cy, cx} of the pixel 2 ahead
+    input  logic [3:0]  arena_code              // code of the current pixel's Cell (2 cycles later)
 );
     // ---------------------------------------------------------------
     // Internal signals (source -> destination)
@@ -18,6 +20,7 @@ module drawcon(
     logic [4:0] add1_x, add1_y, add2_x, add2_y; // relative position of the current pixel from the top-left corner of the bike sprite
     logic [11:0] color1, color2;                // color of each pixel of the bike sprites
     logic [9:0] add1, add2;                     // address of each pixel of the bike sprites
+    logic [10:0] ahead_x;                       // x of the pixel 2 ahead, for the Arena read
     
     // ---------------------------------------------------------------
     // Address calculation (bike sprite -> ROM)
@@ -26,6 +29,11 @@ module drawcon(
     assign add1_y = curr_y + 8 - blkpos1_y;
     assign add2_x = curr_x + 8 - blkpos2_x;
     assign add2_y = curr_y + 8 - blkpos2_y;
+
+    // Arena address: the Cell of the pixel 2 ahead, so its code arrives with the pixel.
+    // In blanking curr_x wraps (2046, 2047), so the first two pixels read Cell 0 as they must.
+    assign ahead_x    = curr_x + 11'd2;
+    assign arena_addr = {curr_y[9:4], ahead_x[10:4]};
 
     // ---------------------------------------------------------------
     // Sprite address calculation
@@ -69,7 +77,7 @@ module drawcon(
     );
     // ---------------------------------------------------------------
     // Colors
-    // Priorities: walls -> HUD -> bike 1 -> bike 2 -> empty arena
+    // Priorities: walls -> HUD -> bike 1 -> bike 2 -> Trails -> empty arena
     // Sprite pixels 000 are transparent (tools/png2coe.py), so a bike's box only covers
     // what is under its drawn pixels
     // ---------------------------------------------------------------
@@ -112,6 +120,16 @@ module drawcon(
                 draw_g = color2[7:4];
                 draw_b = color2[3:0];
             end
+        // Trails only: heads (3, 5) are not painted, because the bike slides into its head
+        // Cell during the next step (ADR 0010) and a painted head would show ahead of it.
+        end else if (arena_code == 4'd2) begin  // P1 Trail, a darker cyan
+            draw_r = 4'b0000;
+            draw_g = 4'b0110;
+            draw_b = 4'b1000;
+        end else if (arena_code == 4'd4) begin  // P2 Trail, a darker orange
+            draw_r = 4'b1000;
+            draw_g = 4'b0100;
+            draw_b = 4'b0000;
         end else begin // TODO: add another background
             draw_r = 4'b0000;
             draw_g = 4'b0000;
