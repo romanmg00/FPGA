@@ -107,7 +107,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | `btn_debounce` | Alan | Sincroniza los 5 botones, quita rebotes y genera un pulso al presionar | Por hacer |
 | `uart_rx` + decodificador | Alan | Bytes de la UART a pedidos de giro de P2 y Start | Por hacer; Enter **pendiente** |
 | Página web de control | Alan | WASD, Espacio/Enter por Web Serial | Por hacer |
-| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | `sevenseg` y `multidigit` (tarea 1 del curso, con P, L, G, A y blanco; barrido en `clk_pix` con habilitación) pasan en XSim (Paso 7a). Faltan las vistas, la partida y la integración en `game_top` |
+| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | `sevenseg` y `multidigit` (tarea 1 del curso, con P, L, G, A y blanco; barrido en `clk_pix` con habilitación), `seg7_view` y `seg7_driver` pasan en XSim (Pasos 7a y 7b). Faltan la partida (G3/G5) y la integración en `game_top` |
 | `game_top` + XDC | Alan | Instancia y conecta todo; relojes, reset, pines, automatización del build | Por hacer |
 | Marcador en pantalla (`texto_capa`, `font_rom`) | Roman | Puntos y vidas en la franja de 64 px, con texto de 32 px | Después del núcleo (*Should*) |
 
@@ -202,6 +202,38 @@ module uart_rx (
 
 Se arma con los módulos de la tarea 1 del curso, en copias del proyecto. `sevenseg` recibe un código de 5 bits: 0–F como en la tarea, y P, L, G, A y blanco en 16–20 (`GLYPH_*` de `game_pkg.sv`), sin reusar los códigos hex. `multidigit` conserva el contador `sel` de 3 bits, el mux 8:1 y el decodificador 3:8 de la tarea, con `dig0`..`dig7` de 5 bits (`dig0` a la derecha), `a`..`g` y `an` activos en bajo. Corre en `clk_pix` y avanza de dígito con una habilitación de un ciclo cada `SLOT_CYCLES` = 10,432 ciclos (~1 kHz por dígito), en vez de usar un bit de un contador como reloj (ADR 0006). En `game_top`, `seg[0]` es `a` y `seg[6]` es `g`.
 
+**`seg7_view`** (Alan, propuesta). En `clk_juego`, elige la vista cada `SCORE_VIEW_TICKS` ticks con las reglas de arriba. Sigue a `PageTimer` del modelo (`prototipos/tron_fpga/model/seg7.py`). No tiene entrada de pausa, así que las vistas siguen durante la pausa, el choque y la espera de ronda. Si al salir del reset los switches de la meta no están en `00`, su valor sincronizado cambia y aparece la vista de meta, como en el modelo.
+
+```systemverilog
+module seg7_view #(
+    parameter int VIEW_TICKS = SCORE_VIEW_TICKS    // 180, ~3 s
+) (
+    input  logic       clk,                        // clk_juego
+    input  logic       rst,
+    input  logic       new_match,                  // 1 en el tick en que Start empieza una partida nueva
+    input  logic       waiting,                    // esperando una partida nueva (G_IDLE o G_MATCH)
+    input  logic [1:0] goal_sel,                   // {SW15, SW14} sincronizados
+    output logic [1:0] view                        // VIEW_POINTS, VIEW_LIVES o VIEW_GOAL
+);
+```
+
+**`seg7_driver`** (Alan, propuesta). En `clk_pix`, arma los 8 dígitos de la vista y los barre con `multidigit`. Las entradas tienen que llegar a `clk_pix` como registros que cambian juntos: el cruce desde `clk_juego` va en `game_top`, con el mismo patrón que el issue #30. Los puntos usan 6 bits porque el total legal más alto es 45 (39 + 3 + 3).
+
+```systemverilog
+module seg7_driver #(
+    parameter int SLOT_CYCLES = 10_432             // ~1 kHz por dígito
+) (
+    input  logic       clk,                        // clk_pix
+    input  logic       rst,
+    input  logic [5:0] points_p1, points_p2,       // 0-45 en una partida
+    input  logic [1:0] lives_p1, lives_p2,         // 0-3
+    input  logic [1:0] view,                       // de seg7_view
+    input  logic [1:0] goal_sel,                   // {SW15, SW14}
+    output logic [6:0] seg,                        // seg[0] = a ... seg[6] = g, activo en bajo
+    output logic [7:0] an                          // activo en bajo; an[0] es el dígito de la derecha
+);
+```
+
 **`game_top`** (Alan) conecta el Clocking Wizard y el contador de `clk_juego`, los dos puertos de `arena_map`, sincroniza botones, switches y `uart_rx`, e invierte `cpu_resetn`. Cada quien agrega la instancia de sus propios módulos.
 
 ## 5. Constantes compartidas (`game_pkg.sv`)
@@ -254,6 +286,7 @@ package game_pkg;
     localparam int SURVIVAL_BONUS = 3;
     localparam int CRASH_TICKS    = 120;   // ~2 s de parpadeo
     localparam int SCORE_VIEW_TICKS = 180; // ~3 s por vista del display
+    localparam logic [1:0] VIEW_POINTS = 2'd0, VIEW_LIVES = 2'd1, VIEW_GOAL = 2'd2; // vistas (seg7_view)
     // Meta según {SW15, SW14}: 10, 20, 30, 40
 
     // Marcador: códigos de glifo de sevenseg (num de 5 bits). 0-15 son 0-9 y A-F, como en la
@@ -272,7 +305,7 @@ package game_pkg;
 endpackage
 ```
 
-`proyecto_final/game_pkg.sv` existe desde el Paso 7a y solo trae los códigos de glifo del marcador. Cada constante de esta lista se copia ahí cuando un módulo la usa por primera vez, y se compila con los testbenches de ese módulo; el resto del paquete nadie lo ha compilado.
+`proyecto_final/game_pkg.sv` existe desde el Paso 7a y solo trae lo del marcador: los códigos de glifo, `SCORE_VIEW_TICKS` y las vistas. Cada constante de esta lista se copia ahí cuando un módulo la usa por primera vez, y se compila con los testbenches de ese módulo; el resto del paquete nadie lo ha compilado.
 
 **Quién edita `game_pkg.sv`:** Roman fija los tiempos VGA, el borde, los sprites y los colores; Alan, la cuadrícula, los códigos de celda y las reglas de la partida. Los dos acuerdan los estados. Un cambio no se da por bueno hasta que pasan los testbenches de los módulos que lo usan.
 

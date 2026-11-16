@@ -88,6 +88,8 @@ start_bench bike_glide_tb bike_glide_tb "PASS bike_glide_tb" [list $here/bike_gl
 # Physical Scoreboard (ADR 0008): the homework 1 display path, extended. Not in game_top yet.
 start_bench sevenseg_tb sevenseg_tb "PASS sevenseg_tb" [list $here/game_pkg.sv $here/sevenseg_tb.sv $here/sevenseg.sv]
 start_bench multidigit_tb multidigit_tb "PASS multidigit_tb" [list $here/game_pkg.sv $here/multidigit_tb.sv $here/multidigit.sv $here/sevenseg.sv]
+start_bench seg7_view_tb seg7_view_tb "PASS seg7_view_tb" [list $here/game_pkg.sv $here/seg7_view_tb.sv $here/seg7_view.sv]
+start_bench seg7_driver_tb seg7_driver_tb "PASS seg7_driver_tb" [list $here/game_pkg.sv $here/seg7_driver_tb.sv $here/seg7_driver.sv $here/multidigit.sv $here/sevenseg.sv]
 foreach scenario {idle steps turns head_on wall_crash resets_short reset_long} {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
         [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv] $design] \

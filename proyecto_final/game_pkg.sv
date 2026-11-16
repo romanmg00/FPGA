@@ -13,4 +13,9 @@ package game_pkg;
     localparam logic [4:0] GLYPH_A     = 5'd19;
     localparam logic [4:0] GLYPH_BLANK = 5'd20;   // all segments off; so are codes 21-31
 
+    // Scoreboard views (spec, Physical Scoreboard; ADR 0008). seg7_view picks one every
+    // SCORE_VIEW_TICKS ticks of clk_juego: 180 at 59.99997 Hz is 3.0 s.
+    localparam int SCORE_VIEW_TICKS = 180;
+    localparam logic [1:0] VIEW_POINTS = 2'd0, VIEW_LIVES = 2'd1, VIEW_GOAL = 2'd2;
+
 endpackage
