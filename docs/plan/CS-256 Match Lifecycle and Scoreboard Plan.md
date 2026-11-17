@@ -152,15 +152,16 @@ On `clk_juego`. Inputs `rst`, `new_match`, `crash1`, `crash2`. Outputs `points_p
 ### 4.3 `seg7_link.sv` (Alan, new): the crossing
 
 ```text
-clk_juego:  send_q <= {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel};  tgl_q <= ~tgl_q;   (every tick)
-clk_pix:    tgl_sync = sync_2ff(tgl_q);  tgl_seen <= tgl_sync;  if (tgl_sync != tgl_seen) show_q <= send_q;
+clk_juego:  values_juego <= {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel};  tick_toggle <= ~tick_toggle;   (every tick)
+clk_pix:    tick_toggle_pix = sync_2ff(tick_toggle);  tick_toggle_last <= tick_toggle_pix;
+            new_tick = (tick_toggle_pix != tick_toggle_last);  if (new_tick) values_pix <= values_juego;
 ```
 
 20 bits, one way, every tick. It is the answer half of `arena_ctrl` → `arena_link` (held data, a
 toggle through `sync_2ff`, copy when the synchronized toggle changes). No acknowledgement is
-needed: `send_q` changes only at `clk_juego` edges, 1,390,932 `clk_pix` cycles apart, and the copy
-is made 3 cycles after the toggle. `tgl_q`, the synchronizer and `tgl_seen` are never reset
-(configuration value 0), as in PR #40; `send_q` follows its sources, which are reset. `goal_sel`
+needed: `values_juego` changes only at `clk_juego` edges, 1,390,932 `clk_pix` cycles apart, and the copy
+is made 3 cycles after the toggle. `tick_toggle`, the synchronizer and `tick_toggle_last` are never reset
+(configuration value 0), as in PR #40; `values_juego` follows its sources, which are reset. `goal_sel`
 travels in the bundle, so the Goal view's number and the view choice come from the same
 `clk_juego` switches. Alternatives rejected: no crossing (an unconstrained CDC, against contract
 §1); `seg7_driver` in `clk_juego` (a 60 Hz scan flickers); one `sync_2ff` per bit (values can
@@ -183,8 +184,8 @@ arrive mixed). No FSM and no `enum`: two registers and a compare.
   `.crash1`, `.crash2`, `.crash_done`.
 - `game_top_timing.xdc`: false paths from `sw[*]` to the new synchronizers; for `seg7_link`:
   ```tcl
-  set_max_delay -datapath_only 11.982 -from [get_cells u_seg7_link/tgl_q_reg] -to [get_cells u_seg7_link/u_sync/meta_reg]
-  set_max_delay -datapath_only 11.982 -from [get_cells {u_seg7_link/send_q_reg[*]}] -to [get_cells {u_seg7_link/show_q_reg[*]}]
+  set_max_delay -datapath_only 11.982 -from [get_cells u_seg7_link/tick_toggle_reg] -to [get_cells u_seg7_link/u_sync_toggle/meta_reg]
+  set_max_delay -datapath_only 11.982 -from [get_cells {u_seg7_link/values_juego_reg[*]}] -to [get_cells {u_seg7_link/values_pix_reg[*]}]
   ```
   `build_game_top.tcl` stops if either side finds no cells. SW12 and SW13 drive nothing; if
   `check_timing` counts them as inputs without delay, they get an explicit false path.
@@ -241,7 +242,7 @@ the known bike-position CDC-1 rows of issue #30 unchanged). Injected-bug runs, e
 - `score_unit`: bonus to the crashed Bike; bonus when both crash; Lives not decremented for P2;
   Draw given to P1; values change after the result.
 - `seg7_link`: copy every cycle instead of on the toggle; copy on the synchronized level instead
-  of its change; `send_q` loaded only when the toggle is 0; two bundle fields swapped.
+  of its change; `values_juego` loaded only when the toggle is 0; two bundle fields swapped.
 - `game_top`: `seg` reversed; `an` order reversed; goal bits swapped.
 
 ### Rule coverage

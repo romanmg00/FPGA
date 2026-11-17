@@ -55,8 +55,9 @@ Las motos (32 × 32) y los premios (16 × 16) se dibujan encima, como sprites de
 | `uart_rx` | in | 1 | Comandos de P2 y Start desde la página web, 115200 baudios, 8N1 (`UART_TXD_IN` en el XDC) | C4 |
 | `vga_r`, `vga_g`, `vga_b` | out | 4 c/u | Color | Ver XDC |
 | `vga_hs`, `vga_vs` | out | 1 c/u | Sincronía horizontal y vertical | Ver XDC |
-| `seg` | out | 7 | Segmentos del display | Ver XDC |
-| `an` | out | 8 | Selección de dígito del display | Ver XDC |
+| `seg` | out | 7 | Segmentos del display, activos en bajo: `seg[0]` = CA (a) … `seg[6]` = CG (g) | Ver XDC |
+| `dp` | out | 1 | Punto decimal del display; siempre apagado (1) | H15 |
+| `an` | out | 8 | Selección de dígito del display, activa en bajo; `an[0]` es el de la derecha | Ver XDC |
 | `led` | out | 16 | Libres, para depurar | Ver XDC |
 
 Polaridad, según el handout: `hsync` vale 0 durante las cuentas 0–135 y `vsync` vale 1 durante las cuentas 0–2.
@@ -142,7 +143,9 @@ Lo que hace cada lado (en el PR #40; Roman revisa los cambios a sus módulos):
 - P2 y Start remoto: `uart_rx` entrega bytes; un decodificador los convierte en pedidos de giro y Start, en el orden en que llegan. El código de Enter en el cable está **pendiente**.
 - Los pedidos cruzan al dominio `clk_juego` sin perderse y en orden.
 
-**Juego → video y display** — **Pendiente.** El juego entrega a video la posición y dirección de cada moto, si parpadea por el choque y los tres premios; al display, los puntos y las vidas. Los anchos de los puntos deben aguantar el total del último paso sin desbordarse (por ejemplo, 39 + 3 + 3).
+**Juego → video y display** — Video **pendiente**: el juego entrega la posición y dirección de cada moto, si parpadea por el choque y los tres premios. Los anchos de los puntos deben aguantar el total del último paso sin desbordarse (por ejemplo, 39 + 3 + 3).
+
+Display (Paso 7d): `score_unit` y `seg7_view` en `clk_juego` → `seg7_link` → `seg7_driver` en `clk_pix`. Cada tick, `seg7_link` carga 20 bits (puntos 6 + 6, vidas 2 + 2, vista 2 y meta 2) y cambia un toggle; en `clk_pix` el toggle pasa por `sync_2ff` y los 20 bits se copian cuando cambia, el mismo patrón que la respuesta de la arena. El toggle y su sincronizador no se resetean. `game_top_timing.xdc` acota las dos rutas a un píxel y `build_game_top.tcl` revisa que existan.
 
 ## 4. Interfaz módulo por módulo
 
@@ -155,14 +158,14 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | `drawcon` | Roman | Color de cada píxel: borde, arena, premios y motos | Paredes, HUD y dos motos en colores planos (PR #25); estelas desde `arena_map` (PR #40); faltan premios, sprites y borde de 10 px |
 | `sprite_rom` | Roman | Motos de 32 × 32 (1024 palabras) y premios de 16 × 16 (256 palabras), `.coe` RGB444 | Por hacer |
 | Movimiento y choques (G1/G2) | Roman | Giros, giro pendiente, lectura de las dos celdas destino y resultado de cada moto | Dos motos con giros, giro pendiente y choques con pared y entre motos en `position_logic` (PR #25); choque con estelas por las vecinas de `arena_map` (PR #40). Faltan los premios |
-| Rondas, partida, vidas y puntos (G3/G5) | Alan | Estados de la partida, Start, choque, meta, bono y empate | Por hacer. Mientras tanto, `round_fsm` provisional de Roman dentro de `position_logic` |
+| Rondas, partida, vidas y puntos (G3/G5) | Alan | Estados de la partida, Start, choque, meta, bono y empate | `match_fsm` (estados de la partida, Start, reinicio de `position_logic`) y `score_unit` (vidas, bono, fin de partida y empate) con sus pruebas (PR #46), conectados en `game_top` (Paso 7d); `match_tb` juega partidas enteras. `round_fsm` de Roman sigue dentro de `position_logic` y recibe Start de `match_fsm`. Faltan la meta y los premios (G4) y el parpadeo del choque (X1) |
 | `arena_map` + controlador (A1/A2) | Alan | BRAM de 8192 × 4 bits y servicio de pedidos del juego | `arena_map`, `arena_ctrl` y `arena_link` con sus pruebas (propuesta, sección 3); conectados en `game_top` (PR #40) y probados en la tarjeta el 16 nov |
 | Premios (G4) | Alan | Generador pseudoaleatorio y colocación de los tres premios | Por hacer; generador **pendiente** |
 | `btn_debounce` | Alan | Sincroniza los 5 botones, quita rebotes y genera un pulso al presionar | Por hacer |
 | `uart_rx` + decodificador | Alan | Bytes de la UART a pedidos de giro de P2 y Start | Por hacer; Enter **pendiente** |
 | Página web de control | Alan | WASD, Espacio/Enter por Web Serial | Por hacer |
-| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | `sevenseg` y `multidigit` (tarea 1 del curso, con P, L, G, A y blanco; barrido en `clk_pix` con habilitación), `seg7_view` y `seg7_driver` pasan en XSim (Pasos 7a y 7b). Faltan la partida (G3/G5) y la integración en `game_top` |
-| `game_top` + XDC | Alan | Instancia y conecta todo; relojes, reset, pines, automatización del build | Por hacer |
+| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | `sevenseg` y `multidigit` (tarea 1 del curso, con P, L, G, A y blanco; barrido en `clk_pix` con habilitación), `seg7_view` y `seg7_driver` pasan en XSim (Pasos 7a y 7b). En `game_top` desde el Paso 7d, con `seg7_link` como cruce a `clk_pix`; `game_top_tb` lee los dígitos de los pines. Probado en la tarjeta el 17 nov |
+| `game_top` + XDC | Alan | Instancia y conecta todo; relojes, reset, pines, automatización del build | Conecta el Wizard, el contador de `clk_juego`, los sincronizadores, las motos, la arena, la partida y el marcador; `build_game_top.tcl` corre las pruebas (`quick`, `sim`) y construye el bitstream (`full`). Faltan la UART y los LED |
 | Marcador en pantalla (`texto_capa`, `font_rom`) | Roman | Puntos y vidas en la franja de 64 px, con texto de 32 px | Después del núcleo (*Should*) |
 
 Los testbenches oficiales de cada módulo los escribe la otra persona (sección 7).
@@ -241,6 +244,8 @@ El movimiento reporta qué pasó con cada moto; rondas y puntos es dueño del ci
 - `G_READY`: espera un Start nuevo, sin giros previos ni cuenta regresiva.
 - `G_MATCH`: fin de la partida, con puntos y vidas finales. Si terminó por choque, primero se muestran los 2 s de choque. Un Start nuevo prepara y arranca otra partida.
 - La pausa (`SW0`) congela cualquier estado y los temporizadores del juego; el video y el display siguen.
+
+**`match_fsm`** (Alan, Paso 7d) implementa estos estados con los códigos 0–4 de arriba (`G_IDLE` 0, `G_PLAY` 1, `G_CRASH` 2, `G_READY` 3, `G_MATCH` 4) y tres estados de 1 tick para una partida nueva: 5 `G_NEW` (`new_match` y `restart`: `score_unit` a 0 puntos y 3 vidas, `position_logic` al reset), 6 `G_GO` (Start en 0 un tick, para que `round_fsm` salga de `s_release`) y 7 `G_START` (Start de 1 tick a `round_fsm`). Desde `G_READY` se pasa directo a `G_START`. Un Start es un flanco de subida de BTNC: un botón sostenido durante `CPU_RESETN`, durante la pausa o durante los 2 s de choque no cuenta. Los 2 s los mide el temporizador de choque de `round_fsm` (`crash_done`); al terminar la partida, `match_over` deja a `round_fsm` en `s_crash`. Todavía sin parpadeo (X1, issue #30) y, sin premios, sin meta alcanzable (máximo 9 puntos).
 
 **Premios** (Alan) — generador **pendiente**. Tres espacios independientes (+1, +1, +3). Los tres iniciales se preparan antes de soltar la ronda. Al tomar uno, el reemplazo puede tardar mientras el hardware busca; el juego sigue. Un premio solo va en una celda jugable vacía (sin pared, estela, moto, marcador ni otro premio) y se revalida antes de escribirlo si el juego cambió. Si no hay celda libre, ese espacio queda vacío hasta la siguiente ronda. La colocación es pseudoaleatoria, con semilla que depende de cuándo se presiona Start y un modo de semilla fija para pruebas. El modelo y el HDL usarán la misma secuencia y el mismo calendario cuando se elijan.
 

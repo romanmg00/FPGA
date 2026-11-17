@@ -2,9 +2,47 @@
 
 Aquí va solo el último bitstream probado, para llevarlo a la revisión con el TA y poder repetir las pruebas. Los anteriores se borran de la carpeta, pero su registro se queda abajo y el archivo se recupera del historial de Git. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
 
-## `game_top_two_bikes.bit`
+## `game_top_match_scoreboard.bit`
 
-El bitstream para mostrar: dos motos que avanzan solas en rondas, con choques contra la pared y entre motos (PR 25). P1 gira con los botones; P2 va recto, porque `turn_req2` está fijo en `4'b0000` hasta que llegue el teclado. **Este es el probado en la tarjeta.**
+El bitstream para mostrar: la partida y el marcador físico (Pasos 7c y 7d, PRs #46 y #47) sobre las dos motos, la arena y los sprites. Start con BTNC empieza la partida; cada choque quita una vida y da +3 a la moto que no chocó; con 3 vidas perdidas la partida termina y las motos se quedan donde chocaron; otro Start empieza una partida nueva. El display muestra puntos y vidas, y la meta mientras se espera una partida. `SW0` pausa; `{SW15, SW14}` eligen la meta. P2 sigue yendo recto (`turn_req2` en 0, sin UART). **Este es el probado en la tarjeta.**
+
+| | |
+|---|---|
+| SHA-256 | `adc1c04091c8357562a3eba754fbe21dbc056c2901527342656c03a789f73bba` |
+| Fuente | Rama `feat/scoreboard-game-top`, commit `efdbb72`. El diseño (`.sv` fuera de las pruebas, `.xdc`, IP) es el mismo desde `7b3b106` |
+| Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` (corrida `run-20261117-161640-Lw7Hgc`) |
+| Herramienta | Vivado 2025.2, 17 de noviembre de 2026 |
+| Parte | `xc7a100tcsg324-1` |
+
+### Prueba en la tarjeta
+
+Nexys A7 serial `210292B1820D`, programada por JTAG desde `alan-desktop` (DONE en alto). Observó Alan el 17 de noviembre de 2026. Todas pasan.
+
+| Prueba | Esperado |
+|---|---|
+| Arranque, switches abajo | Motos en sus salidas; el display rota `P2 00 P1 00` → `L2 03 L1 03` → `GOAL  10`, 3 s cada una, sin puntos decimales |
+| `SW14` arriba | Salta a `GOAL  20` (`SW15` 30, los dos 40) |
+| BTNC | Empieza la ronda; el display solo alterna puntos y vidas |
+| P1 contra una pared o estela | Las dos motos se detienen; a los 2 s vuelven a la salida; P1 con 2 vidas y P2 con 3 puntos |
+| Tres choques de P1 | Las motos se quedan donde chocaron y BTNC ya no arranca ronda; `P2 09`, `P1 00`, `L1 00`, y vuelve la vista de meta |
+| BTNC | Partida nueva: estelas borradas, motos en la salida, `00` y `03` |
+| `SW0` a media ronda | Las motos se congelan y los botones no giran; el display sigue; al bajarlo siguen |
+| BTNC sostenido durante CPU_RESET | No arranca nada hasta soltarlo y presionarlo de nuevo |
+| Choque de frente | Las dos pierden una vida, sin +3 |
+
+### Simulación y reportes
+
+- **Testbenches:** los 29 de `build_game_top.tcl` pasan, entre ellos `match_tb` y los escenarios `match` y `pause` de `game_top_tb`, que leen el display de los pines.
+- **Temporización con el diseño ya ruteado:** setup +3.950 ns (WNS), hold +0.122 ns (WHS), ancho de pulso +3.000 ns; `check_timing` sin entradas ni extremos sin restricción.
+- **`report_cdc`:** las mismas 12 filas CDC-1 de las posiciones (issue #30) y 20 CDC-13 de los sprites que en `main`; CDC-3 sube de 9 a 13 (pausa, los dos bits de la meta y el toggle de `seg7_link`) y CDC-15 de 59 a 79 (los 20 bits que copia `seg7_link`). **Metodología:** `TIMING-8` y `TIMING-9`, como en `main`.
+
+## Bitstreams anteriores
+
+Ya no están en la carpeta. Para recuperar uno: `git show COMMIT:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`, con `586b16e` para `game_top_two_bikes.bit`, `80b55f2` para `game_top_one_wizard.bit` y `dc029bf` para los demás.
+
+## `game_top_two_bikes.bit` (anterior)
+
+El bitstream para mostrar: dos motos que avanzan solas en rondas, con choques contra la pared y entre motos (PR 25). P1 gira con los botones; P2 va recto, porque `turn_req2` está fijo en `4'b0000` hasta que llegue el teclado. Fue el probado en la tarjeta hasta el `game_top_match_scoreboard.bit`.
 
 | | |
 |---|---|
@@ -34,10 +72,6 @@ Nexys A7 serial `210292B1820D`, programada por JTAG con `openFPGALoader` desde l
 - **Temporización con el diseño ya ruteado** (*Project Summary* de Vivado): setup +3.828 ns (WNS), TNS 0 ns, 0 de 110 extremos fallan; hold +0.156 ns (WHS), THS 0 ns, 0 de 110 extremos fallan. El ancho de pulso no se registró.
 - **DRC:** sin violaciones. **CDC:** no se corrió `report_cdc`.
 - **Mensajes:** síntesis con 5 warnings e implementación con 2 warnings, sin revisar todavía. Los 2 critical warnings de la implementación son `[Designutils 20-1280] Could not find module 'clk_wiz_1'`, uno por cada `.xdc` del IP (`clk_wiz_1.xdc` y `clk_wiz_1_board.xdc`). El proyecto de la estación todavía tiene el IP `clk_wiz_1`, que el diseño dejó de usar en el Paso 4c; como nada lo instancia, sus restricciones no se aplican y no afectan este build. Se quitan sacando el IP del proyecto (ver [comandos_vivado_myws.md](../comandos_vivado_myws.md)).
-
-## Bitstreams anteriores
-
-Ya no están en la carpeta. Para recuperar uno: `git show COMMIT:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`, con `80b55f2` para `game_top_one_wizard.bit` y `dc029bf` para los demás.
 
 ## `game_top_one_wizard.bit` (anterior)
 

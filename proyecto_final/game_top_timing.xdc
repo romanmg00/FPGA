@@ -10,6 +10,7 @@ create_generated_clock -name clk_juego -source [get_pins clk_juego_toggle_reg/C]
 set_false_path -from [get_ports cpu_resetn] -to [get_cells {u_rst_pix/meta_reg u_rst_juego/meta_reg}]
 set_false_path -from [get_ports {btn[*]}] -to [get_cells {g_btn[*].u_sync/meta_reg}]
 set_false_path -from [get_ports {sw[*]}] -to [get_cells {g_sw[*].u_sync/meta_reg}]
+set_false_path -from [get_ports {sw[*]}] -to [get_cells {u_sync_pause/meta_reg u_sync_goal*/meta_reg}]
 
 ## Posiciones y direcciones de las motos (X1, issue #30): pos_link cruza de clk_juego a clk_pix con
 ## un toggle por sync_2ff, y los valores se copian a pend*_reg solo despues del toggle, cuando llevan
@@ -25,3 +26,10 @@ set_max_delay -datapath_only 11.982 -from [get_cells u_arena_link/req_q_reg] -to
 set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_link/req_*_reg*}] -to [get_cells {u_arena_ctrl/*_q_reg*}]
 set_max_delay -datapath_only 11.982 -from [get_cells u_arena_ctrl/ack_q_reg] -to [get_cells u_arena_link/u_sync_ack/meta_reg]
 set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_ctrl/codes_reg[*]}] -to [get_cells {u_arena_link/codes_reg[*]}]
+
+## Cruce del marcador (seg7_link, ADR 0008): clk_juego carga los 20 bits y cambia un toggle; clk_pix
+## sincroniza el toggle y copia los bits cuando lo ve cambiar. Mismo patron que la arena:
+## aqui se acota el retardo del toggle y de los datos a un pixel. build_game_top.tcl revisa
+## que los dos lados existan.
+set_max_delay -datapath_only 11.982 -from [get_cells u_seg7_link/tick_toggle_reg] -to [get_cells u_seg7_link/u_sync_toggle/meta_reg]
+set_max_delay -datapath_only 11.982 -from [get_cells {u_seg7_link/values_juego_reg[*]}] -to [get_cells {u_seg7_link/values_pix_reg[*]}]
