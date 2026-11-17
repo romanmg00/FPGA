@@ -151,10 +151,16 @@ module game_top_tb;
     // of its turn in the scan, while its anode alone is low. The decimal point stays off.
     task automatic expect_scoreboard(string what, string expected);
         string got = "????????";
+        logic [7:0] lit;
+        realtime t0 = $realtime;
         for (int k = 0; k < 8; k++) begin
-            wait (an === 8'(~(8'b1 << k)));
+            lit = ~(8'b00000001 << k);                // digit k alone
+            while (an !== lit) begin
+                @(an);
+                if ($realtime - t0 > 30ms) fail($sformatf("%s: digit %0d never lit alone (an = %b)", what, k, an));
+            end
             #20us;
-            if (an !== 8'(~(8'b1 << k))) fail($sformatf("%s: digit %0d lit for less than 20 us", what, k));
+            if (an !== lit) fail($sformatf("%s: digit %0d lit for less than 20 us", what, k));
             if (dp !== 1'b1) fail($sformatf("%s: the decimal point is on", what));
             got[7 - k] = glyph({seg[0], seg[1], seg[2], seg[3], seg[4], seg[5], seg[6]});
         end
@@ -489,7 +495,7 @@ module game_top_tb;
         expect_scoreboard("power-up", "P200P100");
         sw[14] = 1'b1;                               // Goal 20: while waiting, the Goal view
         wait_ticks(5);
-        expect_scoreboard("waiting, SW14 up", "GOAL  20");
+        expect_scoreboard("waiting, SW14 up", "G0AL  20");   // the O is the 0 glyph
         sw[14] = 1'b0;
         press_start();
         expect_scoreboard("new Match", "P200P100");
