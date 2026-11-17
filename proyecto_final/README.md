@@ -1,149 +1,253 @@
-# Proyecto final: Tron en VGA
+# `proyecto_final/`: Tron on VGA
 
-Tarjeta Nexys A7-100T, salida VGA **1280x800** (diapositiva 7 del curso) con reloj de
-píxel de **83.46 MHz**. El estado del juego corre con un reloj aparte de **~60 Hz**
-([ADR 0002](../docs/adr/0002-follow-ta-divided-game-clock.md)). Según la reunión con
-los TAs ([ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)),
-ese reloj sale de un contador de 20 bits sobre `clk_pix`, sin segundo Clocking Wizard,
-y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstream se probó en la tarjeta el 12 de noviembre.
+The two-player Tron game for the CS-256 class project, in SystemVerilog for the Nexys A7-100T.
 
-- Reglas: [especificación acordada del 20 de octubre](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md)
-  (bloqueada; manda sobre este README y el contrato, salvo en los puntos que cambian los
-  ADR aceptados después, como el [ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md) en los relojes)
-- Contrato de interfaces (módulos, señales, reparto y fechas):
-  [`Contrato de interfaces game_top (CS 256).md`](Contrato%20de%20interfaces%20game_top%20%28CS%20256%29.md).
-  Las interfaces que la especificación deja abiertas están marcadas como pendientes
-- Diseño de video y sprites: [plan de VGA y sprites](../docs/design/CS-256%20VGA%20and%20Sprite%20Design%20Plan.md)
-  y [prácticas de código del curso](../docs/design/CS-256%20Official%20FPGA%20Coding%20Practices.md)
-- Modelo de referencia: [ADR 0004](../docs/adr/0004-shared-headless-model-base.md)
-  selecciona `../prototipos/tron_fpga/model/` como base compartida. Falta adaptar
-  el otro visor; la selección no valida los supuestos de timing/CDC del prototipo.
-- Presentación del curso: `cs256-project1-fall26.pdf`
-- Pines: `../nexys-a7-100t-master.xdc`
-- Versiones anteriores de este README y del contrato: [`deprecated/`](deprecated/)
+Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a wall, a Trail or the other Bike loses a Life, and if only one crashed, the other gets the Survival Bonus (+3). A Match ends when a Player has no Lives left. The eight 7-segment digits show the Points and the Lives, and the Points Goal while waiting for a new Match.
 
-## Avance (un paso a la vez)
+- **Video:** 1280 × 800 VGA, pixel clock 83.46 MHz (`clk_pix`).
+- **Game:** a ~60 Hz clock (`clk_juego`).
+- **Inputs:** P1 turns with the board buttons. P2 goes straight for now: its input, a web page over the USB-UART, is planned.
+- **Not yet:** Rewards (G4).
+- **Board status:** the current build was checked on the board on 17 November 2026: [`bitstreams/README.md`](bitstreams/README.md).
 
-- [x] **Paso 1:** contador horizontal en simulación
-- [x] **Paso 1b:** contador horizontal de 0 a 1679 (11 bits), en `counters.sv`
-- [x] **Paso 2:** contador vertical de 0 a 827, avanza cuando el horizontal da la
-  vuelta, en `counters.sv`
-- [x] **Paso 3a:** `vga_out` con pulsos de sync, blanking y `curr_x`/`curr_y`. `vga_out_tb.sv`
-  revisa el pulso de `hsync`, las 1680 cuentas por línea y el color fuera del área visible,
-  y pasa en XSim dentro de `build_game_top.tcl`
-- [ ] **Paso 3b:** decidir qué pasa con `tick_60hz`, que hoy siempre vale 0 y nadie usa: quitar
-  el puerto o hacerlo un pulso por cuadro. Con el ADR 0002 el reloj de juego sale del
-  divisor, no de `vga_out`
-- [x] **Paso 4a:** Clocking Wizard (se piden 83.46 MHz y se logran 83,455,882 Hz), segundo
-  Wizard con el divisor a ~60 Hz e imagen estable en la tarjeta
-- [x] **Paso 4c:** quitar `clk_wiz_1` y sacar `clk_juego` de un contador de 20 bits sobre
-  `clk_pix` (ADR 0006), que alterna cada 695,466 ciclos (59.99997 Hz). Build, pruebas e
-  imagen en la tarjeta el 12 de noviembre; el estado está en el [mapa de arquitectura](../docs/CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md#architecture-and-ownership)
-- [ ] **Paso 4b:** borde blanco de 10 px en la franja del HUD, que hoy llega en gris hasta la
-  orilla: las 10 filas de arriba y las 10 columnas de cada lado. Abajo de `y = 64`, las
-  paredes de 16 px ya lo cubren
-- [x] **Paso 5a:** `drawcon` con paredes, HUD, bloque y fondo en colores planos
-- [x] **Paso 5b:** `drawcon` lee de `arena_map` lo que hay en cada celda y pinta las estelas (PR #40)
-- [ ] **Paso 5c:** sprites desde ROM (`.coe` RGB444, motos de 32x32 y premios de 16x16)
-- [x] **Paso 6a:** una moto que avanza sola en rondas (`round_fsm`, `step_counter`, `bike_move`):
-  Start con BTNC, giros de 90°, choque con la pared y pausa de 2 s. Probada en la tarjeta el
-  12 de noviembre (PR #21)
-- [x] **Paso 6b:** segunda moto y choques entre motos (mismo destino, cabeza de la otra,
-  intercambio). P2 sale de (59, 27) hacia la izquierda y por ahora avanza recto; su entrada
-  `turn_req2` espera el teclado. `position_logic_tb` pasa en Verilator; probada en la tarjeta
-  el 15 de noviembre con `game_top_two_bikes.bit` (PR #25)
-- [x] **Paso 6c:** intervalo del paso (ADR 0007, issue #22). En la tarjeta, el 15 de noviembre,
-  8 ticks se veían lentos y a saltos. Con las motos deslizándose entre celdas se ven suaves, y
-  Roman eligió **8** (7.5 celdas/s) el 16 de noviembre
-  ([ADR 0010](../docs/adr/0010-bikes-sliding-between-cells.md), aceptado; PRs #28 y #35). `STEP_TICKS` vive en `game_top`; cambiarlo de nuevo es una línea
-- [x] **Paso 6e:** `bike_glide` dibuja cada moto avanzando unos píxeles por tick (2 px por tick
-  con 8 ticks) hacia su celda; el juego sigue por celdas y lo dibujado va un paso atrás.
-  Su salida es un registro, así que la cuenta no entra a la ruta de `clk_pix`
-- [x] **Paso 6d:** choque con estelas, leyendo de `arena_map` las 4 celdas vecinas de cada cabeza
-  (sección 3 del contrato, issue #38; PR #40). Faltan los premios
-- [x] **Paso 6f:** arena (A1/A2): `arena_map` (BRAM de 8192 × 4, puerto B con 2 ciclos),
-  `arena_ctrl` (único que escribe, en `clk_pix`) y `arena_link` (lado del juego, en `clk_juego`).
-  Después de cada paso devuelve las 4 vecinas de cada cabeza en el flanco *k*+4. Sus pruebas
-  corren en `build_game_top.tcl`, y `game_top_tb` revisa las estelas en pantalla y la arena entera.
-  Conectada en `game_top` (PR #40, sobre el #39); probada en la tarjeta el 16 de noviembre:
-  estelas, choque con estelas y paredes, ronda nueva, reset y choque de frente
-- [ ] **Paso 7:** marcador físico en los 8 dígitos de 7 segmentos (especificación, *Physical
-  Scoreboard*, y [ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)), por partes:
-  - [x] **7a:** `sevenseg` y `multidigit` de la tarea 1 del curso, en su mismo estilo. En
-    `sevenseg`, los códigos 10–13 son P, L, G y A en lugar de las letras hex, y 14–15 quedan en
-    blanco. `multidigit` usa el contador de 17 bits de la tarea, ahora en `clk_pix`, sin reloj
-    nuevo (ADR 0006): pasa al siguiente dígito cada vez que se llena (1.57 ms por dígito). Solo en simulación: `sevenseg_tb` y `multidigit_tb`
-    pasan en XSim; todavía no están en `game_top`
-  - [x] **7b:** las vistas. `seg7_view`, en `clk_juego`, cambia de vista cada 180 ticks (3 s):
-    puntos → vidas y, mientras se espera una partida nueva, → meta; mover `{SW15, SW14}` en esa
-    espera salta a la meta y reinicia sus 3 s, y una partida nueva empieza en puntos. Sigue a
-    `PageTimer` del modelo. `seg7_driver`, en `clk_pix`, arma los 8 dígitos (`P2nnP1nn`,
-    `L20nL10n`, `G0AL  n0`) y los barre con `multidigit`. Solo en simulación: `seg7_view_tb`
-    (una prueba por regla del ADR 0008) y `seg7_driver_tb` pasan en XSim
-  - [x] **7c:** partida, vidas y puntos (G3/G5), sin premios (PR #46). `match_fsm` (máquina de
-    Moore de 8 estados, códigos 0–4 = `G_*` del contrato) decide cuándo llega Start a `round_fsm`
-    y reinicia `position_logic` en cada partida nueva; `score_unit` quita una vida por moto
-    chocada, da +3 a la única que sobrevive (ADR 0011) y decide quién gana o si hay empate.
-    `match_fsm_tb` y `score_unit_tb` pasan en XSim. Sin premios no se llega a la meta (máximo
-    9 puntos). Plan: [`docs/plan/CS-256 Match Lifecycle and Scoreboard Plan.md`](../docs/plan/CS-256%20Match%20Lifecycle%20and%20Scoreboard%20Plan.md)
-  - [x] **7d:** en `game_top`: `sw[15:0]` (`SW0` pausa, `{SW15, SW14}` meta), pines `seg`, `dp`
-    y `an`, y `seg7_link`, que cruza los 20 bits del marcador de `clk_juego` a `clk_pix` (toggle
-    y copia, como la arena). `match_tb` juega partidas enteras en `clk_juego`; `game_top_tb` lee
-    el marcador de los pines (escenarios `match` y `pause`). Probado en la tarjeta el 17 de noviembre con [`game_top_match_scoreboard.bit`](bitstreams/README.md)
+**Where the rules come from:**
+- [Agreed specification of 20 October](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md): the rules, locked.
+- [Interface contract](Contrato%20de%20interfaces%20game_top%20%28CS%20256%29.md): modules, signals and who owns each block. It is Roman's, in Spanish.
+- [ADRs](../docs/adr/): later team decisions.
+- The course handout is general guidance ([ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)). Where this design departs from it, [ADR 0009](../docs/adr/0009-handout-names-and-where-proyecto-final-departs.md) gives the file, line and reason.
 
-## Hito: bloque en movimiento (revisión del 12 de noviembre)
+**Design notes:** the [VGA and sprite plan](../docs/design/CS-256%20VGA%20and%20Sprite%20Design%20Plan.md) and the [FPGA coding practices](../docs/design/CS-256%20Official%20FPGA%20Coding%20Practices.md).
 
-> Este hito describe el bloque de antes del PR #21. Desde entonces `game_top` muestra motos
-> que avanzan solas en rondas (pasos 6a y 6b).
+## Block diagram
 
-Según el código, `game_top` muestra un bloque de 16x16 que se mueve con los botones y se
-detiene en las paredes. CPU_RESET lo regresa a (320, 432) si se mantiene al menos unos
-17 ms; con menos, se reinicia el video, pero el bloque se puede quedar donde estaba. BTNC
-lo lleva al centro, (632, 392). Su color sale de `SW0`–`SW11`: **con todos abajo es negro
-y no se ve.**
+Blocks are grouped by clock domain. A thick arrow is a crossing between the two clocks.
 
-Ese hito se probó con `game_top_one_wizard.bit`, con un solo Wizard; en la tarjeta se
-probaron también las paredes y el reset repetido. Ese archivo ya no está en el repositorio:
-[`bitstreams/README.md`](bitstreams/README.md) guarda solo el último bitstream probado
-(`game_top_two_bikes.bit`), con sus resultados y límites.
+```mermaid
+flowchart LR
+    clk([clk 100 MHz]) --> wiz[clk_wiz_0 IP]
+    wiz -->|clk_pix| cnt[counter + BUFG]
+    cnt -->|clk_juego| J
+    pins([btn, sw, CPU_RESETN]) --> sync[sync_2ff, board_reset_sync]
+    sync --> J
+    subgraph J [clk_juego, ~60 Hz]
+        mf[match_fsm] -->|Start, restart| pl[position_logic<br/>round_fsm, step_counter,<br/>bike_move x2]
+        pl -->|crash1, crash2| su[score_unit]
+        su -->|match_over| mf
+        pl --> gl[bike_glide x2]
+        mf --> sv[seg7_view]
+        al[arena_link]
+        pl <--> al
+    end
+    subgraph P [clk_pix, 83.46 MHz]
+        ac[arena_ctrl] --> am[(arena_map)]
+        am -->|Trails| dc[drawcon<br/>bike_rom x2]
+        dc --> vo[vga_out<br/>counters]
+        sd[seg7_driver<br/>multidigit, sevenseg]
+    end
+    al <==>|toggle + copy| ac
+    su ==> sl[seg7_link]
+    sv ==> sl
+    sl ==>|toggle + copy| sd
+    gl -.->|positions, not yet safe| dc
+    vo --> vga([VGA])
+    sd --> seg([seg, an])
+```
 
-## Archivos
+### Vivado's schematics
 
-- `prototypes/core_blocks/`: [bloques básicos y núcleo jugable provisionales](prototypes/core_blocks/README.md) (29 oct 2026). **Solo prototipo:** muestra cómo se podría implementar el juego (con el look synthwave) y no se usa directamente en el diseño de `proyecto_final/` ni es lo que se entrega a los TAs. Pruebas por bloque, comparación con los 12 escenarios M2 del modelo y un bitstream `tron_top`, probado en la tarjeta y grabado en su flash el 12 de noviembre. Trae sus propios scripts de host en `prototypes/core_blocks/tools/`. No seleccionan interfaces (ADR 0005). Usan su propia copia de `vga_out` con salidas combinacionales (`video/vga_out.sv`), que todavía no es la de `game_top`.
-- `prototypes/uart_input/`: [experimento UART aislado](prototypes/uart_input/README.md), con receptor, decodificador y FIFO. Pasa las pruebas de XSim; genera bitstream con temporización verificada y revisión del catálogo IP. Los [resultados y límites](../docs/design/CS-256%20UART%20Input%20Prototype%20Findings.md) documentan las advertencias CDC y la integración pendiente con `game_top`.
-- `game_top.sv`: tope del diseño. Conecta el Clocking Wizard, el contador de `clk_juego`, los sincronizadores y los bloques de abajo
-- `position_logic.sv`: las dos motos, en `clk_juego`: control de ronda, ritmo del paso, giros y choques
-- `round_fsm.sv`: ronda de Roman: espera Start, corre, pausa tras un choque y espera que se suelte Start. Desde el Paso 7d su Start viene de `match_fsm`
-- `step_counter.sv`: un pulso cada `STEP_TICKS` ticks; marca el paso (8, ADR 0010) y la pausa de choque (120)
-- `bike_glide.sv`: posición dibujada de una moto, que se desliza de su celda anterior a la nueva durante un paso (ADR 0010); una instancia por moto
-- `bike_move.sv`: celda, dirección y giro pendiente de una moto; se instancia una vez por moto
-- `arena_map.sv`: memoria de la arena, una palabra de 4 bits por celda; puerto A de `arena_ctrl` (1 ciclo), puerto B de `drawcon` (2 ciclos)
-- `arena_ctrl.sv`: en `clk_pix`, el único que escribe en `arena_map`: prepara la ronda (limpieza y cabezas) o escribe el paso, y lee las 4 vecinas de cada cabeza
-- `arena_link.sv`: en `clk_juego`, manda las cabezas a `arena_ctrl` después de cada paso y al subir `load`, y entrega los 8 códigos con `codes_valid`
-- `match_fsm.sv`: partida (G3) en `clk_juego`: espera Start, partida nueva, ronda, choque, siguiente ronda o fin de partida; manda Start a `round_fsm` como pulso de 1 tick y reinicia `position_logic` en cada partida nueva
-- `score_unit.sv`: vidas, puntos (bono de supervivencia, ADR 0011) y resultado de la partida (G5), en `clk_juego`
-- `seg7_link.sv`: cruce del marcador de `clk_juego` a `clk_pix` (toggle por `sync_2ff` y copia de los 20 bits)
-- `drawcon.sv`: color de cada píxel: paredes, HUD, P1 en azul (`0DF`) y P2 en naranja (`F80`)
-- `sevenseg.sv`: decodificador de 7 segmentos de la tarea 1, activo en bajo: 0–9, y P, L, G, A y blanco del marcador en 10–15
-- `multidigit.sv`: los 8 dígitos con un solo juego de segmentos, como en la tarea 1; su contador de 17 bits corre en `clk_pix`
-- `seg7_view.sv`: qué vista muestra el marcador (puntos, vidas o meta), en `clk_juego`, cada 3 s (ADR 0008)
-- `seg7_driver.sv`: el marcador en `clk_pix`: de puntos, vidas, vista y meta a los 8 dígitos, con `multidigit`
-- `counters.sv`: contadores horizontal (0–1679) y vertical (0–827)
-- `vga_out.sv`: sync, blanking y `curr_x`/`curr_y` (`tick_60hz` todavía en 0)
-- `sync_2ff.sv`: sincronizador de 2 flip-flops para botones y switches
-- `board_reset_sync.sv`: lleva CPU_RESET a cada dominio de reloj
-- `game_top.xdc`: pines y configuración de la tarjeta para `game_top`
-- `game_top_timing.xdc`: reloj generado de `clk_juego` y excepciones de temporización; solo para implementación
-- `ip/clk_wiz_0/clk_wiz_0.xci`: IP del reloj de píxel para el proyecto de Roman; `build_game_top.tcl` no lo lee y genera el Wizard. Ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
-- `game_top_tb.sv`: revisa `game_top` desde sus pines, con 9 escenarios (`match` y `pause` leen el marcador de `seg` y `an`). Espera las motos dibujadas desde `bike_synth.coe`, giradas con su dirección, con el corrimiento de 2 px de `drawcon` (sin lectura adelantada) como desviación conocida: `SPRITE_SHIFT = 2`, que vuelve a 0 cuando `drawcon` lea adelantado
-- `arena_map_tb.sv`, `arena_ctrl_tb.sv`, `arena_tb.sv`: pruebas de la arena; `arena_tb` usa los dos relojes y corre con 6 y 8 ticks por paso
-- `match_tb.sv`: `match_fsm`, `score_unit` y `position_logic` juntos en `clk_juego`, un tick por flanco: partidas enteras, pausa y reset en cada estado
-- `match_fsm_tb.sv`, `score_unit_tb.sv`, `seg7_link_tb.sv`, `position_logic_tb.sv`, `round_fsm_tb.sv`, `step_counter_tb.sv`, `bike_move_tb.sv`, `sevenseg_tb.sv`, `multidigit_tb.sv`, `seg7_view_tb.sv`, `seg7_driver_tb.sv`, `sync_2ff_tb.sv`, `board_reset_sync_tb.sv`, `vga_out_tb.sv`, `counters_tb.sv`: testbenches de cada bloque. `counters_tb.sv` no corre en `build_game_top.tcl`
-- `sim_clocks/`: relojes ideales **solo para simulación**. La síntesis usa siempre la IP que genera Vivado; ver el [inventario de IP](../docs/design/CS-256%20Vivado%20IP%20Inventory.md)
-- `sim_models/bike_rom.sv`: modelo de `bike_rom` **solo para simulación**, con los mismos puertos y 2 ciclos de latencia. Lee el `.mem` que `build_game_top.tcl` saca de `sprites/bike_synth.coe` (`-testplusarg bike_mem=<archivo>`)
-- `build_game_top.tcl`: corre los testbenches y construye `game_top` desde el repositorio. Requiere Linux y Vivado completo. Desde la raíz, con una carpeta de salida nueva: `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [quick|sim|full]`. `quick` corre las pruebas de cada módulo (unos 20 s) y salta `game_top_tb`, que tarda hasta 20 min; sirve mientras se trabaja. `sim` corre todas, y `full` además construye el bitstream; uno de los dos antes de un push o un PR. Corre también `round_fsm_tb`, `step_counter_tb`, `bike_move_tb`, `bike_glide_tb`, los 9 escenarios de `game_top_tb`, estos con `sim_models/bike_rom.sv`, las 4 pruebas de la arena, las del marcador y las de la partida (`match_fsm_tb`, `score_unit_tb`, `seg7_link_tb`, `match_tb`). En `full` genera `clk_wiz_0` y `bike_rom` del catálogo de IP
-- `bitstreams/`: bitstreams probados y lo que se comprobó de cada uno
-- `prototypes/vga_106mhz/`: experimento a 106.5 MHz, fuera del hito; conserva el error del reset de PR 11
-- `Contrato de interfaces game_top (CS 256).md`: contrato del equipo
-- `cs256-project1-fall26.pdf`: presentación del proyecto
-- `deprecated/`: versiones anteriores de este README y del contrato, solo como referencia
+The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Analysis → Schematic*) of the elaborated design, exported by [`schematics.tcl`](schematics.tcl).
+- Only module instances are drawn. The logic between them is left out, so a dashed line is a net that passes through logic not shown.
+- Open an SVG on its own to zoom in.
+
+| Page | Shows |
+|---|---|
+| [`1-game_top.svg`](diagrams/1-game_top.svg) | Every block in `game_top` except the synchronizers, with the board pins |
+| [`2-position_logic.svg`](diagrams/2-position_logic.svg) | Inside `position_logic`: `round_fsm`, the two `step_counter`s and the two `bike_move`s |
+| [`3-scoreboard.svg`](diagrams/3-scoreboard.svg) | The Match and the Scoreboard: `match_fsm`, `score_unit`, `seg7_view`, `seg7_link`, `seg7_driver` |
+
+![position_logic](diagrams/2-position_logic.svg)
+
+![Match and Scoreboard](diagrams/3-scoreboard.svg)
+
+## Clocks and crossings
+
+| Clock | Source | Frequency |
+|---|---|---|
+| `clk_pix` | `clk_wiz_0` (Clocking Wizard IP) from the 100 MHz board clock | 83.46 MHz requested, 83,455,882 Hz achieved |
+| `clk_juego` | A counter on `clk_pix` that toggles every `CLK_JUEGO_N` = 695,466 cycles, through a `BUFG` ([ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)) | 59.99997 Hz |
+
+`game_top_timing.xdc` defines `clk_juego` as a generated clock. `build_game_top.tcl` checks that its `-divide_by` is 2 × `CLK_JUEGO_N`.
+
+| What crosses | From → to | How | Constraint in `game_top_timing.xdc` |
+|---|---|---|---|
+| CPU_RESETN | pin → each clock | `board_reset_sync`, one per domain | false path to the first flip-flop |
+| Buttons, SW0, SW14–SW15 | pins → `clk_juego` | `sync_2ff` | false path to the first flip-flop |
+| SW0–SW11 | pins → `clk_pix` | `sync_2ff` | false path to the first flip-flop |
+| Arena requests and codes | `clk_juego` ↔ `clk_pix` | `arena_link` / `arena_ctrl`: a toggle through `sync_2ff`; the data is copied only after the toggle changes | `set_max_delay -datapath_only` of one pixel period (11.982 ns) |
+| Scoreboard values (20 bits) | `clk_juego` → `clk_pix` | `seg7_link`: the same toggle and copy | the same one-pixel bound |
+| Drawn Bike positions and Headings | `clk_juego` → `clk_pix` (`drawcon`, `bike_rom`) | **none yet**: `drawcon` reads the registers directly | a one-pixel bound only. Not a safe crossing; a Bike is sometimes drawn cut ([issue #30](https://github.com/romanmg00/FPGA/issues/30)) |
+
+## Controls
+
+| Control | Does |
+|---|---|
+| BTNU, BTNR, BTND, BTNL | Turn P1 |
+| BTNC | Start a Round; after a Match ends, start a new Match |
+| CPU_RESET | Reset |
+| SW0 | Pause: the Bikes, Turns and game timers stop; video and display keep running |
+| SW14, SW15 | Points Goal: 10 with both down, 20, 30 or 40 |
+| SW1–SW11 | Wired to `drawcon`, not used yet |
+
+The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each. While waiting for a new Match, it also shows `GOAL  nn`; moving SW14/SW15 then jumps to it ([ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)).
+
+## Modules
+
+- **Owner** is the person responsible for the block, from the table in the contract's §4 (*Interfaz módulo por módulo*).
+- **Written by** comes from the first line of each file (see [Who wrote what](#who-wrote-what)).
+- Testbenches are listed with the person who wrote them.
+
+| File | What it does | Clock | Owner | Written by | Testbench |
+|---|---|---|---|---|---|
+| **Video** | | | | | |
+| `counters.sv` | `hcnt` 0–1679 per line, `vcnt` 0–827 per frame | `clk_pix` | Roman | Roman | `counters_tb` (Roman; not self-checking, not run by the build) |
+| `vga_out.sv` | Sync pulses, blanking, `curr_x`/`curr_y` | `clk_pix` | Roman | Roman | `vga_out_tb` (Roman) |
+| `drawcon.sv` | Colour of each pixel: walls, HUD, Trails, Bike sprites | `clk_pix` | Roman | Roman; changes by Alan | through `game_top_tb` (Alan) |
+| `bike_glide.sv` | Drawn position of one Bike, sliding from its previous Cell to its current one ([ADR 0010](../docs/adr/0010-bikes-sliding-between-cells.md)) | `clk_juego` | not in §4 | Alan | `bike_glide_tb` (Alan) |
+| **Movement** | | | | | |
+| `position_logic.sv` | Both Bikes: Turns, Steps, and Crashes with walls, Trails and each other | `clk_juego` | Roman (G1/G2) | Roman; changes by Alan | `position_logic_tb` (Roman; changes by Alan) |
+| `round_fsm.sv` | One Round: wait for Start, run, Crash pause, wait for Start's release | `clk_juego` | to confirm: G1/G2 is Roman's, G3 (Rounds) Alan's | Roman | `round_fsm_tb` (Roman) |
+| `step_counter.sv` | A 1-tick pulse every `STEP_TICKS` ticks; also the 2 s Crash timer | `clk_juego` | Roman (G1/G2) | Roman | `step_counter_tb` (Roman) |
+| `bike_move.sv` | One Bike's Cell, Heading and pending Turn | `clk_juego` | Roman (G1/G2) | Roman | `bike_move_tb` (Roman) |
+| **Arena** | | | | | |
+| `arena_map.sv` | Arena memory: 8192 Cells × 4-bit code (BRAM) | `clk_pix` | Alan (A1/A2) | Alan | `arena_map_tb` (Alan) |
+| `arena_ctrl.sv` | The only writer of `arena_map`: prepares a Round, writes each Step, reads the Cells around each head | `clk_pix` | Alan (A1/A2) | Alan | `arena_ctrl_tb`, `arena_tb` (Alan) |
+| `arena_link.sv` | Game side of the Arena crossing | `clk_juego` | Alan (A1/A2) | Alan | `arena_tb` (Alan) |
+| **Match** | | | | | |
+| `match_fsm.sv` | The Match: Start, Rounds, Crash display, Match over, new Match (8 states) | `clk_juego` | Alan (G3/G5) | Alan | `match_fsm_tb`, `match_tb` (Alan) |
+| `score_unit.sv` | Lives, Points, Survival Bonus, winner or Draw | `clk_juego` | Alan (G3/G5) | Alan | `score_unit_tb`, `match_tb` (Alan) |
+| **Scoreboard** | | | | | |
+| `seg7_view.sv` | Which view is shown (Points, Lives, Goal), 3 s each | `clk_juego` | Alan (display) | Alan | `seg7_view_tb` (Alan) |
+| `seg7_link.sv` | Carries the 20 Scoreboard bits to `clk_pix` | both | Alan (display) | Alan | `seg7_link_tb` (Alan) |
+| `seg7_driver.sv` | Turns Points, Lives and the Goal into eight digits | `clk_pix` | Alan (display) | Alan | `seg7_driver_tb` (Alan) |
+| `multidigit.sv` | Scans the eight digits on one set of segment pins | `clk_pix` | Alan (display) | Alan, from his homework 1 | `multidigit_tb` (Alan) |
+| `sevenseg.sv` | 7-segment decoder: 0–9, P, L, G, A, blank | none | Alan (display) | Alan, from his homework 1 | `sevenseg_tb` (Alan) |
+| **Board I/O and top** | | | | | |
+| `sync_2ff.sv` | 2-flip-flop synchronizer for one button or switch | any | Alan | Alan | `sync_2ff_tb` (Alan) |
+| `board_reset_sync.sv` | CPU_RESET into one clock domain | any | Alan | Alan | `board_reset_sync_tb` (Alan) |
+| `game_top.sv` | Top level: clocks, reset, synchronizers, every block above | both | Alan; the Wizard and the `clk_juego` counter: Roman | Roman and Alan | `game_top_tb` (Alan): 9 scenarios, read from the pins |
+
+| Other file | What it is | Owner | Written by |
+|---|---|---|---|
+| `game_top.xdc` | Pins and board configuration | Alan | Roman, from Digilent's master XDC; changes by Alan |
+| `game_top_timing.xdc` | `clk_juego` and the crossing constraints; implementation only | Alan | Alan |
+| `build_game_top.tcl` | Runs the testbenches and builds the bitstream | Alan | Alan |
+| `schematics.tcl` | Exports the schematics in `diagrams/` | Alan | Alan |
+| `ip/` | IP settings: `clk_wiz_0`, `bike_rom`, `reward_rom` (`.xci` and scripts to recreate them) | Roman | Roman |
+| `sprites/` | Sprite data (`.coe`, RGB444) | Roman | Roman |
+| `sim_clocks/`, `sim_models/` | **Simulation only**: an ideal `clk_wiz_0` and a `bike_rom` model. Never synthesized | — | Alan |
+
+## Simulate and build
+
+`build_game_top.tcl` runs every testbench and builds `game_top` from the repository, with no Vivado project needed beforehand. It needs Linux and full Vivado.
+
+1. From the repository root, pick a new output folder and a mode:
+
+   ```bash
+   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [quick|sim|full]
+   ```
+
+2. Pick the mode:
+   - **`quick`** runs the module testbenches only, in about 20 s. Use it while working.
+   - **`sim`** also runs the 9 `game_top_tb` scenarios, up to about 20 minutes.
+   - **`full`** also creates the IP from the IP Catalog, synthesizes, implements and writes the bitstream.
+   - Run `sim` or `full` before every push or PR.
+3. Read the result:
+   - `OUT_DIR/tests/PASS.txt` means every testbench passed.
+   - In `full`, `OUT_DIR/BUILD_COMPLETE.txt` and `OUT_DIR/game_top.bit` appear only if routed timing is met. The timing, CDC, DRC and methodology reports are in `OUT_DIR`.
+
+Roman's Vivado project on the remote workstation loads the same files from a clone: see [`comandos_vivado_myws.md`](comandos_vivado_myws.md).
+
+To redraw the schematics, run this after a `full` build:
+
+```bash
+xvfb-run -a vivado -mode gui -source proyecto_final/schematics.tcl \
+    -tclargs proyecto_final/diagrams OUT_DIR/project/game_top.xpr exit
+```
+
+## Test on the board
+
+1. Program [`bitstreams/game_top_match_scoreboard.bit`](bitstreams/) by JTAG: Vivado Hardware Manager → *Open Target* → *Program Device*.
+2. Follow the nine checks in [`bitstreams/README.md`](bitstreams/README.md).
+
+Programming by JTAG is not kept after a power cycle: the board then loads whatever is in its flash.
+
+## Folders
+
+| Path | Contents |
+|---|---|
+| `*.sv` | The design modules and their testbenches (`*_tb.sv`) |
+| `*.xdc` | Pins (`game_top.xdc`) and timing (`game_top_timing.xdc`) |
+| `diagrams/` | Vivado's schematics |
+| `ip/`, `sprites/` | IP settings and sprite data |
+| `sim_clocks/`, `sim_models/` | Simulation-only stand-ins for the Wizard and `bike_rom` |
+| `bitstreams/` | The last bitstream checked on the board, with its checks |
+| `prototypes/` | Experiments that are not part of the design: `core_blocks/` (a playable prototype), `uart_input/` (P2's input) and `vga_106mhz/` |
+| `deprecated/` | Earlier versions of this README and of the contract |
+| `Contrato de interfaces game_top (CS 256).md` | The team's interface contract (Roman's, in Spanish) |
+| `comandos_vivado_myws.md` | Roman's Vivado commands for the remote workstation (Spanish) |
+| `cs256-project1-fall26.pdf` | The course's project slides |
+
+## Who wrote what
+
+The first line of each design file, testbench, constraint file and script names who wrote it. For example:
+
+```systemverilog
+// Author: Roman (romanmg00). Changes by Alan (AIF31): Arena codes and Crashes into Trails (#40),
+// both Bikes stop in a Crash Step (ADR 0011, #39).
+```
+
+- **Author** is who wrote the first working version that the file grew from. If that version came from elsewhere, the line says so: "adapted from his CS-256 homework 1", "from Digilent's master XDC".
+- **Changes by** lists the other person's changes to behaviour that are still in the file, with their PRs. Renames, comments and changes later replaced are left out.
+- **Authors** names both when both wrote a large part of what is there now (`game_top.sv`).
+
+[`tools/proyecto_final_authors.sh`](../tools/proyecto_final_authors.sh) prints the evidence for each file: who created it, each person's commits, and each person's current lines (`git blame`). The headers were written by hand from it and confirmed by each of us. `git blame` counts lines, not ideas: renaming a signal or reformatting a line credits it to whoever did that.
+
+The **Owner** column of [Modules](#modules) is a different thing: who is responsible for the block in the contract. The two differ in places, and both are shown.
+
+## Use of AI tools
+
+Alan (AIF31) used AI coding assistants in this project for:
+
+- **Ideation:** comparing design options before the team chose one; the choices are recorded in [`docs/adr/`](../docs/adr/).
+- **Debugging:** reading simulation output and Vivado reports to find the cause of failures.
+- **Testbenches:** drafting self-checking testbenches, which Alan reviewed and ran.
+- **SystemVerilog and build automation:** help writing SystemVerilog, and automating the flow from simulation to synthesis, implementation and the bitstream (`build_game_top.tcl`).
+
+Each file's header names the person responsible for it, who reviewed its content and can explain it.
+
+## History
+
+Built one step (Paso) at a time:
+
+| Paso | What | Who, PR |
+|---|---|---|
+| 1–3a | Counters and `vga_out` | Roman |
+| 4a | Clocking Wizard at 83.46 MHz, stable image on the board | Roman |
+| 5a | Moving block: walls, HUD, game clock, buttons | Roman, #11; reset and startup fixes by Alan, #12 |
+| 4c | `clk_juego` from a counter on `clk_pix`, one Wizard (ADR 0006) | Alan, #16 |
+| 6a, 6b | One Bike in Rounds, then two Bikes with Crashes | Roman, #21, #25 |
+| 6c, 6e | Step interval, and Bikes sliding between Cells (ADR 0010) | Alan, #28, #31; Roman chose 8 ticks, #35 |
+| 5c | Bike sprites from `bike_rom` | Roman, #35 |
+| 5b, 6d, 6f | The Arena: Trails and Crashes into Trails | Alan, #40 |
+| 7a, 7b | Scoreboard display and views | Alan, #34 |
+| 7c, 7d | Match, Lives, Points and the Scoreboard in `game_top` | Alan, #46, #47; Roman's `position_logic` ports, #45 |
+
+The full step log, in Spanish, is in [`docs/history/proyecto_final-pasos.md`](../docs/history/proyecto_final-pasos.md).
+
+**Still open:**
+- `tick_60hz` in `vga_out` (Paso 3b).
+- The 10 px white border (Paso 4b).
+- Reward sprites and Rewards (G4).
+- The positions crossing (X1, issue #30).
+- P2's UART input.
+- Moving `bike_glide` into `position_logic` (issue #37).

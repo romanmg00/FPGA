@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 1594 389"
+     preserveAspectRatio="xMidYMid meet"
+     version="1.1"
+     baseProfile="full"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:ev="http://www.w3.org/2001/xml-events"
+     xml:space="preserve">
+<title>game_top</title>
+<desc>Nlview schematic (SVG)</desc>
+<clipPath id="clippingbbox">
+<rect x="0" y="0" width="1594" height="389" />
+</clipPath>
+<g stroke="#19b400"
+   stroke-width="1"
+   stroke-linecap="butt"
+   stroke-linejoin="miter"
+   stroke-miterlimit="4"
+   stroke-dasharray="none"
+   stroke-dashoffset="0"
+   fill="none"
+   font-family="Helvetica"
+   font-style="normal"
+   font-size="12"
+   writing-mode="lr-tb"
+   cursor="crosshair"
+   clip-path="url(#clippingbbox)">
+<path d="M0 0h1594v390h-1594z" stroke="none" fill="white" />
+<path d="M160 218h60v142h-60z" stroke="none" fill="#dfebf8" />
+<g stroke="black">
+<path d="M160 218h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M171 223v12" />
+<path d="M165 229h12" />
+</g>
+<g stroke="black">
+<path d="M163 221h16v16h-16z" />
+<text x="190" y="216" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_score_unit</text>
+<text x="190" y="362" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">score_unit</text>
+<path d="M150 250h10" />
+<text x="158" y="249" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M150 270h10" />
+<text x="158" y="269" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">crash1</text>
+<path d="M150 290h10" />
+<text x="158" y="289" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">crash2</text>
+<path d="M230 290h-10" />
+<text x="222" y="289" fill="black" stroke-width="0" font-size="10" dy="-1.33333">match_over</text>
+<path d="M150 310h10" />
+<text x="158" y="309" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">new_match</text>
+<path d="M150 330h10" />
+<text x="158" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M230 250h-10" />
+<text x="222" y="249" fill="black" stroke-width="0" font-size="10" dy="-1.33333">lives_p1[1:0]</text>
+<path d="M230 270h-10" />
+<text x="222" y="269" fill="black" stroke-width="0" font-size="10" dy="-1.33333">lives_p2[1:0]</text>
+<path d="M230 310h-10" />
+<text x="222" y="309" fill="black" stroke-width="0" font-size="10" dy="-1.33333">points_p1[5:0]</text>
+<path d="M230 330h-10" />
+<text x="222" y="329" fill="black" stroke-width="0" font-size="10" dy="-1.33333">points_p2[5:0]</text>
+<path d="M230 350h-10" />
+<text x="222" y="349" fill="black" stroke-width="0" font-size="10" dy="-1.33333">result[1:0]</text>
+<text x="292" y="349" fill="black" stroke-width="0" font-size="8" dy="-1.06667">n/c</text>
+</g>
+<g stroke="black">
+<path d="M170 250h-10" />
+<path d="M170 270h-10" />
+<path d="M170 290h-10" />
+<path d="M210 290h10" />
+<path d="M170 310h-10" />
+<path d="M170 330h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M210 250h10" />
+<path d="M210 270h10" />
+<path d="M210 310h10" />
+<path d="M210 330h10" />
+<path d="M210 350h10" />
+<path d="M500 38h60v162h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M500 38h60v162h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M511 43v12" />
+<path d="M505 49h12" />
+</g>
+<g stroke="black">
+<path d="M503 41h16v16h-16z" />
+<text x="530" y="36" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_match_fsm</text>
+<text x="530" y="202" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">match_fsm</text>
+<path d="M490 70h10" />
+<text x="498" y="69" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">c</text>
+<path d="M490 90h10" />
+<text x="498" y="89" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M490 110h10" />
+<text x="498" y="109" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">m</text>
+<path d="M570 90h-10" />
+<text x="562" y="89" fill="black" stroke-width="0" font-size="10" dy="-1.33333">new_match</text>
+<path d="M490 130h10" />
+<text x="498" y="129" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">p</text>
+<path d="M570 110h-10" />
+<text x="562" y="109" fill="black" stroke-width="0" font-size="10" dy="-1.33333">restart</text>
+<path d="M490 150h10" />
+<text x="498" y="149" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+<path d="M490 170h10" />
+<text x="498" y="169" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">s</text>
+<path d="M570 130h-10" />
+<text x="562" y="129" fill="black" stroke-width="0" font-size="10" dy="-1.33333">start_go</text>
+<path d="M490 190h10" />
+<text x="498" y="189" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">t</text>
+<path d="M570 150h-10" />
+<text x="562" y="149" fill="black" stroke-width="0" font-size="10" dy="-1.33333">waiting</text>
+<path d="M510 70h-10" />
+<path d="M510 90h-10" />
+<path d="M510 110h-10" />
+<path d="M550 90h10" />
+<path d="M510 130h-10" />
+<path d="M550 110h10" />
+<path d="M510 150h-10" />
+<path d="M510 170h-10" />
+<path d="M550 130h10" />
+<path d="M510 190h-10" />
+<path d="M550 150h10" />
+<path d="M840 38h60v122h-60z" stroke="none" fill="#dfebf8" />
+<path d="M840 38h60v122h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M851 43v12" />
+<path d="M845 49h12" />
+</g>
+<g stroke="black">
+<path d="M843 41h16v16h-16z" />
+<text x="870" y="36" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_seg7_view</text>
+<text x="870" y="162" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">seg7_view</text>
+<path d="M830 70h10" />
+<text x="838" y="69" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M830 110h10" />
+<text x="838" y="109" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">new_match</text>
+<path d="M830 130h10" />
+<text x="838" y="129" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+<path d="M830 150h10" />
+<text x="838" y="149" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">waiting</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M830 90h10" />
+<text x="838" y="89" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">goal_sel[1:0]</text>
+<path d="M910 110h-10" />
+<text x="902" y="109" fill="black" stroke-width="0" font-size="10" dy="-1.33333">view[1:0]</text>
+</g>
+<g stroke="black">
+<path d="M850 70h-10" />
+<path d="M850 110h-10" />
+<path d="M850 130h-10" />
+<path d="M850 150h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M850 90h-10" />
+<path d="M890 110h10" />
+<path d="M1130 158h60v182h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1130 158h60v182h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1141 163v12" />
+<path d="M1135 169h12" />
+</g>
+<g stroke="black">
+<path d="M1133 161h16v16h-16z" />
+<text x="1160" y="156" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_seg7_link</text>
+<text x="1160" y="342" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">seg7_link</text>
+<path d="M1120 190h10" />
+<text x="1128" y="189" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_juego</text>
+<path d="M1120 210h10" />
+<text x="1128" y="209" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_pix</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1120 230h10" />
+<text x="1128" y="229" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">goal_sel[1:0]</text>
+<path d="M1200 210h-10" />
+<text x="1192" y="209" fill="black" stroke-width="0" font-size="10" dy="-1.33333">goal_sel_pix[1:0]</text>
+<path d="M1120 250h10" />
+<text x="1128" y="249" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lives_p1[1:0]</text>
+<path d="M1200 230h-10" />
+<text x="1192" y="229" fill="black" stroke-width="0" font-size="10" dy="-1.33333">lives_p1_pix[1:0]</text>
+<path d="M1120 270h10" />
+<text x="1128" y="269" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lives_p2[1:0]</text>
+<path d="M1200 250h-10" />
+<text x="1192" y="249" fill="black" stroke-width="0" font-size="10" dy="-1.33333">lives_p2_pix[1:0]</text>
+<path d="M1120 290h10" />
+<text x="1128" y="289" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">points_p1[5:0]</text>
+<path d="M1200 270h-10" />
+<text x="1192" y="269" fill="black" stroke-width="0" font-size="10" dy="-1.33333">points_p1_pix[5:0]</text>
+<path d="M1120 310h10" />
+<text x="1128" y="309" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">points_p2[5:0]</text>
+<path d="M1200 290h-10" />
+<text x="1192" y="289" fill="black" stroke-width="0" font-size="10" dy="-1.33333">points_p2_pix[5:0]</text>
+<path d="M1120 330h10" />
+<text x="1128" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">view[1:0]</text>
+<path d="M1200 310h-10" />
+<text x="1192" y="309" fill="black" stroke-width="0" font-size="10" dy="-1.33333">view_pix[1:0]</text>
+</g>
+<g stroke="black">
+<path d="M1140 190h-10" />
+<path d="M1140 210h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1140 230h-10" />
+<path d="M1180 210h10" />
+<path d="M1140 250h-10" />
+<path d="M1180 230h10" />
+<path d="M1140 270h-10" />
+<path d="M1180 250h10" />
+<path d="M1140 290h-10" />
+<path d="M1180 270h10" />
+<path d="M1140 310h-10" />
+<path d="M1180 290h10" />
+<path d="M1140 330h-10" />
+<path d="M1180 310h10" />
+<path d="M1460 158h60v182h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1460 158h60v182h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1471 163v12" />
+<path d="M1465 169h12" />
+</g>
+<g stroke="black">
+<path d="M1463 161h16v16h-16z" />
+<text x="1490" y="156" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_seg7_driver</text>
+<text x="1490" y="342" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">seg7_driver</text>
+<path d="M1450 190h10" />
+<text x="1458" y="189" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M1450 310h10" />
+<text x="1458" y="309" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1530 250h-10" />
+<text x="1522" y="249" fill="black" stroke-width="0" font-size="10" dy="-1.33333">an[7:0]</text>
+<path d="M1450 210h10" />
+<text x="1458" y="209" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">goal_sel[1:0]</text>
+<path d="M1450 230h10" />
+<text x="1458" y="229" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lives_p1[1:0]</text>
+<path d="M1450 250h10" />
+<text x="1458" y="249" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">lives_p2[1:0]</text>
+<path d="M1450 270h10" />
+<text x="1458" y="269" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">points_p1[5:0]</text>
+<path d="M1450 290h10" />
+<text x="1458" y="289" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">points_p2[5:0]</text>
+<path d="M1530 270h-10" />
+<text x="1522" y="269" fill="black" stroke-width="0" font-size="10" dy="-1.33333">seg[6:0]</text>
+<path d="M1450 330h10" />
+<text x="1458" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">view[1:0]</text>
+</g>
+<g stroke="black">
+<path d="M1470 190h-10" />
+<path d="M1470 310h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1510 250h10" />
+<path d="M1470 210h-10" />
+<path d="M1470 230h-10" />
+<path d="M1470 250h-10" />
+<path d="M1470 270h-10" />
+<path d="M1470 290h-10" />
+<path d="M1510 270h10" />
+<path d="M1470 330h-10" />
+</g>
+<g stroke="green" stroke-width="3" stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M830 90h-100v140h390" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M1200 210h250" />
+<path d="M230 250h890" />
+<path d="M1200 230h250" />
+<path d="M230 270h890" />
+<path d="M1200 250h250" />
+<path d="M230 310h160v-20h730" />
+<path d="M1200 270h250" />
+<path d="M230 330h180v-20h710" />
+<path d="M1200 290h250" />
+<path d="M910 110h80v220h130" />
+<path d="M1200 310h140v20h110" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M150 250h-120v-130h320v-110h360v180h410" />
+<path d="M350 90h140" />
+<path d="M348 88h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M710 70h120" />
+<path d="M708 68h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1120 210h-110v-80h330v60h110" />
+<path d="M230 290h140v-180h120" />
+</g>
+<g>
+<path d="M150 310h-100v-120h380v140h240v-240h-100" />
+<path d="M670 110h160" />
+<path d="M668 108h5v5h-5z" stroke="none" fill="#19b400" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M150 330h-140v-160h440" />
+<path d="M448 168h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M490 150h-40v80h240v-100h140" />
+</g>
+<g>
+<path d="M570 150h260" />
+</g>
+</g>
+</svg>
