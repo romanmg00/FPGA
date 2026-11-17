@@ -164,7 +164,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | `btn_debounce` | Alan | Sincroniza los 5 botones, quita rebotes y genera un pulso al presionar | Por hacer |
 | `uart_rx` + decodificador | Alan | Bytes de la UART a pedidos de giro de P2 y Start | Por hacer; Enter **pendiente** |
 | Página web de control | Alan | WASD, Espacio/Enter por Web Serial | Por hacer |
-| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | `sevenseg` y `multidigit` (tarea 1 del curso, con P, L, G, A y blanco; barrido en `clk_pix` con habilitación), `seg7_view` y `seg7_driver` pasan en XSim (Pasos 7a y 7b). En `game_top` desde el Paso 7d, con `seg7_link` como cruce a `clk_pix`; `game_top_tb` lee los dígitos de los pines. Falta probarlo en la tarjeta |
+| `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | `sevenseg` y `multidigit` (tarea 1 del curso, con P, L, G, A y blanco; barrido en `clk_pix` con habilitación), `seg7_view` y `seg7_driver` pasan en XSim (Pasos 7a y 7b). En `game_top` desde el Paso 7d, con `seg7_link` como cruce a `clk_pix`; `game_top_tb` lee los dígitos de los pines. Probado en la tarjeta el 17 nov |
 | `game_top` + XDC | Alan | Instancia y conecta todo; relojes, reset, pines, automatización del build | Conecta el Wizard, el contador de `clk_juego`, los sincronizadores, las motos, la arena, la partida y el marcador; `build_game_top.tcl` corre las pruebas (`quick`, `sim`) y construye el bitstream (`full`). Faltan la UART y los LED |
 | Marcador en pantalla (`texto_capa`, `font_rom`) | Roman | Puntos y vidas en la franja de 64 px, con texto de 32 px | Después del núcleo (*Should*) |
 

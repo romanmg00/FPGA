@@ -89,7 +89,7 @@ y el handout es una guía general. El código ya lo hace (Paso 4c), y su bitstre
   - [x] **7d:** en `game_top`: `sw[15:0]` (`SW0` pausa, `{SW15, SW14}` meta), pines `seg`, `dp`
     y `an`, y `seg7_link`, que cruza los 20 bits del marcador de `clk_juego` a `clk_pix` (toggle
     y copia, como la arena). `match_tb` juega partidas enteras en `clk_juego`; `game_top_tb` lee
-    el marcador de los pines (escenarios `match` y `pause`). Falta probarlo en la tarjeta
+    el marcador de los pines (escenarios `match` y `pause`). Probado en la tarjeta el 17 de noviembre con [`game_top_match_scoreboard.bit`](bitstreams/README.md)
 
 ## Hito: bloque en movimiento (revisión del 12 de noviembre)
 
