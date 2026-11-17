@@ -11,16 +11,12 @@ set_false_path -from [get_ports cpu_resetn] -to [get_cells {u_rst_pix/meta_reg u
 set_false_path -from [get_ports {btn[*]}] -to [get_cells {g_btn[*].u_sync/meta_reg}]
 set_false_path -from [get_ports {sw[*]}] -to [get_cells {g_sw[*].u_sync/meta_reg}]
 
-## Las posiciones dibujadas cruzan de clk_juego a clk_pix SIN cruce explicito (por eso una
-## moto a veces se corta; X1 lo resuelve, issue de X1). drawcon lee draw_x/draw_y de cada
-## bike_glide, que son registros (ADR 0010). Esto limita el retardo a un pixel; no hace seguro
-## el cruce. build_game_top.tcl revisa que el origen no quede vacio.
-set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/draw_*_reg[*]}] -to [get_cells {u_vga_out/pix_*_reg[*]}]
-
-## drawcon (PR #35) tambien calcula la direccion de cada bike_rom (una BRAM por moto, en clk_pix)
-## con esas posiciones y con heading_reg de bike_move (clk_juego), sin cruce explicito (X1, issue
-## #30). Mismo limite de un pixel; build_game_top.tcl revisa los origenes y las 2 BRAM.
-set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/draw_*_reg[*] u_position_logic/u_bike_move*/heading_reg[*]}] -to [get_cells -hierarchical -filter {NAME =~ u_drawcon/bike_rom_*/* && REF_NAME =~ RAMB*}]
+## Posiciones y direcciones de las motos (X1, issue #30): pos_link cruza de clk_juego a clk_pix con
+## un toggle por sync_2ff, y los valores se copian a pend*_reg solo despues del toggle, cuando llevan
+## varios ciclos quietos. Como en la arena, aqui se acota su retardo a un periodo de clk_pix.
+## build_game_top.tcl revisa que ningun origen ni destino quede vacio.
+set_max_delay -datapath_only 11.982 -from [get_cells u_pos_link/pos_tgl_reg] -to [get_cells u_pos_link/u_sync_2ff/meta_reg]
+set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/draw_*_reg[*] u_position_logic/u_bike_move*/heading_reg[*]}] -to [get_cells {u_pos_link/pend*_reg[*]}]
 
 ## Cruce de la arena (contrato, sección 3). clk_juego y clk_pix no tienen un periodo común que
 ## Vivado pueda expandir, así que esas rutas se tratan como asíncronas: los toggles van a

@@ -8,8 +8,11 @@ module game_top (
 
     logic [10:0] blkpos1_x, blkpos1_y;     // position_logic -> bike_glide: bike Cell in pixels
     logic [10:0] blkpos2_x, blkpos2_y;
-    logic [10:0] glide1_x, glide1_y;       // bike_glide -> drawcon: drawn position, registered
+    logic [10:0] glide1_x, glide1_y;       // bike_glide -> pos_link: drawn position, registered (clk_juego)
     logic [10:0] glide2_x, glide2_y;
+    logic [10:0] draw1_x, draw1_y;         // pos_link -> drawcon: drawn position for this frame (clk_pix)
+    logic [10:0] draw2_x, draw2_y;
+    logic [1:0]  draw_heading1, draw_heading2;  // pos_link -> drawcon: headings for this frame (clk_pix)
 
     // Ticks of clk_juego per step (ADR 0007, ADR 0010): 8 gives about 7.5 Cells/s. One value
     // for position_logic and both bike_glide, so the slide always lasts exactly one step.
@@ -161,18 +164,37 @@ module game_top (
         .draw_y(glide2_y)
     );
 
+    // Drawn positions and headings cross from clk_juego to clk_pix (X1, issue #30): a toggle
+    // through sync_2ff copies them to a pending register, which drawcon gets at curr_y == 800,
+    // so a whole frame is drawn with the same positions.
+    pos_link u_pos_link (
+        // clk_juego side
+        .clk_juego(clk_juego),
+        .rst_juego(rst_juego),
+        .glide1_x(glide1_x), .glide1_y(glide1_y),
+        .glide2_x(glide2_x), .glide2_y(glide2_y),
+        .heading1(heading1), .heading2(heading2),
+        // clk_pix side
+        .clk_pix(clk_pix),
+        .rst_pix(rst_pix),
+        .curr_y(curr_y),
+        .draw1_x(draw1_x), .draw1_y(draw1_y),
+        .draw2_x(draw2_x), .draw2_y(draw2_y),
+        .draw_heading1(draw_heading1), .draw_heading2(draw_heading2)
+    );
+
     drawcon u_drawcon(
         // Inputs
         .clk(clk_pix),
         .curr_x(curr_x),
         .curr_y(curr_y),
-        .blkpos1_x(glide1_x), 
-        .blkpos1_y(glide1_y),
-        .blkpos2_x(glide2_x),
-        .blkpos2_y(glide2_y),
+        .blkpos1_x(draw1_x), 
+        .blkpos1_y(draw1_y),
+        .blkpos2_x(draw2_x),
+        .blkpos2_y(draw2_y),
         .sw(sw_sync),
-        .heading1(heading1),
-        .heading2(heading2),
+        .heading1(draw_heading1),
+        .heading2(draw_heading2),
         // Outputs
         .draw_r(draw_r),
         .draw_g(draw_g),

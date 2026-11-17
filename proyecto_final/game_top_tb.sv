@@ -15,8 +15,10 @@
 // dut.u_position_logic.run; the step length from u_step_counter's STEP_TICKS. Each bike is a
 // 32 x 32 sprite from sprites/bike_synth.coe (PR #35), boxed at its drawn position minus 8 px
 // and turned with its heading. The drawn positions, dut.glide1_x/y and dut.glide2_x/y, slide
-// toward the Cell over one step (ADR 0010): frames taken while the bikes move use those and
-// dut.heading1/2, and glide_check compares the slide with the offsets the ADR gives.
+// toward the Cell over one step (ADR 0010), and glide_check compares the slide with the offsets
+// the ADR gives. drawcon gets them through pos_link (X1, issue #30), copied once per frame at
+// curr_y = 800: frames taken while the bikes move use dut.draw1_x/y, dut.draw2_x/y and
+// dut.draw_heading1/2, and check that they do not change inside the visible area (no tearing).
 // Known deviation, SPRITE_SHIFT: drawcon reads bike_rom (2 cycles) without reading ahead, so
 // each sprite is drawn SPRITE_SHIFT px to the right, its right-hand columns wrapped to the
 // left edge of its box (PR #35, note 3). The bench expects that image; set SPRITE_SHIFT to 0
@@ -72,8 +74,8 @@ module game_top_tb;
             e1x[i] <= e1x[i-1]; e1y[i] <= e1y[i-1]; e1h[i] <= e1h[i-1];
             e2x[i] <= e2x[i-1]; e2y[i] <= e2y[i-1]; e2h[i] <= e2h[i-1];
         end
-        e1x[0] <= dut.glide1_x; e1y[0] <= dut.glide1_y; e1h[0] <= dut.heading1;
-        e2x[0] <= dut.glide2_x; e2y[0] <= dut.glide2_y; e2h[0] <= dut.heading2;
+        e1x[0] <= dut.draw1_x; e1y[0] <= dut.draw1_y; e1h[0] <= dut.draw_heading1;
+        e2x[0] <= dut.draw2_x; e2y[0] <= dut.draw2_y; e2h[0] <= dut.draw_heading2;
     end
     // Arena code and port B address, sampled the same way: e_code is the code drawcon used
     // for the pins' pixel, and e_addr[2] the address it was read with, two cycles earlier.
@@ -164,6 +166,7 @@ module game_top_tb;
         realtime t0, frame_ns;
         logic [11:0] want;
         int x, y;
+        logic [47:0] first_draw;   // drawn positions and headings at the first visible pixel
         // A dead raster fails here, not at the bench's overall watchdog.
         fork
             @(posedge vs);
@@ -186,6 +189,10 @@ module game_top_tb;
                     if (e_addr[2] !== {6'(y >> 4), 7'(x >> 4)})
                         fail($sformatf("%s: Arena read for pixel (%0d,%0d) used address %h, expected Cell (%0d,%0d)",
                                        what, x, y, e_addr[2], x >> 4, y >> 4));
+                    if (x == 0 && y == 0)
+                        first_draw = {e1x[0], e1y[0], e2x[0], e2y[0], e1h[0], e2h[0]};
+                    else if ({e1x[0], e1y[0], e2x[0], e2y[0], e1h[0], e2h[0]} !== first_draw)
+                        fail($sformatf("%s: drawn positions changed inside the frame at (%0d,%0d) (tearing)", what, x, y));
                     if (live)
                         want = expected_colour(x, y,
                             e1x[0], e1y[0], e1x[SPRITE_SHIFT], e1y[SPRITE_SHIFT], e1h[SPRITE_SHIFT],
@@ -451,8 +458,10 @@ module game_top_tb;
         foreach (bike_mem[i])
             if ($isunknown(bike_mem[i])) fail($sformatf("%s does not fill sprite word %0d", bike_file, i));
         // board_reset_sync starts asserted, so the first clk_juego edge (about 8 ms) puts the
-        // bikes at their starts; the Round waits for Start.
-        #20ms;
+        // bikes at their starts; the Round waits for Start. pos_link carries the starts to
+        // drawcon on the next clk_juego tick and the next curr_y = 800 after it, up to two
+        // frames later, so the first frame is checked after that.
+        #70ms;
         expect_at("power-up", P1_X0, P1_Y0, P2_X0, P2_Y0);
         if (dut.u_position_logic.run !== 1'b0) fail("the Round runs at power-up without Start");
         check_frame("power-up", P1_X0, P1_Y0, P2_X0, P2_Y0);
