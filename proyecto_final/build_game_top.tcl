@@ -116,6 +116,8 @@ start_bench seg7_driver_tb seg7_driver_tb "PASS seg7_driver_tb" [list $here/seg7
 # Match lifecycle (G3/G5, Paso 7c): match_fsm and score_unit alone. Not in game_top yet.
 start_bench match_fsm_tb match_fsm_tb "PASS match_fsm_tb" [list $here/match_fsm_tb.sv $here/match_fsm.sv]
 start_bench score_unit_tb score_unit_tb "PASS score_unit_tb" [list $here/score_unit_tb.sv $here/score_unit.sv]
+# Scoreboard crossing (Paso 7d): seg7_link alone, clk_juego and clk_pix unrelated.
+start_bench seg7_link_tb seg7_link_tb "PASS seg7_link_tb" [list $here/seg7_link_tb.sv $here/seg7_link.sv $here/sync_2ff.sv]
 foreach scenario {idle steps turns head_on wall_crash resets_short reset_long} {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
         [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
