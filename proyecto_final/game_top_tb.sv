@@ -152,9 +152,10 @@ module game_top_tb;
     task automatic expect_scoreboard(string what, string expected);
         string got = "????????";
         logic [7:0] lit;
-        realtime t0 = $realtime;
+        realtime t0;
         for (int k = 0; k < 8; k++) begin
             lit = ~(8'b00000001 << k);                // digit k alone
+            t0 = $realtime;
             while (an !== lit) begin
                 @(an);
                 if ($realtime - t0 > 30ms) fail($sformatf("%s: digit %0d never lit alone (an = %b)", what, k, an));
