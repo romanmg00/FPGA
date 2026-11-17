@@ -1,9 +1,12 @@
 # Construye game_top desde el repositorio, sin proyecto previo.
-#   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]
-# sim corre los testbenches; full ademas sintetiza, implementa y escribe game_top.bit.
+#   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [quick|sim|full]
+# quick corre los testbenches de modulos (unos 20 s) y salta game_top_tb, que tarda hasta 20 min;
+# es para probar mientras se trabaja. sim corre todos los testbenches; full ademas sintetiza,
+# implementa y escribe game_top.bit. Antes de un push o un PR, sim o full.
 set here [file dirname [file normalize [info script]]]
 set out  [file normalize [lindex $argv 0]]
 set mode [expr {[llength $argv] > 1 ? [lindex $argv 1] : "full"}]
+if {$mode ni {quick sim full}} {error "modo $mode: debe ser quick, sim o full"}
 proc emit {path text} {set f [open $path w]; puts $f $text; close $f}
 file mkdir $out
 emit $out/version.txt [version]
@@ -31,7 +34,7 @@ proc start_bench {name top marker files {xsim_args ""}} {
 # Un testbench pasa solo si su proceso termina bien y su log nuevo tiene la marca, sin errores.
 # La carpeta se borra antes de correrlo, para que nunca cuente un log de una corrida vieja.
 proc wait_benches {} {
-    global benches out
+    global benches out mode
     set failed {}
     foreach bench $benches {
         lassign $bench name marker dir pipe
@@ -43,7 +46,11 @@ proc wait_benches {} {
         if {$ok} {puts "OK $name"} else {lappend failed $name}
     }
     if {[llength $failed]} {error "Testbenches failed: $failed (see $out/tests/<name>/run.log)"}
-    emit $out/tests/PASS.txt "All testbenches passed"
+    if {$mode eq "quick"} {
+        emit $out/tests/PASS.txt "Module testbenches passed (quick: game_top_tb not run)"
+    } else {
+        emit $out/tests/PASS.txt "All testbenches passed"
+    }
 }
 # Regla de docs/design/CS-256 Vivado IP Inventory.md: los Wizards y bike_rom son IP generada
 # por Vivado. Primera revision: ningun archivo del diseno define un modulo con el nombre de una
@@ -118,7 +125,7 @@ start_bench match_fsm_tb match_fsm_tb "PASS match_fsm_tb" [list $here/match_fsm_
 start_bench score_unit_tb score_unit_tb "PASS score_unit_tb" [list $here/score_unit_tb.sv $here/score_unit.sv]
 # Scoreboard crossing (Paso 7d): seg7_link alone, clk_juego and clk_pix unrelated.
 start_bench seg7_link_tb seg7_link_tb "PASS seg7_link_tb" [list $here/seg7_link_tb.sv $here/seg7_link.sv $here/sync_2ff.sv]
-foreach scenario {idle steps turns head_on wall_crash resets_short reset_long} {
+foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long}}] {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
         [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
         "-testplusarg scenario=$scenario -testplusarg 'bike_mem=$bike_mem'"
@@ -266,11 +273,11 @@ close_project
 
 # Se espera a los testbenches aunque falle el build, para que ninguno siga corriendo en la
 # carpeta despues de terminar, y se reportan los dos errores.
-set build_failed [catch {if {$mode ne "sim"} {build_bitstream}} build_error]
+set build_failed [catch {if {$mode eq "full"} {build_bitstream}} build_error]
 set bench_failed [catch {wait_benches} bench_error]
 if {$build_failed && $bench_failed} {puts $bench_error}
 if {$build_failed} {error $build_error}
 if {$bench_failed} {error $bench_error}
-if {$mode eq "sim"} {exit}
+if {$mode ne "full"} {exit}
 file copy $out/project/game_top.runs/impl_1/game_top.bit $out/game_top.bit
 emit $out/BUILD_COMPLETE.txt "All testbenches pass; routed timing met; game_top.bit written. Read the reports for sign-off."
