@@ -51,6 +51,10 @@ stored goal, so the Match uses the value the specification samples at Start.
   game-to-fast snapshot). Evidence and the board check are in
   `core_blocks/game/FINDINGS.md`, sections 8 and 9.
 - The contract's `seg7_driver` description and the Glossary's Scoreboard
-  entry include the Goal view. The top-level `proyecto_final/` design has no
-  Scoreboard yet; its `seg7_driver` is written there, using the prototype only
-  as a reference.
+  entry include the Goal view. Since Paso 7d (17 November 2026) the
+  top-level `proyecto_final/` design shows the Scoreboard: `match_fsm` gives
+  `seg7_view` the waiting state (G_IDLE, G_MATCH) and the new-Match tick,
+  `seg7_link` carries the values to `clk_pix`, and `seg7_driver` scans the
+  digits. `game_top_tb` reads them from the pins, the Goal view included.
+  Without Rewards (G4) no Goal can be reached yet, so the Goal view shows the
+  selected value only.
