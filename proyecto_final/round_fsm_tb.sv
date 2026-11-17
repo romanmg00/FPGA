@@ -1,3 +1,4 @@
+// Author: Roman (romanmg00).
 // Self-checking testbench for round_fsm.
 // s_wait and s_release give the same outputs (load=1, run=0), so they are told apart
 // by how they react to the button: that is why the cases follow complete sequences.

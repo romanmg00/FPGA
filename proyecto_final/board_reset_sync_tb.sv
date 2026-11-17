@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Builder's own check of board_reset_sync: starts asserted, and follows the request
 // two clocks later in both directions.
 `timescale 1ns/1ps

@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // SIMULATION ONLY. Never add this to synthesis: real builds create bike_rom from the IP
 // Catalog (docs/design/CS-256 Vivado IP Inventory.md). A bench using it does not test the IP.
 // Simulation stand-in for bike_rom (Block Memory Generator, Single Port ROM, 1024 x 12) on

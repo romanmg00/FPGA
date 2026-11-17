@@ -1,3 +1,5 @@
+// Author: Roman (romanmg00). Changes by Alan (AIF31): Arena codes and Crashes into Trails (#40),
+// both Bikes stop in a Crash Step (ADR 0011, #39).
 // Position logic for the two bikes: from the buttons to the position on screen.
 // It keeps the role and ports of the handout's position_logic, but the bike now moves on
 // its own in rounds instead of following the buttons. Everything runs on clk_juego (~60 Hz).

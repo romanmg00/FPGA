@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Builder's own check of game_top, mostly from its pins, with sim_clocks/ in place of
 // the pixel Wizard and sim_models/ in place of bike_rom; not the official bench of contract
 // section 7. It checks that the

@@ -1,3 +1,5 @@
+// Author: Roman (romanmg00). Changes by Alan (AIF31): Trails read from arena_map's port B (#40),
+// sprite colour 000 drawn as transparent (#39).
 // Colour of each pixel, from top to bottom priority: walls, HUD, bikes, Trails, empty arena.
 // Trails come from arena_map's port B, read 2 pixels ahead (its latency is 2 cycles).
 module drawcon(

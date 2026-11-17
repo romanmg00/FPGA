@@ -1,3 +1,4 @@
+# Author: Roman (romanmg00).
 # Creates the reward_rom IP (Block Memory Generator) in the open Vivado project.
 #
 # Same settings as reward_rom.xci, which Roman generated in Vivado 2020.2 on myws on

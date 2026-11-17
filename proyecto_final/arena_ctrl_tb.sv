@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Builder's own check of arena_ctrl with arena_map, on clk_pix only: the bench plays arena_link.
 // A golden Arena is built here from the contract rules (clear, Trail and head codes), not
 // read from the design, and compared word by word through port B, as drawcon would read it.

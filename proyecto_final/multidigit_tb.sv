@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Self-checking bench for multidigit, from its pins: one low anode every cycle, the right
 // glyph, scan order, digit time (COUNT_BITS = 2 and the default 17) and whole frames.
 module multidigit_tb;

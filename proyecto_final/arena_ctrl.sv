@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Arena controller on clk_pix, the only writer of arena_map (port A). It serves one request
 // from arena_link at a time: Prepare (8192-word clear, both start heads) or Step (Trails and
 // heads), then reads the 4 neighbour Cells of each head. Step 17 cycles, Prepare 8,207.
