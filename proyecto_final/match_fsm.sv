@@ -24,7 +24,7 @@ module match_fsm (
     //   5 G_NEW    new Match (1 tick): new_match and restart
     //   6 G_GO     round_fsm leaves s_release, Start low (1 tick)
     //   7 G_START  Start pulse for round_fsm (1 tick)
-    logic [2:0] st, nst;
+    logic [2:0] st, nst;          // state and next state
     logic       s_q;              // s one tick earlier
     logic       press;            // Start was pressed: s rose this tick
 
@@ -45,7 +45,7 @@ module match_fsm (
     begin
         if (rst)
             st <= 3'd0;                         // G_IDLE
-        else if (!p)
+        else if (!p)                            // not paused
             st <= nst;
     end
 
@@ -58,9 +58,9 @@ module match_fsm (
             3'd1: if (c) nst = 3'd2;            // G_PLAY: a Crash ends the Round
             3'd2: begin                         // G_CRASH: after the 2 s display
                 if (t && m)
-                    nst = 3'd4;                 //   the Match is over
+                    nst = 3'd4;                 // the Match is over
                 else if (t)
-                    nst = 3'd3;                 //   or the next Round waits for Start
+                    nst = 3'd3;                 // or the next Round waits for Start
             end
             3'd3: if (press) nst = 3'd7;        // G_READY: a press starts the Round
             3'd4: if (press) nst = 3'd5;        // G_MATCH: a press starts a new Match
@@ -73,8 +73,8 @@ module match_fsm (
 
     // Outputs. The three 1-tick actions wait while paused, so a state held by Pause does nothing.
     assign waiting   = (st == 3'd0 || st == 3'd4);     // G_IDLE, G_MATCH
-    assign new_match = (st == 3'd5) && !p;              // G_NEW
-    assign restart   = (st == 3'd5) && !p;              // G_NEW
-    assign start_go  = (st == 3'd7) && !p;              // G_START
+    assign new_match = (st == 3'd5) && !p;             // G_NEW
+    assign restart   = (st == 3'd5) && !p;             // G_NEW
+    assign start_go  = (st == 3'd7) && !p;             // G_START
 
 endmodule
