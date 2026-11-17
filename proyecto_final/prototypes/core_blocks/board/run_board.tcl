@@ -17,7 +17,7 @@ foreach {name requested} {video_pixel_clock 83.460 video_game_clock 4.6875} {
     emit $out/$name-frequency.txt "achieved_hz=$hz"
 }
 foreach f {game_pkg.sv io/sync_2ff.sv io/btn_debounce.sv io/seg7_driver.sv arena/arena_map.sv arena/arena_ctrl.sv video/game_clk_div.sv board/board_reset_sync.sv board/drawcon_arena.sv board/core_board_top.sv} {read_verilog -sv $core/$f}
-read_verilog -sv [list $src/vga_out.sv $src/counters.sv]
+read_verilog -sv [list $src/src/vga_out.sv $src/src/counters.sv]
 set_property top core_board_top [current_fileset]
 add_files -fileset constrs_1 $core/board/core_board_top.xdc
 file mkdir $out/tests

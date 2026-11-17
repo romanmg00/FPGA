@@ -76,9 +76,9 @@ The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Anal
 | `clk_pix` | `clk_wiz_0` (Clocking Wizard IP) from the 100 MHz board clock | 83.46 MHz requested, 83,455,882 Hz achieved |
 | `clk_juego` | A counter on `clk_pix` that toggles every `CLK_JUEGO_N` = 695,466 cycles, through a `BUFG` ([ADR 0006](../docs/adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md)) | 59.99997 Hz |
 
-`game_top_timing.xdc` defines `clk_juego` as a generated clock. `build_game_top.tcl` checks that its `-divide_by` is 2 × `CLK_JUEGO_N`.
+`constraints/game_top_timing.xdc` defines `clk_juego` as a generated clock. `build_game_top.tcl` checks that its `-divide_by` is 2 × `CLK_JUEGO_N`.
 
-| What crosses | From → to | How | Constraint in `game_top_timing.xdc` |
+| What crosses | From → to | How | Constraint in `constraints/game_top_timing.xdc` |
 |---|---|---|---|
 | CPU_RESETN | pin → each clock | `board_reset_sync`, one per domain | false path to the first flip-flop |
 | Buttons, SW0, SW14–SW15 | pins → `clk_juego` | `sync_2ff` | false path to the first flip-flop |
@@ -105,6 +105,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 - **Owner** is the person responsible for the block, from the table in the contract's §4 (*Interfaz módulo por módulo*).
 - **Written by** comes from the first line of each file (see [Who wrote what](#who-wrote-what)).
 - Testbenches are listed with the person who wrote them.
+- The design files are in [`src/`](src/) and the testbenches in [`testbenches/`](testbenches/).
 
 | File | What it does | Clock | Owner | Written by | Testbench |
 |---|---|---|---|---|---|
@@ -138,8 +139,8 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 
 | Other file | What it is | Owner | Written by |
 |---|---|---|---|
-| `game_top.xdc` | Pins and board configuration | Alan | Roman, from Digilent's master XDC; changes by Alan |
-| `game_top_timing.xdc` | `clk_juego` and the crossing constraints; implementation only | Alan | Alan |
+| `constraints/game_top.xdc` | Pins and board configuration | Alan | Roman, from Digilent's master XDC; changes by Alan |
+| `constraints/game_top_timing.xdc` | `clk_juego` and the crossing constraints; implementation only | Alan | Alan |
 | `build_game_top.tcl` | Runs the testbenches and builds the bitstream | Alan | Alan |
 | `schematics.tcl` | Exports the schematics in `diagrams/` | Alan | Alan |
 | `ip/` | IP settings: `clk_wiz_0`, `bike_rom`, `reward_rom` (`.xci` and scripts to recreate them) | Roman | Roman |
@@ -185,8 +186,10 @@ Programming by JTAG is not kept after a power cycle: the board then loads whatev
 
 | Path | Contents |
 |---|---|
-| `*.sv` | The design modules and their testbenches (`*_tb.sv`) |
-| `*.xdc` | Pins (`game_top.xdc`) and timing (`game_top_timing.xdc`) |
+| `src/` | The design modules: everything that is synthesized |
+| `testbenches/` | The testbenches (`*_tb.sv`) |
+| `constraints/` | Pins (`game_top.xdc`) and timing (`game_top_timing.xdc`) |
+| `build_game_top.tcl`, `schematics.tcl` | The build and the schematic export |
 | `diagrams/` | Vivado's schematics |
 | `ip/`, `sprites/` | IP settings and sprite data |
 | `sim_clocks/`, `sim_models/` | Simulation-only stand-ins for the Wizard and `bike_rom` |
@@ -195,7 +198,17 @@ Programming by JTAG is not kept after a power cycle: the board then loads whatev
 | `deprecated/` | Earlier versions of this README and of the contract |
 | `Contrato de interfaces game_top (CS 256).md` | The team's interface contract (Roman's, in Spanish) |
 | `comandos_vivado_myws.md` | Roman's Vivado commands for the remote workstation (Spanish) |
-| `cs256-project1-fall26.pdf` | The course's project slides |
+
+## Moved files
+
+The files at the top of this folder moved into folders in the folders PR (after 19 November 2026). Older documents still name the old paths:
+
+| Old path in `proyecto_final/` | New path |
+|---|---|
+| `arena_ctrl.sv`, `arena_link.sv`, `arena_map.sv`, `bike_glide.sv`, `bike_move.sv`, `board_reset_sync.sv`, `counters.sv`, `drawcon.sv`, `game_top.sv`, `match_fsm.sv`, `multidigit.sv`, `position_logic.sv`, `round_fsm.sv`, `score_unit.sv`, `seg7_driver.sv`, `seg7_link.sv`, `seg7_view.sv`, `sevenseg.sv`, `step_counter.sv`, `sync_2ff.sv`, `vga_out.sv` | `proyecto_final/src/` |
+| every `*_tb.sv` | `proyecto_final/testbenches/` |
+| `game_top.xdc`, `game_top_timing.xdc` | `proyecto_final/constraints/` |
+| `cs256-project1-fall26.pdf` | [`docs/references/`](../docs/references/cs256-project1-fall26.pdf) |
 
 ## Who wrote what
 

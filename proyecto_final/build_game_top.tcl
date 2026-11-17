@@ -5,6 +5,9 @@
 # es para probar mientras se trabaja. sim corre todos los testbenches; full ademas sintetiza,
 # implementa y escribe game_top.bit. Antes de un push o un PR, sim o full.
 set here [file dirname [file normalize [info script]]]
+set src  $here/src           ;# diseno: todo lo que se sintetiza
+set tb   $here/testbenches   ;# testbenches
+set xdc  $here/constraints   ;# pines y temporizacion
 set out  [file normalize [lindex $argv 0]]
 set mode [expr {[llength $argv] > 1 ? [lindex $argv 1] : "full"}]
 if {$mode ni {quick sim full}} {error "modo $mode: debe ser quick, sim o full"}
@@ -67,21 +70,21 @@ proc check_no_handwritten_ip {files} {
 
 # position_logic instancia round_fsm, step_counter y bike_move desde el PR #21; bike_glide
 # dibuja cada moto deslizandose entre celdas (ADR 0010).
-set movement [list $here/round_fsm.sv $here/step_counter.sv $here/bike_move.sv $here/position_logic.sv]
-set design [concat [list $here/counters.sv $here/vga_out.sv $here/drawcon.sv $here/sync_2ff.sv \
-    $here/board_reset_sync.sv $here/arena_map.sv $here/arena_ctrl.sv $here/arena_link.sv] $movement [list $here/bike_glide.sv \
-    $here/match_fsm.sv $here/score_unit.sv $here/seg7_view.sv $here/seg7_link.sv $here/seg7_driver.sv \
-    $here/multidigit.sv $here/sevenseg.sv $here/game_top.sv]]
+set movement [list $src/round_fsm.sv $src/step_counter.sv $src/bike_move.sv $src/position_logic.sv]
+set design [concat [list $src/counters.sv $src/vga_out.sv $src/drawcon.sv $src/sync_2ff.sv \
+    $src/board_reset_sync.sv $src/arena_map.sv $src/arena_ctrl.sv $src/arena_link.sv] $movement [list $src/bike_glide.sv \
+    $src/match_fsm.sv $src/score_unit.sv $src/seg7_view.sv $src/seg7_link.sv $src/seg7_driver.sv \
+    $src/multidigit.sv $src/sevenseg.sv $src/game_top.sv]]
 check_no_handwritten_ip $design
 
 # CLK_JUEGO_N vive en game_top.sv y 2 * N en game_top_timing.xdc, porque el XDC no puede
 # leer parametros de SystemVerilog. Se revisa antes de todo, tambien en modo sim.
 proc read_file_text {path} {set f [open $path]; set text [read $f]; close $f; return $text}
-if {![regexp -line {^\s*localparam\s+int\s+CLK_JUEGO_N\s*=\s*([0-9_]+)\s*;} [read_file_text $here/game_top.sv] -> clk_juego_n]} {
+if {![regexp -line {^\s*localparam\s+int\s+CLK_JUEGO_N\s*=\s*([0-9_]+)\s*;} [read_file_text $src/game_top.sv] -> clk_juego_n]} {
     error "game_top.sv no define CLK_JUEGO_N"
 }
 set clk_juego_n [string map {_ {}} $clk_juego_n]
-if {![regexp -line {^\s*create_generated_clock\s+-name\s+clk_juego\s.*-divide_by\s+([0-9]+)} [read_file_text $here/game_top_timing.xdc] -> xdc_divide]} {
+if {![regexp -line {^\s*create_generated_clock\s+-name\s+clk_juego\s.*-divide_by\s+([0-9]+)} [read_file_text $xdc/game_top_timing.xdc] -> xdc_divide]} {
     error "game_top_timing.xdc no define clk_juego con -divide_by"
 }
 if {$xdc_divide != 2 * $clk_juego_n} {
@@ -101,43 +104,43 @@ file mkdir $out/tests
 set bike_mem $out/tests/bike_synth.mem
 coe_to_mem $here/sprites/bike_synth.coe $bike_mem 1024
 
-start_bench sync_2ff_tb sync_2ff_tb "PASS sync_2ff_tb" [list $here/sync_2ff_tb.sv $here/sync_2ff.sv]
-start_bench board_reset_sync_tb board_reset_sync_tb "PASS board_reset_sync_tb" [list $here/board_reset_sync_tb.sv $here/board_reset_sync.sv]
-start_bench vga_out_tb vga_out_tb "PRUEBAS OK" [list $here/vga_out_tb.sv $here/vga_out.sv $here/counters.sv]
+start_bench sync_2ff_tb sync_2ff_tb "PASS sync_2ff_tb" [list $tb/sync_2ff_tb.sv $src/sync_2ff.sv]
+start_bench board_reset_sync_tb board_reset_sync_tb "PASS board_reset_sync_tb" [list $tb/board_reset_sync_tb.sv $src/board_reset_sync.sv]
+start_bench vga_out_tb vga_out_tb "PRUEBAS OK" [list $tb/vga_out_tb.sv $src/vga_out.sv $src/counters.sv]
 # Los testbenches de Roman imprimen PRUEBAS OK solo si no hubo errores.
-start_bench round_fsm_tb round_fsm_tb "PRUEBAS OK" [list $here/round_fsm_tb.sv $here/round_fsm.sv]
-start_bench step_counter_tb step_counter_tb "PRUEBAS OK" [list $here/step_counter_tb.sv $here/step_counter.sv]
-start_bench bike_move_tb bike_move_tb "PRUEBAS OK" [list $here/bike_move_tb.sv $here/bike_move.sv]
-start_bench position_logic_tb position_logic_tb "PRUEBAS OK" [concat [list $here/position_logic_tb.sv] $movement]
-start_bench bike_glide_tb bike_glide_tb "PASS bike_glide_tb" [list $here/bike_glide_tb.sv $here/bike_glide.sv]
+start_bench round_fsm_tb round_fsm_tb "PRUEBAS OK" [list $tb/round_fsm_tb.sv $src/round_fsm.sv]
+start_bench step_counter_tb step_counter_tb "PRUEBAS OK" [list $tb/step_counter_tb.sv $src/step_counter.sv]
+start_bench bike_move_tb bike_move_tb "PRUEBAS OK" [list $tb/bike_move_tb.sv $src/bike_move.sv]
+start_bench position_logic_tb position_logic_tb "PRUEBAS OK" [concat [list $tb/position_logic_tb.sv] $movement]
+start_bench bike_glide_tb bike_glide_tb "PASS bike_glide_tb" [list $tb/bike_glide_tb.sv $src/bike_glide.sv]
 # Arena: arena_map and arena_ctrl (clk_pix) and arena_link (clk_juego), alone.
-set arena [list $here/sync_2ff.sv $here/arena_map.sv $here/arena_ctrl.sv $here/arena_link.sv]
-start_bench arena_map_tb arena_map_tb "PASS arena_map_tb" [list $here/arena_map_tb.sv $here/arena_map.sv]
-start_bench arena_ctrl_tb arena_ctrl_tb "PASS arena_ctrl_tb" [concat [list $here/arena_ctrl_tb.sv] $arena]
+set arena [list $src/sync_2ff.sv $src/arena_map.sv $src/arena_ctrl.sv $src/arena_link.sv]
+start_bench arena_map_tb arena_map_tb "PASS arena_map_tb" [list $tb/arena_map_tb.sv $src/arena_map.sv]
+start_bench arena_ctrl_tb arena_ctrl_tb "PASS arena_ctrl_tb" [concat [list $tb/arena_ctrl_tb.sv] $arena]
 foreach ticks {6 8} {
     start_bench arena_tb_s$ticks arena_tb "PASS arena_tb STEP_TICKS=$ticks" \
-        [concat [list $here/arena_tb.sv] $arena] "-testplusarg step_ticks=$ticks"
+        [concat [list $tb/arena_tb.sv] $arena] "-testplusarg step_ticks=$ticks"
 }
 # Physical Scoreboard (ADR 0008): the homework 1 display path, extended.
-start_bench sevenseg_tb sevenseg_tb "PASS sevenseg_tb" [list $here/sevenseg_tb.sv $here/sevenseg.sv]
-start_bench multidigit_tb multidigit_tb "PASS multidigit_tb" [list $here/multidigit_tb.sv $here/multidigit.sv $here/sevenseg.sv]
-start_bench seg7_view_tb seg7_view_tb "PASS seg7_view_tb" [list $here/seg7_view_tb.sv $here/seg7_view.sv]
-start_bench seg7_driver_tb seg7_driver_tb "PASS seg7_driver_tb" [list $here/seg7_driver_tb.sv $here/seg7_driver.sv $here/multidigit.sv $here/sevenseg.sv]
+start_bench sevenseg_tb sevenseg_tb "PASS sevenseg_tb" [list $tb/sevenseg_tb.sv $src/sevenseg.sv]
+start_bench multidigit_tb multidigit_tb "PASS multidigit_tb" [list $tb/multidigit_tb.sv $src/multidigit.sv $src/sevenseg.sv]
+start_bench seg7_view_tb seg7_view_tb "PASS seg7_view_tb" [list $tb/seg7_view_tb.sv $src/seg7_view.sv]
+start_bench seg7_driver_tb seg7_driver_tb "PASS seg7_driver_tb" [list $tb/seg7_driver_tb.sv $src/seg7_driver.sv $src/multidigit.sv $src/sevenseg.sv]
 # Match lifecycle (G3/G5, Paso 7c): match_fsm and score_unit alone.
-start_bench match_fsm_tb match_fsm_tb "PASS match_fsm_tb" [list $here/match_fsm_tb.sv $here/match_fsm.sv]
-start_bench score_unit_tb score_unit_tb "PASS score_unit_tb" [list $here/score_unit_tb.sv $here/score_unit.sv]
+start_bench match_fsm_tb match_fsm_tb "PASS match_fsm_tb" [list $tb/match_fsm_tb.sv $src/match_fsm.sv]
+start_bench score_unit_tb score_unit_tb "PASS score_unit_tb" [list $tb/score_unit_tb.sv $src/score_unit.sv]
 # Scoreboard crossing (Paso 7d): seg7_link alone, clk_juego and clk_pix unrelated.
-start_bench seg7_link_tb seg7_link_tb "PASS seg7_link_tb" [list $here/seg7_link_tb.sv $here/seg7_link.sv $here/sync_2ff.sv]
+start_bench seg7_link_tb seg7_link_tb "PASS seg7_link_tb" [list $tb/seg7_link_tb.sv $src/seg7_link.sv $src/sync_2ff.sv]
 # The Match on clk_juego alone: match_fsm, score_unit and position_logic, as wired in game_top.
-start_bench match_tb match_tb "PASS match_tb" [concat [list $here/match_tb.sv $here/match_fsm.sv $here/score_unit.sv] $movement]
+start_bench match_tb match_tb "PASS match_tb" [concat [list $tb/match_tb.sv $src/match_fsm.sv $src/score_unit.sv] $movement]
 foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long match pause}}] {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
-        [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
+        [concat [list $tb/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
         "-testplusarg scenario=$scenario -testplusarg 'bike_mem=$bike_mem'"
 }
 
 proc build_bitstream {} {
-global here out design clk_juego_n
+global here src xdc out design clk_juego_n
 create_project game_top $out/project -part xc7a100tcsg324-1
 set_property target_language Verilog [current_project]
 
@@ -199,7 +202,18 @@ foreach {key want} {Memory_Type Single_Port_ROM Write_Depth_A 1024 Write_Width_A
 
 read_verilog -sv $design
 set_property top game_top [current_fileset]
-add_files -fileset constrs_1 [list $here/game_top.xdc $here/game_top_timing.xdc]
+# Lo que se sintetiza: exactamente los .sv de src/, ni testbenches, ni modelos de
+# sim_clocks/ o sim_models/, ni prototipos. Las IP (clk_wiz_0, bike_rom) van aparte, como .xci.
+set expected [lsort [glob $src/*.sv]]
+set got [lsort [lmap f [get_files -of_objects [get_filesets sources_1] -filter {FILE_TYPE == SystemVerilog}] {file normalize $f}]]
+if {$got ne $expected} {
+    error "sources_1 no es src/*.sv:\n  esperado: $expected\n  cargado:  $got"
+}
+foreach f [get_files -of_objects [get_filesets sources_1]] {
+    if {[regexp {_tb\.sv$|/sim_clocks/|/sim_models/|/prototypes/} $f]} {error "sources_1 tiene $f"}
+}
+emit $out/sources_1.txt [join [get_files -of_objects [get_filesets sources_1]] \n]
+add_files -fileset constrs_1 [list $xdc/game_top.xdc $xdc/game_top_timing.xdc]
 set_property USED_IN_SYNTHESIS false [get_files game_top_timing.xdc]
 
 set_property AUTO_INCREMENTAL_CHECKPOINT 0 [get_runs synth_1]

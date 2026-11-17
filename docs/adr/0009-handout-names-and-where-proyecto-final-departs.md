@@ -15,7 +15,7 @@ describes `proyecto_final/` in two places that do not use the same names:
   (sections *VGA Sync Signals*, *Creating the Clock*, *Visible Pixel
   Counter*, *Drawing Logic Module*) and `classproject/sprites/README.md`
   (*Tips on Implementing Sprites*).
-- **Slides:** [`cs256-project1-fall26.pdf`](../../proyecto_final/cs256-project1-fall26.pdf),
+- **Slides:** [`cs256-project1-fall26.pdf`](../references/cs256-project1-fall26.pdf),
   slides 10–11. Their `game_top` diagram contains a **position logic** block
   (buttons and switches in, `blkpos_x`, `blkpos_y` out), `drawcon`
   (`curr_x`, `curr_y` in; `draw_r`, `draw_g`, `draw_b` out), `vga_out`
@@ -37,7 +37,7 @@ disagree. Nothing is renamed. The table below records each place where
 `proyecto_final/` differs from the course material, where in the code the
 difference is, and why. It changes no game rule and no interface.
 
-Line numbers are those of `main` after the authorship header lines were added to each file (18 November 2026).
+Line numbers are those of `main` after the authorship header lines were added to each file (18 November 2026). Design files are in `proyecto_final/src/` and the `.xdc` files in `proyecto_final/constraints/`; `build_game_top.tcl` and `comandos_vivado_myws.md` stay at the top of `proyecto_final/`.
 
 | # | Course material | `proyecto_final/` | Where | Why |
 |---|---|---|---|---|

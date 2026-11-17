@@ -10,7 +10,7 @@
 //              snapshot), button debounce, UART receive, 7-segment scan,
 //              game_clk_div and reset_stretch.
 //   clk_juego  clk_pix / (2 * 695,466) = 59.99997 Hz through a BUFG: game_core.
-//              Same counter and N as proyecto_final/game_top.sv.
+//              Same counter and N as proyecto_final/src/game_top.sv.
 // Crossings (all PROVISIONAL, ADR 0003 item 2 open; see game/FINDINGS.md):
 //   cpu_resetn -> reset_stretch (2-FF, clk_pix) -> rst_req -> 2-FF per domain.
 //   btn -> btn_debounce 2-FF (clk_pix); uart_rx -> uart_sync_2ff (clk_pix);

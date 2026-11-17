@@ -10,7 +10,7 @@ If the checkout is behind and the working tree is clean, update with `git pull -
 
 ## Layout and boundaries
 
-- `proyecto_final/`: hardware. Its interface contract, `proyecto_final/Contrato de interfaces game_top (CS 256).md`, is Roman's and is written in Spanish.
+- `proyecto_final/`: hardware. Design modules are in `src/`, testbenches in `testbenches/`, and pin and timing constraints in `constraints/`; `build_game_top.tcl` stays at the top. Its interface contract, `proyecto_final/Contrato de interfaces game_top (CS 256).md`, is Roman's and is written in Spanish.
 - `prototipos/`: PC prototypes. `prototipos/tron/` is Roman's viewer; `prototipos/tron_fpga/` is Alan's hardware-modelled Tron (viewer package `juego/`, rules in `model/`), imported as the Look Prototype. Each has its own requirements file and needs its own virtual environment: one uses `pygame`, the other `pygame-ce`.
 - `docs/`: decisions, ADRs, design notes, plans and reviews. See [docs/README.md](docs/README.md) for the layout.
 - `tools/`, `assets/`: host-side scripts and sprite art.

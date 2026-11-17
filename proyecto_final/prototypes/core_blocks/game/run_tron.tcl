@@ -35,7 +35,7 @@ foreach f {
     crossing/batch_fifo.sv game/reset_stretch.sv game/arena_svc.sv game/fast_core.sv game/game_core.sv
     game/sprite_rom.sv game/drawcon_game.sv game/tron_system.sv game/tron_top.sv
 } {read_verilog -sv $core/$f}
-read_verilog -sv [list $core/video/vga_out.sv $src/counters.sv \
+read_verilog -sv [list $core/video/vga_out.sv $src/src/counters.sv \
     $src/prototypes/uart_input/uart_sync_2ff.sv $src/prototypes/uart_input/uart_rx.sv \
     $src/prototypes/uart_input/uart_cmd_decode.sv]
 set_property top tron_top [current_fileset]
