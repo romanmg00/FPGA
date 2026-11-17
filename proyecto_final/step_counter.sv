@@ -1,4 +1,4 @@
-// Gives a 1-tick pulse every STEP_TICKS ticks while run = 1, and restarts from 0 whenever run = 0.
+// Gives a 1-tick pulse every STEP_TICKS ticks while run = 1; pause = 1 holds the count with no pulse; run = 0 restarts from 0.
 // With STEP_TICKS = 8 and clk_juego at ~60 Hz, a bike moves about 7.5 cells per second.
 // With STEP_TICKS = 120 it measures the 2 s pause after a crash.
 module step_counter #(
@@ -6,6 +6,7 @@ module step_counter #(
 ) (
     input  logic clk,     // clk_juego (~60 Hz)
     input  logic rst,
+    input  logic pause,   // hold the count and give no step while 1 (SW0).
     input  logic run,     // count while 1; restart from 0 while 0
     output logic step     // 1-tick pulse on the last tick of each period
 );
@@ -16,10 +17,13 @@ module step_counter #(
     localparam logic [W-1:0] LAST = W'(STEP_TICKS - 1);
 
     logic [W-1:0] counter;
-    // Priority: rst or run = 0 restarts; the last value wraps to 0; otherwise count up.
+    // Priority: rst or run = 0 restarts; pause freezes the counter; the last value wraps to 0; otherwise count up.
     always_ff @(posedge clk) begin
         if (rst || !run) begin
             counter <= '0;
+        end
+        else if (pause) begin
+            counter <= counter;
         end
         else if (counter == LAST) begin
             counter <= '0;
@@ -29,6 +33,6 @@ module step_counter #(
         end
     end
     // step is 1 while the counter holds its last value, so the step is taken on the next edge.
-    assign step = (counter == LAST);
+    assign step = (counter == LAST) && !pause;
 
 endmodule
