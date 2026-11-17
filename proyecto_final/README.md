@@ -201,7 +201,7 @@ Programming by JTAG is not kept after a power cycle: the board then loads whatev
 
 ## Moved files
 
-The files at the top of this folder moved into folders in the folders PR (after 19 November 2026). Older documents still name the old paths:
+The files at the top of this folder moved into folders in PR #50 (after 19 November 2026). Older documents still name the old paths:
 
 | Old path in `proyecto_final/` | New path |
 |---|---|
