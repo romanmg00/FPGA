@@ -26,6 +26,10 @@
 // received, and that code must come from the pixel's own Cell (dut.arena_addr two cycles
 // earlier, port B's latency). arena_check compares the whole of arena_map with a Trail model
 // kept here from the bike moves: the Cells a bike left are its Trail, its head is a head.
+// Match and Scoreboard (G3/G5, ADR 0008): Start reaches round_fsm through match_fsm, so
+// press_start waits up to 10 ticks for the Round. The Scoreboard is read from seg and an.
+// match plays one Match to its end (P1's Lives set to 1 with force; match_tb plays whole
+// Matches on clk_juego alone) and pause checks SW0 and a Start held through CPU_RESETN.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
 // own simulator: xsim game_top_tb -runall -testplusarg scenario=steps
 // Without +scenario they all run one after another in one simulation.
@@ -50,10 +54,14 @@ module game_top_tb;
     localparam int SPRITE_SHIFT = 2;
 
     logic clk = 1'b0, cpu_resetn = 1'b1;
-    logic [11:0] sw = 12'h000;
+    logic [15:0] sw = 16'h0000;
     logic [4:0] btn = B_NONE;
     logic [3:0] r, g, b;
     logic hs, vs;
+    logic [6:0] seg;
+    logic dp;
+    logic [7:0] an;
+    int prepares = 0;         // Prepares arena_link sent since power-up
     int rises_in_reset = 0;
     realtime last_rise = 0;
     string scenario = "all";
@@ -88,7 +96,8 @@ module game_top_tb;
     // Arena model: what arena_map must hold after the last step's writes.
     logic [3:0] arena_want [0:8191];
 
-    game_top dut (.clk, .cpu_resetn, .sw, .btn, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs));
+    game_top dut (.clk, .cpu_resetn, .sw, .btn, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs),
+                  .seg, .dp, .an);
     always #5 clk = ~clk;
 
     function automatic void fail(string msg);
@@ -96,9 +105,9 @@ module game_top_tb;
         $fatal(1, "game_top_tb failed");
     endfunction
 
-    // The longest scenario (head_on) takes about 5.5 s of simulated time; all of them, 15 s.
+    // The longest scenario (head_on) takes about 5.5 s of simulated time; all of them, 20 s.
     initial begin
-        #20s fail("watchdog: the bench did not finish");
+        #30s fail("watchdog: the bench did not finish");
     end
 
     // clk_juego must never stop, in or out of reset: position_logic needs its edges.
@@ -116,6 +125,49 @@ module game_top_tb;
             if ($realtime - last_rise > 17e6) fail("clk_juego stopped");
         end
     end
+
+    always @(posedge dut.clk_juego)
+        if (dut.u_arena_link.send_prep === 1'b1) prepares++;
+
+    task automatic wait_ticks(int n);
+        repeat (n) @(posedge dut.clk_juego);
+        #1;
+    endtask
+
+    // Active-low pins {a, ..., g} to the character they show, from sevenseg's glyphs (as
+    // seg7_driver_tb); "?" if none matches.
+    function automatic byte glyph(logic [6:0] pins);
+        case (~pins)       // abcdefg, 1 = lit
+            7'b1111110: return "0";   7'b0110000: return "1";   7'b1101101: return "2";
+            7'b1111001: return "3";   7'b0110011: return "4";   7'b1011011: return "5";
+            7'b1011111: return "6";   7'b1110000: return "7";   7'b1111111: return "8";
+            7'b1111011: return "9";   7'b1100111: return "P";   7'b0001110: return "L";
+            7'b1011110: return "G";   7'b1110111: return "A";   7'b0000000: return " ";
+            default:    return "?";
+        endcase
+    endfunction
+
+    // Reads the eight digits from the pins, an[7] (left) first: each is sampled in the middle
+    // of its turn in the scan, while its anode alone is low. The decimal point stays off.
+    task automatic expect_scoreboard(string what, string expected);
+        string got = "????????";
+        logic [7:0] lit;
+        realtime t0;
+        for (int k = 0; k < 8; k++) begin
+            lit = ~(8'b00000001 << k);                // digit k alone
+            t0 = $realtime;
+            while (an !== lit) begin
+                @(an);
+                if ($realtime - t0 > 30ms) fail($sformatf("%s: digit %0d never lit alone (an = %b)", what, k, an));
+            end
+            #20us;
+            if (an !== lit) fail($sformatf("%s: digit %0d lit for less than 20 us", what, k));
+            if (dp !== 1'b1) fail($sformatf("%s: the decimal point is on", what));
+            got[7 - k] = glyph({seg[0], seg[1], seg[2], seg[3], seg[4], seg[5], seg[6]});
+        end
+        if (got != expected) fail($sformatf("%s: the Scoreboard shows \"%s\", expected \"%s\"", what, got, expected));
+        $display("ok   %s: the Scoreboard shows \"%s\"", what, got);
+    endtask
 
     // Sprite word at screen pixel (x, y) for a box placed by drawn position (px, py), with
     // heading h. Offsets in the box wrap at 32; right, down and left turn the sprite 90, 180
@@ -269,14 +321,19 @@ module game_top_tb;
         $display("ok   %s: the whole Arena matches the Trail model", what);
     endtask
 
-    // Presses BTNC long enough to pass the 2-flip-flop synchroniser, then releases it.
-    // The Arena was prepared when the bikes went back to their starts.
+    // Holds BTNC until the Round runs, then releases it: the synchroniser, match_fsm and
+    // round_fsm take up to 6 ticks (new Match) or 4 (next Round). The Arena was prepared
+    // when the bikes went back to their starts.
     task automatic press_start();
-        arena_model_prepare();
+        int waited = 0;
         btn = B_C;
-        #60ms;
+        while (dut.u_position_logic.run !== 1'b1) begin
+            @(posedge dut.clk_juego);
+            #1;
+            if (++waited > 10) fail("BTNC did not start the Round within 10 ticks");
+        end
         btn = B_NONE;
-        if (dut.u_position_logic.run !== 1'b1) fail("BTNC did not start the Round");
+        arena_model_prepare();
         last_step_tick = -1;
     endtask
 
@@ -350,7 +407,7 @@ module game_top_tb;
     task automatic idle();
         #300ms;
         expect_at("no Start for 300 ms", P1_X0, P1_Y0, P2_X0, P2_Y0);
-        sw = 12'hFFF; #1ms;
+        sw = 16'h0FFF; #1ms;
         check_frame("switches up: same colours", P1_X0, P1_Y0, P2_X0, P2_Y0);
     endtask
 
@@ -431,6 +488,88 @@ module game_top_tb;
         arena_check("P1 crashed into the top Wall");
     endtask
 
+    // One Match to its end, read from the Scoreboard pins. P1's Lives are set to 1, so its
+    // first Crash ends the Match: P1 turns up, left, down and right into its own Trail.
+    task automatic match_scenario();
+        logic crashed;
+        int prep;
+        expect_scoreboard("power-up", "P200P100");
+        sw[14] = 1'b1;                               // Goal 20: while waiting, the Goal view
+        wait_ticks(5);
+        expect_scoreboard("waiting, SW14 up", "G0AL  20");   // the O is the 0 glyph
+        sw[14] = 1'b0;
+        press_start();
+        expect_scoreboard("new Match", "P200P100");
+        @(negedge dut.clk_juego);
+        force dut.u_score_unit.lives_p1 = 2'd1;
+        @(posedge dut.clk_juego);
+        #1;
+        release dut.u_score_unit.lives_p1;
+        btn = B_U;
+        step_ok("U", 0, -1, -1, 0);
+        btn = B_L;
+        step_ok("L", -1, 0, -1, 0);
+        btn = B_D;
+        step_ok("D", 0, 1, -1, 0);
+        btn = B_R;
+        next_step("R: into its own Trail", 0, 0, 0, 0, crashed);
+        btn = B_NONE;
+        if (!crashed) fail("P1 did not crash into its own Trail");
+        if (dut.u_score_unit.match_over !== 1'b1) fail("P1's last Life did not end the Match");
+        arena_check("P1 out");
+        wait_ticks(2);
+        expect_scoreboard("P1 out, P2 +3", "P203P100");
+        prep = prepares;
+        #2.2s;
+        expect_at("after the Crash display, Match over", 19 * 16, P1_Y0, P2_X0 - 3 * 16, P2_Y0);
+        if (dut.u_position_logic.run !== 1'b0) fail("a Round runs after the Match ended");
+        if (dut.u_match_fsm.st !== 3'd4) fail($sformatf("match_fsm in state %0d, expected 4 (G_MATCH)", dut.u_match_fsm.st));
+        if (prepares != prep) fail("a Prepare at the end of the Match");
+        arena_check("Match over: the Arena is kept");
+        force dut.u_seg7_view.view = 2'd1;           // Lives, without waiting 3 s for the view
+        wait_ticks(2);
+        expect_scoreboard("Match over, Lives view", "L203L100");
+        release dut.u_seg7_view.view;
+        press_start();
+        if (prepares != prep + 1) fail($sformatf("%0d Prepares for the new Match, expected 1", prepares - prep));
+        expect_at("new Match", P1_X0, P1_Y0, P2_X0, P2_Y0);
+        expect_scoreboard("new Match", "P200P100");
+        step_ok("new Match, step 1", 1, 0, -1, 0);
+        arena_check("new Match: the old Trails are gone");
+    endtask
+
+    // SW0 holds the Round: no Step and no turn while paused, and the Scoreboard keeps showing.
+    // Then a Start held through CPU_RESETN starts nothing until released and pressed again.
+    task automatic pause_scenario();
+        press_start();
+        step_ok("before Pause", 1, 0, -1, 0);
+        sw[0] = 1'b1;
+        btn = B_U;                                   // a turn pressed while paused is not kept
+        wait_ticks(5 * STEP);
+        expect_at("paused for 5 Steps", P1_X0 + 16, P1_Y0, P2_X0 - 16, P2_Y0);
+        if (dut.u_position_logic.run !== 1'b1) fail("Pause ended the Round");
+        expect_scoreboard("paused", "P200P100");
+        btn = B_NONE;
+        wait_ticks(3);
+        sw[0] = 1'b0;
+        last_step_tick = -1;
+        step_ok("after Pause: straight on", 1, 0, -1, 0);
+        step_ok("after Pause", 1, 0, -1, 0);
+
+        cpu_resetn = 1'b0;
+        btn = B_C;
+        #60ms;
+        cpu_resetn = 1'b1;
+        wait_ticks(10);
+        if (dut.u_position_logic.run !== 1'b0 || dut.u_match_fsm.st !== 3'd0)
+            fail("a Start held through CPU_RESETN started a Match");
+        $display("ok   a Start held through CPU_RESETN starts nothing");
+        btn = B_NONE;
+        wait_ticks(3);
+        press_start();
+        step_ok("released and pressed again", 1, 0, -1, 0);
+    endtask
+
     task automatic resets_short();
         reset_test(50);
         reset_test(100);
@@ -465,6 +604,8 @@ module game_top_tb;
             "wall_crash":   wall_crash();
             "resets_short": resets_short();
             "reset_long":   reset_long();
+            "match":        match_scenario();
+            "pause":        pause_scenario();
             "all": begin
                 idle();
                 steps();
@@ -477,6 +618,10 @@ module game_top_tb;
                 cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
                 resets_short();
                 reset_long();
+                cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
+                match_scenario();
+                cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
+                pause_scenario();
             end
             default: fail($sformatf("unknown scenario %s", scenario));
         endcase

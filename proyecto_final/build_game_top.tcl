@@ -1,9 +1,12 @@
 # Construye game_top desde el repositorio, sin proyecto previo.
-#   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [sim|full]
-# sim corre los testbenches; full ademas sintetiza, implementa y escribe game_top.bit.
+#   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [quick|sim|full]
+# quick corre los testbenches de modulos (unos 20 s) y salta game_top_tb, que tarda hasta 20 min;
+# es para probar mientras se trabaja. sim corre todos los testbenches; full ademas sintetiza,
+# implementa y escribe game_top.bit. Antes de un push o un PR, sim o full.
 set here [file dirname [file normalize [info script]]]
 set out  [file normalize [lindex $argv 0]]
 set mode [expr {[llength $argv] > 1 ? [lindex $argv 1] : "full"}]
+if {$mode ni {quick sim full}} {error "modo $mode: debe ser quick, sim o full"}
 proc emit {path text} {set f [open $path w]; puts $f $text; close $f}
 file mkdir $out
 emit $out/version.txt [version]
@@ -31,7 +34,7 @@ proc start_bench {name top marker files {xsim_args ""}} {
 # Un testbench pasa solo si su proceso termina bien y su log nuevo tiene la marca, sin errores.
 # La carpeta se borra antes de correrlo, para que nunca cuente un log de una corrida vieja.
 proc wait_benches {} {
-    global benches out
+    global benches out mode
     set failed {}
     foreach bench $benches {
         lassign $bench name marker dir pipe
@@ -43,7 +46,11 @@ proc wait_benches {} {
         if {$ok} {puts "OK $name"} else {lappend failed $name}
     }
     if {[llength $failed]} {error "Testbenches failed: $failed (see $out/tests/<name>/run.log)"}
-    emit $out/tests/PASS.txt "All testbenches passed"
+    if {$mode eq "quick"} {
+        emit $out/tests/PASS.txt "Module testbenches passed (quick: game_top_tb not run)"
+    } else {
+        emit $out/tests/PASS.txt "All testbenches passed"
+    }
 }
 # Regla de docs/design/CS-256 Vivado IP Inventory.md: los Wizards y bike_rom son IP generada
 # por Vivado. Primera revision: ningun archivo del diseno define un modulo con el nombre de una
@@ -61,7 +68,9 @@ proc check_no_handwritten_ip {files} {
 # dibuja cada moto deslizandose entre celdas (ADR 0010).
 set movement [list $here/round_fsm.sv $here/step_counter.sv $here/bike_move.sv $here/position_logic.sv]
 set design [concat [list $here/counters.sv $here/vga_out.sv $here/drawcon.sv $here/sync_2ff.sv \
-    $here/board_reset_sync.sv $here/arena_map.sv $here/arena_ctrl.sv $here/arena_link.sv] $movement [list $here/bike_glide.sv $here/game_top.sv]]
+    $here/board_reset_sync.sv $here/arena_map.sv $here/arena_ctrl.sv $here/arena_link.sv] $movement [list $here/bike_glide.sv \
+    $here/match_fsm.sv $here/score_unit.sv $here/seg7_view.sv $here/seg7_link.sv $here/seg7_driver.sv \
+    $here/multidigit.sv $here/sevenseg.sv $here/game_top.sv]]
 check_no_handwritten_ip $design
 
 # CLK_JUEGO_N vive en game_top.sv y 2 * N en game_top_timing.xdc, porque el XDC no puede
@@ -108,15 +117,19 @@ foreach ticks {6 8} {
     start_bench arena_tb_s$ticks arena_tb "PASS arena_tb STEP_TICKS=$ticks" \
         [concat [list $here/arena_tb.sv] $arena] "-testplusarg step_ticks=$ticks"
 }
-# Physical Scoreboard (ADR 0008): the homework 1 display path, extended. Not in game_top yet.
+# Physical Scoreboard (ADR 0008): the homework 1 display path, extended.
 start_bench sevenseg_tb sevenseg_tb "PASS sevenseg_tb" [list $here/sevenseg_tb.sv $here/sevenseg.sv]
 start_bench multidigit_tb multidigit_tb "PASS multidigit_tb" [list $here/multidigit_tb.sv $here/multidigit.sv $here/sevenseg.sv]
 start_bench seg7_view_tb seg7_view_tb "PASS seg7_view_tb" [list $here/seg7_view_tb.sv $here/seg7_view.sv]
 start_bench seg7_driver_tb seg7_driver_tb "PASS seg7_driver_tb" [list $here/seg7_driver_tb.sv $here/seg7_driver.sv $here/multidigit.sv $here/sevenseg.sv]
-# Match lifecycle (G3/G5, Paso 7c): match_fsm and score_unit alone. Not in game_top yet.
+# Match lifecycle (G3/G5, Paso 7c): match_fsm and score_unit alone.
 start_bench match_fsm_tb match_fsm_tb "PASS match_fsm_tb" [list $here/match_fsm_tb.sv $here/match_fsm.sv]
 start_bench score_unit_tb score_unit_tb "PASS score_unit_tb" [list $here/score_unit_tb.sv $here/score_unit.sv]
-foreach scenario {idle steps turns head_on wall_crash resets_short reset_long} {
+# Scoreboard crossing (Paso 7d): seg7_link alone, clk_juego and clk_pix unrelated.
+start_bench seg7_link_tb seg7_link_tb "PASS seg7_link_tb" [list $here/seg7_link_tb.sv $here/seg7_link.sv $here/sync_2ff.sv]
+# The Match on clk_juego alone: match_fsm, score_unit and position_logic, as wired in game_top.
+start_bench match_tb match_tb "PASS match_tb" [concat [list $here/match_tb.sv $here/match_fsm.sv $here/score_unit.sv] $movement]
+foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long match pause}}] {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
         [concat [list $here/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
         "-testplusarg scenario=$scenario -testplusarg 'bike_mem=$bike_mem'"
@@ -236,6 +249,18 @@ if {[llength $heading_cells] == 0} {
 if {[llength $rom_cells] != 2} {
     error "game_top_timing.xdc: el set_max_delay de bike_rom deberia llegar a 2 BRAM (una por moto), no a [llength $rom_cells]"
 }
+# Los dos set_max_delay del cruce del marcador (seg7_link): cada lado debe existir, para que un
+# cambio de nombres no deje el cruce sin restriccion. Los numeros quedan en seg7_link_cells.txt.
+set link_report {}
+foreach {what pattern} {toggle u_seg7_link/tick_toggle_reg sync u_seg7_link/u_sync_toggle/meta_reg
+        values_juego {u_seg7_link/values_juego_reg[*]} values_pix {u_seg7_link/values_pix_reg[*]}} {
+    set cells [get_cells -quiet $pattern]
+    lappend link_report "$what: [llength $cells]"
+    if {[llength $cells] == 0} {
+        error "game_top_timing.xdc: el set_max_delay de seg7_link no encuentra $pattern"
+    }
+}
+emit $out/seg7_link_cells.txt [join $link_report \n]
 
 # Lista de reportes de CS-256 Official FPGA Coding Practices.
 foreach cmd {report_clocks report_clock_networks report_clock_utilization report_clock_interaction report_exceptions report_methodology report_drc} {
@@ -264,11 +289,11 @@ close_project
 
 # Se espera a los testbenches aunque falle el build, para que ninguno siga corriendo en la
 # carpeta despues de terminar, y se reportan los dos errores.
-set build_failed [catch {if {$mode ne "sim"} {build_bitstream}} build_error]
+set build_failed [catch {if {$mode eq "full"} {build_bitstream}} build_error]
 set bench_failed [catch {wait_benches} bench_error]
 if {$build_failed && $bench_failed} {puts $bench_error}
 if {$build_failed} {error $build_error}
 if {$bench_failed} {error $bench_error}
-if {$mode eq "sim"} {exit}
+if {$mode ne "full"} {exit}
 file copy $out/project/game_top.runs/impl_1/game_top.bit $out/game_top.bit
 emit $out/BUILD_COMPLETE.txt "All testbenches pass; routed timing met; game_top.bit written. Read the reports for sign-off."
