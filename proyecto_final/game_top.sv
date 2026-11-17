@@ -1,9 +1,12 @@
 module game_top (
     input  logic        clk, cpu_resetn,
-    input  logic [11:0] sw,
+    input  logic [15:0] sw,             // SW0 Pause, {SW15, SW14} Points Goal, SW11-SW0 drawcon
     input  logic [4:0]  btn,
     output logic [3:0]  vga_r, vga_g, vga_b,
-    output logic        vga_hs, vga_vs
+    output logic        vga_hs, vga_vs,
+    output logic [6:0]  seg,            // Scoreboard: seg[0] = CA ... seg[6] = CG, active low
+    output logic        dp,             // decimal point, always off
+    output logic [7:0]  an              // active low, an[0] = rightmost digit
 );
 
     logic [10:0] blkpos1_x, blkpos1_y;     // position_logic -> bike_glide: bike Cell in pixels
@@ -45,6 +48,18 @@ module game_top (
     logic        a_we;
     logic [3:0]  a_wdata, a_rdata, arena_code;
 
+    // Match (G3/G5) and Scoreboard (ADR 0008), on clk_juego up to seg7_link.
+    logic        pause;                         // SW0 on clk_juego
+    logic [1:0]  goal_sel;                      // {SW15, SW14} on clk_juego
+    logic        crash1, crash2, crash_done;    // position_logic -> match_fsm, score_unit
+    logic        waiting, new_match, restart, start_go;   // match_fsm outputs
+    logic        match_over;                    // score_unit -> match_fsm, position_logic
+    logic [5:0]  points_p1, points_p2;          // score_unit -> seg7_link
+    logic [1:0]  lives_p1, lives_p2;
+    logic [1:0]  view;                          // seg7_view -> seg7_link
+    logic [5:0]  points_p1_pix, points_p2_pix;  // seg7_link -> seg7_driver (clk_pix)
+    logic [1:0]  lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix;
+
     assign rst_request = ~cpu_resetn;   // se invierte una sola vez (contrato 1)
 
     clk_wiz_0 u_clk(
@@ -73,13 +88,38 @@ module game_top (
     board_reset_sync u_rst_pix   (.clk(clk_pix),   .async_reset(rst_request), .rst(rst_pix));
     board_reset_sync u_rst_juego (.clk(clk_juego), .async_reset(rst_request), .rst(rst_juego));
 
+    // BTNC (btn[4]) is never reset, so a Start held through CPU_RESETN still reads as held
+    // and match_fsm waits for its release.
     for (genvar i = 0; i < 5; i++) begin : g_btn
-        sync_2ff u_sync (.clk(clk_juego), .rst(rst_juego), .async_in(btn[i]), .sync_out(btn_sync[i]));
+        sync_2ff u_sync (.clk(clk_juego), .rst((i == 4) ? 1'b0 : rst_juego), .async_in(btn[i]), .sync_out(btn_sync[i]));
     end
 
     for (genvar i = 0; i < 12; i++) begin : g_sw
         sync_2ff u_sync (.clk(clk_pix), .rst(rst_pix), .async_in(sw[i]), .sync_out(sw_sync[i]));
     end
+
+    // Switches read on clk_juego: Pause and the Points Goal. The two goal bits are synchronized
+    // apart; a change of both between two ticks can show a middle value for one tick, which
+    // only restarts the Goal view.
+    sync_2ff u_sync_pause (.clk(clk_juego), .rst(rst_juego), .async_in(sw[0]),  .sync_out(pause));
+    sync_2ff u_sync_goal0 (.clk(clk_juego), .rst(rst_juego), .async_in(sw[14]), .sync_out(goal_sel[0]));
+    sync_2ff u_sync_goal1 (.clk(clk_juego), .rst(rst_juego), .async_in(sw[15]), .sync_out(goal_sel[1]));
+
+    // Match control (G3): Start reaches round_fsm as a 1-tick pulse, and each new Match resets
+    // position_logic (Bikes to their starts).
+    match_fsm u_match_fsm (
+        .clk(clk_juego), .rst(rst_juego),
+        .s(btn_sync[4]), .c(crash1 || crash2), .t(crash_done), .m(match_over), .p(pause),
+        .waiting(waiting), .new_match(new_match), .restart(restart), .start_go(start_go)
+    );
+
+    // Points and Lives (G5)
+    score_unit u_score_unit (
+        .clk(clk_juego), .rst(rst_juego),
+        .new_match(new_match), .crash1(crash1), .crash2(crash2),
+        .points_p1(points_p1), .points_p2(points_p2), .lives_p1(lives_p1), .lives_p2(lives_p2),
+        .result(), .match_over(match_over)
+    );
 
     // The bike moves on its own in rounds, turns with the buttons and crashes at a wall.
     position_logic #(
@@ -87,11 +127,11 @@ module game_top (
     ) u_position_logic (
         // Inputs 
         .clk(clk_juego),
-        .rst(rst_juego),
-        .btn(btn_sync),
+        .rst(rst_juego || restart),
+        .btn({start_go, btn_sync[3:0]}),    // Start only through match_fsm
         .turn_req2(4'b0000),
-        .pause(1'b0),
-        .match_over(1'b0),
+        .pause(pause),
+        .match_over(match_over),
         // Outputs
         .blkpos1_x(blkpos1_x), 
         .blkpos1_y(blkpos1_y),
@@ -99,9 +139,9 @@ module game_top (
         .blkpos2_y(blkpos2_y), 
         .heading1(heading1),
         .heading2(heading2),
-        .crash1(),
-        .crash2(),
-        .crash_done(),
+        .crash1(crash1),
+        .crash2(crash2),
+        .crash_done(crash_done),
         // Arena
         .load(load),
         .step(step),
@@ -198,5 +238,31 @@ module game_top (
         .hsync(vga_hs),
         .vsync(vga_vs)
     );
+
+    // Physical Scoreboard (ADR 0008): the view on clk_juego, one crossing to clk_pix, and the
+    // homework 1 display path scanning the eight digits.
+    seg7_view #(.VIEW_TICKS(180)) u_seg7_view (
+        .clk(clk_juego), .rst(rst_juego),
+        .new_match(new_match), .waiting(waiting), .goal_sel(goal_sel), .view(view)
+    );
+
+    seg7_link u_seg7_link (
+        .clk_juego(clk_juego),
+        .points_p1(points_p1), .points_p2(points_p2), .lives_p1(lives_p1), .lives_p2(lives_p2),
+        .view(view), .goal_sel(goal_sel),
+        .clk_pix(clk_pix),
+        .points_p1_pix(points_p1_pix), .points_p2_pix(points_p2_pix),
+        .lives_p1_pix(lives_p1_pix), .lives_p2_pix(lives_p2_pix),
+        .view_pix(view_pix), .goal_sel_pix(goal_sel_pix)
+    );
+
+    seg7_driver #(.COUNT_BITS(17)) u_seg7_driver (
+        .clk(clk_pix), .rst(rst_pix),
+        .points_p1(points_p1_pix), .points_p2(points_p2_pix),
+        .lives_p1(lives_p1_pix), .lives_p2(lives_p2_pix),
+        .view(view_pix), .goal_sel(goal_sel_pix),
+        .seg(seg), .an(an)
+    );
+    assign dp = 1'b1;
 
 endmodule
