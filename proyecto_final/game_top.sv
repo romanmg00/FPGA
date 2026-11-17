@@ -90,6 +90,8 @@ module game_top (
         .rst(rst_juego),
         .btn(btn_sync),
         .turn_req2(4'b0000),
+        .pause(1'b0),
+        .match_over(1'b0),
         // Outputs
         .blkpos1_x(blkpos1_x), 
         .blkpos1_y(blkpos1_y),
@@ -97,6 +99,9 @@ module game_top (
         .blkpos2_y(blkpos2_y), 
         .heading1(heading1),
         .heading2(heading2),
+        .crash1(),
+        .crash2(),
+        .crash_done(),
         // Arena
         .load(load),
         .step(step),

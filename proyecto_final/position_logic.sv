@@ -17,11 +17,15 @@ module position_logic #(
     input  logic        rst,                    // rst_juego, synchronous, active high
     input  logic [4:0]  btn,                    // synchronised buttons: [0] U, [1] D, [2] L, [3] R, [4] centre
     input  logic [3:0]  turn_req2,              // turn requests for bike 2 (from keyboard) [0] U, [1] R, [2] D, [3] L
+    input  logic        pause,                  // SW0 (synchronised): no steps, no turns, the crash pause holds
+    input  logic        match_over,             // score_unit: the match ended, round_fsm stays in s_crash
     output logic [10:0] blkpos1_x,              // top-left corner of the bike 1, in pixels
     output logic [10:0] blkpos1_y,              // top-left corner of the bike 1, in pixels
     output logic [10:0] blkpos2_x,              // top-left corner of the bike 2, in pixels
     output logic [10:0] blkpos2_y,              // top-left corner of the bike 2, in pixels
     output logic [1:0]  heading1, heading2,     // bike direction: 0 U, 1 R, 2 D, 3 L (for the sprites)
+    output logic        crash1, crash2,         // crash check -> round_fsm (c), score_unit: the bike crashed on this step
+    output logic        crash_done,             // u_crash_timer -> round_fsm (t), match_fsm: the crash pause is over
     // Arena (arena_link): load and step go out; the neighbour codes of each head come back
     output logic        load,                   // Bikes at their starts; its rise prepares the Arena
     output logic        step,                   // the Step taken: the Bikes move at this edge
@@ -42,8 +46,6 @@ module position_logic #(
                 next_cx2, next_cy2;              // bike_move -> wall check: cell of the next step
     logic       valid1, valid2;                  // wall check: the next cell is inside the arena
     logic       advance1, advance2;              // wall check -> bike_move: move one cell
-    logic       crash1, crash2;                  // wall and bikes check -> round_fsm (c): the bike crashed
-    logic       crash_done;                      // u_crash_timer -> round_fsm (t): the crash pause is over
     logic       crash;                           // either bike crashed -> round_fsm (c): the bike crashed
     logic       occupied1, occupied2;            // the cell of the next step is a wall, trail or head
     // ---------------------------------------------------------------
@@ -61,7 +63,7 @@ module position_logic #(
         .rst(rst),
         .s(btn[4]),
         .c(crash),
-        .t(crash_done),
+        .t(crash_done && !match_over),
         .load(load),
         .run(run)
     );
@@ -71,6 +73,7 @@ module position_logic #(
     ) u_crash_timer (
         .clk(clk),
         .rst(rst),
+        .pause(pause),
         .run(~load && ~run),
         .step(crash_done)
     );    
@@ -83,6 +86,7 @@ module position_logic #(
     ) u_step_counter (
         .clk(clk),
         .rst(rst),
+        .pause(pause),
         .run(run),
         .step(step_due)
     );
@@ -103,7 +107,7 @@ module position_logic #(
         .clk(clk),
         .rst(rst),
         .load(load),
-        .run(run),
+        .run(run && !pause),
         .advance(advance1),
         .turn_req(turn_req1),
         .cx(cx1),
@@ -121,7 +125,7 @@ module position_logic #(
         .clk(clk),
         .rst(rst),
         .load(load),
-        .run(run),
+        .run(run && !pause),
         .advance(advance2),
         .turn_req(turn_req2),
         .cx(cx2),

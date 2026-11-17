@@ -216,6 +216,21 @@ Lectura síncrona en los dos puertos, para que Vivado la infiera como BRAM (8192
 
 El movimiento reporta qué pasó con cada moto; rondas y puntos es dueño del ciclo de la partida, las vidas y los puntos. Los registros de cada dueño quedan explícitos.
 
+**Puertos de `position_logic` hacia la partida** (Roman, [issue #44](https://github.com/romanmg00/FPGA/issues/44)). Se suman a los de hoy (botones, `turn_req2`, posiciones, direcciones y la conexión con la arena de la sección 3). Son aditivos: con `pause` y `match_over` en 0, `position_logic` funciona como antes, y así los conecta `game_top` hasta que entren `match_fsm` y `score_unit`.
+
+```systemverilog
+    input  logic pause,              // SW0 sincronizado: sin pasos ni giros; la pausa de choque se detiene
+    input  logic match_over,         // de score_unit: la partida terminó; round_fsm se queda en s_crash
+    output logic crash1, crash2,     // choque de cada moto, en el tick del paso
+    output logic crash_done,         // fin de los 2 s de choque (u_crash_timer)
+```
+
+- **Pausa:** los dos `step_counter` (pasos y choque) congelan su cuenta y no dan pulso, y `bike_move` recibe `run && !pause`, así que no guarda giros. La ronda sigue en su estado. Al quitar la pausa, la cuenta sigue donde iba.
+- **Fin de partida:** `round_fsm` recibe `t = crash_done && !match_over`. Después del choque que termina la partida, se queda en `s_crash`: las motos y las estelas quedan como chocaron, y no se prepara otra ronda. Sale solo con `rst` (el `restart` de `match_fsm`).
+- **Start** sigue entrando por `btn[4]`; con la partida, `match_fsm` lo manda como pulso de 1 tick.
+
+**`step_counter`** (Roman) agrega `input logic pause`. Prioridad: `rst || !run` reinicia, `pause` mantiene la cuenta, la última cuenta vuelve a 0 y si no cuenta. `step = (counter == LAST) && !pause`.
+
 **Estados de la partida** (nombres en `game_pkg.sv`, propuesta):
 
 - `G_IDLE`: al encender, espera Start. Start toma la meta, pone 3 vidas y 0 puntos, prepara paredes, motos y los **tres** premios, y arranca la primera ronda, sin cuenta regresiva.
