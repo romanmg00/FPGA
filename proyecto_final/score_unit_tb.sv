@@ -1,7 +1,6 @@
-// Self-checking bench for score_unit: Points, Lives and the result after each Crash Step,
-// written from the agreed specification (Match and scoring; Survival Bonus) and ADR 0011.
-// Without Rewards both Players losing their last Life in one Step always have equal Points,
-// so the "more Points wins" case is reached by setting the Points with force.
+// Self-checking bench for score_unit: Points, Lives and result after each Crash Step, from the
+// agreed specification and ADR 0011. Both out in one Step always ties without Rewards, so the
+// "more Points wins" case sets the Points with force.
 module score_unit_tb;
 
     logic       clk = 1'b0, rst = 1'b1, new_match = 1'b0, crash1 = 1'b0, crash2 = 1'b0;
@@ -53,11 +52,16 @@ module score_unit_tb;
         expect_values("P2 crashes alone: P2 -1 Life, P1 +3", 3, 3, 2, 2, 0);
         tick(0, 0, 1, 1);
         expect_values("both crash: both -1 Life, no bonus", 3, 3, 1, 1, 0);
+        tick(0, 0, 0, 0);
+        tick(0, 0, 0, 0);
+        expect_values("ticks without a Crash keep the earned values", 3, 3, 1, 1, 0);
         tick(0, 0, 1, 1);
         expect_values("both lose their last Life with the same Points: Draw", 3, 3, 0, 0, 3);
         tick(0, 0, 1, 0);
         tick(0, 0, 0, 1);
         expect_values("after the result nothing changes", 3, 3, 0, 0, 3);
+        tick(0, 0, 0, 0);
+        expect_values("ticks without a Crash keep the final values", 3, 3, 0, 0, 3);
         tick(0, 1, 0, 0);
         expect_values("new_match: 0 Points, 3 Lives, no result", 0, 0, 3, 3, 0);
 
