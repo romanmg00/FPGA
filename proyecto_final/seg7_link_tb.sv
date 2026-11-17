@@ -34,12 +34,12 @@ module seg7_link_tb;
         return {points_p1_pix, points_p2_pix, lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix};
     endfunction
 
-    // Every clk_pix edge: on a copy (the synchronized toggle changed) the output must be the
-    // next tick's values; on any other edge it must not change.
+    // Every clk_pix edge: on a copy (new_tick, the synchronized toggle changed) the output must
+    // be the next tick's values; on any other edge it must not change.
     always @(posedge clk_pix) begin
         logic        copy;
         logic [19:0] last_out;
-        copy   = (dut.tgl_sync != dut.tgl_seen);
+        copy   = dut.new_tick;
         last_out = bundle_out();
         #0.001;
         if (copy) begin
