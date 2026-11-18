@@ -20,7 +20,7 @@ Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a
 
 ## Block diagram
 
-Blocks are grouped by clock domain. A thick arrow is a crossing between the two clocks.
+Blocks are grouped by clock domain. A thick arrow is a crossing between the two clocks. Arrows are labelled with the signal names in `game_top`.
 
 ```mermaid
 flowchart LR
@@ -30,25 +30,26 @@ flowchart LR
     pins([btn, sw, CPU_RESETN]) --> sync[sync_2ff, board_reset_sync]
     sync --> J
     subgraph J [clk_juego, ~60 Hz]
-        mf[match_fsm] -->|Start, restart| pl[position_logic<br/>round_fsm, step_counter,<br/>bike_move x2]
+        mf[match_fsm] -->|round_start, restart| pl[position_logic<br/>round_fsm, step_counter,<br/>bike_move x2]
         pl -->|crash1, crash2| su[score_unit]
+        pl -->|crash1 or crash2, crash_done| mf
         su -->|match_over| mf
-        pl --> gl[bike_glide x2]
-        mf --> sv[seg7_view]
+        pl -->|blkpos1_x/y, blkpos2_x/y| gl[bike_glide x2]
+        mf -->|waiting, new_match| sv[seg7_view]
         al[arena_link]
-        pl <--> al
+        pl <-->|load, step / code1_u…code2_l, codes_valid| al
     end
     subgraph P [clk_pix, 83.46 MHz]
-        ac[arena_ctrl] --> am[(arena_map)]
-        am -->|Trails| dc[drawcon<br/>bike_rom x2]
+        ac[arena_ctrl] -->|ctrl_addr, ctrl_write, ctrl_write_code| am[(arena_map)]
+        am -->|arena_code: Trails| dc[drawcon<br/>bike_rom x2]
         dc --> vo[vga_out<br/>counters]
         sd[seg7_driver<br/>multidigit, sevenseg]
     end
-    al <==>|toggle + copy| ac
+    al <==>|heads_tgl / codes_tgl| ac
     su ==> sl[seg7_link]
     sv ==> sl
-    sl ==>|toggle + copy| sd
-    gl -.->|positions, not yet safe| dc
+    sl ==>|tick_toggle| sd
+    gl -.->|glide1_x/y, glide2_x/y: not yet safe| dc
     vo --> vga([VGA])
     sd --> seg([seg, an])
 ```
@@ -58,12 +59,15 @@ flowchart LR
 The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Analysis → Schematic*) of the elaborated design, exported by [`schematics.tcl`](schematics.tcl).
 - Only module instances are drawn. The logic between them is left out, so a dashed line is a net that passes through logic not shown.
 - Open an SVG on its own to zoom in.
+- Redrawn on 18 November 2026 with the [renamed signals](#renamed-signals). `round_fsm` is Roman's, so page 2 still shows its `s`, `c` and `t` inputs.
 
 | Page | Shows |
 |---|---|
 | [`1-game_top.svg`](diagrams/1-game_top.svg) | Every block in `game_top` except the synchronizers, with the board pins |
 | [`2-position_logic.svg`](diagrams/2-position_logic.svg) | Inside `position_logic`: `round_fsm`, the two `step_counter`s and the two `bike_move`s |
 | [`3-scoreboard.svg`](diagrams/3-scoreboard.svg) | The Match and the Scoreboard: `match_fsm`, `score_unit`, `seg7_view`, `seg7_link`, `seg7_driver` |
+
+![game_top](diagrams/1-game_top.svg)
 
 ![position_logic](diagrams/2-position_logic.svg)
 
@@ -83,9 +87,9 @@ The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Anal
 | CPU_RESETN | pin → each clock | `board_reset_sync`, one per domain | false path to the first flip-flop |
 | Buttons, SW0, SW14–SW15 | pins → `clk_juego` | `sync_2ff` | false path to the first flip-flop |
 | SW0–SW11 | pins → `clk_pix` | `sync_2ff` | false path to the first flip-flop |
-| Arena requests and codes | `clk_juego` ↔ `clk_pix` | `arena_link` / `arena_ctrl`: a toggle through `sync_2ff`; the data is copied only after the toggle changes | `set_max_delay -datapath_only` of one pixel period (11.982 ns) |
-| Scoreboard values (20 bits) | `clk_juego` → `clk_pix` | `seg7_link`: the same toggle and copy | the same one-pixel bound |
-| Drawn Bike positions and Headings | `clk_juego` → `clk_pix` (`drawcon`, `bike_rom`) | **none yet**: `drawcon` reads the registers directly | a one-pixel bound only. Not a safe crossing; a Bike is sometimes drawn cut ([issue #30](https://github.com/romanmg00/FPGA/issues/30)) |
+| Arena heads and neighbour codes | `clk_juego` ↔ `clk_pix` | `arena_link` sends the heads with `heads_tgl`; `arena_ctrl` answers with `codes_tgl`. Each toggle goes through `sync_2ff`, and the data is copied only after it changes | `set_max_delay -datapath_only` of one pixel period (11.982 ns) |
+| Scoreboard values (20 bits) | `clk_juego` → `clk_pix` | `seg7_link`: the same toggle (`tick_toggle`) and copy | the same one-pixel bound |
+| Drawn Bike positions and Headings | `clk_juego` → `clk_pix` (`drawcon`, `bike_rom`) | **none yet**: `drawcon` reads `glide1_x/y`, `glide2_x/y` and `heading1/2` directly | a one-pixel bound only. Not a safe crossing; a Bike is sometimes drawn cut ([issue #30](https://github.com/romanmg00/FPGA/issues/30)) |
 
 ## Controls
 

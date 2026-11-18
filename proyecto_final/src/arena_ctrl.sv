@@ -2,6 +2,7 @@
 // Arena controller on clk_pix, the only writer of arena_map (its ctrl_ port). Each time arena_link
 // sends new heads it does a Prepare (8192-word clear, both start heads) or a Step (Trails and
 // heads), then reads the 4 neighbour Cells of each head. Step 17 cycles, Prepare 8,207.
+// The Cell codes it writes and reads are listed in arena_map.sv.
 module arena_ctrl (
     input  logic        clk,                        // clk_pix
     input  logic        rst,                        // rst_pix, synchronous, active high

@@ -2,6 +2,18 @@
 // Arena memory: one 4-bit code per Cell, 8192 words addressed {cy[5:0], cx[6:0]}, on clk_pix.
 // The ctrl_ port (arena_ctrl, the only writer) reads in 1 cycle; the draw_ port (drawcon) reads
 // in 2 cycles, the same as the sprite ROMs. A BRAM cannot be cleared by rst: arena_ctrl clears it.
+//
+// Cell codes (contract section 5). arena_ctrl writes 0 to 5; 6 to 10 are not written yet.
+//   4'd0      EMPTY     the clear writes it on the playable Cells (cx 1..78, cy 5..48)
+//   4'd1      WALL      the clear writes it on every other Cell: border, HUD rows, unused padding
+//   4'd2      P1 Trail  P1's head of the previous Step; drawcon paints it a darker cyan
+//   4'd3      P1 head   P1's Cell now; not painted, the Bike slides into it (ADR 0010)
+//   4'd4      P2 Trail  as 2, a darker orange
+//   4'd5      P2 head   as 3
+//   4'd6      CRASH     reserved
+//   4'd7      (none)    reserved
+//   4'd8..10  Rewards   (G4) not written yet
+// position_logic takes only 0 and 8..10 as free: a Step into any other code is a Crash.
 module arena_map (
     input  logic        clk,                // clk_pix
     // arena_ctrl: reads and writes (BRAM port A)
