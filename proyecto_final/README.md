@@ -8,7 +8,7 @@ Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a
 - **Game:** a ~60 Hz clock (`clk_juego`).
 - **Inputs:** P1 turns with the board buttons. P2 goes straight for now: its input, a web page over the USB-UART, is planned.
 - **Not yet:** Rewards (G4).
-- **Board status:** the current build was checked on the board on 17 November 2026: [`bitstreams/README.md`](bitstreams/README.md).
+- **Board status:** the last build checked on the board, on 17 November 2026, is from before `pos_link` (X1, #48): [`bitstreams/README.md`](bitstreams/README.md). The build with `pos_link` has not been checked on the board.
 
 **Where the rules come from:**
 - [Agreed specification of 20 October](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md): the rules, locked.
@@ -48,7 +48,9 @@ flowchart LR
     su ==> sl[seg7_link]
     sv ==> sl
     sl ==>|toggle + copy| sd
-    gl -.->|positions, not yet safe| dc
+    gl ==> pk[pos_link]
+    pl ==>|Headings| pk
+    pk ==>|toggle + copy, then at row 800| dc
     vo --> vga([VGA])
     sd --> seg([seg, an])
 ```
@@ -85,7 +87,7 @@ The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Anal
 | SW0–SW11 | pins → `clk_pix` | `sync_2ff` | false path to the first flip-flop |
 | Arena requests and codes | `clk_juego` ↔ `clk_pix` | `arena_link` / `arena_ctrl`: a toggle through `sync_2ff`; the data is copied only after the toggle changes | `set_max_delay -datapath_only` of one pixel period (11.982 ns) |
 | Scoreboard values (20 bits) | `clk_juego` → `clk_pix` | `seg7_link`: the same toggle and copy | the same one-pixel bound |
-| Drawn Bike positions and Headings | `clk_juego` → `clk_pix` (`drawcon`, `bike_rom`) | **none yet**: `drawcon` reads the registers directly | a one-pixel bound only. Not a safe crossing; a Bike is sometimes drawn cut ([issue #30](https://github.com/romanmg00/FPGA/issues/30)) |
+| Drawn Bike positions and Headings (48 bits) | `clk_juego` → `clk_pix` (`drawcon`, `bike_rom`) | `pos_link` (X1, [issue #30](https://github.com/romanmg00/FPGA/issues/30)): a toggle that flips every tick goes through `sync_2ff`; when it changes, the values are copied to `pend*`, and at `curr_y == 800` (vertical blanking) to the `draw*` registers `drawcon` reads, so a whole frame is drawn with one set | two `set_max_delay -datapath_only` of one pixel period: the toggle to `sync_2ff`, and the `bike_glide`/`bike_move` registers to `pend*` |
 
 ## Controls
 
@@ -113,6 +115,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 | `vga_out.sv` | Sync pulses, blanking, `curr_x`/`curr_y` | `clk_pix` | Roman | Roman | `vga_out_tb` (Roman) |
 | `drawcon.sv` | Colour of each pixel: walls, HUD, Trails, Bike sprites | `clk_pix` | Roman | Roman; changes by Alan | through `game_top_tb` (Alan) |
 | `bike_glide.sv` | Drawn position of one Bike, sliding from its previous Cell to its current one ([ADR 0010](../docs/adr/0010-bikes-sliding-between-cells.md)) | `clk_juego` | not in §4 | Alan | `bike_glide_tb` (Alan) |
+| `pos_link.sv` | Carries the drawn positions and Headings to `clk_pix` and holds them for a whole frame (X1) | both | Roman (the contract's `pos_link` paragraph; not in §4) | Roman; changes by Alan | `pos_link_tb` (Roman; changes by Alan) |
 | **Movement** | | | | | |
 | `position_logic.sv` | Both Bikes: Turns, Steps, and Crashes with walls, Trails and each other | `clk_juego` | Roman (G1/G2) | Roman; changes by Alan | `position_logic_tb` (Roman; changes by Alan) |
 | `round_fsm.sv` | One Round: wait for Start, run, Crash pause, wait for Start's release | `clk_juego` | to confirm: G1/G2 is Roman's, G3 (Rounds) Alan's | Roman | `round_fsm_tb` (Roman) |
@@ -241,6 +244,7 @@ Built one step (Paso) at a time:
 | 5b, 6d, 6f | The Arena: Trails and Crashes into Trails | Alan, #40 |
 | 7a, 7b | Scoreboard display and views | Alan, #34 |
 | 7c, 7d | Match, Lives, Points and the Scoreboard in `game_top` | Alan, #46, #47; Roman's `position_logic` ports, #45 |
+| X1 | Bike positions to clk_pix once per frame (pos_link) | Roman, #48 |
 
 The full step log, in Spanish, is in [`docs/history/proyecto_final-pasos.md`](../docs/history/proyecto_final-pasos.md).
 
@@ -248,6 +252,6 @@ The full step log, in Spanish, is in [`docs/history/proyecto_final-pasos.md`](..
 - `tick_60hz` in `vga_out` (Paso 3b).
 - The 10 px white border (Paso 4b).
 - Reward sprites and Rewards (G4).
-- The positions crossing (X1, issue #30).
+- Reading the Bike sprites 2 px ahead in `drawcon` (issue #30, step 3); until then each sprite is drawn 2 px to the right.
 - P2's UART input.
 - Moving `bike_glide` into `position_logic` (issue #37).
