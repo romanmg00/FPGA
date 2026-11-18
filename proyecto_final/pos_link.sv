@@ -1,3 +1,4 @@
+// Author: Roman (romanmg00). Changes by Alan (AIF31): pend* cleared on rst_pix (#48).
 // Carries the drawn bike positions and headings from clk_juego to clk_pix (X1, issue #30).
 // clk_juego side: pos_tgl flips on every clk_juego tick (bike_glide may change the values on
 // any tick, and copying unchanged values is harmless).

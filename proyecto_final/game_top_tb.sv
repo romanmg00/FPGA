@@ -1,4 +1,4 @@
-// Author: Alan (AIF31).
+// Author: Alan (AIF31). Changes by Roman (romanmg00): frames checked through pos_link, no tearing (X1, #48).
 // Builder's own check of game_top, mostly from its pins, with sim_clocks/ in place of
 // the pixel Wizard and sim_models/ in place of bike_rom; not the official bench of contract
 // section 7. It checks that the

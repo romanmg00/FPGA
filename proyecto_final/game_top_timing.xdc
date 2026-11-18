@@ -1,4 +1,4 @@
-## Author: Alan (AIF31).
+## Author: Alan (AIF31). Changes by Roman (romanmg00): pos_link constraints (X1, #48).
 ## Timing de game_top. Solo para implementacion: estos nombres existen despues de sintetizar.
 
 ## clk_juego sale de un flip-flop del divisor sobre clk_pix (ADR 0006):

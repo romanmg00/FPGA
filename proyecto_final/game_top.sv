@@ -1,6 +1,6 @@
-// Authors: Roman (romanmg00): first version, clock Wizard, vga_out, drawcon and Bike wiring.
-// Alan (AIF31): reset and synchronizers (#12), clk_juego from a counter on clk_pix (ADR 0006, #16),
-// bike_glide (#31), Arena (#40), Match and Scoreboard (#47).
+// Authors: Roman (romanmg00): first version, clock Wizard, vga_out, drawcon, Bike wiring and
+// pos_link (X1, #48). Alan (AIF31): reset and synchronizers (#12), clk_juego from a counter on
+// clk_pix (ADR 0006, #16), bike_glide (#31), Arena (#40), Match and Scoreboard (#47).
 // Top level of the Tron game: clocks, reset, synchronizers and the video, movement, Arena,
 // Match and Scoreboard blocks.
 module game_top (

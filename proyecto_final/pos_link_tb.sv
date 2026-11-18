@@ -1,3 +1,5 @@
+// Author: Roman (romanmg00). Changes by Alan (AIF31): XSim fixes, pending-copy scoreboard,
+// row-800 cases and pend* reset check (#48).
 // Self-checking testbench for pos_link (X1, issue #30).
 // clk_pix and clk_juego run with unrelated periods, so the clk_juego edges drift across the
 // frame. curr_y comes from a small row counter: ROW_CYC clk_pix cycles per row, 828 rows per
