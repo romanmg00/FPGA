@@ -128,7 +128,7 @@ module game_top_tb;
     end
 
     always @(posedge dut.clk_juego)
-        if (dut.u_arena_link.send_prep === 1'b1) prepares++;
+        if (dut.u_arena_link.send_prepare === 1'b1) prepares++;
 
     task automatic wait_ticks(int n);
         repeat (n) @(posedge dut.clk_juego);
@@ -316,9 +316,9 @@ module game_top_tb;
             if (++waited > 6) fail($sformatf("%s: codes_valid did not come back", what));
         end
         for (int a = 0; a < 8192; a++)
-            if (dut.u_arena_map.mem[a] !== arena_want[a])
+            if (dut.u_arena_map.cells[a] !== arena_want[a])
                 fail($sformatf("%s: Arena Cell (%0d,%0d) holds %0d, expected %0d",
-                               what, a % 128, a / 128, dut.u_arena_map.mem[a], arena_want[a]));
+                               what, a % 128, a / 128, dut.u_arena_map.cells[a], arena_want[a]));
         $display("ok   %s: the whole Arena matches the Trail model", what);
     endtask
 
@@ -524,7 +524,7 @@ module game_top_tb;
         #2.2s;
         expect_at("after the Crash display, Match over", 19 * 16, P1_Y0, P2_X0 - 3 * 16, P2_Y0);
         if (dut.u_position_logic.run !== 1'b0) fail("a Round runs after the Match ended");
-        if (dut.u_match_fsm.st !== 3'd4) fail($sformatf("match_fsm in state %0d, expected 4 (G_MATCH)", dut.u_match_fsm.st));
+        if (dut.u_match_fsm.state !== 3'd4) fail($sformatf("match_fsm in state %0d, expected 4 (G_MATCH)", dut.u_match_fsm.state));
         if (prepares != prep) fail("a Prepare at the end of the Match");
         arena_check("Match over: the Arena is kept");
         force dut.u_seg7_view.view = 2'd1;           // Lives, without waiting 3 s for the view
@@ -562,7 +562,7 @@ module game_top_tb;
         #60ms;
         cpu_resetn = 1'b1;
         wait_ticks(10);
-        if (dut.u_position_logic.run !== 1'b0 || dut.u_match_fsm.st !== 3'd0)
+        if (dut.u_position_logic.run !== 1'b0 || dut.u_match_fsm.state !== 3'd0)
             fail("a Start held through CPU_RESETN started a Match");
         $display("ok   a Start held through CPU_RESETN starts nothing");
         btn = B_NONE;

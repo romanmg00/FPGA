@@ -1,15 +1,15 @@
 // Author: Alan (AIF31).
-// Self-checking bench for bike_glide, with STEPS = 6 and STEPS = 8 side by side. Each clk
+// Self-checking bench for bike_glide, with STEP_TICKS = 6 and STEP_TICKS = 8 side by side. Each clk
 // edge is one game tick. pos changes just after an edge, as position_logic's registers do.
-// Expected offsets are written from ADR 0010 (16 px over STEPS ticks, rounded), not read
+// Expected offsets are written from ADR 0010 (16 px over STEP_TICKS ticks, rounded), not read
 // from the design.
 module bike_glide_tb;
     logic clk = 1'b0, rst = 1'b1;
     logic [10:0] px = 11'd320, py = 11'd432;
     logic [10:0] d6x, d6y, d8x, d8y;
 
-    bike_glide #(.STEPS(6)) dut6 (.clk, .rst, .pos_x(px), .pos_y(py), .draw_x(d6x), .draw_y(d6y));
-    bike_glide #(.STEPS(8)) dut8 (.clk, .rst, .pos_x(px), .pos_y(py), .draw_x(d8x), .draw_y(d8y));
+    bike_glide #(.STEP_TICKS(6)) dut6 (.clk, .rst, .blkpos_x(px), .blkpos_y(py), .glide_x(d6x), .glide_y(d6y));
+    bike_glide #(.STEP_TICKS(8)) dut8 (.clk, .rst, .blkpos_x(px), .blkpos_y(py), .glide_x(d8x), .glide_y(d8y));
     always #5 clk = ~clk;
 
     localparam int OFF6 [0:6] = '{0, 3, 5, 8, 11, 13, 16};
@@ -27,15 +27,15 @@ module bike_glide_tb;
 
     task automatic expect6(string what, int x, int y);
         if (d6x !== 11'(x) || d6y !== 11'(y))
-            fail($sformatf("STEPS=6 %s: drawn (%0d,%0d), expected (%0d,%0d)", what, d6x, d6y, x, y));
+            fail($sformatf("STEP_TICKS=6 %s: drawn (%0d,%0d), expected (%0d,%0d)", what, d6x, d6y, x, y));
     endtask
 
     task automatic expect8(string what, int x, int y);
         if (d8x !== 11'(x) || d8y !== 11'(y))
-            fail($sformatf("STEPS=8 %s: drawn (%0d,%0d), expected (%0d,%0d)", what, d8x, d8y, x, y));
+            fail($sformatf("STEP_TICKS=8 %s: drawn (%0d,%0d), expected (%0d,%0d)", what, d8x, d8y, x, y));
     endtask
 
-    // One Step of (dx, dy) Cells for the STEPS=6 instance, then the slide tick by tick.
+    // One Step of (dx, dy) Cells for the STEP_TICKS=6 instance, then the slide tick by tick.
     task automatic step6(string what, int dx, int dy);
         int x0 = px, y0 = py;
         px = 11'(x0 + 16 * dx);
@@ -64,7 +64,7 @@ module bike_glide_tb;
         repeat (4) tick();
         expect6("standing after the Steps", 336, 432);
 
-        // STEPS = 8: 2 px per tick.
+        // STEP_TICKS = 8: 2 px per tick.
         rst = 1'b1; px = 11'd320; py = 11'd432; tick(); tick(); rst = 1'b0; tick();
         px = 11'd336;
         for (int t = 1; t <= 8; t++) begin

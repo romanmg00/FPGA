@@ -210,6 +210,37 @@ The files at the top of this folder moved into folders in PR #50 (after 19 Novem
 | `game_top.xdc`, `game_top_timing.xdc` | `proyecto_final/constraints/` |
 | `cs256-project1-fall26.pdf` | [`docs/references/`](../docs/references/cs256-project1-fall26.pdf) |
 
+## Renamed signals
+
+On 18 November 2026 Alan renamed signals in his modules so each name says what it carries. Older documents, including the contract's §3 and §4, still use the old names. The rules:
+
+- The handout's and the slides' names are kept: `blkpos_x/y`, `curr_x/y`, `draw_r/g/b`, `pix_*`, `hsync`, `vsync`. `bike_glide` now takes `blkpos_x/y`, and no longer outputs `draw_x/y`, which in the handout means the current pixel.
+- Roman's modules (`position_logic`, `round_fsm`, `bike_move`, `drawcon`, `counters`, `vga_out`) are not changed, so the ports they share keep their names: `code1_u`…`code2_l`, `crash1`, `crash2`, `turn_req2`.
+- One signal per Player ends in `_p1`/`_p2` (contract §1). `_last` is a signal one tick earlier, `_tgl` a toggle that crosses clocks, `_sync` its synchronized copy, `_pix` a copy on `clk_pix`, and `_ff` the flip-flop behind an output port.
+
+| Module | Old | New |
+|---|---|---|
+| `arena_map` | `a_addr`, `a_we`, `a_wdata`, `a_rdata` | `ctrl_addr`, `ctrl_write`, `ctrl_write_code`, `ctrl_read_code` (`arena_ctrl`'s port) |
+| | `b_addr`, `b_rdata` | `draw_addr`, `draw_code` (`drawcon`'s port) |
+| | `mem`, `b_word` | `cells`, `draw_code_stage1` |
+| `arena_link` ↔ `arena_ctrl` | `req_tgl`, `ack_tgl` | `heads_tgl`, `codes_tgl` |
+| | `req_prepare` | `prepare` |
+| | `req_old1/2`, `req_new1/2` | `old_head_p1/p2`, `new_head_p1/p2` |
+| | `nbr1/2` | `neighbours_p1/p2` |
+| `arena_ctrl` | `req_sync`, `ack_q` | `heads_tgl_sync`, `codes_tgl_ff` |
+| | `prepare_q`, `old1_q`…`new2_q` | `prepare_pix`, `old_head_p1_pix`…`new_head_p2_pix` |
+| | `st`, `cnt`, `head`, `rd_valid` | `state`, `count`, `read_head`, `read_valid` |
+| | `s_trail1`…`s_head2` | `s_trail_p1`…`s_head_p2` |
+| `arena_link` | `req_q`, `ack_sync`, `ack_seen` | `heads_tgl_ff`, `codes_tgl_sync`, `codes_tgl_last` |
+| | `load_q`, `prep_wait`, `step_wait` | `load_last`, `prepare_pending`, `step_pending` |
+| | `send_prep`, `answer`, `head1/2` | `send_prepare`, `codes_arrived`, `head_p1/p2` |
+| `match_fsm` | `s`, `c`, `t`, `m`, `p` | `start_btn`, `crash`, `crash_done`, `match_over`, `pause` |
+| | `st`, `nst`, `s_q`, `press` | `state`, `next_state`, `start_btn_last`, `start_press` |
+| | `start_go` | `round_start` |
+| `bike_glide` | `STEPS`, `pos_x/y`, `draw_x/y` | `STEP_TICKS`, `blkpos_x/y`, `glide_x/y` |
+| | `seen_x/y`, `g`, `g_next`, `fx/fy`, `off` | `blkpos_x_last/y_last`, `glide_tick`, `glide_tick_next`, `from_x_next/y_next`, `offset_px` |
+| `seg7_view` | `last_sel`, `sel_changed` | `goal_sel_last`, `goal_sel_changed` |
+
 ## Who wrote what
 
 The first line of each design file, testbench, constraint file and script names who wrote it. For example:

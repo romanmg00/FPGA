@@ -243,16 +243,16 @@ if {abs($juego_period - $want_period) > 5.0e-7 * $want_period} {
 }
 emit $out/clk_juego-period.txt "clk_juego_n=$clk_juego_n pix_period_ns=$pix_period juego_period_ns=$juego_period"
 
-# El set_max_delay de game_top_timing.xdc nombra los registros draw_x/draw_y de bike_glide.
+# El set_max_delay de game_top_timing.xdc nombra los registros glide_x/glide_y de bike_glide.
 # Si un cambio de nombres lo deja sin origen, Vivado solo avisa, asi que aqui se detiene el
-# build. Mientras turn_req2 = 0, P2 no cambia de fila y la sintesis quita parte de su draw_y.
+# build. Mientras turn_req2 = 0, P2 no cambia de fila y la sintesis quita parte de su glide_y.
 # El numero queda en bike_cells.txt.
-set bike_cells [get_cells -quiet {u_glide*/draw_*_reg[*]}]
+set bike_cells [get_cells -quiet {u_glide*/glide_x_reg[*] u_glide*/glide_y_reg[*]}]
 emit $out/bike_cells.txt "[llength $bike_cells] registros: [lsort $bike_cells]"
 if {[llength $bike_cells] == 0} {
-    error "game_top_timing.xdc: el set_max_delay no encuentra los registros draw_* de bike_glide"
+    error "game_top_timing.xdc: el set_max_delay no encuentra los registros glide_x/glide_y de bike_glide"
 }
-# El segundo set_max_delay va de draw_* y de heading_reg de bike_move a las BRAM de bike_rom.
+# El segundo set_max_delay va de glide_x/glide_y y de heading_reg de bike_move a las BRAM de bike_rom.
 # Cada origen se revisa aparte, para que un cambio de nombres no deje uno sin restriccion. Solo
 # P1 gira (turn_req2 = 0), asi que la sintesis quita los heading_reg de P2.
 set heading_cells [get_cells -quiet {u_position_logic/u_bike_move*/heading_reg[*]}]
@@ -276,6 +276,22 @@ foreach {what pattern} {toggle u_seg7_link/tick_toggle_reg sync u_seg7_link/u_sy
     }
 }
 emit $out/seg7_link_cells.txt [join $link_report \n]
+# Los cuatro set_max_delay del cruce de la arena: igual, cada lado debe existir. Los numeros
+# quedan en arena_link_cells.txt.
+set arena_report {}
+foreach {what pattern} {heads_tgl u_arena_link/heads_tgl_ff_reg
+        heads_tgl_sync u_arena_ctrl/u_sync_heads_tgl/meta_reg
+        heads {u_arena_link/prepare_reg u_arena_link/old_head_p*_reg[*] u_arena_link/new_head_p*_reg[*]}
+        heads_pix {u_arena_ctrl/*_pix_reg*}
+        codes_tgl u_arena_ctrl/codes_tgl_ff_reg codes_tgl_sync u_arena_link/u_sync_codes_tgl/meta_reg
+        codes_pix {u_arena_ctrl/codes_reg[*]} codes_juego {u_arena_link/codes_reg[*]}} {
+    set cells [get_cells -quiet $pattern]
+    lappend arena_report "$what: [llength $cells]"
+    if {[llength $cells] == 0} {
+        error "game_top_timing.xdc: el set_max_delay de la arena no encuentra $pattern"
+    }
+}
+emit $out/arena_link_cells.txt [join $arena_report \n]
 
 # Lista de reportes de CS-256 Official FPGA Coding Practices.
 foreach cmd {report_clocks report_clock_networks report_clock_utilization report_clock_interaction report_exceptions report_methodology report_drc} {
