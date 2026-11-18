@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Drawn position of one bike: slides from its previous Cell to its current one over STEPS
 // ticks of clk_juego, so the square moves a few pixels every tick instead of a whole
 // 16 px Cell once per Step (ADR 0010). Only the drawing changes: the game rules, Crashes

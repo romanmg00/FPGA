@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Scoreboard on clk_pix: turns Points, Lives and the goal into the eight digits of the view
 // (P2 on the left four, P1 on the right four) and multidigit scans them.
 // Inputs must already be clk_pix registers.

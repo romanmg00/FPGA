@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Self-checking bench for the Match: match_fsm, score_unit and position_logic (with Roman's
 // round_fsm inside) wired as in game_top, on clk_juego alone, one tick per edge, so whole
 // Matches take microseconds. The Arena is empty here (codes 0): Bikes crash into the Walls and

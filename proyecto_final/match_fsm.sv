@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Match control (G3), a Moore FSM on clk_juego: a 1-tick Start for Roman's round_fsm (btn[4]
 // of position_logic), a restart for each new Match, and after the 2 s Crash display the next
 // Round or the end of the Match. Inputs: s Start, c Crash, t display over, m Match over, p Pause.

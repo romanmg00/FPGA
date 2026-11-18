@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Self-checking bench for seg7_view: one expected view trace (P, L, G per tick) for each
 // Scoreboard rule, with VIEW_TICKS = 4 and the default 180.
 module seg7_view_tb;

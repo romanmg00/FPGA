@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Self-checking bench for seg7_link: clk_juego and clk_pix run unrelated, with several periods
 // and phases and then the real ratio. Every tick's 20 bits must reach clk_pix whole and in
 // order, one copy per tick, and the output must not change between copies.

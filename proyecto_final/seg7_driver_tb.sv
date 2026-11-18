@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Self-checking bench for seg7_driver, from its pins (COUNT_BITS = 1): every view read back
 // as eight characters, with Points 0-63, Lives 0-3 and the four goals.
 module seg7_driver_tb;

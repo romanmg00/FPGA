@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Self-checking bench for sevenseg: all 16 codes against the segments each glyph should
 // light, written from the glyph drawings.
 module sevenseg_tb;

@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // 2-FF synchronizer for one asynchronous, level-type input (contract section 1).
 // Crossing: async_in (no clock) -> sync_out (clk). Not for multi-bit buses or
 // short pulses: a pulse shorter than one clk period can be missed.
