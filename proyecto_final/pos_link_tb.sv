@@ -40,6 +40,11 @@ module pos_link_tb;
     always #JUE_HALF clk_juego = ~clk_juego;
 
     int errores = 0;
+
+    // rst_pix seen by at least one clk_pix edge (the reset is synchronous). Declared before the
+    // checks below use it: XSim rejects a use before the declaration (VRFC 10-3380).
+    bit rst_seen = 1'b0;
+    always @(posedge clk_pix) rst_seen <= rst_pix;
     function automatic void fail(input string msg);
         if (errores < 20) $display("ERROR t=%0t: %s", $time, msg);
         errores++;
@@ -48,8 +53,10 @@ module pos_link_tb;
     // ---------------------------------------------------------------
     // Fake vga_out: curr_y counts rows of ROW_CYC cycles
     // ---------------------------------------------------------------
+    // A plain always, not always_ff: the initial block below also sets curr_y, and XSim rejects
+    // an always_ff variable with a second driver (VRFC 10-3818).
     int col = 0;
-    always_ff @(posedge clk_pix) begin
+    always @(posedge clk_pix) begin
         if (col == ROW_CYC - 1) begin
             col    <= 0;
             curr_y <= (curr_y == ROWS - 1) ? 11'd0 : curr_y + 11'd1;
@@ -113,10 +120,6 @@ module pos_link_tb;
         last_draw = now_draw;
         last_y    = curr_y;
     end
-
-    // rst_pix seen by at least one clk_pix edge (the reset is synchronous)
-    bit rst_seen = 1'b0;
-    always @(posedge clk_pix) rst_seen <= rst_pix;
 
     // 4. one pending copy per tick
     int copias = 0;
