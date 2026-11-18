@@ -7,7 +7,7 @@ module arena_link (
     input  logic        rst,                        // rst_juego, synchronous, active high
     // From position_logic
     input  logic        load,                       // Bikes held at their starts; its rise prepares the Round
-    input  logic        step,                       // Step tick: the Bikes move at this edge
+    input  logic        step,                       // the Step taken; in a Crash Step no Bike moves
     input  logic [10:0] blkpos1_x, blkpos1_y,       // heads in pixels (Cell x 16)
     input  logic [10:0] blkpos2_x, blkpos2_y,
     // To position_logic: neighbour codes of the current heads

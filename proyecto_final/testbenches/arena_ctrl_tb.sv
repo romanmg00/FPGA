@@ -237,6 +237,45 @@ module arena_ctrl_tb;
         expect_nbr("Step after a reset mid-Step", at(21, 27), at(58, 27));
         scan("Step after a reset mid-Step");
 
+        // A reset after each of the first 20 edges of a Step, also on and after its answer: the
+        // answer never changes during the reset, then exactly one answer comes, with the same
+        // writes and codes. Every try writes the same Cells, so the golden copy is set once.
+        gold[at(21, 27)] = 4'd2; gold[at(58, 27)] = 4'd4; gold[at(22, 27)] = 4'd3; gold[at(57, 27)] = 4'd5;
+        for (int k = 1; k <= 20; k++) begin
+            logic answer_before;
+            @(negedge clk);
+            prepare = 1'b0; old_head_p1 = at(21, 27); old_head_p2 = at(58, 27);
+            new_head_p1 = at(22, 27); new_head_p2 = at(57, 27);
+            heads_tgl = ~heads_tgl;
+            repeat (k) @(posedge clk);
+            @(negedge clk) rst = 1'b1;
+            answer_before = codes_tgl;
+            @(posedge clk); #1;
+            if (codes_tgl !== answer_before) fail($sformatf("reset after edge %0d changed the answer", k));
+            @(negedge clk) rst = 1'b0;
+            cyc = 0;
+            while (codes_tgl !== heads_tgl) begin
+                @(posedge clk); #1;
+                if (++cyc > 100) fail($sformatf("Step not answered after a reset after edge %0d", k));
+            end
+            repeat (30) begin
+                @(posedge clk); #1;
+                if (codes_tgl !== heads_tgl) fail($sformatf("a second answer after a reset after edge %0d", k));
+            end
+            expect_nbr($sformatf("Step with a reset after edge %0d", k), at(22, 27), at(57, 27));
+        end
+        scan("after the reset sweep");
+
+        // Steps back to back: each one is sent on the edge after the previous answer.
+        for (int i = 0; i < 3; i++) begin
+            request(1'b0, at(22 + i, 27), at(57 - i, 27), at(23 + i, 27), at(56 - i, 27), cyc);
+            expect_cycles($sformatf("back-to-back Step %0d", i), cyc, 17);
+            gold[at(22 + i, 27)] = 4'd2; gold[at(57 - i, 27)] = 4'd4;
+            gold[at(23 + i, 27)] = 4'd3; gold[at(56 - i, 27)] = 4'd5;
+            expect_nbr($sformatf("back-to-back Step %0d", i), at(23 + i, 27), at(56 - i, 27));
+        end
+        scan("after back-to-back Steps");
+
         // drawcon reads the draw port during a whole Prepare: the result is the same.
         fork
             request(1'b1, 13'd0, 13'd0, p1, p2, cyc);

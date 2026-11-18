@@ -48,7 +48,7 @@ flowchart LR
     al <==>|heads_tgl / codes_tgl| ac
     su ==> sl[seg7_link]
     sv ==> sl
-    sl ==>|tick_toggle| sd
+    sl ==>|*_pix copies| sd
     gl -.->|glide1_x/y, glide2_x/y: not yet safe| dc
     vo --> vga([VGA])
     sd --> seg([seg, an])
@@ -153,7 +153,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 
 ## Simulate and build
 
-`build_game_top.tcl` runs every testbench and builds `game_top` from the repository, with no Vivado project needed beforehand. It needs Linux and full Vivado.
+`build_game_top.tcl` runs the self-checking testbenches (all but `counters_tb`) and builds `game_top` from the repository, with no Vivado project needed beforehand. It needs Linux and full Vivado.
 
 1. From the repository root, pick a new output folder and a mode:
 
@@ -167,7 +167,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
    - **`full`** also creates the IP from the IP Catalog, synthesizes, implements and writes the bitstream.
    - Run `sim` or `full` before every push or PR.
 3. Read the result:
-   - `OUT_DIR/tests/PASS.txt` means every testbench passed.
+   - `OUT_DIR/tests/PASS.txt` means every testbench the mode runs passed (`quick` skips `game_top_tb`).
    - In `full`, `OUT_DIR/BUILD_COMPLETE.txt` and `OUT_DIR/game_top.bit` appear only if routed timing is met. The timing, CDC, DRC and methodology reports are in `OUT_DIR`.
 
 Roman's Vivado project on the remote workstation loads the same files from a clone: see [`comandos_vivado_myws.md`](comandos_vivado_myws.md).
@@ -216,10 +216,10 @@ The files at the top of this folder moved into folders in PR #50 (after 19 Novem
 
 ## Renamed signals
 
-On 18 November 2026 Alan renamed signals in his modules so each name says what it carries. Older documents, including the contract's §3 and §4, still use the old names. The rules:
+On 18 November 2026 Alan renamed signals in his modules so each name says what it carries, simplified `arena_ctrl`'s and `match_fsm`'s state machines, and shortened the comments in `arena_map`, `arena_ctrl`, `match_fsm`, `drawcon` and `position_logic`. The game behaves the same. The one difference at a port: `arena_ctrl` no longer clears its codes on reset, so `neighbours_p1/p2` hold old values until the next answer, and `arena_link` reads them only on an answer. Older documents, including the contract's §3 and §4, still use the old names. The rules:
 
 - The handout's and the slides' names are kept: `blkpos_x/y`, `curr_x/y`, `draw_r/g/b`, `pix_*`, `hsync`, `vsync`. `bike_glide` now takes `blkpos_x/y`, and no longer outputs `draw_x/y`, which in the handout means the current pixel.
-- Roman's modules (`position_logic`, `round_fsm`, `bike_move`, `drawcon`, `counters`, `vga_out`) are not changed, so the ports they share keep their names: `code1_u`…`code2_l`, `crash1`, `crash2`, `turn_req2`.
+- Roman's modules (`position_logic`, `round_fsm`, `bike_move`, `drawcon`, `counters`, `vga_out`) keep their code and names; only the comments in `position_logic` and `drawcon` were shortened. The ports they share keep their names: `code1_u`…`code2_l`, `crash1`, `crash2`, `turn_req2`.
 - One signal per Player ends in `_p1`/`_p2` (contract §1). `_last` is a signal one tick earlier, `_tgl` a toggle that crosses clocks, `_sync` its synchronized copy, `_pix` a copy on `clk_pix`, and `_ff` the flip-flop behind an output port.
 
 | Module | Old | New |
@@ -233,14 +233,16 @@ On 18 November 2026 Alan renamed signals in his modules so each name says what i
 | | `nbr1/2` | `neighbours_p1/p2` |
 | `arena_ctrl` | `req_sync`, `ack_q` | `heads_tgl_sync`, `codes_tgl_ff` |
 | | `prepare_q`, `old1_q`…`new2_q` | `prepare_pix`, `old_head_p1_pix`…`new_head_p2_pix` |
-| | `st`, `cnt`, `head`, `rd_valid` | `state`, `count`, `read_head`, `read_valid` |
-| | `s_trail1`…`s_head2` | `s_trail_p1`…`s_head_p2` |
+| | `st`, `cnt`, `head` | `state`, `count`, `read_head` |
+| | `s_trail1`, `s_trail2`, `s_head1`, `s_head2` | one `s_write`, whose `count` 0–3 picks the write (a Prepare starts at 2) |
+| | `s_done`, `rd_valid` | removed: `s_read` counts 0–8 and takes each code one count after its read |
 | `arena_link` | `req_q`, `ack_sync`, `ack_seen` | `heads_tgl_ff`, `codes_tgl_sync`, `codes_tgl_last` |
 | | `load_q`, `prep_wait`, `step_wait` | `load_last`, `prepare_pending`, `step_pending` |
 | | `send_prep`, `answer`, `head1/2` | `send_prepare`, `codes_arrived`, `head_p1/p2` |
 | `match_fsm` | `s`, `c`, `t`, `m`, `p` | `start_btn`, `crash`, `crash_done`, `match_over`, `pause` |
 | | `st`, `nst`, `s_q`, `press` | `state`, `next_state`, `start_btn_last`, `start_press` |
 | | `start_go` | `round_start` |
+| | states `3'd0`…`3'd7` | an `enum`, `s_idle`…`s_start`, as in `round_fsm`; same codes 0–7 |
 | `bike_glide` | `STEPS`, `pos_x/y`, `draw_x/y` | `STEP_TICKS`, `blkpos_x/y`, `glide_x/y` |
 | | `seen_x/y`, `g`, `g_next`, `fx/fy`, `off` | `blkpos_x_last/y_last`, `glide_tick`, `glide_tick_next`, `from_x_next/y_next`, `offset_px` |
 | `seg7_view` | `last_sel`, `sel_changed` | `goal_sel_last`, `goal_sel_changed` |
@@ -250,8 +252,8 @@ On 18 November 2026 Alan renamed signals in his modules so each name says what i
 The first line of each design file, testbench, constraint file and script names who wrote it. For example:
 
 ```systemverilog
-// Author: Roman (romanmg00). Changes by Alan (AIF31): Arena codes and Crashes into Trails (#40),
-// both Bikes stop in a Crash Step (ADR 0011, #39).
+// Author: Roman (romanmg00). Changes by Alan (AIF31): Trails read from arena_map's port B (#40),
+// sprite colour 000 drawn as transparent (#39).
 ```
 
 - **Author** is who wrote the first working version that the file grew from. If that version came from elsewhere, the line says so: "adapted from his CS-256 homework 1", "from Digilent's master XDC".
