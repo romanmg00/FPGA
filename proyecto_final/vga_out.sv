@@ -1,3 +1,4 @@
+// Author: Roman (romanmg00).
 // VGA output: sync pulses, blanking and the visible pixel coordinates (curr_x, curr_y).
 // Each line and frame runs in the order sync, back porch, visible, front porch.
 module vga_out (

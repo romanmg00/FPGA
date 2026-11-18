@@ -1,3 +1,4 @@
+## Author: Alan (AIF31).
 ## Timing de game_top. Solo para implementacion: estos nombres existen despues de sintetizar.
 
 ## clk_juego sale de un flip-flop del divisor sobre clk_pix (ADR 0006):

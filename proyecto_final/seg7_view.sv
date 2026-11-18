@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Scoreboard view on clk_juego: 0 Points, 1 Lives, 2 Goal, 180 ticks (3 s) each. Goal joins
 // only while waiting for a new Match, where a {SW15, SW14} change jumps to it; a new Match
 // starts on Points.

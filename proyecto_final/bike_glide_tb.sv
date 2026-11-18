@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Self-checking bench for bike_glide, with STEPS = 6 and STEPS = 8 side by side. Each clk
 // edge is one game tick. pos changes just after an edge, as position_logic's registers do.
 // Expected offsets are written from ADR 0010 (16 px over STEPS ticks, rounded), not read

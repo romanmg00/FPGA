@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Brings the board's reset request into one clock domain (contract section 1).
 // Crossing: async_reset (no clock) -> rst (clk). Instantiate one per domain.
 // Starts asserted, so each domain also gets a reset right after configuration.

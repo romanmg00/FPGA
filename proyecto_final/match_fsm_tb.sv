@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Self-checking bench for match_fsm: one expected state trace (state code after each tick) per
 // rule, driving s, c, t, m and p directly. The outputs are checked against the state on every
 // tick and after every input change, and the 1-tick actions are counted.

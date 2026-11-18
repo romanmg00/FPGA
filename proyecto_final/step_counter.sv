@@ -1,3 +1,4 @@
+// Author: Roman (romanmg00).
 // Gives a 1-tick pulse every STEP_TICKS ticks while run = 1; pause = 1 holds the count with no pulse; run = 0 restarts from 0.
 // With STEP_TICKS = 8 and clk_juego at ~60 Hz, a bike moves about 7.5 cells per second.
 // With STEP_TICKS = 120 it measures the 2 s pause after a crash.

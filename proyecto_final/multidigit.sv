@@ -1,3 +1,4 @@
+// Author: Alan (AIF31), adapted from his CS-256 homework 1; scan enable on clk_pix (#34).
 // Eight 7-segment digits on one set of a-g pins; digit 0 is the rightmost.
 // On clk_pix, sel moves to the next digit each time the 17-bit counter is full:
 // 2^17 cycles = 1.57 ms per digit, 12.6 ms for all eight.

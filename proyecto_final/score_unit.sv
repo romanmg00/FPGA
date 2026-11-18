@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Points and Lives (G5) on clk_juego. A crashed Bike loses a Life; if only one crashed, the
 // other gets +3 (ADR 0011). A Player with no Lives loses; both at once: more Points wins, the
 // same Points is a Draw. Rewards and the Points Goal come with G4.

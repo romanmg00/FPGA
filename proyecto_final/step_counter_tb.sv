@@ -1,3 +1,4 @@
+// Author: Roman (romanmg00).
 // Self-checking testbench for step_counter.
 // Checks on which ticks the step pulse appears, counting from when run becomes 1,
 // and that pause holds the count (no step while paused) instead of restarting it.

@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // SIMULATION ONLY. Never add this to synthesis: real builds use the Vivado-generated IP
 // (docs/design/CS-256 Vivado IP Inventory.md). A bench using it does not test the Wizard.
 // Simulation stand-in for the pixel Wizard: ideal clock at the achieved 83.456 MHz.

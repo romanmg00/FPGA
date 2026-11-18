@@ -1,3 +1,5 @@
+## Author: Roman (romanmg00), from Digilent's Nexys A7-100T master XDC. Changes by Alan (AIF31): configuration
+## voltage (#12), SW12-SW15 and the 7-segment display pins (#47).
 ## This file is a general .xdc for the Nexys A7-100T
 ## To use it in a project:
 ## - uncomment the lines corresponding to used pins

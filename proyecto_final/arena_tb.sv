@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Builder's own check of arena_link + arena_ctrl + arena_map with two free-running clocks: clk_pix
 // at 12 ns and clk_juego scaled down to ~12,000 clk_pix cycles per tick, with a fractional period
 // so the phase between them drifts. The driver plays position_logic: load, step and the heads

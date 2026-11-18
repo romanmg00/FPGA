@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Arena memory: one 4-bit code per Cell, 8192 words addressed {cy[5:0], cx[6:0]}, on clk_pix.
 // Port A (arena_ctrl, the only writer) reads in 1 cycle; port B (drawcon) reads in 2 cycles,
 // the same as the sprite ROMs. A BRAM cannot be cleared by rst: arena_ctrl clears it.

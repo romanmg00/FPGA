@@ -1,3 +1,6 @@
+// Author: Roman (romanmg00).
+// Self-checking testbench for vga_out: measures the hsync and vsync pulses and the line and frame
+// times, and checks pix_* = draw_* in the visible window and 0 outside; prints PRUEBAS OK.
 module vga_out_tb;
     // Inputs
     logic clk_pix, rst;

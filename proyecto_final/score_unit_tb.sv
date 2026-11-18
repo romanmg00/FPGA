@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Self-checking bench for score_unit: Points, Lives and result after each Crash Step, from the
 // agreed specification and ADR 0011. Both out in one Step always ties without Rewards, so the
 // "more Points wins" case sets the Points with force.
