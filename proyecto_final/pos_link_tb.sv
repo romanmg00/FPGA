@@ -11,7 +11,7 @@
 //   4. Scoreboard of the pending copy, from the inputs: MARGIN clk_pix cycles after every
 //      clk_juego tick, dut.pend* holds the set that tick drove. The detector also pulses once
 //      per tick (rising and falling toggles both count).
-//   5. rst_pix clears draw*, and the outputs come back with fresh values after it.
+//   5. rst_pix clears draw* and pend*, and the outputs come back with fresh values after it.
 //   6. Directed cases: clk_juego is then driven by hand, with one rising edge every other frame,
 //      from 10 clk_pix cycles before row 800 starts to 6 after, twice at each offset (both toggle
 //      polarities). An edge at least MARGIN cycles before row 800 shows in that frame; one after
@@ -109,6 +109,9 @@ module pos_link_tb;
         now_draw = pack(d1x, d1y, d2x, d2y, dh1, dh2);
         if (rst_seen) begin
             if (now_draw !== 48'd0) fail("draw* no es 0 durante rst_pix");
+            if (pack(dut.pend1_x, dut.pend1_y, dut.pend2_x, dut.pend2_y,
+                     dut.pend_heading1, dut.pend_heading2) !== 48'd0)
+                fail("pend* no es 0 durante rst_pix");
         end else if (checking) begin
             // 1. only at curr_y == 800
             if (now_draw !== last_draw && last_y !== 11'd800)

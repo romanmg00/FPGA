@@ -64,8 +64,18 @@ module pos_link (
     logic [10:0] pend1_x, pend1_y, pend2_x, pend2_y;
     logic [1:0]  pend_heading1, pend_heading2;
 
+    // rst_pix clears pending to the same values as draw*, so draw* never copies an unset pending
+    // between rst_pix and the first toggle (about 40 ms at power-up, while rst_juego holds).
     always_ff @(posedge clk_pix) begin
-        if(new_values) begin
+        if(rst_pix) begin
+            pend1_x <= 11'b0;
+            pend1_y <= 11'b0;
+            pend2_x <= 11'b0;
+            pend2_y <= 11'b0;
+            pend_heading1 <= 2'b0;
+            pend_heading2 <= 2'b0;
+        end
+        else if(new_values) begin
             pend1_x <= glide1_x;
             pend1_y <= glide1_y;
             pend2_x <= glide2_x;
