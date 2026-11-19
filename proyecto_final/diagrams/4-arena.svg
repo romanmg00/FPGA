@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 2420 810"
+     preserveAspectRatio="xMidYMid meet"
+     version="1.1"
+     baseProfile="full"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:ev="http://www.w3.org/2001/xml-events"
+     xml:space="preserve">
+<title>game_top</title>
+<desc>Nlview schematic (SVG)</desc>
+<clipPath id="clippingbbox">
+<rect x="0" y="0" width="2420" height="810" />
+</clipPath>
+<g stroke="#19b400"
+   stroke-width="1"
+   stroke-linecap="butt"
+   stroke-linejoin="miter"
+   stroke-miterlimit="4"
+   stroke-dasharray="none"
+   stroke-dashoffset="0"
+   fill="none"
+   font-family="Helvetica"
+   font-style="normal"
+   font-size="12"
+   writing-mode="lr-tb"
+   cursor="crosshair"
+   clip-path="url(#clippingbbox)">
+<path d="M0 0h2420v811h-2420z" stroke="none" fill="white" />
+<path d="M280 78h60v322h-60z" stroke="none" fill="#dfebf8" />
+<g stroke="black">
+<path d="M280 78h60v322h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M291 83v12" />
+<path d="M285 89h12" />
+</g>
+<g stroke="black">
+<path d="M283 81h16v16h-16z" />
+<text x="310" y="76" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_arena_link</text>
+<text x="310" y="402" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">arena_link</text>
+<path d="M270 230h10" />
+<text x="278" y="229" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M270 250h10" />
+<text x="278" y="249" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">codes_tgl</text>
+<path d="M350 110h-10" />
+<text x="342" y="109" fill="black" stroke-width="0" font-size="10" dy="-1.33333">codes_valid</text>
+<path d="M350 290h-10" />
+<text x="342" y="289" fill="black" stroke-width="0" font-size="10" dy="-1.33333">heads_tgl</text>
+<path d="M270 270h10" />
+<text x="278" y="269" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">load</text>
+<path d="M350 390h-10" />
+<text x="342" y="389" fill="black" stroke-width="0" font-size="10" dy="-1.33333">prepare</text>
+<path d="M270 330h10" />
+<text x="278" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+<path d="M270 350h10" />
+<text x="278" y="349" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">step</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M270 150h10" />
+<text x="278" y="149" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos1_x[10:0]</text>
+<path d="M270 170h10" />
+<text x="278" y="169" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos1_y[10:0]</text>
+<path d="M270 190h10" />
+<text x="278" y="189" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos2_x[10:0]</text>
+<path d="M270 210h10" />
+<text x="278" y="209" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos2_y[10:0]</text>
+<path d="M350 130h-10" />
+<text x="342" y="129" fill="black" stroke-width="0" font-size="10" dy="-1.33333">code1_d[3:0]</text>
+<path d="M350 150h-10" />
+<text x="342" y="149" fill="black" stroke-width="0" font-size="10" dy="-1.33333">code1_l[3:0]</text>
+<path d="M350 170h-10" />
+<text x="342" y="169" fill="black" stroke-width="0" font-size="10" dy="-1.33333">code1_r[3:0]</text>
+<path d="M350 190h-10" />
+<text x="342" y="189" fill="black" stroke-width="0" font-size="10" dy="-1.33333">code1_u[3:0]</text>
+<path d="M350 210h-10" />
+<text x="342" y="209" fill="black" stroke-width="0" font-size="10" dy="-1.33333">code2_d[3:0]</text>
+<path d="M350 230h-10" />
+<text x="342" y="229" fill="black" stroke-width="0" font-size="10" dy="-1.33333">code2_l[3:0]</text>
+<path d="M350 250h-10" />
+<text x="342" y="249" fill="black" stroke-width="0" font-size="10" dy="-1.33333">code2_r[3:0]</text>
+<path d="M350 270h-10" />
+<text x="342" y="269" fill="black" stroke-width="0" font-size="10" dy="-1.33333">code2_u[3:0]</text>
+<path d="M270 290h10" />
+<text x="278" y="289" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">neighbours_p1[15:0]</text>
+<path d="M270 310h10" />
+<text x="278" y="309" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">neighbours_p2[15:0]</text>
+<path d="M350 310h-10" />
+<text x="342" y="309" fill="black" stroke-width="0" font-size="10" dy="-1.33333">new_head_p1[12:0]</text>
+<path d="M350 330h-10" />
+<text x="342" y="329" fill="black" stroke-width="0" font-size="10" dy="-1.33333">new_head_p2[12:0]</text>
+<path d="M350 350h-10" />
+<text x="342" y="349" fill="black" stroke-width="0" font-size="10" dy="-1.33333">old_head_p1[12:0]</text>
+<path d="M350 370h-10" />
+<text x="342" y="369" fill="black" stroke-width="0" font-size="10" dy="-1.33333">old_head_p2[12:0]</text>
+</g>
+<g stroke="black">
+<path d="M290 230h-10" />
+<path d="M290 250h-10" />
+<path d="M330 110h10" />
+<path d="M330 290h10" />
+<path d="M290 270h-10" />
+<path d="M330 390h10" />
+<path d="M290 330h-10" />
+<path d="M290 350h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M290 150h-10" />
+<path d="M290 170h-10" />
+<path d="M290 190h-10" />
+<path d="M290 210h-10" />
+<path d="M330 130h10" />
+<path d="M330 150h10" />
+<path d="M330 170h10" />
+<path d="M330 190h10" />
+<path d="M330 210h10" />
+<path d="M330 230h10" />
+<path d="M330 250h10" />
+<path d="M330 270h10" />
+<path d="M290 290h-10" />
+<path d="M290 310h-10" />
+<path d="M330 310h10" />
+<path d="M330 330h10" />
+<path d="M330 350h10" />
+<path d="M330 370h10" />
+<path d="M910 78h60v322h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M910 78h60v322h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M921 83v12" />
+<path d="M915 89h12" />
+</g>
+<g stroke="black">
+<path d="M913 81h16v16h-16z" />
+<text x="940" y="76" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_position_logic</text>
+<text x="940" y="402" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">position_logic</text>
+<path d="M900 130h10" />
+<text x="908" y="129" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M900 150h10" />
+<text x="908" y="149" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">codes_valid</text>
+<path d="M980 250h-10" />
+<text x="972" y="249" fill="black" stroke-width="0" font-size="10" dy="-1.33333">crash1</text>
+<path d="M980 270h-10" />
+<text x="972" y="269" fill="black" stroke-width="0" font-size="10" dy="-1.33333">crash2</text>
+<path d="M980 230h-10" />
+<text x="972" y="229" fill="black" stroke-width="0" font-size="10" dy="-1.33333">crash_done</text>
+<path d="M980 330h-10" />
+<text x="972" y="329" fill="black" stroke-width="0" font-size="10" dy="-1.33333">load</text>
+<path d="M900 330h10" />
+<text x="908" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">match_over</text>
+<path d="M900 350h10" />
+<text x="908" y="349" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">pause</text>
+<path d="M900 370h10" />
+<text x="908" y="369" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+<path d="M980 350h-10" />
+<text x="972" y="349" fill="black" stroke-width="0" font-size="10" dy="-1.33333">step</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M980 150h-10" />
+<text x="972" y="149" fill="black" stroke-width="0" font-size="10" dy="-1.33333">blkpos1_x[10:0]</text>
+<path d="M980 170h-10" />
+<text x="972" y="169" fill="black" stroke-width="0" font-size="10" dy="-1.33333">blkpos1_y[10:0]</text>
+<path d="M980 190h-10" />
+<text x="972" y="189" fill="black" stroke-width="0" font-size="10" dy="-1.33333">blkpos2_x[10:0]</text>
+<path d="M980 210h-10" />
+<text x="972" y="209" fill="black" stroke-width="0" font-size="10" dy="-1.33333">blkpos2_y[10:0]</text>
+<path d="M900 110h10" />
+<text x="908" y="109" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">btn[4:0]</text>
+<path d="M900 170h10" />
+<text x="908" y="169" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">code1_d[3:0]</text>
+<path d="M900 190h10" />
+<text x="908" y="189" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">code1_l[3:0]</text>
+<path d="M900 210h10" />
+<text x="908" y="209" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">code1_r[3:0]</text>
+<path d="M900 230h10" />
+<text x="908" y="229" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">code1_u[3:0]</text>
+<path d="M900 250h10" />
+<text x="908" y="249" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">code2_d[3:0]</text>
+<path d="M900 270h10" />
+<text x="908" y="269" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">code2_l[3:0]</text>
+<path d="M900 290h10" />
+<text x="908" y="289" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">code2_r[3:0]</text>
+<path d="M900 310h10" />
+<text x="908" y="309" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">code2_u[3:0]</text>
+<path d="M980 290h-10" />
+<text x="972" y="289" fill="black" stroke-width="0" font-size="10" dy="-1.33333">heading1[1:0]</text>
+<path d="M980 310h-10" />
+<text x="972" y="309" fill="black" stroke-width="0" font-size="10" dy="-1.33333">heading2[1:0]</text>
+<path d="M900 390h10" />
+<text x="908" y="389" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">turn_req2[3:0]</text>
+</g>
+<g stroke="black">
+<path d="M920 130h-10" />
+<path d="M920 150h-10" />
+<path d="M960 250h10" />
+<path d="M960 270h10" />
+<path d="M960 230h10" />
+<path d="M960 330h10" />
+<path d="M920 330h-10" />
+<path d="M920 350h-10" />
+<path d="M920 370h-10" />
+<path d="M960 350h10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M960 150h10" />
+<path d="M960 170h10" />
+<path d="M960 190h10" />
+<path d="M960 210h10" />
+<path d="M920 110h-10" />
+<path d="M920 170h-10" />
+<path d="M920 190h-10" />
+<path d="M920 210h-10" />
+<path d="M920 230h-10" />
+<path d="M920 250h-10" />
+<path d="M920 270h-10" />
+<path d="M920 290h-10" />
+<path d="M920 310h-10" />
+<path d="M960 290h10" />
+<path d="M960 310h10" />
+<path d="M920 390h-10" />
+<path d="M1290 98h60v242h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1290 98h60v242h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1301 103v12" />
+<path d="M1295 109h12" />
+</g>
+<g stroke="black">
+<path d="M1293 101h16v16h-16z" />
+<text x="1320" y="96" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_drawcon</text>
+<text x="1320" y="342" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">drawcon</text>
+<path d="M1280 230h10" />
+<text x="1288" y="229" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1360 190h-10" />
+<text x="1352" y="189" fill="black" stroke-width="0" font-size="10" dy="-1.33333">arena_addr[12:0]</text>
+<path d="M1280 130h10" />
+<text x="1288" y="129" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">arena_code[3:0]</text>
+<path d="M1280 150h10" />
+<text x="1288" y="149" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos1_x[10:0]</text>
+<path d="M1280 170h10" />
+<text x="1288" y="169" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos1_y[10:0]</text>
+<path d="M1280 190h10" />
+<text x="1288" y="189" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos2_x[10:0]</text>
+<path d="M1280 210h10" />
+<text x="1288" y="209" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos2_y[10:0]</text>
+<path d="M1280 250h10" />
+<text x="1288" y="249" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">curr_x[10:0]</text>
+<path d="M1280 270h10" />
+<text x="1288" y="269" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">curr_y[10:0]</text>
+<path d="M1360 210h-10" />
+<text x="1352" y="209" fill="black" stroke-width="0" font-size="10" dy="-1.33333">draw_b[3:0]</text>
+<path d="M1360 230h-10" />
+<text x="1352" y="229" fill="black" stroke-width="0" font-size="10" dy="-1.33333">draw_g[3:0]</text>
+<path d="M1360 250h-10" />
+<text x="1352" y="249" fill="black" stroke-width="0" font-size="10" dy="-1.33333">draw_r[3:0]</text>
+<path d="M1280 290h10" />
+<text x="1288" y="289" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">heading1[1:0]</text>
+<path d="M1280 310h10" />
+<text x="1288" y="309" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">heading2[1:0]</text>
+<path d="M1280 330h10" />
+<text x="1288" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">sw[11:0]</text>
+</g>
+<g stroke="black">
+<path d="M1300 230h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1340 190h10" />
+<path d="M1300 130h-10" />
+<path d="M1300 150h-10" />
+<path d="M1300 170h-10" />
+<path d="M1300 190h-10" />
+<path d="M1300 210h-10" />
+<path d="M1300 250h-10" />
+<path d="M1300 270h-10" />
+<path d="M1340 210h10" />
+<path d="M1340 230h10" />
+<path d="M1340 250h10" />
+<path d="M1300 290h-10" />
+<path d="M1300 310h-10" />
+<path d="M1300 330h-10" />
+<path d="M1730 318h60v122h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1730 318h60v122h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1741 323v12" />
+<path d="M1735 329h12" />
+</g>
+<g stroke="black">
+<path d="M1733 321h16v16h-16z" />
+<text x="1760" y="316" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_arena_map</text>
+<text x="1760" y="442" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">arena_map</text>
+<path d="M1720 350h10" />
+<text x="1728" y="349" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M1720 390h10" />
+<text x="1728" y="389" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ctrl_write</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1720 370h10" />
+<text x="1728" y="369" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ctrl_addr[12:0]</text>
+<path d="M1800 370h-10" />
+<text x="1792" y="369" fill="black" stroke-width="0" font-size="10" dy="-1.33333">ctrl_read_code[3:0]</text>
+<path d="M1720 410h10" />
+<text x="1728" y="409" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ctrl_write_code[3:0]</text>
+<path d="M1720 430h10" />
+<text x="1728" y="429" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">draw_addr[12:0]</text>
+<path d="M1800 390h-10" />
+<text x="1792" y="389" fill="black" stroke-width="0" font-size="10" dy="-1.33333">draw_code[3:0]</text>
+</g>
+<g stroke="black">
+<path d="M1740 350h-10" />
+<path d="M1740 390h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1740 370h-10" />
+<path d="M1780 370h10" />
+<path d="M1740 410h-10" />
+<path d="M1740 430h-10" />
+<path d="M1780 390h10" />
+<path d="M2100 578h60v202h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M2100 578h60v202h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M2111 583v12" />
+<path d="M2105 589h12" />
+</g>
+<g stroke="black">
+<path d="M2103 581h16v16h-16z" />
+<text x="2130" y="576" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_arena_ctrl</text>
+<text x="2130" y="782" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">arena_ctrl</text>
+<path d="M2090 610h10" />
+<text x="2098" y="609" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M2170 630h-10" />
+<text x="2162" y="629" fill="black" stroke-width="0" font-size="10" dy="-1.33333">codes_tgl</text>
+<path d="M2170 670h-10" />
+<text x="2162" y="669" fill="black" stroke-width="0" font-size="10" dy="-1.33333">ctrl_write</text>
+<path d="M2090 650h10" />
+<text x="2098" y="649" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">heads_tgl</text>
+<path d="M2090 750h10" />
+<text x="2098" y="749" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">prepare</text>
+<path d="M2090 770h10" />
+<text x="2098" y="769" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M2170 650h-10" />
+<text x="2162" y="649" fill="black" stroke-width="0" font-size="10" dy="-1.33333">ctrl_addr[12:0]</text>
+<path d="M2090 630h10" />
+<text x="2098" y="629" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ctrl_read_code[3:0]</text>
+<path d="M2170 690h-10" />
+<text x="2162" y="689" fill="black" stroke-width="0" font-size="10" dy="-1.33333">ctrl_write_code[3:0]</text>
+<path d="M2170 710h-10" />
+<text x="2162" y="709" fill="black" stroke-width="0" font-size="10" dy="-1.33333">neighbours_p1[15:0]</text>
+<path d="M2170 730h-10" />
+<text x="2162" y="729" fill="black" stroke-width="0" font-size="10" dy="-1.33333">neighbours_p2[15:0]</text>
+<path d="M2090 670h10" />
+<text x="2098" y="669" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">new_head_p1[12:0]</text>
+<path d="M2090 690h10" />
+<text x="2098" y="689" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">new_head_p2[12:0]</text>
+<path d="M2090 710h10" />
+<text x="2098" y="709" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">old_head_p1[12:0]</text>
+<path d="M2090 730h10" />
+<text x="2098" y="729" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">old_head_p2[12:0]</text>
+</g>
+<g stroke="black">
+<path d="M2110 610h-10" />
+<path d="M2150 630h10" />
+<path d="M2150 670h10" />
+<path d="M2110 650h-10" />
+<path d="M2110 750h-10" />
+<path d="M2110 770h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M2150 650h10" />
+<path d="M2110 630h-10" />
+<path d="M2150 690h10" />
+<path d="M2150 710h10" />
+<path d="M2150 730h10" />
+<path d="M2110 670h-10" />
+<path d="M2110 690h-10" />
+<path d="M2110 710h-10" />
+<path d="M2110 730h-10" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M1360 190h140v240h220" />
+<path d="M1280 130h-120v-60h770v320h-130" />
+</g>
+<g stroke="green" stroke-width="3" stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M270 150h-260v-140h1130v140h-160" />
+<path d="M270 170h-240v-140h1090v140h-140" />
+<path d="M270 190h-140v-140h970v140h-120" />
+<path d="M270 210h-260v240h1130v-240h-160" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M350 130h340v40h210" />
+<path d="M350 150h420v40h130" />
+<path d="M350 170h320v40h230" />
+<path d="M350 190h400v40h150" />
+<path d="M350 210h300v40h250" />
+<path d="M350 230h380v40h170" />
+<path d="M350 250h280v40h270" />
+<path d="M350 270h260v40h290" />
+<path d="M1720 370h-180v100h850v180h-220" />
+<path d="M1800 370h150v260h140" />
+<path d="M1720 410h-140v100h770v180h-180" />
+<path d="M980 290h300" />
+<path d="M980 310h300" />
+<path d="M270 290h-240v240h2300v180h-160" />
+<path d="M270 310h-200v240h2240v180h-140" />
+<path d="M350 310h220v360h1520" />
+<path d="M350 330h200v360h1540" />
+<path d="M350 350h180v360h1560" />
+<path d="M350 370h160v360h1580" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M270 230h-220v200h660v-300h190" />
+<path d="M1280 230h-120v140h360" />
+<path d="M1518 368h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1720 350h-200v260h570" />
+</g>
+<g>
+<path d="M270 250h-180v260h1390v-220h930v340h-240" />
+<path d="M350 110h440v40h110" />
+<path d="M1720 390h-160v100h810v180h-200" />
+<path d="M350 290h240v360h1500" />
+<path d="M270 270h-140v200h990v-140h-140" />
+<path d="M350 390h140v360h1600" />
+<path d="M270 350h-160v140h990v-140h-120" />
+</g>
+</g>
+</svg>

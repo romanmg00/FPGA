@@ -61,19 +61,25 @@ flowchart LR
 The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Analysis → Schematic*) of the elaborated design, exported by [`schematics.tcl`](schematics.tcl).
 - Only module instances are drawn. The logic between them is left out, so a dashed line is a net that passes through logic not shown.
 - Open an SVG on its own to zoom in.
-- Redrawn on 18 November 2026 with the [renamed signals](#renamed-signals). `round_fsm` is Roman's, so page 2 still shows its `s`, `c` and `t` inputs.
+- Redrawn on 18 November 2026 with the [renamed signals](#renamed-signals); pages 4 and 5 added on 19 November. `round_fsm` is Roman's, so page 2 still shows its `s`, `c` and `t` inputs.
 
 | Page | Shows |
 |---|---|
 | [`1-game_top.svg`](diagrams/1-game_top.svg) | Every block in `game_top` except the synchronizers, with the board pins |
 | [`2-position_logic.svg`](diagrams/2-position_logic.svg) | Inside `position_logic`: `round_fsm`, the two `step_counter`s and the two `bike_move`s |
 | [`3-scoreboard.svg`](diagrams/3-scoreboard.svg) | The Match and the Scoreboard: `match_fsm`, `score_unit`, `seg7_view`, `seg7_link`, `seg7_driver` |
+| [`4-arena.svg`](diagrams/4-arena.svg) | The Arena loop: `position_logic` ↔ `arena_link` ↔ `arena_ctrl` → `arena_map` → `drawcon` |
+| [`5-video.svg`](diagrams/5-video.svg) | The picture: both `bike_glide`, `arena_map`'s draw port, `drawcon` and `vga_out` |
 
 ![game_top](diagrams/1-game_top.svg)
 
 ![position_logic](diagrams/2-position_logic.svg)
 
 ![Match and Scoreboard](diagrams/3-scoreboard.svg)
+
+![Arena](diagrams/4-arena.svg)
+
+![Video](diagrams/5-video.svg)
 
 ## Clocks and crossings
 

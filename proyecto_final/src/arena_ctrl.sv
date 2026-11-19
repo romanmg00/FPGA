@@ -31,7 +31,7 @@ module arena_ctrl (
     logic [12:0] read_head;
     logic [31:0] codes;                             // P1 up, right, down, left, then P2
 
-    // Not reset, so a reset cannot fake an answer.
+    // Not reset
     sync_2ff u_sync_heads_tgl (.clk(clk), .rst(1'b0), .async_in(heads_tgl), .sync_out(heads_tgl_sync));
 
     assign codes_tgl     = codes_tgl_ff;

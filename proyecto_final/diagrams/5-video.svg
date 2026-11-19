@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 1170 671"
+     preserveAspectRatio="xMidYMid meet"
+     version="1.1"
+     baseProfile="full"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:ev="http://www.w3.org/2001/xml-events"
+     xml:space="preserve">
+<title>game_top</title>
+<desc>Nlview schematic (SVG)</desc>
+<clipPath id="clippingbbox">
+<rect x="0" y="0" width="1170" height="671" />
+</clipPath>
+<g stroke="#19b400"
+   stroke-width="1"
+   stroke-linecap="butt"
+   stroke-linejoin="miter"
+   stroke-miterlimit="4"
+   stroke-dasharray="none"
+   stroke-dashoffset="0"
+   fill="none"
+   font-family="Helvetica"
+   font-style="normal"
+   font-size="12"
+   writing-mode="lr-tb"
+   cursor="crosshair"
+   clip-path="url(#clippingbbox)">
+<path d="M0 0h1170v672h-1170z" stroke="none" fill="white" />
+<path d="M190 29h60v102h-60z" stroke="none" fill="#dfebf8" />
+<g stroke="black">
+<path d="M190 29h60v102h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M201 34v12" />
+<path d="M195 40h12" />
+</g>
+<g stroke="black">
+<path d="M193 32h16v16h-16z" />
+<text x="220" y="27" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_glide1</text>
+<text x="220" y="133" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">bike_glide</text>
+<path d="M180 101h10" />
+<text x="188" y="100" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M180 121h10" />
+<text x="188" y="120" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M180 61h10" />
+<text x="188" y="60" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos_x[10:0]</text>
+<path d="M180 81h10" />
+<text x="188" y="80" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos_y[10:0]</text>
+<path d="M260 81h-10" />
+<text x="252" y="80" fill="black" stroke-width="0" font-size="10" dy="-1.33333">glide_x[10:0]</text>
+<path d="M260 101h-10" />
+<text x="252" y="100" fill="black" stroke-width="0" font-size="10" dy="-1.33333">glide_y[10:0]</text>
+</g>
+<g stroke="black">
+<path d="M200 101h-10" />
+<path d="M200 121h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M200 61h-10" />
+<path d="M200 81h-10" />
+<path d="M240 81h10" />
+<path d="M240 101h10" />
+<path d="M190 179h60v102h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M190 179h60v102h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M201 184v12" />
+<path d="M195 190h12" />
+</g>
+<g stroke="black">
+<path d="M193 182h16v16h-16z" />
+<text x="220" y="177" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_glide2</text>
+<text x="220" y="283" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">bike_glide</text>
+<path d="M180 251h10" />
+<text x="188" y="250" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M180 271h10" />
+<text x="188" y="270" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M180 211h10" />
+<text x="188" y="210" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos_x[10:0]</text>
+<path d="M180 231h10" />
+<text x="188" y="230" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos_y[10:0]</text>
+<path d="M260 231h-10" />
+<text x="252" y="230" fill="black" stroke-width="0" font-size="10" dy="-1.33333">glide_x[10:0]</text>
+<path d="M260 251h-10" />
+<text x="252" y="250" fill="black" stroke-width="0" font-size="10" dy="-1.33333">glide_y[10:0]</text>
+</g>
+<g stroke="black">
+<path d="M200 251h-10" />
+<path d="M200 271h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M200 211h-10" />
+<path d="M200 231h-10" />
+<path d="M240 231h10" />
+<path d="M240 251h10" />
+<path d="M190 459h60v182h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M190 459h60v182h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M201 464v12" />
+<path d="M195 470h12" />
+</g>
+<g stroke="black">
+<path d="M193 462h16v16h-16z" />
+<text x="220" y="457" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_vga_out</text>
+<text x="220" y="643" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">vga_out</text>
+<path d="M180 511h10" />
+<text x="188" y="510" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk_pix</text>
+<path d="M260 531h-10" />
+<text x="252" y="530" fill="black" stroke-width="0" font-size="10" dy="-1.33333">hsync</text>
+<path d="M180 591h10" />
+<text x="188" y="590" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">rst</text>
+<path d="M260 611h-10" />
+<text x="252" y="610" fill="black" stroke-width="0" font-size="10" dy="-1.33333">tick_60hz</text>
+<text x="310" y="610" fill="black" stroke-width="0" font-size="8" dy="-1.06667">n/c</text>
+<path d="M260 631h-10" />
+<text x="252" y="630" fill="black" stroke-width="0" font-size="10" dy="-1.33333">vsync</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M260 491h-10" />
+<text x="252" y="490" fill="black" stroke-width="0" font-size="10" dy="-1.33333">curr_x[10:0]</text>
+<path d="M260 511h-10" />
+<text x="252" y="510" fill="black" stroke-width="0" font-size="10" dy="-1.33333">curr_y[10:0]</text>
+<path d="M180 531h10" />
+<text x="188" y="530" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">draw_b[3:0]</text>
+<path d="M180 551h10" />
+<text x="188" y="550" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">draw_g[3:0]</text>
+<path d="M180 571h10" />
+<text x="188" y="570" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">draw_r[3:0]</text>
+<path d="M260 551h-10" />
+<text x="252" y="550" fill="black" stroke-width="0" font-size="10" dy="-1.33333">pix_b[3:0]</text>
+<path d="M260 571h-10" />
+<text x="252" y="570" fill="black" stroke-width="0" font-size="10" dy="-1.33333">pix_g[3:0]</text>
+<path d="M260 591h-10" />
+<text x="252" y="590" fill="black" stroke-width="0" font-size="10" dy="-1.33333">pix_r[3:0]</text>
+</g>
+<g stroke="black">
+<path d="M200 511h-10" />
+<path d="M240 531h10" />
+<path d="M200 591h-10" />
+<path d="M240 611h10" />
+<path d="M240 631h10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M240 491h10" />
+<path d="M240 511h10" />
+<path d="M200 531h-10" />
+<path d="M200 551h-10" />
+<path d="M200 571h-10" />
+<path d="M240 551h10" />
+<path d="M240 571h10" />
+<path d="M240 591h10" />
+<path d="M580 139h60v242h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M580 139h60v242h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M591 144v12" />
+<path d="M585 150h12" />
+</g>
+<g stroke="black">
+<path d="M583 142h16v16h-16z" />
+<text x="610" y="137" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_drawcon</text>
+<text x="610" y="383" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">drawcon</text>
+<path d="M570 271h10" />
+<text x="578" y="270" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M650 231h-10" />
+<text x="642" y="230" fill="black" stroke-width="0" font-size="10" dy="-1.33333">arena_addr[12:0]</text>
+<path d="M570 171h10" />
+<text x="578" y="170" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">arena_code[3:0]</text>
+<path d="M570 191h10" />
+<text x="578" y="190" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos1_x[10:0]</text>
+<path d="M570 211h10" />
+<text x="578" y="210" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos1_y[10:0]</text>
+<path d="M570 231h10" />
+<text x="578" y="230" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos2_x[10:0]</text>
+<path d="M570 251h10" />
+<text x="578" y="250" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">blkpos2_y[10:0]</text>
+<path d="M570 291h10" />
+<text x="578" y="290" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">curr_x[10:0]</text>
+<path d="M570 311h10" />
+<text x="578" y="310" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">curr_y[10:0]</text>
+<path d="M650 251h-10" />
+<text x="642" y="250" fill="black" stroke-width="0" font-size="10" dy="-1.33333">draw_b[3:0]</text>
+<path d="M650 271h-10" />
+<text x="642" y="270" fill="black" stroke-width="0" font-size="10" dy="-1.33333">draw_g[3:0]</text>
+<path d="M650 291h-10" />
+<text x="642" y="290" fill="black" stroke-width="0" font-size="10" dy="-1.33333">draw_r[3:0]</text>
+<path d="M570 331h10" />
+<text x="578" y="330" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">heading1[1:0]</text>
+<path d="M570 351h10" />
+<text x="578" y="350" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">heading2[1:0]</text>
+<path d="M570 371h10" />
+<text x="578" y="370" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">sw[11:0]</text>
+</g>
+<g stroke="black">
+<path d="M590 271h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M630 231h10" />
+<path d="M590 171h-10" />
+<path d="M590 191h-10" />
+<path d="M590 211h-10" />
+<path d="M590 231h-10" />
+<path d="M590 251h-10" />
+<path d="M590 291h-10" />
+<path d="M590 311h-10" />
+<path d="M630 251h10" />
+<path d="M630 271h10" />
+<path d="M630 291h10" />
+<path d="M590 331h-10" />
+<path d="M590 351h-10" />
+<path d="M590 371h-10" />
+<path d="M960 399h60v122h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M960 399h60v122h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M971 404v12" />
+<path d="M965 410h12" />
+</g>
+<g stroke="black">
+<path d="M963 402h16v16h-16z" />
+<text x="990" y="397" fill="black" stroke-width="0" text-anchor="middle" dy="-1.6">u_arena_map</text>
+<text x="990" y="523" fill="black" stroke-width="0" text-anchor="middle" dy="9.6">arena_map</text>
+<path d="M950 431h10" />
+<text x="958" y="430" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">clk</text>
+<path d="M950 471h10" />
+<text x="958" y="470" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ctrl_write</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M950 451h10" />
+<text x="958" y="450" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ctrl_addr[12:0]</text>
+<path d="M1030 451h-10" />
+<text x="1022" y="450" fill="black" stroke-width="0" font-size="10" dy="-1.33333">ctrl_read_code[3:0]</text>
+<path d="M950 491h10" />
+<text x="958" y="490" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">ctrl_write_code[3:0]</text>
+<path d="M950 511h10" />
+<text x="958" y="510" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="-1.33333">draw_addr[12:0]</text>
+<path d="M1030 471h-10" />
+<text x="1022" y="470" fill="black" stroke-width="0" font-size="10" dy="-1.33333">draw_code[3:0]</text>
+</g>
+<g stroke="black">
+<path d="M970 431h-10" />
+<path d="M970 471h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M970 451h-10" />
+<path d="M1010 451h10" />
+<path d="M970 491h-10" />
+<path d="M970 511h-10" />
+<path d="M1010 471h10" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M650 231h160v280h140" />
+<path d="M570 171h-120v-80h710v380h-130" />
+<path d="M260 491h150v-200h160" />
+<path d="M260 511h190v-200h120" />
+<path d="M180 531h-130v-220h340v-200h380v140h-120" />
+<path d="M180 551h-170v-140h760v-140h-120" />
+<path d="M180 571h-150v-140h340v20h420v-160h-140" />
+<path d="M260 81h170v110h140" />
+<path d="M260 101h110v110h200" />
+<path d="M260 231h310" />
+<path d="M260 251h310" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M180 101h-170v150h170" />
+<path d="M180 511h-110v-120h360" />
+<path d="M428 389h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M570 271h-140v160h520" />
+<path d="M180 121h-110v150h110" />
+</g>
+</g>
+</svg>

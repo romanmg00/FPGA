@@ -1,16 +1,13 @@
 // Author: Alan (AIF31).
-// Points and Lives (G5) on clk_juego. A crashed Bike loses a Life; if only one crashed, the
-// other gets +3 (ADR 0011). A Player with no Lives loses; both at once: more Points wins, the
-// same Points is a Draw. Rewards and the Points Goal come with G4.
 module score_unit (
-    input  logic       clk,                    // clk_juego (~60 Hz)
+    input  logic       clk,                    // clk_juego
     input  logic       rst,                    // rst_juego
-    input  logic       new_match,              // 1 tick from match_fsm: a new Match starts
-    input  logic       crash1, crash2,         // from position_logic, on the Step tick
-    output logic [5:0] points_p1, points_p2,   // 0-9 without Rewards; 6 bits hold 45 = 39 + 3 + 3
-    output logic [1:0] lives_p1, lives_p2,     // 3 at the start of a Match
+    input  logic       new_match,             
+    input  logic       crash1, crash2,         
+    output logic [5:0] points_p1, points_p2,   
+    output logic [1:0] lives_p1, lives_p2,     
     output logic [1:0] result,                 // 0 Match on, 1 P1 wins, 2 P2 wins, 3 Draw
-    output logic       match_over              // result != 0
+    output logic       match_over              
 );
 
     logic [5:0] next_points_p1, next_points_p2;

@@ -1,10 +1,4 @@
 // Author: Alan (AIF31).
-// Carries the Scoreboard values from clk_juego to clk_pix, where seg7_driver scans the digits.
-// Each tick, clk_juego loads the 20 bits and flips a toggle; clk_pix synchronizes the toggle and
-// copies the 20 bits when it sees it change. The bits have then been still for 2-3 clk_pix
-// cycles and stay so for the rest of the tick, so they arrive whole (the arena_ctrl answer
-// pattern). No reset: the toggle path must not fake or lose a change, and the values follow
-// sources that are reset.
 module seg7_link (
     input  logic       clk_juego,                   // ~60 Hz
     input  logic [5:0] points_p1, points_p2,        // from score_unit
