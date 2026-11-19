@@ -2,12 +2,12 @@
 module score_unit (
     input  logic       clk,                    // clk_juego
     input  logic       rst,                    // rst_juego
-    input  logic       new_match,             
-    input  logic       crash1, crash2,         
-    output logic [5:0] points_p1, points_p2,   
-    output logic [1:0] lives_p1, lives_p2,     
+    input  logic       new_match,
+    input  logic       crash1, crash2,
+    output logic [5:0] points_p1, points_p2,
+    output logic [1:0] lives_p1, lives_p2,
     output logic [1:0] result,                 // 0 Match on, 1 P1 wins, 2 P2 wins, 3 Draw
-    output logic       match_over              
+    output logic       match_over
 );
 
     logic [5:0] next_points_p1, next_points_p2;

@@ -8,7 +8,7 @@ Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a
 - **Game:** a ~60 Hz clock (`clk_juego`).
 - **Inputs:** P1 turns with the board buttons. P2 goes straight for now: its input, a web page over the USB-UART, is planned.
 - **Not yet:** Rewards (G4).
-- **Board status:** the last build checked on the board, on 17 November 2026, is from before `pos_link` (X1, #48): [`bitstreams/README.md`](bitstreams/README.md). The build with `pos_link` has not been checked on the board.
+- **Board status:** the last build checked on the board is Z1, on 19 November 2026, with `pos_link` (X1, #48): `game_top_z1_19nov.bit`, in [`bitstreams/README.md`](bitstreams/README.md).
 
 **Where the rules come from:**
 - [Agreed specification of 20 October](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md): the rules, locked.
@@ -61,7 +61,7 @@ flowchart LR
 The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Analysis → Schematic*) of the elaborated design, exported by [`schematics.tcl`](schematics.tcl).
 - Only module instances are drawn. The logic between them is left out, so a dashed line is a net that passes through logic not shown.
 - Open an SVG on its own to zoom in.
-- Redrawn on 18 November 2026 with the [renamed signals](#renamed-signals); pages 4 and 5 added on 19 November. `round_fsm` is Roman's, so page 2 still shows its `s`, `c` and `t` inputs.
+- Redrawn on 19 November 2026 from `main` with `pos_link` (X1, #48) and the [renamed signals](#renamed-signals); pages 4 and 5 are new. `round_fsm` is Roman's, so page 2 still shows its `s`, `c` and `t` inputs.
 
 | Page | Shows |
 |---|---|
@@ -69,7 +69,7 @@ The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Anal
 | [`2-position_logic.svg`](diagrams/2-position_logic.svg) | Inside `position_logic`: `round_fsm`, the two `step_counter`s and the two `bike_move`s |
 | [`3-scoreboard.svg`](diagrams/3-scoreboard.svg) | The Match and the Scoreboard: `match_fsm`, `score_unit`, `seg7_view`, `seg7_link`, `seg7_driver` |
 | [`4-arena.svg`](diagrams/4-arena.svg) | The Arena loop: `position_logic` ↔ `arena_link` ↔ `arena_ctrl` → `arena_map` → `drawcon` |
-| [`5-video.svg`](diagrams/5-video.svg) | The picture: both `bike_glide`, `arena_map`'s draw port, `drawcon` and `vga_out` |
+| [`5-video.svg`](diagrams/5-video.svg) | The picture: both `bike_glide`, `pos_link`, `arena_map`'s draw port, `drawcon` and `vga_out` |
 
 ![game_top](diagrams/1-game_top.svg)
 
