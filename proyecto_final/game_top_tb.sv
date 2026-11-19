@@ -1,3 +1,4 @@
+// Author: Alan (AIF31). Changes by Roman (romanmg00): frames checked through pos_link, no tearing (X1, #48).
 // Builder's own check of game_top, mostly from its pins, with sim_clocks/ in place of
 // the pixel Wizard and sim_models/ in place of bike_rom; not the official bench of contract
 // section 7. It checks that the
@@ -130,6 +131,15 @@ module game_top_tb;
 
     always @(posedge dut.clk_juego)
         if (dut.u_arena_link.send_prep === 1'b1) prepares++;
+
+    // What drawcon receives from pos_link is never unknown once rst_pix is low, in every scenario
+    // and from power-up: the 70 ms wait below would otherwise hide it. rst_pix starts high
+    // (board_reset_sync), so this starts with the first clk_pix edges.
+    always @(dut.rst_pix, dut.draw1_x, dut.draw1_y, dut.draw2_x, dut.draw2_y, dut.draw_heading1, dut.draw_heading2)
+        if (dut.rst_pix === 1'b0 && $isunknown({dut.draw1_x, dut.draw1_y, dut.draw2_x, dut.draw2_y,
+                                                dut.draw_heading1, dut.draw_heading2}))
+            fail($sformatf("at %0.3f ms with rst_pix low, pos_link gives drawcon unknown values: P1 (%0d,%0d) P2 (%0d,%0d)",
+                           $realtime / 1e6, dut.draw1_x, dut.draw1_y, dut.draw2_x, dut.draw2_y));
 
     task automatic wait_ticks(int n);
         repeat (n) @(posedge dut.clk_juego);

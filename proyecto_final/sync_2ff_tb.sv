@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Builder's own check of sync_2ff: two clocks of delay, and rst clears both stages.
 `timescale 1ns/1ps
 module sync_2ff_tb;

@@ -1,3 +1,4 @@
+// Author: Roman (romanmg00).
 // Movement of one bike: cell, heading and pending turn. Instantiated once per bike.
 // Headings are clockwise: 0 UP, 1 RIGHT, 2 DOWN, 3 LEFT. Coordinates are in cells.
 module bike_move #(

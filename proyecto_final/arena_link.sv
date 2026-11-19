@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Game-side half of the Arena crossing, on clk_juego. After each Step (and when load rises) it
 // sends the heads to arena_ctrl and gets back the codes of the 4 neighbour Cells of each head.
 // With the Step at edge k: request at k+1, codes and codes_valid at k+4.

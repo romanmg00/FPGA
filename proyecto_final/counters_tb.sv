@@ -1,3 +1,6 @@
+// Author: Roman (romanmg00).
+// Testbench for counters: runs about one frame and prints the time each time the frame wraps
+// (hcnt 1679, vcnt 827). Not self-checking; build_game_top.tcl does not run it.
 module counters_tb ();
 
     reg clk, rst;

@@ -1,3 +1,5 @@
+// Author: Roman (romanmg00), in a bench file Alan (AIF31) started for the moving block (#12).
+// Changes by Alan (AIF31): Arena codes (#40) and Crash Step checks (ADR 0011, #39).
 // Self-checking testbench for position_logic with two bikes: round_fsm, step counter, crash
 // timer, both bike_move instances, the wall check and the bike-to-bike crash rules together.
 // It drives clk, the buttons and turn_req2 directly, with no clock divider or Clocking Wizard:

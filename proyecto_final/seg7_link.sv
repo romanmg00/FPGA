@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Carries the Scoreboard values from clk_juego to clk_pix, where seg7_driver scans the digits.
 // Each tick, clk_juego loads the 20 bits and flips a toggle; clk_pix synchronizes the toggle and
 // copies the 20 bits when it sees it change. The bits have then been still for 2-3 clk_pix

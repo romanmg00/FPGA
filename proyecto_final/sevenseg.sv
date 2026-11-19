@@ -1,3 +1,4 @@
+// Author: Alan (AIF31), adapted from his CS-256 homework 1; P, L, G, A and blank added (#34).
 // Seven-segment decoder: num 0-9 shows the digit, 10-13 show P, L, G, A for the Scoreboard
 // and 14-15 are blank. Outputs a-g are active low (0 lights a segment).
 module sevenseg(

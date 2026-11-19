@@ -1,3 +1,4 @@
+// Author: Roman (romanmg00).
 // Self-checking testbench for bike_move.
 // The pending turn is not a port, so it is observed through (next_cx, next_cy):
 // the cell the bike would move to on the next advance.

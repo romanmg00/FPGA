@@ -1,3 +1,4 @@
+// Author: Alan (AIF31).
 // Builder's own check of arena_map: all 8192 words written and read back, port A in exactly
 // 1 cycle and port B in exactly 2, and a port A write with a port B read of the same word
 // (B may return the old or the new word then; nothing may depend on which).
