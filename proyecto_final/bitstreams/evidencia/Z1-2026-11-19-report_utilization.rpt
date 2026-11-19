@@ -1,0 +1,86 @@
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (lin64) Build 3064766 Wed Nov 18 09:12:47 MST 2020
+| Date         : Thu Nov 19 16:30:39 2026
+| Host         : rsws08.kaust.edu.sa running 64-bit Ubuntu 22.04.5 LTS
+| Command      : report_utilization -hierarchical -file /home/mandujre/z1_reports/report_utilization.rpt
+| Design       : game_top
+| Device       : 7a100tcsg324-1
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++------------------------------------------------+--------------------------------------------+------------+------------+---------+------+-----+--------+--------+------------+
+|                    Instance                    |                   Module                   | Total LUTs | Logic LUTs | LUTRAMs | SRLs | FFs | RAMB36 | RAMB18 | DSP Blocks |
++------------------------------------------------+--------------------------------------------+------------+------------+---------+------+-----+--------+--------+------------+
+| game_top                                       |                                      (top) |        835 |        835 |       0 |    0 | 556 |      1 |      2 |          0 |
+|   (game_top)                                   |                                      (top) |          7 |          7 |       0 |    0 |  21 |      0 |      0 |          0 |
+|   g_btn[0].u_sync                              |                                   sync_2ff |          0 |          0 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   g_btn[1].u_sync                              |                                 sync_2ff_0 |          0 |          0 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   g_btn[2].u_sync                              |                                 sync_2ff_1 |          2 |          2 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   g_btn[3].u_sync                              |                                 sync_2ff_2 |          0 |          0 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   g_btn[4].u_sync                              |                                 sync_2ff_3 |          1 |          1 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_arena_ctrl                                 |                                 arena_ctrl |        103 |        103 |       0 |    0 |  81 |      0 |      0 |          0 |
+|     (u_arena_ctrl)                             |                                 arena_ctrl |         97 |         97 |       0 |    0 |  79 |      0 |      0 |          0 |
+|     u_sync_heads_tgl                           |                                sync_2ff_24 |          6 |          6 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_arena_link                                 |                                 arena_link |         15 |         15 |       0 |    0 |  67 |      0 |      0 |          0 |
+|     (u_arena_link)                             |                                 arena_link |         13 |         13 |       0 |    0 |  65 |      0 |      0 |          0 |
+|     u_sync_codes_tgl                           |                                sync_2ff_23 |          2 |          2 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_arena_map                                  |                                  arena_map |          5 |          5 |       0 |    0 |   0 |      1 |      0 |          0 |
+|   u_clk                                        |                                  clk_wiz_0 |          0 |          0 |       0 |    0 |   0 |      0 |      0 |          0 |
+|     inst                                       |                clk_wiz_0_clk_wiz_0_clk_wiz |          0 |          0 |       0 |    0 |   0 |      0 |      0 |          0 |
+|   u_drawcon                                    |                                    drawcon |         21 |         21 |       0 |    0 |   0 |      0 |      2 |          0 |
+|     (u_drawcon)                                |                                    drawcon |         21 |         21 |       0 |    0 |   0 |      0 |      0 |          0 |
+|     bike_rom_1                                 |                                   bike_rom |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|       U0                                       |                bike_rom_blk_mem_gen_v8_4_4 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|         inst_blk_mem_gen                       |          bike_rom_blk_mem_gen_v8_4_4_synth |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|           gnbram.gnativebmg.native_blk_mem_gen |                   bike_rom_blk_mem_gen_top |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|             valid.cstr                         |          bike_rom_blk_mem_gen_generic_cstr |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|               ramloop[0].ram.r                 |            bike_rom_blk_mem_gen_prim_width |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|                 prim_init.ram                  |     bike_rom_blk_mem_gen_prim_wrapper_init |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|     bike_rom_2                                 |                               bike_rom_HD2 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|       U0                                       |            bike_rom_blk_mem_gen_v8_4_4_HD3 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|         inst_blk_mem_gen                       |      bike_rom_blk_mem_gen_v8_4_4_synth_HD4 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|           gnbram.gnativebmg.native_blk_mem_gen |               bike_rom_blk_mem_gen_top_HD5 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|             valid.cstr                         |      bike_rom_blk_mem_gen_generic_cstr_HD6 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|               ramloop[0].ram.r                 |        bike_rom_blk_mem_gen_prim_width_HD7 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|                 prim_init.ram                  | bike_rom_blk_mem_gen_prim_wrapper_init_HD8 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |          0 |
+|   u_glide1                                     |                                 bike_glide |         59 |         59 |       0 |    0 |  54 |      0 |      0 |          0 |
+|   u_glide2                                     |                              bike_glide_16 |         52 |         52 |       0 |    0 |  39 |      0 |      0 |          0 |
+|   u_match_fsm                                  |                                  match_fsm |          9 |          9 |       0 |    0 |   9 |      0 |      0 |          0 |
+|   u_pos_link                                   |                                   pos_link |        130 |        130 |       0 |    0 |  96 |      0 |      0 |          0 |
+|     (u_pos_link)                               |                                   pos_link |        129 |        129 |       0 |    0 |  94 |      0 |      0 |          0 |
+|     u_sync_2ff                                 |                                sync_2ff_22 |          1 |          1 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_position_logic                             |                             position_logic |        239 |        239 |       0 |    0 |  39 |      0 |      0 |          0 |
+|     u_bike_move1                               |                                  bike_move |        163 |        163 |       0 |    0 |  18 |      0 |      0 |          0 |
+|     u_bike_move2                               |                  bike_move__parameterized0 |         55 |         55 |       0 |    0 |   7 |      0 |      0 |          0 |
+|     u_crash_timer                              |                               step_counter |          8 |          8 |       0 |    0 |   7 |      0 |      0 |          0 |
+|     u_round_fsm                                |                                  round_fsm |          8 |          8 |       0 |    0 |   4 |      0 |      0 |          0 |
+|     u_step_counter                             |               step_counter__parameterized0 |          5 |          5 |       0 |    0 |   3 |      0 |      0 |          0 |
+|   u_rst_juego                                  |                           board_reset_sync |          2 |          2 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_rst_pix                                    |                        board_reset_sync_17 |          0 |          0 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_score_unit                                 |                                 score_unit |         32 |         32 |       0 |    0 |  18 |      0 |      0 |          0 |
+|   u_seg7_driver                                |                                seg7_driver |         11 |         11 |       0 |    0 |  20 |      0 |      0 |          0 |
+|     u_multidigit                               |                                 multidigit |         11 |         11 |       0 |    0 |  20 |      0 |      0 |          0 |
+|   u_seg7_link                                  |                                  seg7_link |         26 |         26 |       0 |    0 |  44 |      0 |      0 |          0 |
+|     (u_seg7_link)                              |                                  seg7_link |         25 |         25 |       0 |    0 |  42 |      0 |      0 |          0 |
+|     u_sync_toggle                              |                                sync_2ff_21 |          1 |          1 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_seg7_view                                  |                                  seg7_view |         12 |         12 |       0 |    0 |  12 |      0 |      0 |          0 |
+|   u_sync_goal0                                 |                                sync_2ff_18 |          0 |          0 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_sync_goal1                                 |                                sync_2ff_19 |          0 |          0 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_sync_pause                                 |                                sync_2ff_20 |          2 |          2 |       0 |    0 |   2 |      0 |      0 |          0 |
+|   u_vga_out                                    |                                    vga_out |        128 |        128 |       0 |    0 |  36 |      0 |      0 |          0 |
+|     (u_vga_out)                                |                                    vga_out |          0 |          0 |       0 |    0 |  14 |      0 |      0 |          0 |
+|     c_counter                                  |                                   counters |        128 |        128 |       0 |    0 |  22 |      0 |      0 |          0 |
++------------------------------------------------+--------------------------------------------+------------+------------+---------+------+-----+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

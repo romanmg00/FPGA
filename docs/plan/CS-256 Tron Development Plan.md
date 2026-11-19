@@ -242,10 +242,16 @@ Verified in: TB = testbench, HW = board check.
 
 ## Report evidence
 
-Each Objective's done check includes saving one piece of evidence for the reports: a waveform PNG, a `.ppm` frame, a board photo, or a timing/CDC report excerpt. Files go in `evidence/`, named `<ObjectiveID>-<short-name>.<ext>` (for example `V1-hsync-waveform.png`), and get one line in the log below. Both members’ individual reports draw from the same set.
+Each Objective's done check includes saving one piece of evidence for the reports: a waveform PNG, a `.ppm` frame, a board photo, or a timing/CDC report excerpt. Files go in `evidence/` (in practice, `proyecto_final/bitstreams/evidencia/` next to the bitstream they belong to), named `<ObjectiveID>-<short-name>.<ext>` (for example `V1-hsync-waveform.png`), and get one line in the log below. Both members’ individual reports draw from the same set.
 
 | File | Objective | What it shows | Date |
 |---|---|---|---|
+| [`Z1-2026-11-19-timing_summary.rpt`](../../proyecto_final/bitstreams/evidencia/Z1-2026-11-19-timing_summary.rpt) | Z1 | Routed timing of `main` `a249fd6` (Vivado 2020.2): WNS +3.891 ns, WHS +0.046 ns, 0 failing endpoints | 2026-11-19 |
+| [`Z1-2026-11-19-report_cdc.rpt`](../../proyecto_final/bitstreams/evidencia/Z1-2026-11-19-report_cdc.rpt) | Z1, X1 | No Critical CDC rows after `pos_link`; 3 unconstrained Arena bits pending (Alan) | 2026-11-19 |
+| [`Z1-2026-11-19-report_drc.rpt`](../../proyecto_final/bitstreams/evidencia/Z1-2026-11-19-report_drc.rpt) | Z1 | 0 DRC violations | 2026-11-19 |
+| [`Z1-2026-11-19-check_timing.rpt`](../../proyecto_final/bitstreams/evidencia/Z1-2026-11-19-check_timing.rpt) | Z1 | No unclocked or unconstrained internal endpoints | 2026-11-19 |
+| [`Z1-2026-11-19-report_utilization.rpt`](../../proyecto_final/bitstreams/evidencia/Z1-2026-11-19-report_utilization.rpt) | Z1 | 835 LUTs, 556 FFs, 1 RAMB36 + 2 RAMB18, per module | 2026-11-19 |
+| [Board check of `game_top_z1_19nov.bit`](../../proyecto_final/bitstreams/README.md) | Z1 | Roman's board test: all 8 checks pass | 2026-11-19 |
 
 ## Ownership
 
