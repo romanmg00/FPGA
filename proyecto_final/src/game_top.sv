@@ -46,21 +46,21 @@ module game_top (
     logic [11:0] sw_sync;
 
     // Arena (contract section 3): position_logic <-> arena_link (clk_juego) <-> arena_ctrl
-    // (clk_pix), the only writer of arena_map; drawcon reads arena_map's port B.
+    // (clk_pix), the only writer of arena_map; drawcon reads arena_map's draw_ port.
     logic        load, step, codes_valid;
     logic [3:0]  code1_u, code1_r, code1_d, code1_l, code2_u, code2_r, code2_d, code2_l;
-    logic        req_tgl, req_prepare, ack_tgl;
-    logic [12:0] req_old1, req_old2, req_new1, req_new2;
-    logic [15:0] nbr1, nbr2;
-    logic [12:0] a_addr, arena_addr;
-    logic        a_we;
-    logic [3:0]  a_wdata, a_rdata, arena_code;
+    logic        heads_tgl, prepare, codes_tgl;
+    logic [12:0] old_head_p1, old_head_p2, new_head_p1, new_head_p2;
+    logic [15:0] neighbours_p1, neighbours_p2;
+    logic [12:0] ctrl_addr, arena_addr;
+    logic        ctrl_write;
+    logic [3:0]  ctrl_write_code, ctrl_read_code, arena_code;
 
     // Match (G3/G5) and Scoreboard (ADR 0008), on clk_juego up to seg7_link.
     logic        pause;                         // SW0 on clk_juego
     logic [1:0]  goal_sel;                      // {SW15, SW14} on clk_juego
     logic        crash1, crash2, crash_done;    // position_logic -> match_fsm, score_unit
-    logic        waiting, new_match, restart, start_go;   // match_fsm outputs
+    logic        waiting, new_match, restart, round_start;    // match_fsm outputs
     logic        match_over;                    // score_unit -> match_fsm, position_logic
     logic [5:0]  points_p1, points_p2;          // score_unit -> seg7_link
     logic [1:0]  lives_p1, lives_p2;
@@ -117,8 +117,9 @@ module game_top (
     // position_logic (Bikes to their starts).
     match_fsm u_match_fsm (
         .clk(clk_juego), .rst(rst_juego),
-        .s(btn_sync[4]), .c(crash1 || crash2), .t(crash_done), .m(match_over), .p(pause),
-        .waiting(waiting), .new_match(new_match), .restart(restart), .start_go(start_go)
+        .start_btn(btn_sync[4]), .crash(crash1 || crash2), .crash_done(crash_done),
+        .match_over(match_over), .pause(pause),
+        .waiting(waiting), .new_match(new_match), .restart(restart), .round_start(round_start)
     );
 
     // Points and Lives (G5)
@@ -136,7 +137,7 @@ module game_top (
         // Inputs 
         .clk(clk_juego),
         .rst(rst_juego || restart),
-        .btn({start_go, btn_sync[3:0]}),    // Start only through match_fsm
+        .btn({round_start, btn_sync[3:0]}), // Start only through match_fsm
         .turn_req2(4'b0000),
         .pause(pause),
         .match_over(match_over),
@@ -167,46 +168,50 @@ module game_top (
         .code1_u(code1_u), .code1_r(code1_r), .code1_d(code1_d), .code1_l(code1_l),
         .code2_u(code2_u), .code2_r(code2_r), .code2_d(code2_d), .code2_l(code2_l),
         .codes_valid(codes_valid),
-        .req_tgl(req_tgl), .req_prepare(req_prepare),
-        .req_old1(req_old1), .req_old2(req_old2), .req_new1(req_new1), .req_new2(req_new2),
-        .ack_tgl(ack_tgl), .nbr1(nbr1), .nbr2(nbr2)
+        .heads_tgl(heads_tgl), .prepare(prepare),
+        .old_head_p1(old_head_p1), .old_head_p2(old_head_p2),
+        .new_head_p1(new_head_p1), .new_head_p2(new_head_p2),
+        .codes_tgl(codes_tgl), .neighbours_p1(neighbours_p1), .neighbours_p2(neighbours_p2)
     );
 
     arena_ctrl u_arena_ctrl (
         .clk(clk_pix), .rst(rst_pix),
-        .req_tgl(req_tgl), .req_prepare(req_prepare),
-        .req_old1(req_old1), .req_old2(req_old2), .req_new1(req_new1), .req_new2(req_new2),
-        .ack_tgl(ack_tgl), .nbr1(nbr1), .nbr2(nbr2),
-        .a_addr(a_addr), .a_we(a_we), .a_wdata(a_wdata), .a_rdata(a_rdata)
+        .heads_tgl(heads_tgl), .prepare(prepare),
+        .old_head_p1(old_head_p1), .old_head_p2(old_head_p2),
+        .new_head_p1(new_head_p1), .new_head_p2(new_head_p2),
+        .codes_tgl(codes_tgl), .neighbours_p1(neighbours_p1), .neighbours_p2(neighbours_p2),
+        .ctrl_addr(ctrl_addr), .ctrl_write(ctrl_write),
+        .ctrl_write_code(ctrl_write_code), .ctrl_read_code(ctrl_read_code)
     );
 
     arena_map u_arena_map (
         .clk(clk_pix),
-        .a_addr(a_addr), .a_we(a_we), .a_wdata(a_wdata), .a_rdata(a_rdata),   // arena_ctrl
-        .b_addr(arena_addr), .b_rdata(arena_code)                             // drawcon
+        .ctrl_addr(ctrl_addr), .ctrl_write(ctrl_write),                        // arena_ctrl
+        .ctrl_write_code(ctrl_write_code), .ctrl_read_code(ctrl_read_code),
+        .draw_addr(arena_addr), .draw_code(arena_code)                         // drawcon
     );
 
     // Each bike's square slides a few pixels every tick toward its current Cell (ADR 0010).
-    bike_glide #(.STEPS(STEP_TICKS)) u_glide1 (
+    bike_glide #(.STEP_TICKS(STEP_TICKS)) u_glide1 (
         // Inputs
         .clk(clk_juego),
         .rst(rst_juego),
-        .pos_x(blkpos1_x),
-        .pos_y(blkpos1_y),
+        .blkpos_x(blkpos1_x),
+        .blkpos_y(blkpos1_y),
         // Outputs
-        .draw_x(glide1_x),
-        .draw_y(glide1_y)
+        .glide_x(glide1_x),
+        .glide_y(glide1_y)
     );
 
-    bike_glide #(.STEPS(STEP_TICKS)) u_glide2 (
+    bike_glide #(.STEP_TICKS(STEP_TICKS)) u_glide2 (
         // Inputs
         .clk(clk_juego),
         .rst(rst_juego),
-        .pos_x(blkpos2_x),
-        .pos_y(blkpos2_y),
+        .blkpos_x(blkpos2_x),
+        .blkpos_y(blkpos2_y),
         // Outputs
-        .draw_x(glide2_x),
-        .draw_y(glide2_y)
+        .glide_x(glide2_x),
+        .glide_y(glide2_y)
     );
 
     // Drawn positions and headings cross from clk_juego to clk_pix (X1, issue #30): a toggle

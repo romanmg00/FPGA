@@ -3,7 +3,7 @@
 // at 12 ns and clk_juego scaled down to ~12,000 clk_pix cycles per tick, with a fractional period
 // so the phase between them drifts. The driver plays position_logic: load, step and the heads
 // change just after a clk_juego edge, and a Step waits while codes_valid = 0 (the proposed
-// policy). A golden Arena is kept from the rules and read back through port B, as drawcon would.
+// policy). A golden Arena is kept from the rules and read back through the draw port, as drawcon would.
 // STEP_TICKS comes from +step_ticks=N (default 8). Not the official bench of contract section 7.
 `timescale 1ns/1ps
 module arena_tb;
@@ -17,22 +17,22 @@ module arena_tb;
     logic [3:0]  code1_u, code1_r, code1_d, code1_l, code2_u, code2_r, code2_d, code2_l;
     logic        codes_valid;
     // the crossing
-    logic        req_tgl, req_prepare, ack_tgl;
-    logic [12:0] req_old1, req_old2, req_new1, req_new2;
-    logic [15:0] nbr1, nbr2;
+    logic        heads_tgl, prepare, codes_tgl;
+    logic [12:0] old_head_p1, old_head_p2, new_head_p1, new_head_p2;
+    logic [15:0] neighbours_p1, neighbours_p2;
     // arena_map
-    logic [12:0] a_addr, b_addr = '0;
-    logic        a_we;
-    logic [3:0]  a_wdata, a_rdata, b_rdata;
+    logic [12:0] ctrl_addr, draw_addr = '0;
+    logic        ctrl_write;
+    logic [3:0]  ctrl_write_code, ctrl_read_code, draw_code;
 
     logic [3:0]  gold [0:8191];
     int          ST = 8;              // ticks per Step
     int          tk = 0;              // clk_juego rising edges so far
     int          last_step = 0;       // tick of the last Step edge or of the Start
-    int          want_reqs = 0;       // Steps and Prepares the driver has caused
-    int          reqs = 0;            // toggles of req_tgl seen
+    int          want_heads_sent = 0;       // Steps and Prepares the driver has caused
+    int          heads_sent = 0;            // toggles of heads_tgl seen
     int          checks = 0;
-    logic        req_last = 1'b0;
+    logic        heads_tgl_last = 1'b0;
 
     assign blkpos1_x = {cx1, 4'b0000};
     assign blkpos1_y = {1'b0, cy1, 4'b0000};
@@ -43,13 +43,13 @@ module arena_tb;
         .clk(clk_juego), .rst(rst_juego), .load, .step,
         .blkpos1_x, .blkpos1_y, .blkpos2_x, .blkpos2_y,
         .code1_u, .code1_r, .code1_d, .code1_l, .code2_u, .code2_r, .code2_d, .code2_l, .codes_valid,
-        .req_tgl, .req_prepare, .req_old1, .req_old2, .req_new1, .req_new2,
-        .ack_tgl, .nbr1, .nbr2);
+        .heads_tgl, .prepare, .old_head_p1, .old_head_p2, .new_head_p1, .new_head_p2,
+        .codes_tgl, .neighbours_p1, .neighbours_p2);
     arena_ctrl u_ctrl (
-        .clk(clk_pix), .rst(rst_pix), .req_tgl, .req_prepare,
-        .req_old1, .req_old2, .req_new1, .req_new2, .ack_tgl, .nbr1, .nbr2,
-        .a_addr, .a_we, .a_wdata, .a_rdata);
-    arena_map u_map (.clk(clk_pix), .a_addr, .a_we, .a_wdata, .a_rdata, .b_addr, .b_rdata);
+        .clk(clk_pix), .rst(rst_pix), .heads_tgl, .prepare,
+        .old_head_p1, .old_head_p2, .new_head_p1, .new_head_p2, .codes_tgl, .neighbours_p1, .neighbours_p2,
+        .ctrl_addr, .ctrl_write, .ctrl_write_code, .ctrl_read_code);
+    arena_map u_map (.clk(clk_pix), .ctrl_addr, .ctrl_write, .ctrl_write_code, .ctrl_read_code, .draw_addr, .draw_code);
 
     always #6 clk_pix = ~clk_pix;
     always #72003.7 clk_juego = ~clk_juego;
@@ -97,21 +97,21 @@ module arena_tb;
     endfunction
 
     // Monitors. Whenever codes_valid = 1 the codes are those of the current heads; the bundle
-    // never changes while a request is open; every req_tgl toggle is counted.
+    // never changes while a request is open; every heads_tgl toggle is counted.
     logic [52:0] bundle, bundle_prev;
     logic        open_prev = 1'b0;
-    assign bundle = {req_prepare, req_old1, req_old2, req_new1, req_new2};
+    assign bundle = {prepare, old_head_p1, old_head_p2, new_head_p1, new_head_p2};
     always @(posedge clk_pix) begin
         if (bundle !== bundle_prev && open_prev)
             fail("the request changed while it was open");
         bundle_prev = bundle;
-        open_prev   = (req_tgl !== ack_tgl);
+        open_prev   = (heads_tgl !== codes_tgl);
     end
     always @(posedge clk_juego) begin
         #2;
-        if (req_tgl !== req_last) begin
-            reqs++;
-            req_last = req_tgl;
+        if (heads_tgl !== heads_tgl_last) begin
+            heads_sent++;
+            heads_tgl_last = heads_tgl;
         end
         if (codes_valid) begin
             if ({code1_u, code1_r, code1_d, code1_l} !== gold_nbr(head1()))
@@ -127,15 +127,15 @@ module arena_tb;
         #1;
     endtask
 
-    // The full Arena through port B (latency 2), against the golden copy. ~0.7 tick.
+    // The full Arena through the draw port (latency 2), against the golden copy. ~0.7 tick.
     task automatic scan(string what);
         for (int i = 0; i <= 8192; i++) begin
             @(negedge clk_pix);
-            if (i < 8192) b_addr = 13'(i);
+            if (i < 8192) draw_addr = 13'(i);
             @(posedge clk_pix); #1;
-            if (i >= 1 && b_rdata !== gold[i - 1])
+            if (i >= 1 && draw_code !== gold[i - 1])
                 fail($sformatf("%s: word %0d (cx %0d, cy %0d) is %0d, expected %0d",
-                               what, i - 1, (i - 1) % 128, (i - 1) / 128, b_rdata, gold[i - 1]));
+                               what, i - 1, (i - 1) % 128, (i - 1) / 128, draw_code, gold[i - 1]));
         end
         checks += 8192;
     endtask
@@ -148,7 +148,7 @@ module arena_tb;
             if (codes_valid !== (t == 4))
                 fail($sformatf("%s: codes_valid = %b at event + %0d", what, codes_valid, t));
         end
-        if (reqs != want_reqs) fail($sformatf("%s: %0d requests sent, expected %0d", what, reqs, want_reqs));
+        if (heads_sent != want_heads_sent) fail($sformatf("%s: heads sent %0d times, expected %0d", what, heads_sent, want_heads_sent));
         scan(what);
     endtask
 
@@ -181,7 +181,7 @@ module arena_tb;
         end
         step = 1'b0;
         last_step = tk;
-        want_reqs++;
+        want_heads_sent++;
         gold[o1] = 4'd2;                                // a Bike that did not move: o = head,
         gold[o2] = 4'd4;                                // and the head write comes last
         gold[head1()] = 4'd3;
@@ -200,7 +200,7 @@ module arena_tb;
         load = 1'b1;
         tick();
         cx1 = 7'd20; cy1 = 6'd27; cx2 = 7'd59; cy2 = 6'd27;
-        want_reqs++;
+        want_heads_sent++;
         gold_prepare();
     endtask
 
@@ -220,7 +220,7 @@ module arena_tb;
         tick(); tick();
         rst_juego = 1'b0;
         tick();                                         // event edge: load rises out of reset
-        want_reqs++;
+        want_heads_sent++;
         gold_prepare();
         expect_k4("Prepare after power-up");
         if (gold_nbr(head1()) !== 16'h0000 || gold_nbr(head2()) !== 16'h0000) fail("start neighbours are not EMPTY");
@@ -276,9 +276,9 @@ module arena_tb;
         while (!codes_valid) begin
             tick();
             if (++guard > 12) fail("no codes after the waiting Prepare");
-            if (codes_valid && reqs != want_reqs) fail("codes_valid before the Prepare was sent");
+            if (codes_valid && heads_sent != want_heads_sent) fail("codes_valid before the Prepare was sent");
         end
-        if (reqs != want_reqs) fail($sformatf("%0d requests, expected %0d", reqs, want_reqs));
+        if (heads_sent != want_heads_sent) fail($sformatf("heads sent %0d times, expected %0d", heads_sent, want_heads_sent));
         scan("Prepare that waited behind a held Step");
 
         // ---- Round 3: a CPU reset short enough to reach only clk_pix, in the middle of the
@@ -314,7 +314,7 @@ module arena_tb;
         tick(); tick();
         rst_juego = 1'b0;
         tick();                                         // event edge: load rises out of reset
-        want_reqs++;
+        want_heads_sent++;
         gold_prepare();
         expect_k4("Prepare after a full reset");
 
@@ -326,9 +326,9 @@ module arena_tb;
         if (gold[head1()] !== 4'd3 || gold[head2()] !== 4'd5) fail("golden double Crash");
 
         repeat (4) tick();
-        if (ack_tgl !== req_tgl) fail("a request is still open at the end");
-        if (reqs != want_reqs) fail($sformatf("%0d requests, expected %0d", reqs, want_reqs));
-        $display("PASS arena_tb STEP_TICKS=%0d (%0d requests, %0d checks)", ST, reqs, checks);
+        if (codes_tgl !== heads_tgl) fail("a request is still open at the end");
+        if (heads_sent != want_heads_sent) fail($sformatf("heads sent %0d times, expected %0d", heads_sent, want_heads_sent));
+        $display("PASS arena_tb STEP_TICKS=%0d (heads sent %0d times, %0d checks)", ST, heads_sent, checks);
         $finish;
     end
 

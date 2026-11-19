@@ -42,13 +42,13 @@ Run these before and after any change; all run in the Vivado container through t
 1. **Board, current build.** Program the board and look for colour fringes at sprite and Cell edges, particularly on Bikes moving over Trails. Record the result in `game/FINDINGS.md` section 5. If there are no fringes, option A remains viable for the demo.
 2. **Default-strategy margin.** Rebuild once with the default implementation strategy (comment out `run_tron.tcl:144`) and record the worst VGA pad slack. If it still fails, the design depends on `Performance_Explore`.
 3. **Pad paths after a change.** In `timing_summary.rpt`, under "Path Group: \*\*default\*\*, From Clock: clk_out1_tron_pixel_clock", record the ten worst VGA pad slacks and their sources, as in the table above.
-4. **Raster alignment.** `proyecto_final/prototypes/core_blocks/run_xsim.sh vga_out_check_tb prototypes/core_blocks/video/vga_out_check_tb.sv vga_out.sv counters.sv` must still pass. For option B it needs the new one-cycle lead; for option C it should pass unchanged.
+4. **Raster alignment.** `proyecto_final/prototypes/core_blocks/run_xsim.sh vga_out_check_tb prototypes/core_blocks/video/vga_out_check_tb.sv src/vga_out.sv src/counters.sv` must still pass. For option B it needs the new one-cycle lead; for option C it should pass unchanged.
 5. **Picture content.** `game/run_system.sh` (`tron_system_tb`, 43 checks) must still pass. Its sprite checks catch an off-by-one look-ahead: a Bike or Reward shifted by one pixel fails them.
 6. **No new CDC or methodology rows.** Compare `report_cdc_summary.rpt` and `report_methodology.rpt` with the current evidence in `game/evidence/` and `crossing/evidence/`.
 
 ## Related
 
-- `proyecto_final/vga_out.sv`, `proyecto_final/prototypes/core_blocks/game/drawcon_game.sv` (look-ahead comments at the top).
+- `proyecto_final/src/vga_out.sv`, `proyecto_final/prototypes/core_blocks/game/drawcon_game.sv` (look-ahead comments at the top).
 - `proyecto_final/prototypes/core_blocks/video/FINDINGS.md`: the 29 October change from registered to combinational outputs.
 - `proyecto_final/prototypes/core_blocks/game/FINDINGS.md`: section 1 (deviation), section 3 (worst setup path) and section 5 (board checklist).
 - Interface contract, §3 and §4 (`curr_x`, `curr_y`, `draw_*` rows).

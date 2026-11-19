@@ -1,17 +1,17 @@
 // Author: Alan (AIF31).
-// Builder's own check of arena_map: all 8192 words written and read back, port A in exactly
-// 1 cycle and port B in exactly 2, and a port A write with a port B read of the same word
-// (B may return the old or the new word then; nothing may depend on which).
+// Builder's own check of arena_map: all 8192 words written and read back, the ctrl port in exactly
+// 1 cycle and the draw port in exactly 2, and a ctrl port write with a draw port read of the same word
+// (the draw port may return the old or the new word then; nothing may depend on which).
 // Not the official bench of contract section 7.
 `timescale 1ns/1ps
 module arena_map_tb;
     logic        clk = 1'b0;
-    logic [12:0] a_addr = '0, b_addr = '0;
-    logic        a_we = 1'b0;
-    logic [3:0]  a_wdata = '0, a_rdata, b_rdata;
+    logic [12:0] ctrl_addr = '0, draw_addr = '0;
+    logic        ctrl_write = 1'b0;
+    logic [3:0]  ctrl_write_code = '0, ctrl_read_code, draw_code;
     int          checks = 0;
 
-    arena_map dut (.clk, .a_addr, .a_we, .a_wdata, .a_rdata, .b_addr, .b_rdata);
+    arena_map dut (.clk, .ctrl_addr, .ctrl_write, .ctrl_write_code, .ctrl_read_code, .draw_addr, .draw_code);
     always #6 clk = ~clk;
 
     // Neighbouring addresses always hold different words, so a read one cycle early or late fails.
@@ -33,23 +33,23 @@ module arena_map_tb;
     task automatic write_all(int seed);
         for (int i = 0; i < 8192; i++) begin
             @(negedge clk);
-            a_addr = 13'(i); a_we = 1'b1; a_wdata = pattern(i, seed);
+            ctrl_addr = 13'(i); ctrl_write = 1'b1; ctrl_write_code = pattern(i, seed);
         end
-        @(negedge clk) a_we = 1'b0;
+        @(negedge clk) ctrl_write = 1'b0;
     endtask
 
-    // A reads up, B reads down, one address per cycle. After rising edge n, a_rdata must be the
-    // word whose address was presented before edge n, and b_rdata the one presented before n-1.
+    // ctrl reads up, draw reads down, one address per cycle. After rising edge n, ctrl_read_code must be the
+    // word whose address was presented before edge n, and draw_code the one presented before n-1.
     task automatic read_all(int seed);
         int b_prev = -1;
         for (int i = 0; i <= 8192; i++) begin
             @(negedge clk);
-            if (i < 8192) begin a_addr = 13'(i); b_addr = 13'(8191 - i); end
+            if (i < 8192) begin ctrl_addr = 13'(i); draw_addr = 13'(8191 - i); end
             edge_check();
-            if (i < 8192 && a_rdata !== pattern(i, seed))
-                fail($sformatf("port A word %0d: read %0d, expected %0d", i, a_rdata, pattern(i, seed)));
-            if (b_prev >= 0 && b_rdata !== pattern(b_prev, seed))
-                fail($sformatf("port B word %0d: read %0d, expected %0d (2 cycles)", b_prev, b_rdata, pattern(b_prev, seed)));
+            if (i < 8192 && ctrl_read_code !== pattern(i, seed))
+                fail($sformatf("ctrl port word %0d: read %0d, expected %0d", i, ctrl_read_code, pattern(i, seed)));
+            if (b_prev >= 0 && draw_code !== pattern(b_prev, seed))
+                fail($sformatf("draw port word %0d: read %0d, expected %0d (2 cycles)", b_prev, draw_code, pattern(b_prev, seed)));
             b_prev = (i < 8192) ? 8191 - i : -1;
             checks += 2;
         end
@@ -62,23 +62,23 @@ module arena_map_tb;
         read_all(5);
 
         // Port B holds its address: the word shows 2 edges later, not 1.
-        @(negedge clk) b_addr = 13'd100; a_addr = 13'd101;
+        @(negedge clk) draw_addr = 13'd100; ctrl_addr = 13'd101;
         edge_check();
-        if (b_rdata === pattern(100, 5)) fail("port B answered after 1 cycle");
+        if (draw_code === pattern(100, 5)) fail("draw port answered after 1 cycle");
         edge_check();
-        if (b_rdata !== pattern(100, 5)) fail("port B did not answer after 2 cycles");
+        if (draw_code !== pattern(100, 5)) fail("draw port did not answer after 2 cycles");
 
         // Same word: A writes 9 while B reads it. A reads the old word at that edge (read first);
         // B returns the old or the new word; both read the new word afterwards.
-        @(negedge clk) a_addr = 13'd3000; b_addr = 13'd3000; a_we = 1'b1; a_wdata = 4'd9;
+        @(negedge clk) ctrl_addr = 13'd3000; draw_addr = 13'd3000; ctrl_write = 1'b1; ctrl_write_code = 4'd9;
         edge_check();
-        if (a_rdata !== pattern(3000, 5)) fail("port A during its own write did not read the old word");
-        @(negedge clk) a_we = 1'b0;
+        if (ctrl_read_code !== pattern(3000, 5)) fail("ctrl port during its own write did not read the old word");
+        @(negedge clk) ctrl_write = 1'b0;
         edge_check();
-        if (b_rdata !== pattern(3000, 5) && b_rdata !== 4'd9) fail("port B read during the write returned neither word");
-        if (a_rdata !== 4'd9) fail("port A one cycle after the write did not read the new word");
+        if (draw_code !== pattern(3000, 5) && draw_code !== 4'd9) fail("draw port read during the write returned neither word");
+        if (ctrl_read_code !== 4'd9) fail("ctrl port one cycle after the write did not read the new word");
         edge_check();
-        if (b_rdata !== 4'd9) fail("port B after the write did not read the new word");
+        if (draw_code !== 4'd9) fail("draw port after the write did not read the new word");
         checks += 4;
 
         $display("PASS arena_map_tb (%0d checks)", checks);

@@ -20,7 +20,7 @@ Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a
 
 ## Block diagram
 
-Blocks are grouped by clock domain. A thick arrow is a crossing between the two clocks.
+Blocks are grouped by clock domain. A thick arrow is a crossing between the two clocks. Arrows are labelled with the signal names in `game_top`.
 
 ```mermaid
 flowchart LR
@@ -30,26 +30,27 @@ flowchart LR
     pins([btn, sw, CPU_RESETN]) --> sync[sync_2ff, board_reset_sync]
     sync --> J
     subgraph J [clk_juego, ~60 Hz]
-        mf[match_fsm] -->|Start, restart| pl[position_logic<br/>round_fsm, step_counter,<br/>bike_move x2]
+        mf[match_fsm] -->|round_start, restart| pl[position_logic<br/>round_fsm, step_counter,<br/>bike_move x2]
         pl -->|crash1, crash2| su[score_unit]
+        pl -->|crash1 or crash2, crash_done| mf
         su -->|match_over| mf
-        pl --> gl[bike_glide x2]
-        mf --> sv[seg7_view]
+        pl -->|blkpos1_x/y, blkpos2_x/y| gl[bike_glide x2]
+        mf -->|waiting, new_match| sv[seg7_view]
         al[arena_link]
-        pl <--> al
+        pl <-->|load, step / code1_u…code2_l, codes_valid| al
     end
     subgraph P [clk_pix, 83.46 MHz]
-        ac[arena_ctrl] --> am[(arena_map)]
-        am -->|Trails| dc[drawcon<br/>bike_rom x2]
+        ac[arena_ctrl] -->|ctrl_addr, ctrl_write, ctrl_write_code| am[(arena_map)]
+        am -->|arena_code: Trails| dc[drawcon<br/>bike_rom x2]
         dc --> vo[vga_out<br/>counters]
         sd[seg7_driver<br/>multidigit, sevenseg]
     end
-    al <==>|toggle + copy| ac
+    al <==>|heads_tgl / codes_tgl| ac
     su ==> sl[seg7_link]
     sv ==> sl
-    sl ==>|toggle + copy| sd
-    gl ==> pk[pos_link]
-    pl ==>|Headings| pk
+    sl ==>|*_pix copies| sd
+    gl ==>|glide1_x/y, glide2_x/y| pk[pos_link]
+    pl ==>|heading1, heading2| pk
     pk ==>|toggle + copy, then at row 800| dc
     vo --> vga([VGA])
     sd --> seg([seg, an])
@@ -60,12 +61,15 @@ flowchart LR
 The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Analysis → Schematic*) of the elaborated design, exported by [`schematics.tcl`](schematics.tcl).
 - Only module instances are drawn. The logic between them is left out, so a dashed line is a net that passes through logic not shown.
 - Open an SVG on its own to zoom in.
+- Redrawn on 18 November 2026 with the [renamed signals](#renamed-signals). `round_fsm` is Roman's, so page 2 still shows its `s`, `c` and `t` inputs.
 
 | Page | Shows |
 |---|---|
 | [`1-game_top.svg`](diagrams/1-game_top.svg) | Every block in `game_top` except the synchronizers, with the board pins |
 | [`2-position_logic.svg`](diagrams/2-position_logic.svg) | Inside `position_logic`: `round_fsm`, the two `step_counter`s and the two `bike_move`s |
 | [`3-scoreboard.svg`](diagrams/3-scoreboard.svg) | The Match and the Scoreboard: `match_fsm`, `score_unit`, `seg7_view`, `seg7_link`, `seg7_driver` |
+
+![game_top](diagrams/1-game_top.svg)
 
 ![position_logic](diagrams/2-position_logic.svg)
 
@@ -85,8 +89,8 @@ The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Anal
 | CPU_RESETN | pin → each clock | `board_reset_sync`, one per domain | false path to the first flip-flop |
 | Buttons, SW0, SW14–SW15 | pins → `clk_juego` | `sync_2ff` | false path to the first flip-flop |
 | SW0–SW11 | pins → `clk_pix` | `sync_2ff` | false path to the first flip-flop |
-| Arena requests and codes | `clk_juego` ↔ `clk_pix` | `arena_link` / `arena_ctrl`: a toggle through `sync_2ff`; the data is copied only after the toggle changes | `set_max_delay -datapath_only` of one pixel period (11.982 ns) |
-| Scoreboard values (20 bits) | `clk_juego` → `clk_pix` | `seg7_link`: the same toggle and copy | the same one-pixel bound |
+| Arena heads and neighbour codes | `clk_juego` ↔ `clk_pix` | `arena_link` sends the heads with `heads_tgl`; `arena_ctrl` answers with `codes_tgl`. Each toggle goes through `sync_2ff`, and the data is copied only after it changes | `set_max_delay -datapath_only` of one pixel period (11.982 ns) |
+| Scoreboard values (20 bits) | `clk_juego` → `clk_pix` | `seg7_link`: the same toggle (`tick_toggle`) and copy | the same one-pixel bound |
 | Drawn Bike positions and Headings (48 bits) | `clk_juego` → `clk_pix` (`drawcon`, `bike_rom`) | `pos_link` (X1, [issue #30](https://github.com/romanmg00/FPGA/issues/30)): a toggle that flips every tick goes through `sync_2ff`; when it changes, the values are copied to `pend*`, and at `curr_y == 800` (vertical blanking) to the `draw*` registers `drawcon` reads, so a whole frame is drawn with one set | two `set_max_delay -datapath_only` of one pixel period: the toggle to `sync_2ff`, and the `bike_glide`/`bike_move` registers to `pend*` |
 
 ## Controls
@@ -152,7 +156,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 
 ## Simulate and build
 
-`build_game_top.tcl` runs every testbench and builds `game_top` from the repository, with no Vivado project needed beforehand. It needs Linux and full Vivado.
+`build_game_top.tcl` runs the self-checking testbenches (all but `counters_tb`) and builds `game_top` from the repository, with no Vivado project needed beforehand. It needs Linux and full Vivado.
 
 1. From the repository root, pick a new output folder and a mode:
 
@@ -166,7 +170,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
    - **`full`** also creates the IP from the IP Catalog, synthesizes, implements and writes the bitstream.
    - Run `sim` or `full` before every push or PR.
 3. Read the result:
-   - `OUT_DIR/tests/PASS.txt` means every testbench passed.
+   - `OUT_DIR/tests/PASS.txt` means every testbench the mode runs passed (`quick` skips `game_top_tb`).
    - In `full`, `OUT_DIR/BUILD_COMPLETE.txt` and `OUT_DIR/game_top.bit` appear only if routed timing is met. The timing, CDC, DRC and methodology reports are in `OUT_DIR`.
 
 Roman's Vivado project on the remote workstation loads the same files from a clone: see [`comandos_vivado_myws.md`](comandos_vivado_myws.md).
@@ -213,13 +217,46 @@ The files at the top of this folder moved into folders in PR #50 (after 19 Novem
 | `game_top.xdc`, `game_top_timing.xdc` | `proyecto_final/constraints/` |
 | `cs256-project1-fall26.pdf` | [`docs/references/`](../docs/references/cs256-project1-fall26.pdf) |
 
+## Renamed signals
+
+On 18 November 2026 Alan renamed signals in his modules so each name says what it carries, simplified `arena_ctrl`'s and `match_fsm`'s state machines, and shortened the comments in `arena_map`, `arena_ctrl`, `match_fsm`, `drawcon` and `position_logic`. The game behaves the same. The one difference at a port: `arena_ctrl` no longer clears its codes on reset, so `neighbours_p1/p2` hold old values until the next answer, and `arena_link` reads them only on an answer. Older documents, including the contract's §3 and §4, still use the old names. The rules:
+
+- The handout's and the slides' names are kept: `blkpos_x/y`, `curr_x/y`, `draw_r/g/b`, `pix_*`, `hsync`, `vsync`. `bike_glide` now takes `blkpos_x/y`, and no longer outputs `draw_x/y`, which in the handout means the current pixel.
+- Roman's modules (`position_logic`, `round_fsm`, `bike_move`, `drawcon`, `counters`, `vga_out`) keep their code and names; only the comments in `position_logic` and `drawcon` were shortened. The ports they share keep their names: `code1_u`…`code2_l`, `crash1`, `crash2`, `turn_req2`.
+- One signal per Player ends in `_p1`/`_p2` (contract §1). `_last` is a signal one tick earlier, `_tgl` a toggle that crosses clocks, `_sync` its synchronized copy, `_pix` a copy on `clk_pix`, and `_ff` the flip-flop behind an output port.
+
+| Module | Old | New |
+|---|---|---|
+| `arena_map` | `a_addr`, `a_we`, `a_wdata`, `a_rdata` | `ctrl_addr`, `ctrl_write`, `ctrl_write_code`, `ctrl_read_code` (`arena_ctrl`'s port) |
+| | `b_addr`, `b_rdata` | `draw_addr`, `draw_code` (`drawcon`'s port) |
+| | `mem`, `b_word` | `cells`, `draw_code_stage1` |
+| `arena_link` ↔ `arena_ctrl` | `req_tgl`, `ack_tgl` | `heads_tgl`, `codes_tgl` |
+| | `req_prepare` | `prepare` |
+| | `req_old1/2`, `req_new1/2` | `old_head_p1/p2`, `new_head_p1/p2` |
+| | `nbr1/2` | `neighbours_p1/p2` |
+| `arena_ctrl` | `req_sync`, `ack_q` | `heads_tgl_sync`, `codes_tgl_ff` |
+| | `prepare_q`, `old1_q`…`new2_q` | `prepare_pix`, `old_head_p1_pix`…`new_head_p2_pix` |
+| | `st`, `cnt`, `head` | `state`, `count`, `read_head` |
+| | `s_trail1`, `s_trail2`, `s_head1`, `s_head2` | one `s_write`, whose `count` 0–3 picks the write (a Prepare starts at 2) |
+| | `s_done`, `rd_valid` | removed: `s_read` counts 0–8 and takes each code one count after its read |
+| `arena_link` | `req_q`, `ack_sync`, `ack_seen` | `heads_tgl_ff`, `codes_tgl_sync`, `codes_tgl_last` |
+| | `load_q`, `prep_wait`, `step_wait` | `load_last`, `prepare_pending`, `step_pending` |
+| | `send_prep`, `answer`, `head1/2` | `send_prepare`, `codes_arrived`, `head_p1/p2` |
+| `match_fsm` | `s`, `c`, `t`, `m`, `p` | `start_btn`, `crash`, `crash_done`, `match_over`, `pause` |
+| | `st`, `nst`, `s_q`, `press` | `state`, `next_state`, `start_btn_last`, `start_press` |
+| | `start_go` | `round_start` |
+| | states `3'd0`…`3'd7` | an `enum`, `s_idle`…`s_start`, as in `round_fsm`; same codes 0–7 |
+| `bike_glide` | `STEPS`, `pos_x/y`, `draw_x/y` | `STEP_TICKS`, `blkpos_x/y`, `glide_x/y` |
+| | `seen_x/y`, `g`, `g_next`, `fx/fy`, `off` | `blkpos_x_last/y_last`, `glide_tick`, `glide_tick_next`, `from_x_next/y_next`, `offset_px` |
+| `seg7_view` | `last_sel`, `sel_changed` | `goal_sel_last`, `goal_sel_changed` |
+
 ## Who wrote what
 
 The first line of each design file, testbench, constraint file and script names who wrote it. For example:
 
 ```systemverilog
-// Author: Roman (romanmg00). Changes by Alan (AIF31): Arena codes and Crashes into Trails (#40),
-// both Bikes stop in a Crash Step (ADR 0011, #39).
+// Author: Roman (romanmg00). Changes by Alan (AIF31): Trails read from arena_map's port B (#40),
+// sprite colour 000 drawn as transparent (#39).
 ```
 
 - **Author** is who wrote the first working version that the file grew from. If that version came from elsewhere, the line says so: "adapted from his CS-256 homework 1", "from Digilent's master XDC".

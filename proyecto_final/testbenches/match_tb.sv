@@ -15,7 +15,7 @@ module match_tb;
     logic        start = 1'b0, pause = 1'b0, codes_valid = 1'b1;
     logic [3:0]  dir = D_NONE;                    // P1's direction buttons
     logic        crash1, crash2, crash_done, match_over;
-    logic        waiting, new_match, restart, start_go;
+    logic        waiting, new_match, restart, round_start;
     logic [5:0]  points_p1, points_p2;
     logic [1:0]  lives_p1, lives_p2, result;
     logic [10:0] p1x, p1y, p2x, p2y;
@@ -23,15 +23,15 @@ module match_tb;
     logic        load, step;
 
     match_fsm u_match_fsm (
-        .clk, .rst, .s(start), .c(crash1 || crash2), .t(crash_done), .m(match_over), .p(pause),
-        .waiting, .new_match, .restart, .start_go
+        .clk, .rst, .start_btn(start), .crash(crash1 || crash2), .crash_done, .match_over, .pause,
+        .waiting, .new_match, .restart, .round_start
     );
     score_unit u_score_unit (
         .clk, .rst, .new_match, .crash1, .crash2,
         .points_p1, .points_p2, .lives_p1, .lives_p2, .result, .match_over
     );
     position_logic #(.STEP_TICKS(STEP)) u_position_logic (
-        .clk, .rst(rst || restart), .btn({start_go, dir}), .turn_req2(4'b0000),
+        .clk, .rst(rst || restart), .btn({round_start, dir}), .turn_req2(4'b0000),
         .pause, .match_over,
         .blkpos1_x(p1x), .blkpos1_y(p1y), .blkpos2_x(p2x), .blkpos2_y(p2y),
         .heading1(h1), .heading2(h2), .crash1, .crash2, .crash_done,
@@ -88,8 +88,8 @@ module match_tb;
             crash_tick = ticks;
         end
         #1;
-        if (!rst && !aligned(u_match_fsm.st, round_st()))
-            fail($sformatf("tick %0d: match_fsm in %0d with round_fsm in %0d", ticks, u_match_fsm.st, round_st()));
+        if (!rst && !aligned(u_match_fsm.state, round_st()))
+            fail($sformatf("tick %0d: match_fsm in %0d with round_fsm in %0d", ticks, u_match_fsm.state, round_st()));
     end
 
     task automatic tick(int n = 1);
@@ -147,7 +147,7 @@ module match_tb;
     // Waits for the end of the 2 s Crash display; returns how many edges it lasted.
     task automatic crash_display(string what, output int lasted);
         int waited = 0;
-        while (u_match_fsm.st == 3'd2) begin
+        while (u_match_fsm.state == 3'd2) begin
             tick();
             if (++waited > 200) fail($sformatf("%s: the Crash display did not end", what));
         end
@@ -174,8 +174,8 @@ module match_tb;
             crash_display($sformatf("Round %0d", r), lasted);
             if (r == 1) base_display = lasted;
             if (lasted != base_display) fail($sformatf("Round %0d: Crash display of %0d ticks, the first was %0d", r, lasted, base_display));
-            if (u_match_fsm.st !== (r == 3 ? 3'd4 : 3'd3))
-                fail($sformatf("Round %0d: after the display match_fsm is in %0d", r, u_match_fsm.st));
+            if (u_match_fsm.state !== (r == 3 ? 3'd4 : 3'd3))
+                fail($sformatf("Round %0d: after the display match_fsm is in %0d", r, u_match_fsm.state));
             if (r < 3) begin
                 tick(2);
                 expect_starts($sformatf("after Round %0d", r));
@@ -185,7 +185,7 @@ module match_tb;
 
         // Match over: the Bikes stay where they crashed and Start does not run a Round...
         tick(3 * 120);
-        if (p1y !== 11'd80 || u_position_logic.run !== 1'b0 || u_match_fsm.st !== 3'd4)
+        if (p1y !== 11'd80 || u_position_logic.run !== 1'b0 || u_match_fsm.state !== 3'd4)
             fail("the Match over did not hold the Bikes and the state");
         // ...also with a press made during Pause, which is not counted later.
         pause = 1'b1;
@@ -193,7 +193,7 @@ module match_tb;
         tick(5);
         pause = 1'b0;
         tick(5);
-        if (u_match_fsm.st !== 3'd4) fail("a Start pressed during Pause began a new Match");
+        if (u_match_fsm.state !== 3'd4) fail("a Start pressed during Pause began a new Match");
         expect_score("Match over, held", 0, 9, 0, 3, 2);
         $display("ok   Match over holds the Bikes; Start in Pause is ignored");
 
@@ -212,7 +212,7 @@ module match_tb;
             expect_score($sformatf("Head-on, Round %0d", r), 0, 0, 3 - r, 3 - r, r == 3 ? 3 : 0);
             crash_display($sformatf("Head-on Round %0d", r), lasted);
         end
-        if (u_match_fsm.st !== 3'd4) fail("the Draw did not end the Match");
+        if (u_match_fsm.state !== 3'd4) fail("the Draw did not end the Match");
 
         // Pause at the last tick of a Step period holds the Step: it comes exactly that many
         // ticks later, and no turn is kept.
@@ -268,12 +268,12 @@ module match_tb;
                 end
                 if (target == 3 || target == 4) crash_display("reset test", lasted);
             end
-            if (u_match_fsm.st !== 3'(target)) fail($sformatf("reset test reached state %0d, not %0d", u_match_fsm.st, target));
+            if (u_match_fsm.state !== 3'(target)) fail($sformatf("reset test reached state %0d, not %0d", u_match_fsm.state, target));
             rst = 1'b1;
             tick();
             rst = 1'b0;
-            if (u_match_fsm.st !== 3'd0 || round_st() != 3 || u_position_logic.run !== 1'b0)
-                fail($sformatf("reset in state %0d: match_fsm %0d, round_fsm %0d", target, u_match_fsm.st, round_st()));
+            if (u_match_fsm.state !== 3'd0 || round_st() != 3 || u_position_logic.run !== 1'b0)
+                fail($sformatf("reset in state %0d: match_fsm %0d, round_fsm %0d", target, u_match_fsm.state, round_st()));
             expect_score($sformatf("reset in state %0d", target), 0, 0, 3, 3, 0);
             expect_starts($sformatf("reset in state %0d", target));
         end

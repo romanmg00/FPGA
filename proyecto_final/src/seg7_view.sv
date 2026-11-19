@@ -12,18 +12,18 @@ module seg7_view #(parameter int VIEW_TICKS = 180) (   // 180 ticks at 59.99997 
 );
 
     logic [7:0] timer;      // counts 0 to VIEW_TICKS-1 (8 bits hold up to 255)
-    logic [1:0] last_sel;   // goal_sel one tick earlier
-    logic       sel_changed;
+    logic [1:0] goal_sel_last;      // goal_sel one tick earlier
+    logic       goal_sel_changed;
 
     // Reset gives 00, the switch synchronizers' reset value
     always_ff @(posedge clk)
     begin
         if (rst)
-            last_sel <= 2'b00;
+            goal_sel_last <= 2'b00;
         else
-            last_sel <= goal_sel;
+            goal_sel_last <= goal_sel;
     end
-    assign sel_changed = (goal_sel != last_sel);
+    assign goal_sel_changed = (goal_sel != goal_sel_last);
 
     // Priority: reset or a new Match, then a switch change while waiting, then the timer.
     always_ff @(posedge clk)
@@ -33,7 +33,7 @@ module seg7_view #(parameter int VIEW_TICKS = 180) (   // 180 ticks at 59.99997 
             view  <= 2'd0;          // Points
             timer <= 8'd0;
         end
-        else if (waiting && sel_changed)
+        else if (waiting && goal_sel_changed)
         begin
             view  <= 2'd2;          // Goal
             timer <= 8'd0;

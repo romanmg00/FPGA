@@ -18,14 +18,15 @@ set_false_path -from [get_ports {sw[*]}] -to [get_cells {u_sync_pause/meta_reg u
 ## varios ciclos quietos. Como en la arena, aqui se acota su retardo a un periodo de clk_pix.
 ## build_game_top.tcl revisa que ningun origen ni destino quede vacio.
 set_max_delay -datapath_only 11.982 -from [get_cells u_pos_link/pos_tgl_reg] -to [get_cells u_pos_link/u_sync_2ff/meta_reg]
-set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/draw_*_reg[*] u_position_logic/u_bike_move*/heading_reg[*]}] -to [get_cells {u_pos_link/pend*_reg[*]}]
+set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/glide_x_reg[*] u_glide*/glide_y_reg[*] u_position_logic/u_bike_move*/heading_reg[*]}] -to [get_cells {u_pos_link/pend*_reg[*]}]
 
 ## Cruce de la arena (contrato, sección 3). clk_juego y clk_pix no tienen un periodo común que
 ## Vivado pueda expandir, así que esas rutas se tratan como asíncronas: los toggles van a
-## sync_2ff y el pedido y los códigos se copian solo después de su toggle; aquí se acota su retardo.
-set_max_delay -datapath_only 11.982 -from [get_cells u_arena_link/req_q_reg] -to [get_cells u_arena_ctrl/u_sync_req/meta_reg]
-set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_link/req_*_reg*}] -to [get_cells {u_arena_ctrl/*_q_reg*}]
-set_max_delay -datapath_only 11.982 -from [get_cells u_arena_ctrl/ack_q_reg] -to [get_cells u_arena_link/u_sync_ack/meta_reg]
+## sync_2ff, y las cabezas y los códigos se copian solo después de su toggle; aquí se acota su retardo.
+## heads_tgl lleva las cabezas de arena_link a arena_ctrl (copias *_pix); codes_tgl devuelve los códigos.
+set_max_delay -datapath_only 11.982 -from [get_cells u_arena_link/heads_tgl_ff_reg] -to [get_cells u_arena_ctrl/u_sync_heads_tgl/meta_reg]
+set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_link/prepare_reg u_arena_link/old_head_p*_reg[*] u_arena_link/new_head_p*_reg[*]}] -to [get_cells {u_arena_ctrl/*_pix_reg*}]
+set_max_delay -datapath_only 11.982 -from [get_cells u_arena_ctrl/codes_tgl_ff_reg] -to [get_cells u_arena_link/u_sync_codes_tgl/meta_reg]
 set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_ctrl/codes_reg[*]}] -to [get_cells {u_arena_link/codes_reg[*]}]
 
 ## Cruce del marcador (seg7_link, ADR 0008): clk_juego carga los 20 bits y cambia un toggle; clk_pix

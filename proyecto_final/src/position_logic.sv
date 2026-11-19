@@ -1,65 +1,49 @@
-// Author: Roman (romanmg00). Changes by Alan (AIF31): Arena codes and Crashes into Trails (#40),
-// both Bikes stop in a Crash Step (ADR 0011, #39).
-// Position logic for the two bikes: from the buttons to the position on screen.
-// It keeps the role and ports of the handout's position_logic, but the bike now moves on
-// its own in rounds instead of following the buttons. Everything runs on clk_juego (~60 Hz).
-// See the "position logic" figure in the report.
-//
-// Flow: buttons -> turn_req -> bike_move -> next_cx/next_cy -> wall, bikes and Arena check
-//       -> advance (move) or crash. step_counter sets how often a step happens.
-// The Arena (arena_link in game_top) gives the codes of the 4 neighbour Cells of each head;
-// the code of the next Cell decides whether it is occupied (contract section 3).
+// Author: Roman (romanmg00): Rounds, Steps, Turns, both Bikes, the wall and Bike-to-Bike Crashes
+// Changes by Alan (AIF31): Crashes into Trails and heads (#40), both Bikes stop in a Crash (#39)
+// Flow: buttons -> bike_move (next Cell) -> wall, Bike and
+// Arena checks -> advance, or Crash.
 module position_logic #(
-    // Ticks of clk_juego per step. game_top passes the same value to bike_glide (ADR 0010).
-    parameter int STEP_TICKS = 8,
-    // P2's start column. Only a testbench changes it, to arrange a same-target crash.
-    parameter logic [6:0] P2_START_CX = 7'd59
+    parameter int STEP_TICKS = 8,               // ticks per Step (ADR 0010)
+    parameter logic [6:0] P2_START_CX = 7'd59   // P2's start column
 ) (
-    input  logic        clk,                    // clk_juego (~60 Hz)
-    input  logic        rst,                    // rst_juego, synchronous, active high
-    input  logic [4:0]  btn,                    // synchronised buttons: [0] U, [1] D, [2] L, [3] R, [4] centre
-    input  logic [3:0]  turn_req2,              // turn requests for bike 2 (from keyboard) [0] U, [1] R, [2] D, [3] L
-    input  logic        pause,                  // SW0 (synchronised): no steps, no turns, the crash pause holds
-    input  logic        match_over,             // score_unit: the match ended, round_fsm stays in s_crash
-    output logic [10:0] blkpos1_x,              // top-left corner of the bike 1, in pixels
-    output logic [10:0] blkpos1_y,              // top-left corner of the bike 1, in pixels
-    output logic [10:0] blkpos2_x,              // top-left corner of the bike 2, in pixels
-    output logic [10:0] blkpos2_y,              // top-left corner of the bike 2, in pixels
-    output logic [1:0]  heading1, heading2,     // bike direction: 0 U, 1 R, 2 D, 3 L (for the sprites)
-    output logic        crash1, crash2,         // crash check -> round_fsm (c), score_unit: the bike crashed on this step
-    output logic        crash_done,             // u_crash_timer -> round_fsm (t), match_fsm: the crash pause is over
-    // Arena (arena_link): load and step go out; the neighbour codes of each head come back
-    output logic        load,                   // Bikes at their starts; its rise prepares the Arena
-    output logic        step,                   // the Step taken: the Bikes move at this edge
-    input  logic [3:0]  code1_u, code1_r, code1_d, code1_l,   // neighbours of bike 1's head
-    input  logic [3:0]  code2_u, code2_r, code2_d, code2_l,   // neighbours of bike 2's head
-    input  logic        codes_valid             // 1 when the codes are those of the current heads
+    input  logic        clk,                    // clk_juego
+    input  logic        rst,
+    input  logic [4:0]  btn,                    // [0] Up, [1] Down, [2] Left, [3] Right, [4] Start
+    input  logic [3:0]  turn_req2,              // [0] Up, [1] Right, [2] Down, [3] Left
+    input  logic        pause,
+    input  logic        match_over,
+    output logic [10:0] blkpos1_x,              // Cell x 16
+    output logic [10:0] blkpos1_y,
+    output logic [10:0] blkpos2_x,
+    output logic [10:0] blkpos2_y,
+    output logic [1:0]  heading1, heading2,     // 0 Up, 1 Right, 2 Down, 3 Left
+    output logic        crash1, crash2,
+    output logic        crash_done,             // Crash pause
+    // Arena
+    output logic        load,                   // Bikes at their start
+    output logic        step,                   // the Step taken; in a Crash Step no Bike moves
+    input  logic [3:0]  code1_u, code1_r, code1_d, code1_l,   // Bikes: codes of the Cells up, right, down and left
+    input  logic [3:0]  code2_u, code2_r, code2_d, code2_l,   
+    input  logic        codes_valid           
 );
 
-    // ---------------------------------------------------------------
-    // Internal signals (source -> destination)
-    // ---------------------------------------------------------------
-    logic [3:0] turn_req1;                       // reordered buttons -> bike_move
-    logic       run;                             // round_fsm -> bike_move, u_step_counter: the round is running
-    logic       step_due;                        // u_step_counter -> step: a step is due
-    logic [3:0] code_next1, code_next2;          // Arena code of the cell of the next step
-    logic [6:0] cx1, cy1, cx2, cy2;              // bike_move -> pixel conversion: current cell
-    logic [6:0] next_cx1, next_cy1, 
-                next_cx2, next_cy2;              // bike_move -> wall check: cell of the next step
-    logic       valid1, valid2;                  // wall check: the next cell is inside the arena
-    logic       advance1, advance2;              // wall check -> bike_move: move one cell
-    logic       crash;                           // either bike crashed -> round_fsm (c): the bike crashed
-    logic       occupied1, occupied2;            // the cell of the next step is a wall, trail or head
-    // ---------------------------------------------------------------
-    // 1. Inputs: the board gives U,D,L,R; bike_move expects U,R,D,L
-    // ---------------------------------------------------------------
-    
+    logic [3:0] turn_req1;
+    logic       run;
+    logic       step_due;
+    logic [3:0] code_next1, code_next2;          // code of the next Cell
+    logic [6:0] cx1, cy1, cx2, cy2;
+    logic [6:0] next_cx1, next_cy1,
+                next_cx2, next_cy2;
+    logic       valid1, valid2;                  // next Cell inside the walls
+    logic       advance1, advance2;
+    logic       crash;                           // either Bike
+    logic       occupied1, occupied2;            // next Cell not free
+
+    // The board buttons are Up, Down, Left, Right; bike_move wants the Heading order Up, Right, Down, Left.
     assign turn_req1 = {btn[2], btn[1], btn[3], btn[0]};
-    
-    // ---------------------------------------------------------------
-    // 2. Round control
-    // ---------------------------------------------------------------
-    
+
+    // Round: wait for Start (load = 1), run, Crash pause, wait for Start's release.
+    // After the Match's last Crash, t stays 0, so round_fsm stays in the Crash.
     round_fsm u_round_fsm(
         .clk(clk),
         .rst(rst),
@@ -70,6 +54,7 @@ module position_logic #(
         .run(run)
     );
 
+    // Crash pause: counts only while neither load nor run (round_fsm's s_crash); 120 ticks = 2 s.
     step_counter #(
         .STEP_TICKS(120)
     ) u_crash_timer (
@@ -78,11 +63,9 @@ module position_logic #(
         .pause(pause),
         .run(~load && ~run),
         .step(crash_done)
-    );    
+    );
 
-    // ---------------------------------------------------------------
-    // 3. Pace: one step every STEP_TICKS ticks while run = 1
-    // ---------------------------------------------------------------
+    // Pace: one Step every STEP_TICKS ticks while the Round runs.
     step_counter #(
         .STEP_TICKS(STEP_TICKS)
     ) u_step_counter (
@@ -93,14 +76,12 @@ module position_logic #(
         .step(step_due)
     );
 
-    // A step is taken only with the codes of the current heads. They arrive 4 ticks after the
-    // previous step, so with 6 or 8 ticks per step this always holds; if not, the step waits
-    // for the next period and the pending turn is kept.
+    // A Step needs the codes of the current heads. They arrive 4 ticks after the last Step,
+    // so at 6 or 8 ticks per Step it never waits; if it does, the Pending Turn is kept.
     assign step = step_due && codes_valid;
 
-    // ---------------------------------------------------------------
-    // 4. The bikes
-    // ---------------------------------------------------------------
+    // P1 starts at (20, 27) facing right, P2 at (P2_START_CX, 27) facing left.
+    // Turns are taken only while the Round runs and not in Pause.
     bike_move #(
         .START_CX(7'd20),
         .START_CY(7'd27),
@@ -137,45 +118,47 @@ module position_logic #(
         .next_cy(next_cy2)
     );
 
-    // ---------------------------------------------------------------
-    // 5. Wall, bikes and Arena check: valid cells are cx 1..78, cy 5..48
-    // ---------------------------------------------------------------
-    // The next cell's code is the neighbour in the direction of the move: compare the next cell
-    // with the current one. Only 0 (empty) and 8-10 (Rewards) are free; anything else blocks.
+    // The next Cell's code is the neighbour on the side the Bike moves
     always_comb begin
         if (next_cy1 != cy1)
-            code_next1 = (next_cy1 < cy1) ? code1_u : code1_d;
+            code_next1 = (next_cy1 < cy1) ? code1_u : code1_d; // up or down
         else
-            code_next1 = (next_cx1 > cx1) ? code1_r : code1_l;
+            code_next1 = (next_cx1 > cx1) ? code1_r : code1_l; // right or left
         if (next_cy2 != cy2)
-            code_next2 = (next_cy2 < cy2) ? code2_u : code2_d;
+            code_next2 = (next_cy2 < cy2) ? code2_u : code2_d; // up or down
         else
-            code_next2 = (next_cx2 > cx2) ? code2_r : code2_l;
+            code_next2 = (next_cx2 > cx2) ? code2_r : code2_l; // right or left
     end
-    assign occupied1 = !(code_next1 == 4'd0 || code_next1 == 4'd8 || code_next1 == 4'd9 || code_next1 == 4'd10);
-    assign occupied2 = !(code_next2 == 4'd0 || code_next2 == 4'd8 || code_next2 == 4'd9 || code_next2 == 4'd10);
 
+    // Free Cells are 0 (EMPTY) and 8-10 (Rewards); any other code is a Crash:
+    //   1 a wall, 2 P1's Trail, 3 P1's head, 4 P2's Trail, 5 P2's head,
+    //   6 reserved for CRASH, 7 reserved, 11-15 never written.
+    assign occupied1 = !(code_next1 == 4'd0 || code_next1 == 4'd8 || code_next1 == 4'd9 || code_next1 == 4'd10); // not a free cell
+    assign occupied2 = !(code_next2 == 4'd0 || code_next2 == 4'd8 || code_next2 == 4'd9 || code_next2 == 4'd10); // same
+
+    // Inside the walls: cx 1-78, cy 5-48 (cy 0-3 is the HUD, cy 4 and 49 and cx 0 and 79 the walls).
     assign valid1   = (next_cx1 >= 1 && next_cx1 <= 78 && next_cy1 >= 5 && next_cy1 <= 48);
     assign valid2   = (next_cx2 >= 1 && next_cx2 <= 78 && next_cy2 >= 5 && next_cy2 <= 48);
-    // A crash stops both bikes: the one that did not crash stays in its cell too (ADR 0011)
+
+    // A Crash stops both Bikes: the one that did not crash stays in its Cell too (ADR 0011).
     assign advance1 = step && !crash;
     assign advance2 = step && !crash;
-    assign crash1 = step && 
-                    (!valid1 || 
-                    (next_cx1 == next_cx2 && next_cy1 == next_cy2) || 
-                    (next_cx1 == cx2 && next_cy1  == cy2) || 
-                    occupied1);
-    assign crash2 = step && 
-                    (!valid2 || 
-                    (next_cx2 == next_cx1 && next_cy2 == next_cy1) || 
-                    (next_cx2 == cx1 && next_cy2  == cy1) || 
+
+    // A Crash is either Bike into a wall, into the other Bike, or into a Trail or head.
+    assign crash1 = step &&
+                    (!valid1 ||                                         // into a wall
+                    (next_cx1 == next_cx2 && next_cy1 == next_cy2) ||   // both into the same Cell
+                    (next_cx1 == cx2 && next_cy1  == cy2) ||            // into the other Bike's Cell
+                    occupied1);                                         // into a Trail or head
+    assign crash2 = step &&
+                    (!valid2 ||
+                    (next_cx2 == next_cx1 && next_cy2 == next_cy1) ||
+                    (next_cx2 == cx1 && next_cy2  == cy1) ||
                     occupied2);
     assign crash = crash1 || crash2;
 
-    // ---------------------------------------------------------------
-    // 6. Output: cells to pixels (x16)
-    // ---------------------------------------------------------------
-    assign blkpos1_x = {cx1, 4'b0000};
+    // Cells to pixels: x 16 is 4 zero bits on the right.
+    assign blkpos1_x = {cx1, 4'b0000}; 
     assign blkpos1_y = {cy1, 4'b0000};
     assign blkpos2_x = {cx2, 4'b0000};
     assign blkpos2_y = {cy2, 4'b0000};
