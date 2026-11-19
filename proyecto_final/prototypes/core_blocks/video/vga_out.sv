@@ -1,4 +1,4 @@
-// Prototype copy of proyecto_final/vga_out.sv (Roman) with combinational sync and
+// Prototype copy of proyecto_final/src/vga_out.sv (Roman) with combinational sync and
 // colour outputs, used only by core_blocks (video/, game/). game_top keeps the
 // registered vga_out; which one the game uses is open for Roman's review
 // (docs/design/CS-256 VGA Output Timing Findings.md).

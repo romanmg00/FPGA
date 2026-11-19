@@ -16,9 +16,9 @@ Paths are relative to the repository root.
 | `docs/plan/` | Development Plan (calendar, freezes, scope tiers, work list, verification approach) and the Repository Merge Plan |
 | `docs/reviews/` | Opus 5.5 Architecture and Integration Review (read its parent-review reservations before adopting recommendations), Documentation Control Review, and the archived Integration Comparison |
 | `docs/history/` | Game Overview (whiteboard concept), superseded TA game-clock email draft, and the import commit map |
-| `docs/references/` | Nexys A7 research report, vendor datasheets (`datasheets/`), and official documentation links |
+| `docs/references/` | Course project slides (`cs256-project1-fall26.pdf`), Nexys A7 research report, vendor datasheets (`datasheets/`), and official documentation links |
 | `docs/agents/` | Instructions for AI agents: issue tracker, triage labels, domain docs. The root `AGENTS.md` and `CLAUDE.md` point here |
-| `proyecto_final/` | Hardware: interface contract, SystemVerilog, testbenches |
+| `proyecto_final/` | Hardware: interface contract, design SystemVerilog in `src/`, testbenches in `testbenches/`, constraints in `constraints/`, and the build script; see its [README](../proyecto_final/README.md) |
 | `prototipos/tron_fpga/` | Local Python prototype modelled on the hardware blocks (the Look Prototype, renamed from `prototipos/look/`): model (`model/`, headless), viewer (`juego/`, pygame-ce), tests and metrics. Revised to the agreed specification on 21 October 2026 and restructured into the planned HDL blocks with M2 scenarios and Step logs on 27 October; its headless model was selected as the shared base on 28 October in [ADR 0004](adr/0004-shared-headless-model-base.md); the other viewer adapter remains to be implemented |
 | `prototipos/tron/fpga/` | Preserved PR #2 comparison game, with frozen art in `assets/tron-pr2/`; [launch both](../prototipos/README.md) |
 | `prototipos/` (others) | Roman's prototypes and launcher, including the `tron/` viewer |
@@ -47,7 +47,7 @@ Use this index to return to the relevant source before future work. The architec
 
 | Reference | Use it for |
 |---|---|
-| [Course project slides](../proyecto_final/cs256-project1-fall26.pdf) | Local course presentation cited by the interface contract. Course requirements and TA instructions take precedence. |
+| [Course project slides](references/cs256-project1-fall26.pdf) | Local course presentation cited by the interface contract. Course requirements and TA instructions take precedence. |
 | [Course project handout](../../cs256-fall-2026/classproject/README.md) and [sprite tips](../../cs256-fall-2026/classproject/sprites/README.md) | General guidance on architecture, VGA timing, drawing logic, sprite memories and early reads; not a strict specification since [ADR 0006](adr/0006-single-wizard-counter-game-clock-and-handout-as-guidance.md). These sibling-repository links require a separate course checkout; see Rules below. |
 | [Architecture and Documentation Map](CS-256%20Tron%20Architecture%20and%20Documentation%20Map.md) | Authority, ownership, document status and objective traceability. Some implementation/evidence entries describe earlier snapshots; check the current code and evidence guides below. |
 | [Agreed Specification, 20 October](decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md) | Locked team baseline for rules, inputs, layout, clocks and work division. |
