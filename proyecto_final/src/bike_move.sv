@@ -17,15 +17,19 @@ module bike_move #(
     output logic [6:0] next_cx, next_cy
 );
 
-    // pending_turn: direction of the next step. req_code/req_valid: the request now.
-    // valid_turn: the request is a 90-degree turn from the current heading.
-    logic [1:0] pending_turn, req_code;  
-    logic req_valid, valid_turn;
+    // ===============================================================
+    // 1. Turn request: priority encoder and turn rule
+    // ===============================================================
+    // Each signal is declared at the start of the first section that uses it. A signal used
+    // before the section that drives it says where it comes from.
+    logic [1:0] req_code;                        // the request now, as a Heading code
+    logic       req_valid;                       // a button is pressed
+    logic       valid_turn;                      // the request is 90 degrees from heading -> section 3
 
     // Priority encoder (UP > RIGHT > DOWN > LEFT), then the turn rule: a turn is valid only
     // if it changes axis, i.e. bit 0 differs. It is checked against heading, not the pending
     // turn, so two turns between steps cannot add up to a reversal.
-    always_comb begin 
+    always_comb begin
         if(turn_req[0]) begin
             req_valid = 1'b1;
             req_code = 2'b00;
@@ -41,9 +45,14 @@ module bike_move #(
         end else begin
             req_valid = 1'b0;
             req_code = heading;
-        end 
+        end
         valid_turn = req_valid && (req_code[0] != heading[0]);
-    end 
+    end
+
+    // ===============================================================
+    // 2. Next Cell
+    // ===============================================================
+    logic [1:0] pending_turn;                    // from section 3: direction of the next Step
 
     // Next cell: one cell from (cx, cy) in the direction of the pending turn.
     // The screen y axis grows downwards, so UP subtracts 1.
@@ -59,15 +68,16 @@ module bike_move #(
                 next_cx = cx;
                 next_cy = cy;
             end
-        endcase    
+        endcase
     end
 
-
+    // ===============================================================
+    // 3. Registers: Cell, Heading and Pending Turn
+    // ===============================================================
     // Registers, by priority:
     //   rst or load: start cell, heading and pending turn from START_*.
     //   advance:     move to the next cell; the heading takes the pending turn.
     //   run:         a valid request replaces the pending turn.
-
     always_ff @(posedge clk) begin
         if(rst || load) begin
             cx <= START_CX;
