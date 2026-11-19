@@ -206,7 +206,12 @@ set_property top game_top [current_fileset]
 # Lo que se sintetiza: exactamente los .sv de src/, ni testbenches, ni modelos de
 # sim_clocks/ o sim_models/, ni prototipos. Las IP (clk_wiz_0, bike_rom) van aparte, como .xci.
 set expected [lsort [glob $src/*.sv]]
-set got [lsort [lmap f [get_files -of_objects [get_filesets sources_1] -filter {FILE_TYPE == SystemVerilog}] {file normalize $f}]]
+# foreach instead of lmap: lmap is Tcl 8.6, and Vivado 2020.2 ships Tcl 8.5.
+set got {}
+foreach f [get_files -of_objects [get_filesets sources_1] -filter {FILE_TYPE == SystemVerilog}] {
+    lappend got [file normalize $f]
+}
+set got [lsort $got]
 if {$got ne $expected} {
     error "sources_1 no es src/*.sv:\n  esperado: $expected\n  cargado:  $got"
 }
