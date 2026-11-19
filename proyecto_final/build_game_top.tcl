@@ -1,4 +1,4 @@
-# Author: Alan (AIF31).
+# Author: Alan (AIF31). Changes by Roman (romanmg00): pos_link, its bench and its constraint checks (X1, #48).
 # Construye game_top desde el repositorio, sin proyecto previo.
 #   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [quick|sim|full]
 # quick corre los testbenches de modulos (unos 20 s) y salta game_top_tb, que tarda hasta 20 min;
@@ -73,7 +73,7 @@ proc check_no_handwritten_ip {files} {
 set movement [list $src/round_fsm.sv $src/step_counter.sv $src/bike_move.sv $src/position_logic.sv]
 set design [concat [list $src/counters.sv $src/vga_out.sv $src/drawcon.sv $src/sync_2ff.sv \
     $src/board_reset_sync.sv $src/arena_map.sv $src/arena_ctrl.sv $src/arena_link.sv] $movement [list $src/bike_glide.sv \
-    $src/match_fsm.sv $src/score_unit.sv $src/seg7_view.sv $src/seg7_link.sv $src/seg7_driver.sv \
+    $src/pos_link.sv $src/match_fsm.sv $src/score_unit.sv $src/seg7_view.sv $src/seg7_link.sv $src/seg7_driver.sv \
     $src/multidigit.sv $src/sevenseg.sv $src/game_top.sv]]
 check_no_handwritten_ip $design
 
@@ -113,6 +113,7 @@ start_bench step_counter_tb step_counter_tb "PRUEBAS OK" [list $tb/step_counter_
 start_bench bike_move_tb bike_move_tb "PRUEBAS OK" [list $tb/bike_move_tb.sv $src/bike_move.sv]
 start_bench position_logic_tb position_logic_tb "PRUEBAS OK" [concat [list $tb/position_logic_tb.sv] $movement]
 start_bench bike_glide_tb bike_glide_tb "PASS bike_glide_tb" [list $tb/bike_glide_tb.sv $src/bike_glide.sv]
+start_bench pos_link_tb pos_link_tb "PRUEBAS OK" [list $tb/pos_link_tb.sv $src/pos_link.sv $src/sync_2ff.sv]
 # Arena: arena_map and arena_ctrl (clk_pix) and arena_link (clk_juego), alone.
 set arena [list $src/sync_2ff.sv $src/arena_map.sv $src/arena_ctrl.sv $src/arena_link.sv]
 start_bench arena_map_tb arena_map_tb "PASS arena_map_tb" [list $tb/arena_map_tb.sv $src/arena_map.sv]
@@ -243,26 +244,26 @@ if {abs($juego_period - $want_period) > 5.0e-7 * $want_period} {
 }
 emit $out/clk_juego-period.txt "clk_juego_n=$clk_juego_n pix_period_ns=$pix_period juego_period_ns=$juego_period"
 
-# El set_max_delay de game_top_timing.xdc nombra los registros draw_x/draw_y de bike_glide.
-# Si un cambio de nombres lo deja sin origen, Vivado solo avisa, asi que aqui se detiene el
-# build. Mientras turn_req2 = 0, P2 no cambia de fila y la sintesis quita parte de su draw_y.
-# El numero queda en bike_cells.txt.
-set bike_cells [get_cells -quiet {u_glide*/draw_*_reg[*]}]
-emit $out/bike_cells.txt "[llength $bike_cells] registros: [lsort $bike_cells]"
-if {[llength $bike_cells] == 0} {
-    error "game_top_timing.xdc: el set_max_delay no encuentra los registros draw_* de bike_glide"
-}
-# El segundo set_max_delay va de draw_* y de heading_reg de bike_move a las BRAM de bike_rom.
-# Cada origen se revisa aparte, para que un cambio de nombres no deje uno sin restriccion. Solo
-# P1 gira (turn_req2 = 0), asi que la sintesis quita los heading_reg de P2.
+# Los set_max_delay de pos_link en game_top_timing.xdc nombran registros de bike_glide, bike_move
+# y pos_link. Si un cambio de nombres deja uno sin origen o sin destino, Vivado solo avisa, asi
+# que aqui se detiene el build. Mientras turn_req2 = 0, P2 no cambia de fila ni de direccion y la
+# sintesis quita parte de su draw_y y sus heading_reg. Los numeros quedan en pos_link_cells.txt.
+set bike_cells    [get_cells -quiet {u_glide*/draw_*_reg[*]}]
 set heading_cells [get_cells -quiet {u_position_logic/u_bike_move*/heading_reg[*]}]
-set rom_cells [get_cells -quiet -hierarchical -filter {NAME =~ u_drawcon/bike_rom_*/* && REF_NAME =~ RAMB*}]
-emit $out/bike_rom_cells.txt "[llength $heading_cells] registros heading: [lsort $heading_cells]\n[llength $rom_cells] BRAM: [lsort $rom_cells]"
-if {[llength $heading_cells] == 0} {
-    error "game_top_timing.xdc: el set_max_delay de bike_rom no encuentra los heading_reg de bike_move"
+set pend_cells    [get_cells -quiet {u_pos_link/pend*_reg[*]}]
+set tgl_cells     [get_cells -quiet {u_pos_link/pos_tgl_reg u_pos_link/u_sync_2ff/meta_reg}]
+emit $out/pos_link_cells.txt "[llength $bike_cells] draw_*: [lsort $bike_cells]\n[llength $heading_cells] heading: [lsort $heading_cells]\n[llength $pend_cells] pend*: [lsort $pend_cells]\n[llength $tgl_cells] toggle: [lsort $tgl_cells]"
+if {[llength $bike_cells] == 0} {
+    error "game_top_timing.xdc: el set_max_delay de pos_link no encuentra los registros draw_* de bike_glide"
 }
-if {[llength $rom_cells] != 2} {
-    error "game_top_timing.xdc: el set_max_delay de bike_rom deberia llegar a 2 BRAM (una por moto), no a [llength $rom_cells]"
+if {[llength $heading_cells] == 0} {
+    error "game_top_timing.xdc: el set_max_delay de pos_link no encuentra los heading_reg de bike_move"
+}
+if {[llength $pend_cells] == 0} {
+    error "game_top_timing.xdc: el set_max_delay de pos_link no encuentra los registros pend* de pos_link"
+}
+if {[llength $tgl_cells] != 2} {
+    error "game_top_timing.xdc: el set_max_delay del toggle de pos_link deberia encontrar pos_tgl_reg y meta_reg, no [llength $tgl_cells] celdas"
 }
 # Los dos set_max_delay del cruce del marcador (seg7_link): cada lado debe existir, para que un
 # cambio de nombres no deje el cruce sin restriccion. Los numeros quedan en seg7_link_cells.txt.
