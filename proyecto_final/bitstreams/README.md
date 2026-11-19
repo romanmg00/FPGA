@@ -2,9 +2,46 @@
 
 Aquí va solo el último bitstream probado, para llevarlo a la revisión con el TA y poder repetir las pruebas. Los anteriores se borran de la carpeta, pero su registro se queda abajo y el archivo se recupera del historial de Git. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
 
-## `game_top_match_scoreboard.bit`
+## `game_top_z1_19nov.bit`
 
-El bitstream para mostrar: la partida y el marcador físico (Pasos 7c y 7d, PRs #46 y #47) sobre las dos motos, la arena y los sprites. Start con BTNC empieza la partida; cada choque quita una vida y da +3 a la moto que no chocó; con 3 vidas perdidas la partida termina y las motos se quedan donde chocaron; otro Start empieza una partida nueva. El display muestra puntos y vidas, y la meta mientras se espera una partida. `SW0` pausa; `{SW15, SW14}` eligen la meta. P2 sigue yendo recto (`turn_req2` en 0, sin UART). **Este es el probado en la tarjeta.**
+El bitstream para mostrar, del cierre de la semana del 19 de noviembre (Z1): `main` con `pos_link` (X1, #48 y #51), las carpetas `src/`, `testbenches/` y `constraints/` (#50) y los nombres de señales de Alan (#52). Juega igual que `game_top_match_scoreboard.bit`; la diferencia es que las posiciones y direcciones de las motos llegan a `drawcon` una vez por cuadro, así que una moto ya no se dibuja cortada. **Este es el probado en la tarjeta.**
+
+| | |
+|---|---|
+| SHA-256 | `184a9e516a5f395c4ade5e2da0d3469600d68ed5d4e54978700440059d7addeb` |
+| Fuente | `main`, commit `a249fd6` (merge de #52) |
+| Cómo se construye | Proyecto de la GUI de Roman apuntado a `src/*.sv` y `constraints/` (sección 2 de `comandos_vivado_myws.md`, `game_top_timing.xdc` solo en implementación), sección 4 hasta el bitstream. Los testbenches se corrieron aparte con `build_game_top.tcl ... full` sobre el mismo `main`: pasaron los 30; esa corrida no llegó a sintetizar porque usa `lmap`, que Vivado 2020.2 (Tcl 8.5) no tiene (PR #53) |
+| Herramienta | Vivado 2020.2, `rsws08`, 19 de noviembre de 2026 |
+| Parte | `xc7a100tcsg324-1` |
+
+### Prueba en la tarjeta
+
+Nexys A7, programada por JTAG desde la Mac de Roman con `openFPGALoader -b nexys_a7_100` (DONE en alto). Observó Roman el 19 de noviembre de 2026. Todas pasan.
+
+| Prueba | Esperado |
+|---|---|
+| Arranque | Arena con muros, HUD y las dos motos en sus salidas |
+| BTNC | Empieza la ronda; las motos avanzan y dejan estela |
+| Giros de P1 | El sprite gira con la dirección y la moto no se dibuja cortada al moverse |
+| Choques contra pared, estela y de frente | Las motos se detienen y el marcador cambia puntos y vidas |
+| BTNC después de un choque | Nueva ronda |
+| `SW0` | Congela la ronda; al bajarlo sigue |
+| `{SW15, SW14}` | Cambia la meta y el display la muestra |
+| CPU_RESET | Todo vuelve al inicio |
+
+### Simulación y reportes
+
+Los reportes completos están en `evidencia/Z1-2026-11-19-*.rpt`.
+
+- **Testbenches:** los 30 de `build_game_top.tcl` pasan en XSim (Vivado 2020.2), entre ellos `pos_link_tb` y los 9 escenarios de `game_top_tb`.
+- **Temporización con el diseño ya ruteado:** setup +3.891 ns (WNS), hold +0.046 ns (WHS), ancho de pulso +3.000 ns, 0 extremos fallando. Entre `clk_juego` y `clk_pix`: +10.145 y +10.326 ns. `check_timing`: 0 en todo, salvo las 29 salidas sin retardo (VGA y display) y las 9 entradas con false path, como antes.
+- **DRC:** 0 violaciones.
+- **Uso:** 835 LUTs, 556 FFs, 1 RAMB36 y 2 RAMB18.
+- **`report_cdc`:** **ninguna fila crítica**. Las 12 CDC-1 y 20 CDC-13 de las posiciones y los sprites (issue #30) desaparecieron con `pos_link`: su toggle sale como CDC-3 y sus 45 bits copiados como CDC-15, con `set_max_delay`. Total: 14 CDC-3 (Info) y 124 CDC-15 (Warning). **Pendiente (Alan):** 3 filas CDC-15 sin restricción, de `u_arena_map/cells_reg` a `u_arena_link/codes_reg[0..2]`. La síntesis metió 3 bits de `codes` de `arena_ctrl` en el registro de salida de la BRAM, así que el `set_max_delay -from u_arena_ctrl/codes_reg[*]` ya no los encuentra. Es el mismo registro con el mismo enable y la ruta cumple (+10.3 ns), pero el XDC no la cubre.
+
+## `game_top_match_scoreboard.bit` (anterior)
+
+El bitstream para mostrar: la partida y el marcador físico (Pasos 7c y 7d, PRs #46 y #47) sobre las dos motos, la arena y los sprites. Start con BTNC empieza la partida; cada choque quita una vida y da +3 a la moto que no chocó; con 3 vidas perdidas la partida termina y las motos se quedan donde chocaron; otro Start empieza una partida nueva. El display muestra puntos y vidas, y la meta mientras se espera una partida. `SW0` pausa; `{SW15, SW14}` eligen la meta. P2 sigue yendo recto (`turn_req2` en 0, sin UART). Fue el probado en la tarjeta hasta el `game_top_z1_19nov.bit`.
 
 | | |
 |---|---|
@@ -38,7 +75,7 @@ Nexys A7 serial `210292B1820D`, programada por JTAG desde `alan-desktop` (DONE e
 
 ## Bitstreams anteriores
 
-Ya no están en la carpeta. Para recuperar uno: `git show COMMIT:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`, con `586b16e` para `game_top_two_bikes.bit`, `80b55f2` para `game_top_one_wizard.bit` y `dc029bf` para los demás.
+Ya no están en la carpeta. Para recuperar uno: `git show COMMIT:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`, con `a249fd6` para `game_top_match_scoreboard.bit`, `586b16e` para `game_top_two_bikes.bit`, `80b55f2` para `game_top_one_wizard.bit` y `dc029bf` para los demás.
 
 ## `game_top_two_bikes.bit` (anterior)
 
