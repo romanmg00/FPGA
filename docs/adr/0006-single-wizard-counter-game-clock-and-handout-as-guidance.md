@@ -58,8 +58,9 @@ things that ADR 0002 rested on.
   approximately 60 Hz `clk_juego`, not on `clk_pix` with an enable. The fast
   Arena service, the X1 game/render transfer, and the timing and CDC
   obligations in ADR 0002's Consequences are unchanged. `clk_juego` is still
-  not aligned with vertical blanking, so the tearing fix in issue #14 is still
-  needed.
+  not aligned with vertical blanking, so a tearing fix was still needed
+  (issue #14, then X1 in issue #30). Its status is in the architecture map
+  linked at the end of this ADR.
 - **Clock buffer and constraints.** Keep the registered toggle feeding a
   `BUFG`, as `game_top.sv` does now. In `game_top_timing.xdc`, keep the
   toggle register's C pin as the generated clock's source and the `BUFG`
