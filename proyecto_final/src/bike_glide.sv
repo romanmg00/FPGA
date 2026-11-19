@@ -1,11 +1,7 @@
 // Author: Alan (AIF31).
 // Drawn position of one bike: slides from its previous Cell to its current one over STEP_TICKS
 // ticks of clk_juego, so the square moves a few pixels every tick instead of a whole
-// 16 px Cell once per Step (ADR 0010). Only the drawing changes: the game rules, Crashes
-// and position_logic stay Cell-based. The drawing runs one Step behind the game.
-// A jump of more than one Cell (back to the start) is drawn at once, not slid.
-// glide_x/glide_y are registers, so the glide arithmetic stays out of the clk_pix path:
-// drawcon only compares against stored values.
+// 16 px Cell once per Step
 module bike_glide #(
     parameter int STEP_TICKS = 6                // = STEP_TICKS of position_logic, 1..15
 ) (
