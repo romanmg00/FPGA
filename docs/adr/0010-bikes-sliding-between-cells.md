@@ -82,9 +82,12 @@ smooth and playable. His reasons:
 - **Trails.** When Trails are drawn from `arena_map`, the Trail Cell appears
   when the Step happens, one Step ahead of the sliding head. Decide then
   whether the Trail also waits one Step.
-- **Still open.** The drawn positions and headings cross from `clk_juego` to
-  `clk_pix` without a synchronizer (X1). `drawcon` has no look-ahead for the
-  2-cycle `bike_rom` read, so each sprite is drawn 2 px to the right; Roman
+- **Crossing to `clk_pix`.** Since PR #48 (X1), `pos_link` carries the drawn
+  positions and headings to `clk_pix` and gives `drawcon` one set per frame,
+  copied at row 800. The picture can lag the game by up to one more frame,
+  and heading and position still change together.
+- **Still open.** `drawcon` has no look-ahead for the 2-cycle `bike_rom`
+  read, so each sprite is drawn 2 px to the right (issue #30, step 3); Roman
   left that for the end, if time allows.
 - **To reconcile.** The interface contract and `proyecto_final/README.md` say
   8. The shared model (`prototipos/tron_fpga/model/params.py`) and the
