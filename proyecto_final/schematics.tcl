@@ -19,7 +19,9 @@ set status [catch {
     set pages [list \
         1-game_top       [concat $main [get_ports]] \
         2-position_logic [get_cells -hierarchical -filter {PARENT == u_position_logic && IS_PRIMITIVE == 0}] \
-        3-scoreboard     [get_cells {u_match_fsm u_score_unit u_seg7_view u_seg7_link u_seg7_driver}]]
+        3-scoreboard     [get_cells {u_match_fsm u_score_unit u_seg7_view u_seg7_link u_seg7_driver}] \
+        4-arena          [get_cells {u_position_logic u_arena_link u_arena_ctrl u_arena_map u_drawcon}] \
+        5-video          [get_cells {u_glide1 u_glide2 u_pos_link u_arena_map u_drawcon u_vga_out}]]
     foreach {name objs} $pages {
         if {[llength $objs] == 0} {error "$name: nothing to draw"}
         show_schematic $objs -name $name
