@@ -20,11 +20,11 @@
 // the ADR gives. drawcon gets them through pos_link (X1, issue #30), copied once per frame at
 // curr_y = 800: frames taken while the bikes move use dut.draw1_x/y, dut.draw2_x/y and
 // dut.draw_heading1/2, and check that they do not change inside the visible area (no tearing).
-// Known deviation, SPRITE_SHIFT: drawcon reads bike_rom (2 cycles) without reading ahead, so
-// each sprite is drawn SPRITE_SHIFT px to the right, its right-hand columns wrapped to the
-// left edge of its box (PR #35, note 3). The bench expects that image; set SPRITE_SHIFT to 0
-// once drawcon reads ahead. The sprite data is the .mem build_game_top.tcl makes from the
-// .coe, given with -testplusarg bike_mem=<file>, as for sim_models/bike_rom.sv.
+// SPRITE_SHIFT: how many px to the right drawcon draws each sprite. drawcon reads bike_rom
+// (2 cycles) 2 px ahead (issue #30 step 3), so it is 0; before that it was 2, each sprite's
+// right-hand columns wrapped to the left edge of its box (PR #35, note 3). The sprite data is
+// the .mem build_game_top.tcl makes from the .coe, given with -testplusarg bike_mem=<file>,
+// as for sim_models/bike_rom.sv.
 // Arena (contract section 3): every visible pixel's Trail colour must match the code drawcon
 // received, and that code must come from the pixel's own Cell (dut.arena_addr two cycles
 // earlier, port B's latency). arena_check compares the whole of arena_map with a Trail model
@@ -53,8 +53,8 @@ module game_top_tb;
                             C_P2 = 12'hF80, C_EMPTY = 12'h000, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
     // Trail colours: a darker shade of each Player's colour
     localparam logic [11:0] C_T1 = 12'h068, C_T2 = 12'h840;
-    // Known deviation (see above): how many pixels late drawcon looks up each sprite.
-    localparam int SPRITE_SHIFT = 2;
+    // How many pixels late drawcon looks up each sprite (see above); 0 since it reads ahead.
+    localparam int SPRITE_SHIFT = 0;
 
     logic clk = 1'b0, cpu_resetn = 1'b1;
     logic [15:0] sw = 16'h0000;
@@ -600,7 +600,7 @@ module game_top_tb;
         void'($value$plusargs("scenario=%s", scenario));
         STEP = dut.u_position_logic.u_step_counter.STEP_TICKS;
         $display("STEP_TICKS = %0d", STEP);
-        $display("SPRITE_SHIFT = %0d (known deviation: sprites drawn %0d px to the right)", SPRITE_SHIFT, SPRITE_SHIFT);
+        $display("SPRITE_SHIFT = %0d (sprites drawn %0d px to the right)", SPRITE_SHIFT, SPRITE_SHIFT);
         if (!$value$plusargs("bike_mem=%s", bike_file))
             fail("no sprite data: run xsim with -testplusarg bike_mem=<file>.mem");
         $readmemh(bike_file, bike_mem);
