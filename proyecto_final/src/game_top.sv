@@ -3,8 +3,6 @@
 // clk_pix (ADR 0006, #16), bike_glide (#31), Arena (#40), Match and Scoreboard (#47).
 // Top level of the Tron game: clocks, reset, synchronizers and the video, movement, Arena,
 // Match and Scoreboard blocks.
-`default_nettype none
-
 module game_top (
     input  logic        clk, cpu_resetn,
     input  logic [15:0] sw,             // SW0 Pause, {SW15, SW14} Points Goal, SW11-SW0 drawcon
@@ -20,8 +18,7 @@ module game_top (
     // 1. Clocks and reset
     // ===============================================================
     // Each signal is declared at the start of the first section that uses it. A signal used
-    // before the section that drives it says where it comes from. `default_nettype none`
-    // makes any undeclared name an error instead of a silent 1-bit wire.
+    // before the section that drives it says where it comes from.
     logic        clk_pix;                       // clk_wiz_0, 83.46 MHz
     logic        clk_juego;                     // counter + BUFG, ~60 Hz
     logic        clk_juego_toggle = 1'b0;
@@ -335,4 +332,3 @@ module game_top (
 
 endmodule
 
-`default_nettype wire
