@@ -159,7 +159,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 | **Board I/O and top** | | | | | |
 | `sync_2ff.sv` | 2-flip-flop synchronizer for one button or switch | any | Alan | Alan | `sync_2ff_tb` (Alan) |
 | `board_reset_sync.sv` | CPU_RESET into one clock domain | any | Alan | Alan | `board_reset_sync_tb` (Alan) |
-| `game_top.sv` | Top level: clocks, reset, synchronizers, every block above | both | Alan; the Wizard and the `clk_juego` counter: Roman | Roman and Alan | `game_top_tb` (Alan): 10 scenarios, read from the pins |
+| `game_top.sv` | Top level: clocks, reset, synchronizers, every block above | both | Alan; the Wizard and the `clk_juego` counter: Roman | Roman and Alan | `game_top_tb` (Alan): 11 scenarios, read from the pins |
 
 | Other file | What it is | Owner | Written by |
 |---|---|---|---|
@@ -183,7 +183,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 
 2. Pick the mode:
    - **`quick`** runs the module testbenches only, in about 20 s. Use it while working.
-   - **`sim`** also runs the 10 `game_top_tb` scenarios, up to about 20 minutes.
+   - **`sim`** also runs the 11 `game_top_tb` scenarios, up to about 20 minutes.
    - **`full`** also creates the IP from the IP Catalog, synthesizes, implements and writes the bitstream.
    - Run `sim` or `full` before every push or PR.
 3. Read the result:

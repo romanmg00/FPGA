@@ -613,6 +613,43 @@ module game_top_tb;
         #(UART_BIT_NS);
     endtask
 
+    // P2 turns back under its own Trail from the web page, as on the board on 23 November:
+    // left 4 Cells, s (down one), d (right), then right 3 Cells along the row just below its
+    // Trail. The Cell ahead is always empty, so none of those Steps may Crash; then w turns it
+    // up into its Trail, which must.
+    task automatic uart_uturn();
+        int waited = 0;
+        uart_send(8'h0D);                            // Enter: Start
+        while (dut.u_position_logic.run !== 1'b1) begin
+            @(posedge dut.clk_juego);
+            #1;
+            if (++waited > 10) fail("Enter did not start the Round within 10 ticks");
+        end
+        arena_model_prepare();
+        last_step_tick = -1;
+        for (int i = 1; i <= 4; i++) step_ok($sformatf("P2 left %0d", i), 1, 0, -1, 0);
+        uart_send("s");
+        step_ok("s: P2 down one", 1, 0, 0, 1);
+        uart_send("d");
+        step_ok("d: P2 right, under its Trail", 1, 0, 1, 0);
+        for (int i = 2; i <= 4; i++) step_ok($sformatf("P2 right %0d under its Trail", i), 1, 0, 1, 0);
+        // P2 is now under the first Cell of its Trail, (59, 27). w turns it up into that Trail:
+        // a Crash. In a Crash Step no Bike moves (ADR 0011), so P2's Heading, and its sprite,
+        // still face right.
+        uart_send("w");
+        begin
+            logic crashed;
+            next_step("w: P2 up into its Trail", 0, 0, 0, 0, crashed);
+            if (!crashed) fail("w into P2's own Trail did not Crash");
+        end
+        if (dut.lives_p2 !== 2'd2 || dut.lives_p1 !== 2'd3)
+            fail($sformatf("after P2's Crash Lives are P1 %0d, P2 %0d; expected 3 and 2", dut.lives_p1, dut.lives_p2));
+        if (dut.heading2 !== 2'd1) fail($sformatf("after the Crash P2's Heading is %0d, expected 1 (right)", dut.heading2));
+        check_frame_here("P2 crashed under its own Trail");
+        arena_check("after the Crash");
+        $display("ok   w under its own Trail: P2 Crashes, and its sprite still faces right");
+    endtask
+
     // P2 plays from the web page (ADR 0013). Bytes that are not commands start nothing; Enter
     // (CR) starts the Round; W turns P2 up, an uppercase S (its reverse) is ignored, D turns
     // it right, and Space during the Round does nothing. P1 keeps going right. Each byte is
@@ -675,6 +712,7 @@ module game_top_tb;
             "match":        match_scenario();
             "pause":        pause_scenario();
             "uart":         uart_scenario();
+            "uart_uturn":   uart_uturn();
             "all": begin
                 idle();
                 steps();

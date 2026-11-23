@@ -139,7 +139,7 @@ start_bench match_tb match_tb "PASS match_tb" [concat [list $tb/match_tb.sv $src
 start_bench uart_rx_tb uart_rx_tb "PASS uart_rx_tb" [list $tb/uart_rx_tb.sv $src/uart_rx.sv $src/sync_2ff.sv]
 start_bench uart_decode_tb uart_decode_tb "PASS uart_decode_tb" [list $tb/uart_decode_tb.sv $src/uart_decode.sv]
 start_bench uart_link_tb uart_link_tb "PASS uart_link_tb" [list $tb/uart_link_tb.sv $src/uart_link.sv $src/sync_2ff.sv]
-foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long match pause uart}}] {
+foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long match pause uart uart_uturn}}] {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
         [concat [list $tb/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
         "-testplusarg scenario=$scenario -testplusarg 'bike_mem=$bike_mem'"
