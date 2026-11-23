@@ -313,7 +313,7 @@ Built one step (Paso) at a time:
 | 7a, 7b | Scoreboard display and views | Alan, #34 |
 | 7c, 7d | Match, Lives, Points and the Scoreboard in `game_top` | Alan, #46, #47; Roman's `position_logic` ports, #45 |
 | X1 | Bike positions to clk_pix once per frame (pos_link) | Roman, #48 |
-| I2, I3 | P2's keys over UART: `uart_rx`, `uart_decode`, `uart_link` and the web page (ADR 0013) | Alan |
+| I2, I3 | P2's keys over UART: `uart_rx`, `uart_decode`, `uart_link` and the web page (ADR 0013) | Alan, #60 |
 
 The full step log, in Spanish, is in [`docs/history/proyecto_final-pasos.md`](../docs/history/proyecto_final-pasos.md).
 
