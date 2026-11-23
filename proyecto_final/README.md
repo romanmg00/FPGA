@@ -47,7 +47,7 @@ flowchart LR
         sd[seg7_driver<br/>multidigit, sevenseg]
         ur[sync_2ff, uart_rx,<br/>uart_decode] -->|uart_cmd, rx_valid| ul[uart_link]
     end
-    ul ==>|p2_cmd: turn_req2, Start| J
+    ul ==>|cmd_p2: turn_req2, start_p2| J
     al <==>|heads_tgl / codes_tgl| ac
     su ==> sl[seg7_link]
     sv ==> sl

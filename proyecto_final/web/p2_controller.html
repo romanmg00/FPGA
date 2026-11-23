@@ -26,6 +26,7 @@
 <p id="log"></p>
 <script>
 const KEYS = { w: "w", a: "a", s: "s", d: "d", " ": " ", Enter: "\r" };
+let port = null;      // the board's serial port, once connected
 let writer = null;
 const status = document.getElementById("status");
 const log = document.getElementById("log");
@@ -33,15 +34,18 @@ const log = document.getElementById("log");
 document.getElementById("connect").addEventListener("click", async () => {
   if (!("serial" in navigator)) { status.textContent = "This browser has no Web Serial; use Chrome or Edge."; return; }
   try {
-    const port = await navigator.serial.requestPort();
+    port = await navigator.serial.requestPort();
     await port.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: "none" });
     writer = port.writable.getWriter();
     status.textContent = "Connected.";
   } catch (e) { status.textContent = "Could not open the port: " + e.message; }
 });
 
-// The board's cable was unplugged, or the board was switched off.
-navigator.serial?.addEventListener("disconnect", () => {
+// The board's cable was unplugged, or the board was switched off. Another serial device
+// going away must not stop this one.
+navigator.serial?.addEventListener("disconnect", (ev) => {
+  if (ev.target !== port) return;
+  port = null;
   writer = null;
   status.textContent = "Disconnected. Plug the board in and connect again.";
 });

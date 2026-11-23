@@ -1,16 +1,16 @@
 // Author: Alan (AIF31).
 // Self-checking bench for match_fsm: one expected state trace (state code after each tick) per
-// rule, driving start_btn, crash, crash_done, match_over and pause directly. The outputs are checked against the state on every
+// rule, driving start_btn, start_p2, crash, crash_done, match_over and pause directly. The outputs are checked against the state on every
 // tick and after every input change, and the 1-tick actions are counted.
 module match_fsm_tb;
 
     logic clk = 1'b0, rst = 1'b1;
-    logic start_btn = 1'b0, crash = 1'b0, crash_done = 1'b0, match_over = 1'b0, pause = 1'b0;
+    logic start_btn = 1'b0, start_p2 = 1'b0, crash = 1'b0, crash_done = 1'b0, match_over = 1'b0, pause = 1'b0;
     logic waiting, new_match, restart, round_start;
     int   new_count = 0, round_start_count = 0;     // ticks with new_match / round_start high at the edge
 
     match_fsm dut (
-        .clk, .rst, .start_btn, .crash, .crash_done, .match_over, .pause,
+        .clk, .rst, .start_btn, .start_p2, .crash, .crash_done, .match_over, .pause,
         .waiting, .new_match, .restart, .round_start
     );
 
@@ -56,7 +56,7 @@ module match_fsm_tb;
     task automatic start(logic s_in);
         @(negedge clk);
         rst = 1'b1;
-        start_btn = s_in; crash = 1'b0; crash_done = 1'b0; match_over = 1'b0; pause = 1'b0;
+        start_btn = s_in; start_p2 = 1'b0; crash = 1'b0; crash_done = 1'b0; match_over = 1'b0; pause = 1'b0;
         @(posedge clk);
         #2;
         log = "";
@@ -262,6 +262,20 @@ module match_fsm_tb;
         ticks(1);
         press();
         check("Pause in G_MATCH", "4444445", 0);
+
+        // A Start from the web page (start_p2, 2 ticks from uart_link) has its own edge: with BTNC
+        // held through a reset it still starts the Match, once; during the Round it does nothing.
+        start(1'b1);
+        ticks(2);
+        start_p2 = 1'b1;
+        ticks(2);
+        start_p2 = 1'b0;
+        ticks(3);
+        start_p2 = 1'b1;
+        ticks(2);
+        start_p2 = 1'b0;
+        ticks(1);
+        check("page Start with BTNC held", "00056711111", 1, 1);
 
         // A reset from every state returns to G_IDLE and clears the actions.
         for (int target = 0; target < 8; target++) begin

@@ -23,7 +23,7 @@ module match_tb;
     logic        load, step;
 
     match_fsm u_match_fsm (
-        .clk, .rst, .start_btn(start), .crash(crash1 || crash2), .crash_done, .match_over, .pause,
+        .clk, .rst, .start_btn(start), .start_p2(1'b0), .crash(crash1 || crash2), .crash_done, .match_over, .pause,
         .waiting, .new_match, .restart, .round_start
     );
     score_unit u_score_unit (

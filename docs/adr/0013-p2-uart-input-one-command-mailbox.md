@@ -33,15 +33,16 @@ proposed an ordered asynchronous FIFO from `clk_pix` to `clk_juego` for that.
   the answer reaches `clk_pix`, 2 to 3 ticks after the command (up to 50 ms), a
   new command is **dropped**.
 - **Two ticks on `clk_juego`.** Each command reaches `position_logic`
-  (`turn_req2`) and `match_fsm` (Start, OR-ed with BTNC) for 2 ticks.
-  `bike_move` ignores a Turn in the tick of a Step, and Steps are never in
-  consecutive ticks, so one of the two ticks always counts. A Start counts once,
-  on its rising edge, as BTNC does.
+  (`turn_req2`) and `match_fsm` (`start_p2`) for 2 ticks. `bike_move` ignores a
+  Turn in the tick of a Step, and Steps are never in consecutive ticks, so one
+  of the two ticks always counts. `match_fsm` takes a Start from the page on its
+  own rising edge, apart from BTNC's, so a held BTNC does not hide it.
 
-This supersedes only "Preserve ordered keyboard/UART requests", for P2's UART
-input: the commands that go through keep their order, but a command sent less
-than about 50 ms after the previous one can be lost. The locked records are not
-edited.
+Once accepted, this supersedes only "Preserve ordered keyboard/UART requests",
+for P2's UART input: the commands that go through keep their order, but a
+command sent less than about 50 ms after the previous one can be lost. Until
+then it is a proposed departure that the build already implements. The locked
+records are not edited.
 
 ## Why it is enough
 
@@ -61,6 +62,10 @@ not press two keys that close on purpose. The page sends no auto-repeats.
 | **One command in flight; a new one is dropped** (chosen) | Loses a second key within 50 ms |
 
 ## Consequences
+
+- Like BTNC through its `sync_2ff`, a key reaches the game 2 to 3 ticks after
+  it is sent. A key sent in the last ticks of Pause or of the 2 s Crash display
+  can therefore act just after it; a fresh press is not required for those.
 
 - `uart_rx`, `uart_decode` and `uart_link` are in `proyecto_final/src/`, wired
   in `game_top` section 2. `uart_link`'s two toggles and the command bits have

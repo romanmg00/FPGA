@@ -20,15 +20,15 @@ module uart_link (
     // clk_pix side
     logic [4:0] cmd_pix = 5'd0;         // the command sent; changes only when the mailbox is empty
     logic       cmd_tgl = 1'b0;         // flips with each command sent
-    logic       ack_tgl_pix;            // ack_tgl after sync_2ff
+    logic       ack_tgl_sync;           // ack_tgl after sync_2ff
     logic       empty;                  // the last command sent was taken
     // clk_juego side
-    logic       cmd_tgl_juego;          // cmd_tgl after sync_2ff
-    logic       ack_tgl = 1'b0;         // cmd_tgl_juego one tick later: the answer
+    logic       cmd_tgl_sync;           // cmd_tgl after sync_2ff
+    logic       ack_tgl = 1'b0;         // cmd_tgl_sync one tick later: the answer
     logic       new_cmd;                // a command waits to be taken
-    logic       second_tick;            // cmd_juego is in its second tick
+    logic       hold_cmd;               // cmd_juego keeps its command one more tick
 
-    assign empty = (cmd_tgl == ack_tgl_pix);
+    assign empty = (cmd_tgl == ack_tgl_sync);
 
     always_ff @(posedge clk_pix) begin
         if (cmd_valid && cmd != 5'd0 && empty) begin
@@ -37,26 +37,26 @@ module uart_link (
         end
     end
 
-    sync_2ff u_sync_ack (.clk(clk_pix), .rst(1'b0), .async_in(ack_tgl), .sync_out(ack_tgl_pix));
+    sync_2ff u_sync_ack (.clk(clk_pix), .rst(1'b0), .async_in(ack_tgl), .sync_out(ack_tgl_sync));
 
-    sync_2ff u_sync_cmd (.clk(clk_juego), .rst(1'b0), .async_in(cmd_tgl), .sync_out(cmd_tgl_juego));
+    sync_2ff u_sync_cmd (.clk(clk_juego), .rst(1'b0), .async_in(cmd_tgl), .sync_out(cmd_tgl_sync));
 
-    assign new_cmd = (cmd_tgl_juego != ack_tgl);
+    assign new_cmd = (cmd_tgl_sync != ack_tgl);
 
     // The answer is given in the same tick cmd_pix is copied, so cmd_pix cannot change
     // before the copy. During rst_juego a command is answered but not passed on.
     always_ff @(posedge clk_juego) begin
-        ack_tgl <= cmd_tgl_juego;
+        ack_tgl <= cmd_tgl_sync;
         if (rst_juego) begin
-            cmd_juego   <= 5'd0;
-            second_tick <= 1'b0;
+            cmd_juego <= 5'd0;
+            hold_cmd  <= 1'b0;
         end else if (new_cmd) begin
-            cmd_juego   <= cmd_pix;         // first tick
-            second_tick <= 1'b1;
-        end else if (second_tick) begin
-            second_tick <= 1'b0;            // second tick: cmd_juego keeps the command
+            cmd_juego <= cmd_pix;           // first tick
+            hold_cmd  <= 1'b1;
+        end else if (hold_cmd) begin
+            hold_cmd  <= 1'b0;              // second tick: cmd_juego keeps the command
         end else begin
-            cmd_juego   <= 5'd0;
+            cmd_juego <= 5'd0;
         end
     end
 

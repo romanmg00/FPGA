@@ -1,7 +1,7 @@
 // Authors: Roman (romanmg00): first version, clock Wizard, vga_out, drawcon, Bike wiring and
 // pos_link (X1, #48). Alan (AIF31): reset and synchronizers (#12), clk_juego from a counter on
 // clk_pix (ADR 0006, #16), bike_glide (#31), Arena (#40), Match and Scoreboard (#47), P2's
-// input over UART (ADR 0013).
+// input over UART (#60).
 // Top level of the Tron game: clocks, reset, synchronizers, P2's UART input and the video,
 // movement, Arena, Match and Scoreboard blocks.
 module game_top (
@@ -73,7 +73,7 @@ module game_top (
     logic [7:0]  rx_byte;                       // uart_rx -> uart_decode
     logic        rx_valid;                      // uart_rx -> uart_link
     logic [4:0]  uart_cmd;                      // uart_decode -> uart_link
-    logic [4:0]  p2_cmd;                        // uart_link -> [3:0] turn_req2, [4] Start, on clk_juego
+    logic [4:0]  cmd_p2;                        // uart_link -> [3:0] turn_req2, [4] Start, on clk_juego
 
     // BTNC (btn[4]) is never reset, so a Start held through CPU_RESETN still reads as held
     // and match_fsm waits for its release.
@@ -106,7 +106,7 @@ module game_top (
 
     uart_link u_uart_link (
         .clk_pix(clk_pix), .cmd(uart_cmd), .cmd_valid(rx_valid),
-        .clk_juego(clk_juego), .rst_juego(rst_juego), .cmd_juego(p2_cmd)
+        .clk_juego(clk_juego), .rst_juego(rst_juego), .cmd_juego(cmd_p2)
     );
 
     // ===============================================================
@@ -118,11 +118,11 @@ module game_top (
     logic [5:0]  points_p1, points_p2;          // score_unit -> seg7_link
     logic [1:0]  lives_p1, lives_p2;
 
-    // Match control (G3): Start (BTNC, or Space or Enter from P2's page) reaches round_fsm as a
-    // 1-tick pulse, and each new Match resets position_logic (Bikes to their starts).
+    // Match control (G3): Start (BTNC, or Space or Enter from P2's page, each on its own edge)
+    // reaches round_fsm as a 1-tick pulse, and each new Match resets position_logic.
     match_fsm u_match_fsm (
         .clk(clk_juego), .rst(rst_juego),
-        .start_btn(btn_sync[4] || p2_cmd[4]), .crash(crash1 || crash2), .crash_done(crash_done),
+        .start_btn(btn_sync[4]), .start_p2(cmd_p2[4]), .crash(crash1 || crash2), .crash_done(crash_done),
         .match_over(match_over), .pause(pause),
         .waiting(waiting), .new_match(new_match), .restart(restart), .round_start(round_start)
     );
@@ -158,7 +158,7 @@ module game_top (
         .clk(clk_juego),
         .rst(rst_juego || restart),
         .btn({round_start, btn_sync[3:0]}), // Start only through match_fsm
-        .turn_req2(p2_cmd[3:0]),             // Up, Right, Down, Left from uart_link
+        .turn_req2(cmd_p2[3:0]),             // Up, Right, Down, Left from uart_link
         .pause(pause),
         .match_over(match_over),
         // Outputs
