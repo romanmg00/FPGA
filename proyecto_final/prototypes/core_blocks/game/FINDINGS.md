@@ -36,7 +36,7 @@ Lives squares, and the 10 px white border.
 | `reset_stretch.sv` | base clock | Alan | Holds the reset request for six game periods, so both domains reset together (review F7) |
 | `tron_system.sv` | both | Alan (game_top) | Everything below the clocks: debounce, UART receive and decode, the two cores, drawcon, `vga_out`, `seg7_driver`, debug LEDs |
 | `tron_top.sv`, `tron_top.xdc` | — | Alan | One Clocking Wizard since 12 November (two before; section 8), `video/game_clk_div` on `clk_pix`, reset synchronizers, contract §2 pins plus `dp` |
-| `p2_controller.html` | host | Alan (web page) | Web Serial page: W A S D, Space, Enter at 115200 8N1 |
+| `p2_controller.html` | host | Alan (web page) | Web Serial page: W A S D, Space, Enter at 115200 8N1. Moved to [`proyecto_final/web/`](../../../web/p2_controller.html) on 23 November 2026, for the final game |
 
 Also reused: `proyecto_final/vga_out.sv` and `counters.sv` (Roman's, fixed as
 below), `prototypes/uart_input/uart_sync_2ff.sv`, `uart_rx.sv`,
@@ -227,7 +227,7 @@ remains to be done with the board attached.
 2. Program from Vivado Lab's Tcl console:
    `vivado_lab -mode batch -source program_board.tcl -tclargs /absolute/path/tron_top.bit`
    (`../board/program_board.tcl`).
-3. Open `p2_controller.html` in Chrome or Edge, click **Connect** and choose
+3. Open `p2_controller.html` (now [`proyecto_final/web/p2_controller.html`](../../../web/p2_controller.html)) in Chrome or Edge, click **Connect** and choose
    the board's USB serial port. Any 115200 8N1 terminal also works.
 
 Expected:

@@ -1,9 +1,10 @@
 <!doctype html>
-<!-- P2 controller for the Tron board build: sends W A S D, Space and Enter over
-     USB-UART at 115200 8N1 using Web Serial (Chrome or Edge, desktop).
-     PROVISIONAL test page; the contract's web page is Alan's (section 4).
-     The FPGA decodes w/a/s/d in either case as P2 Turns and 0x20/0x0D as Start
-     (uart_cmd_decode.sv); every other byte is ignored. -->
+<!-- Author: Alan (AIF31).
+     P2's controller for the Tron game: sends one byte per key over the board's USB-UART,
+     115200 baud, 8N1, with Web Serial (Chrome or Edge on a desktop). game_top receives the
+     bytes on its uart_rx pin (ADR 0013): w a s d turn P2, Space (0x20) and Enter (one CR,
+     0x0D) are Start for either Player. The FPGA also accepts W A S D; every other byte is
+     ignored. A key held down sends one byte, not its auto-repeats. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -39,13 +40,29 @@ document.getElementById("connect").addEventListener("click", async () => {
   } catch (e) { status.textContent = "Could not open the port: " + e.message; }
 });
 
+// The board's cable was unplugged, or the board was switched off.
+navigator.serial?.addEventListener("disconnect", () => {
+  writer = null;
+  status.textContent = "Disconnected. Plug the board in and connect again.";
+});
+
+window.addEventListener("blur", () => { if (writer) status.textContent = "Connected, but this tab is not focused: keys are not sent."; });
+window.addEventListener("focus", () => { if (writer) status.textContent = "Connected."; });
+
 document.addEventListener("keydown", async (ev) => {
+  if (ev.ctrlKey || ev.altKey || ev.metaKey) return;      // leave browser shortcuts alone
   const key = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key;
-  if (!(key in KEYS) || ev.repeat) return;
-  ev.preventDefault();
+  if (!(key in KEYS)) return;
+  ev.preventDefault();                                     // no page scroll on Space
+  if (ev.repeat) return;
   if (!writer) { status.textContent = "Connect first."; return; }
-  await writer.write(new TextEncoder().encode(KEYS[key]));
-  log.textContent = ("sent " + JSON.stringify(KEYS[key]) + "  " + log.textContent).slice(0, 120);
+  try {
+    await writer.write(new TextEncoder().encode(KEYS[key]));
+    log.textContent = ("sent " + JSON.stringify(KEYS[key]) + "  " + log.textContent).slice(0, 120);
+  } catch (e) {
+    writer = null;
+    status.textContent = "Could not send: " + e.message + ". Connect again.";
+  }
 });
 </script>
 </body>
