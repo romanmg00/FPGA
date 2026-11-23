@@ -1,5 +1,5 @@
 ## Author: Roman (romanmg00), from Digilent's Nexys A7-100T master XDC. Changes by Alan (AIF31): configuration
-## voltage (#12), SW12-SW15 and the 7-segment display pins (#47).
+## voltage (#12), SW12-SW15 and the 7-segment display pins (#47), the USB-UART receive pin (ADR 0013).
 ## This file is a general .xdc for the Nexys A7-100T
 ## To use it in a project:
 ## - uncomment the lines corresponding to used pins
@@ -188,7 +188,8 @@ set_property -dict { PACKAGE_PIN B12   IOSTANDARD LVCMOS33 } [get_ports { vga_vs
 #set_property -dict { PACKAGE_PIN D12   IOSTANDARD LVCMOS33 } [get_ports { AUD_SD }]; #IO_L6P_T0_15 Sch=aud_sd
 
 ##USB-RS232 Interface
-#set_property -dict { PACKAGE_PIN C4    IOSTANDARD LVCMOS33 } [get_ports { UART_TXD_IN }]; #IO_L7P_T1_AD6P_35 Sch=uart_txd_in
+## UART_TXD_IN is named from the PC's side: the FPGA receives P2's bytes on it.
+set_property -dict { PACKAGE_PIN C4    IOSTANDARD LVCMOS33 } [get_ports { uart_rx }]; #IO_L7P_T1_AD6P_35 Sch=uart_txd_in
 #set_property -dict { PACKAGE_PIN D4    IOSTANDARD LVCMOS33 } [get_ports { UART_RXD_OUT }]; #IO_L11N_T1_SRCC_35 Sch=uart_rxd_out
 #set_property -dict { PACKAGE_PIN D3    IOSTANDARD LVCMOS33 } [get_ports { UART_CTS }]; #IO_L12N_T1_MRCC_35 Sch=uart_cts
 #set_property -dict { PACKAGE_PIN E5    IOSTANDARD LVCMOS33 } [get_ports { UART_RTS }]; #IO_L5N_T0_AD13N_35 Sch=uart_rts

@@ -74,7 +74,7 @@ set movement [list $src/round_fsm.sv $src/step_counter.sv $src/bike_move.sv $src
 set design [concat [list $src/counters.sv $src/vga_out.sv $src/drawcon.sv $src/sync_2ff.sv \
     $src/board_reset_sync.sv $src/arena_map.sv $src/arena_ctrl.sv $src/arena_link.sv] $movement [list $src/bike_glide.sv \
     $src/pos_link.sv $src/match_fsm.sv $src/score_unit.sv $src/seg7_view.sv $src/seg7_link.sv $src/seg7_driver.sv \
-    $src/multidigit.sv $src/sevenseg.sv $src/game_top.sv]]
+    $src/multidigit.sv $src/sevenseg.sv $src/uart_rx.sv $src/uart_decode.sv $src/uart_link.sv $src/game_top.sv]]
 check_no_handwritten_ip $design
 
 # CLK_JUEGO_N vive en game_top.sv y 2 * N en game_top_timing.xdc, porque el XDC no puede
@@ -134,7 +134,12 @@ start_bench score_unit_tb score_unit_tb "PASS score_unit_tb" [list $tb/score_uni
 start_bench seg7_link_tb seg7_link_tb "PASS seg7_link_tb" [list $tb/seg7_link_tb.sv $src/seg7_link.sv $src/sync_2ff.sv]
 # The Match on clk_juego alone: match_fsm, score_unit and position_logic, as wired in game_top.
 start_bench match_tb match_tb "PASS match_tb" [concat [list $tb/match_tb.sv $src/match_fsm.sv $src/score_unit.sv] $movement]
-foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long match pause}}] {
+# P2's input over UART (ADR 0013): the receiver behind sync_2ff, the byte decoder, and the
+# command crossing to clk_juego.
+start_bench uart_rx_tb uart_rx_tb "PASS uart_rx_tb" [list $tb/uart_rx_tb.sv $src/uart_rx.sv $src/sync_2ff.sv]
+start_bench uart_decode_tb uart_decode_tb "PASS uart_decode_tb" [list $tb/uart_decode_tb.sv $src/uart_decode.sv]
+start_bench uart_link_tb uart_link_tb "PASS uart_link_tb" [list $tb/uart_link_tb.sv $src/uart_link.sv $src/sync_2ff.sv]
+foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long match pause uart}}] {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
         [concat [list $tb/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
         "-testplusarg scenario=$scenario -testplusarg 'bike_mem=$bike_mem'"
@@ -298,6 +303,20 @@ foreach {what pattern} {heads_tgl u_arena_link/heads_tgl_ff_reg
     }
 }
 emit $out/arena_link_cells.txt [join $arena_report \n]
+# Los tres set_max_delay de uart_link: cada patron debe encontrar todos sus bits, no solo
+# alguno (un registro absorbido por otro dejaria bits sin restriccion, como en el issue #54).
+# Los numeros quedan en uart_link_cells.txt.
+set uart_report {}
+foreach {what pattern want} {cmd_tgl u_uart_link/cmd_tgl_reg 1 cmd_tgl_sync u_uart_link/u_sync_cmd/meta_reg 1
+        ack_tgl u_uart_link/ack_tgl_reg 1 ack_tgl_sync u_uart_link/u_sync_ack/meta_reg 1
+        cmd_pix {u_uart_link/cmd_pix_reg[*]} 5 cmd_juego {u_uart_link/cmd_juego_reg[*]} 5} {
+    set cells [get_cells -quiet $pattern]
+    lappend uart_report "$what: [llength $cells] of $want"
+    if {[llength $cells] != $want} {
+        error "game_top_timing.xdc: el set_max_delay de uart_link encuentra [llength $cells] celdas en $pattern, se esperaban $want"
+    }
+}
+emit $out/uart_link_cells.txt [join $uart_report \n]
 
 # Lista de reportes de CS-256 Official FPGA Coding Practices.
 foreach cmd {report_clocks report_clock_networks report_clock_utilization report_clock_interaction report_exceptions report_methodology report_drc} {

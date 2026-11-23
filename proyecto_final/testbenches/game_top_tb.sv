@@ -7,8 +7,8 @@
 // the Wizard itself, lock behaviour, or a CPU_RESET shorter than one clk_juego period.
 //
 // The design is two bikes moving on their own in Rounds (PRs #21, #25, #26): BTNC starts a
-// Round, P1 turns with the buttons, P2 goes straight because game_top ties turn_req2 to 0,
-// a step every STEP_TICKS ticks of clk_juego, a crash ends the Round, and after the 2 s
+// Round, P1 turns with the buttons, P2 goes straight unless the uart scenario sends it bytes
+// on the uart_rx pin (ADR 0013), a step every STEP_TICKS ticks of clk_juego, a crash ends the Round, and after the 2 s
 // pause both bikes go back to their starts. The crash rules themselves are checked in
 // position_logic_tb; this bench checks that game_top wires them to the pins.
 //
@@ -33,6 +33,8 @@
 // press_start waits up to 10 ticks for the Round. The Scoreboard is read from seg and an.
 // match plays one Match to its end (P1's Lives set to 1 with force; match_tb plays whole
 // Matches on clk_juego alone) and pause checks SW0 and a Start held through CPU_RESETN.
+// uart sends P2's keys as 8N1 frames on the uart_rx pin at 115200 baud: Enter starts the
+// Round, W and D turn P2, a reversal is ignored, and bytes that are not commands do nothing.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
 // own simulator: xsim game_top_tb -runall -testplusarg scenario=steps
 // Without +scenario they all run one after another in one simulation.
@@ -40,6 +42,7 @@
 module game_top_tb;
     localparam int H_TOTAL = 1680, V_TOTAL = 828;
     localparam real PIX_NS = 11.982;
+    localparam real UART_BIT_NS = 1.0e9 / 115200;   // one bit on the uart_rx pin
     // Board buttons: [0] U, [1] D, [2] L, [3] R, [4] centre (Start)
     localparam logic [4:0] B_NONE = 5'b00000, B_U = 5'b00001, B_D = 5'b00010,
                            B_L = 5'b00100, B_R = 5'b01000, B_C = 5'b10000;
@@ -59,6 +62,7 @@ module game_top_tb;
     logic clk = 1'b0, cpu_resetn = 1'b1;
     logic [15:0] sw = 16'h0000;
     logic [4:0] btn = B_NONE;
+    logic uart_rx = 1'b1;     // P2's web page; high when idle
     logic [3:0] r, g, b;
     logic hs, vs;
     logic [6:0] seg;
@@ -99,7 +103,7 @@ module game_top_tb;
     // Arena model: what arena_map must hold after the last step's writes.
     logic [3:0] arena_want [0:8191];
 
-    game_top dut (.clk, .cpu_resetn, .sw, .btn, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs),
+    game_top dut (.clk, .cpu_resetn, .sw, .btn, .uart_rx, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs),
                   .seg, .dp, .an);
     always #5 clk = ~clk;
 
@@ -596,6 +600,51 @@ module game_top_tb;
         reset_test(500);
     endtask
 
+    // One byte from P2's web page on the uart_rx pin: start bit, 8 data bits LSB first, stop
+    // bit, at 115200 baud (87 us).
+    task automatic uart_send(logic [7:0] data);
+        uart_rx = 1'b0;
+        #(UART_BIT_NS);
+        for (int i = 0; i < 8; i++) begin
+            uart_rx = data[i];
+            #(UART_BIT_NS);
+        end
+        uart_rx = 1'b1;
+        #(UART_BIT_NS);
+    endtask
+
+    // P2 plays from the web page (ADR 0013). Bytes that are not commands start nothing; Enter
+    // (CR) starts the Round; W turns P2 up, an uppercase S (its reverse) is ignored, D turns
+    // it right, and Space during the Round does nothing. P1 keeps going right. Each byte is
+    // sent just after a step, and must act at the next one, 8 ticks later.
+    task automatic uart_scenario();
+        int waited = 0;
+        uart_send("x");
+        uart_send(8'h0A);                            // LF: not a command
+        wait_ticks(10);
+        if (dut.u_position_logic.run !== 1'b0) fail("a byte that is not a command started the Round");
+        uart_send(8'h0D);                            // Enter: Start
+        while (dut.u_position_logic.run !== 1'b1) begin
+            @(posedge dut.clk_juego);
+            #1;
+            if (++waited > 10) fail("Enter did not start the Round within 10 ticks");
+        end
+        arena_model_prepare();
+        last_step_tick = -1;
+        step_ok("P2 straight", 1, 0, -1, 0);
+        uart_send("w");
+        step_ok("w: P2 turns up", 1, 0, 0, -1);
+        check_frame_here("P2 heading up");
+        uart_send("S");                              // reverse of Up: ignored
+        step_ok("S while heading up: ignored", 1, 0, 0, -1);
+        uart_send("D");
+        step_ok("D: P2 turns right", 1, 0, 1, 0);
+        uart_send(" ");                              // Space while the Round runs
+        step_ok("Space while the Round runs", 1, 0, 1, 0);
+        check_frame_here("P2 heading right");
+        arena_check("after P2's turns");
+    endtask
+
     initial begin
         void'($value$plusargs("scenario=%s", scenario));
         STEP = dut.u_position_logic.u_step_counter.STEP_TICKS;
@@ -625,6 +674,7 @@ module game_top_tb;
             "reset_long":   reset_long();
             "match":        match_scenario();
             "pause":        pause_scenario();
+            "uart":         uart_scenario();
             "all": begin
                 idle();
                 steps();
@@ -641,6 +691,8 @@ module game_top_tb;
                 match_scenario();
                 cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
                 pause_scenario();
+                cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
+                uart_scenario();
             end
             default: fail($sformatf("unknown scenario %s", scenario));
         endcase
