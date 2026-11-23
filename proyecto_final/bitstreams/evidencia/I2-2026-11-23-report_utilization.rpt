@@ -1,0 +1,45 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Mon Nov 23 13:15:06 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_utilization -hierarchical -file /builds/run-20261123-161157-VlXVG8/report_utilization.rpt
+| Design       : game_top
+| Device       : xc7a100tcsg324-1
+| Speed File   : -1
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++--------------------+---------------------------+------------+------------+---------+------+-----+--------+--------+------------+
+|      Instance      |           Module          | Total LUTs | Logic LUTs | LUTRAMs | SRLs | FFs | RAMB36 | RAMB18 | DSP Blocks |
++--------------------+---------------------------+------------+------------+---------+------+-----+--------+--------+------------+
+| game_top           |                     (top) |        974 |        974 |       0 |    0 | 668 |      1 |      2 |          0 |
+|   (game_top)       |                     (top) |          6 |          6 |       0 |    0 |  21 |      0 |      0 |          0 |
+|   u_arena_ctrl     |                arena_ctrl |         91 |         91 |       0 |    0 |  93 |      0 |      0 |          0 |
+|     (u_arena_ctrl) |                arena_ctrl |         85 |         85 |       0 |    0 |  91 |      0 |      0 |          0 |
+|   u_arena_link     |                arena_link |         19 |         19 |       0 |    0 |  85 |      0 |      0 |          0 |
+|     (u_arena_link) |                arena_link |         17 |         17 |       0 |    0 |  83 |      0 |      0 |          0 |
+|   u_glide1         |                bike_glide |         40 |         40 |       0 |    0 |  54 |      0 |      0 |          0 |
+|   u_glide2         |             bike_glide_16 |         40 |         40 |       0 |    0 |  54 |      0 |      0 |          0 |
+|   u_pos_link       |                  pos_link |        136 |        136 |       0 |    0 | 100 |      0 |      0 |          0 |
+|     (u_pos_link)   |                  pos_link |        135 |        135 |       0 |    0 |  98 |      0 |      0 |          0 |
+|   u_position_logic |            position_logic |        380 |        380 |       0 |    0 |  50 |      0 |      0 |          0 |
+|     u_bike_move1   |                 bike_move |        182 |        182 |       0 |    0 |  18 |      0 |      0 |          0 |
+|     u_bike_move2   | bike_move__parameterized0 |        176 |        176 |       0 |    0 |  18 |      0 |      0 |          0 |
+|   u_vga_out        |                   vga_out |        123 |        123 |       0 |    0 |  36 |      0 |      0 |          0 |
+|     c_counter      |                  counters |        123 |        123 |       0 |    0 |  22 |      0 |      0 |          0 |
++--------------------+---------------------------+------------+------------+---------+------+-----+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

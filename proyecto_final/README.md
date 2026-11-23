@@ -8,7 +8,7 @@ Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a
 - **Game:** a ~60 Hz clock (`clk_juego`).
 - **Inputs:** P1 turns with the board buttons. P2 turns with W A S D on a web page ([`web/p2_controller.html`](web/p2_controller.html)) that sends one byte per key over the board's USB-UART ([ADR 0013](../docs/adr/0013-p2-uart-input-one-command-mailbox.md)).
 - **Not yet:** Rewards (G4).
-- **Board status:** the last build checked on the board is Z1, on 19 November 2026, with `pos_link` (X1, #48): `game_top_z1_19nov.bit`, in [`bitstreams/README.md`](bitstreams/README.md).
+- **Board status:** the last build checked on the board is `game_top_p2_uart.bit`, on 23 November 2026, with P2's UART input (#60), in [`bitstreams/README.md`](bitstreams/README.md).
 
 **Where the rules come from:**
 - [Agreed specification of 20 October](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md): the rules, locked.
@@ -201,8 +201,9 @@ xvfb-run -a vivado -mode gui -source proyecto_final/schematics.tcl \
 
 ## Test on the board
 
-1. Program [`bitstreams/game_top_match_scoreboard.bit`](bitstreams/) by JTAG: Vivado Hardware Manager → *Open Target* → *Program Device*.
-2. Follow the nine checks in [`bitstreams/README.md`](bitstreams/README.md).
+1. Program [`bitstreams/game_top_p2_uart.bit`](bitstreams/) by JTAG: Vivado Hardware Manager → *Open Target* → *Program Device*.
+2. For P2, open [`web/p2_controller.html`](web/p2_controller.html) in Chrome or Edge, click **Connect** and choose the board's USB serial port (the same cable as JTAG).
+3. Follow the checks in [`bitstreams/README.md`](bitstreams/README.md).
 
 Programming by JTAG is not kept after a power cycle: the board then loads whatever is in its flash.
 
