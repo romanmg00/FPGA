@@ -252,6 +252,10 @@ Each Objective's done check includes saving one piece of evidence for the report
 | [`Z1-2026-11-19-check_timing.rpt`](../../proyecto_final/bitstreams/evidencia/Z1-2026-11-19-check_timing.rpt) | Z1 | No unclocked or unconstrained internal endpoints | 2026-11-19 |
 | [`Z1-2026-11-19-report_utilization.rpt`](../../proyecto_final/bitstreams/evidencia/Z1-2026-11-19-report_utilization.rpt) | Z1 | 835 LUTs, 556 FFs, 1 RAMB36 + 2 RAMB18, per module | 2026-11-19 |
 | [Board check of `game_top_z1_19nov.bit`](../../proyecto_final/bitstreams/README.md) | Z1 | Roman's board test: all 8 checks pass | 2026-11-19 |
+| [`I2-2026-11-23-timing_summary.rpt`](../../proyecto_final/bitstreams/evidencia/I2-2026-11-23-timing_summary.rpt) | I2, X2 | Routed timing with P2's UART input (`hdl/p2-uart` `5eec915`, Vivado 2025.2): WNS +4.151 ns, WHS +0.070 ns, 0 failing endpoints | 2026-11-23 |
+| [`I2-2026-11-23-report_cdc.rpt`](../../proyecto_final/bitstreams/evidencia/I2-2026-11-23-report_cdc.rpt) | I2, X2 | No Critical CDC rows; `uart_link`'s toggles (CDC-3) and its 5 command bits (CDC-15) all under `set_max_delay`; the 3 Arena bits of #54 still unconstrained | 2026-11-23 |
+| [`I2-2026-11-23-report_drc.rpt`](../../proyecto_final/bitstreams/evidencia/I2-2026-11-23-report_drc.rpt), [`check_timing`](../../proyecto_final/bitstreams/evidencia/I2-2026-11-23-check_timing.rpt), [`report_utilization`](../../proyecto_final/bitstreams/evidencia/I2-2026-11-23-report_utilization.rpt) | I2 | 0 DRC violations; no unconstrained inputs or internal endpoints; 974 LUTs, 668 FFs | 2026-11-23 |
+| [Board check of `game_top_p2_uart.bit`](../../proyecto_final/bitstreams/README.md) | I2, I3 | Alan's board test with the web page in Chrome: Start from Enter and Space, W A S D turns, a held key, Pause and CPU_RESET; all pass | 2026-11-23 |
 
 ## Ownership
 

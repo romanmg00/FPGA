@@ -63,7 +63,7 @@ level, are in [`game/diagrams/vivado/`](game/diagrams/vivado/) (PDF and SVG;
 | `btn[4:0]` | 5 | in | `btn_debounce` | P1: `{C, R, L, D, U}` = Start, Right, Left, Down, Up |
 | `sw[0]` | 1 | in | `game_core` (2-FF) | Pause |
 | `sw[15:14]` | 2 | in | `game_core` (2-FF) | Points Goal 10/20/30/40, taken at Match start |
-| `uart_rx` | 1 | in | `uart_sync_2ff` → `uart_rx` | P2 from `game/p2_controller.html`: 115200 8N1, W A S D, Space/Enter |
+| `uart_rx` | 1 | in | `uart_sync_2ff` → `uart_rx` | P2 from `p2_controller.html` (in `proyecto_final/web/` since 23 November 2026): 115200 8N1, W A S D, Space/Enter |
 | `vga_r/g/b[3:0]` | 12 | out | `vga_out` | RGB444 |
 | `vga_hs`, `vga_vs` | 2 | out | `vga_out` | 1280 × 800 at ≈ 60 Hz (1680 × 828 raster) |
 | `seg[6:0]`, `an[7:0]` | 15 | out | `seg7_driver` | Scoreboard: P2 left, P1 right; Points / Lives (/ Goal) pages |

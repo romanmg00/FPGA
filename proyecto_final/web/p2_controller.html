@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- Author: Alan (AIF31).
+     P2's controller for the Tron game: sends one byte per key over the board's USB-UART,
+     115200 baud, 8N1, with Web Serial (Chrome or Edge on a desktop). game_top receives the
+     bytes on its uart_rx pin (ADR 0013): w a s d turn P2, Space (0x20) and Enter (one CR,
+     0x0D) are Start for either Player. The FPGA also accepts W A S D; every other byte is
+     ignored. A key held down sends one byte, not its auto-repeats. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tron P2 controller</title>
+<style>
+  body { font: 16px system-ui, sans-serif; background: #111; color: #eee; margin: 2rem; }
+  button { font-size: 1rem; padding: .5rem 1rem; }
+  #status { margin: 1rem 0; color: #fa0; }
+  #log { font-family: monospace; color: #8cf; }
+  kbd { border: 1px solid #666; border-radius: 4px; padding: 0 .4em; }
+</style>
+</head>
+<body>
+<h1>Tron: P2 (orange)</h1>
+<p><button id="connect">Connect to the Nexys A7</button></p>
+<p id="status">Not connected. Choose the board's USB serial port.</p>
+<p>Keep this tab focused. <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> turn P2;
+<kbd>Space</kbd> or <kbd>Enter</kbd> is Start (for either Player).</p>
+<p id="log"></p>
+<script>
+const KEYS = { w: "w", a: "a", s: "s", d: "d", " ": " ", Enter: "\r" };
+let port = null;      // the board's serial port, once connected
+let writer = null;
+const status = document.getElementById("status");
+const log = document.getElementById("log");
+
+document.getElementById("connect").addEventListener("click", async () => {
+  if (!("serial" in navigator)) { status.textContent = "This browser has no Web Serial; use Chrome or Edge."; return; }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: "none" });
+    writer = port.writable.getWriter();
+    status.textContent = "Connected.";
+  } catch (e) { status.textContent = "Could not open the port: " + e.message; }
+});
+
+// The board's cable was unplugged, or the board was switched off. Another serial device
+// going away must not stop this one.
+navigator.serial?.addEventListener("disconnect", (ev) => {
+  if (ev.target !== port) return;
+  port = null;
+  writer = null;
+  status.textContent = "Disconnected. Plug the board in and connect again.";
+});
+
+window.addEventListener("blur", () => { if (writer) status.textContent = "Connected, but this tab is not focused: keys are not sent."; });
+window.addEventListener("focus", () => { if (writer) status.textContent = "Connected."; });
+
+document.addEventListener("keydown", async (ev) => {
+  if (ev.ctrlKey || ev.altKey || ev.metaKey) return;      // leave browser shortcuts alone
+  const key = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key;
+  if (!(key in KEYS)) return;
+  ev.preventDefault();                                     // no page scroll on Space
+  if (ev.repeat) return;
+  if (!writer) { status.textContent = "Connect first."; return; }
+  try {
+    await writer.write(new TextEncoder().encode(KEYS[key]));
+    log.textContent = ("sent " + JSON.stringify(KEYS[key]) + "  " + log.textContent).slice(0, 120);
+  } catch (e) {
+    writer = null;
+    status.textContent = "Could not send: " + e.message + ". Connect again.";
+  }
+});
+</script>
+</body>
+</html>

@@ -12,6 +12,7 @@ set_false_path -from [get_ports cpu_resetn] -to [get_cells {u_rst_pix/meta_reg u
 set_false_path -from [get_ports {btn[*]}] -to [get_cells {g_btn[*].u_sync/meta_reg}]
 set_false_path -from [get_ports {sw[*]}] -to [get_cells {g_sw[*].u_sync/meta_reg}]
 set_false_path -from [get_ports {sw[*]}] -to [get_cells {u_sync_pause/meta_reg u_sync_goal*/meta_reg}]
+set_false_path -from [get_ports uart_rx] -to [get_cells u_sync_uart/meta_reg]
 
 ## Posiciones y direcciones de las motos (X1, issue #30): pos_link cruza de clk_juego a clk_pix con
 ## un toggle por sync_2ff, y los valores se copian a pend*_reg solo despues del toggle, cuando llevan
@@ -35,3 +36,11 @@ set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_ctrl/codes_reg[*]}
 ## que los dos lados existan.
 set_max_delay -datapath_only 11.982 -from [get_cells u_seg7_link/tick_toggle_reg] -to [get_cells u_seg7_link/u_sync_toggle/meta_reg]
 set_max_delay -datapath_only 11.982 -from [get_cells {u_seg7_link/values_juego_reg[*]}] -to [get_cells {u_seg7_link/values_pix_reg[*]}]
+
+## Cruce de los comandos de P2 (uart_link, ADR 0013): clk_pix guarda el comando en cmd_pix y cambia
+## cmd_tgl; clk_juego sincroniza el toggle, copia cmd_pix a cmd_juego y responde con ack_tgl.
+## cmd_pix no cambia hasta que vuelve la respuesta. Mismo patron que la arena: se acota el
+## retardo de los dos toggles y de los datos a un pixel. build_game_top.tcl cuenta cada lado.
+set_max_delay -datapath_only 11.982 -from [get_cells u_uart_link/cmd_tgl_reg] -to [get_cells u_uart_link/u_sync_cmd/meta_reg]
+set_max_delay -datapath_only 11.982 -from [get_cells u_uart_link/ack_tgl_reg] -to [get_cells u_uart_link/u_sync_ack/meta_reg]
+set_max_delay -datapath_only 11.982 -from [get_cells {u_uart_link/cmd_pix_reg[*]}] -to [get_cells {u_uart_link/cmd_juego_reg[*]}]

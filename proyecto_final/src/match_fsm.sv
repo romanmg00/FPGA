@@ -4,6 +4,7 @@ module match_fsm (
     input  logic clk,             // clk_juego
     input  logic rst,
     input  logic start_btn,       // BTNC
+    input  logic start_p2,        // Space or Enter from P2's web page (uart_link), 2 ticks
     input  logic crash,
     input  logic crash_done,      // Crash pause is over
     input  logic match_over,      // a Player has no Lives left
@@ -17,13 +18,20 @@ module match_fsm (
     // s_new, s_go and s_start last 1 tick each. The order keeps the contract's codes 0-4.
     typedef enum logic [2:0] {s_idle, s_play, s_crash, s_ready, s_match, s_new, s_go, s_start} state_t;
     state_t state, next_state;
-    logic   start_btn_last, start_press;
+    logic   start_btn_last, start_p2_last, start_press;
 
+    // Each Start source has its own rising edge, so a held BTNC does not hide a Start from the
+    // web page. Like BTNC, a page Start that lasts through a reset is not a press.
     always_ff @(posedge clk) begin
-        if (rst) start_btn_last <= 1'b1;
-        else     start_btn_last <= start_btn;
+        if (rst) begin
+            start_btn_last <= 1'b1;
+            start_p2_last  <= 1'b1;
+        end else begin
+            start_btn_last <= start_btn;
+            start_p2_last  <= start_p2;
+        end
     end
-    assign start_press = start_btn && !start_btn_last;
+    assign start_press = (start_btn && !start_btn_last) || (start_p2 && !start_p2_last);
 
     always_ff @(posedge clk) begin
         if (rst)         state <= s_idle;

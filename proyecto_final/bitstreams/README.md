@@ -2,9 +2,44 @@
 
 Aquí va solo el último bitstream probado, para llevarlo a la revisión con el TA y poder repetir las pruebas. Los anteriores se borran de la carpeta, pero su registro se queda abajo y el archivo se recupera del historial de Git. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
 
-## `game_top_z1_19nov.bit`
+## `game_top_p2_uart.bit`
 
-El bitstream para mostrar, del cierre de la semana del 19 de noviembre (Z1): `main` con `pos_link` (X1, #48 y #51), las carpetas `src/`, `testbenches/` y `constraints/` (#50) y los nombres de señales de Alan (#52). Juega igual que `game_top_match_scoreboard.bit`; la diferencia es que las posiciones y direcciones de las motos llegan a `drawcon` una vez por cuadro, así que una moto ya no se dibuja cortada. **Este es el probado en la tarjeta.**
+El bitstream para mostrar: P2 juega desde la página web ([`web/p2_controller.html`](../web/p2_controller.html)) por la USB-UART (I2, I3; [ADR 0013](../../docs/adr/0013-p2-uart-input-one-command-mailbox.md), propuesto; PR #60). W A S D giran a P2; Espacio o Enter (un byte CR) son Start para cualquiera de los dos jugadores, igual que BTNC. `uart_rx` y `uart_decode` corren en `clk_pix`, y `uart_link` pasa un comando a la vez a `clk_juego`, donde dura 2 ticks; una tecla a menos de unos 50 ms de la anterior se pierde. Lo demás juega igual que `game_top_z1_19nov.bit`. **Este es el probado en la tarjeta.**
+
+| | |
+|---|---|
+| SHA-256 | `a93d01fe3c371fd766a68e77deceac0447a34fb5bc20cb0bc12fb0f0e5f03316` |
+| Fuente | Rama `hdl/p2-uart`, commit `5eec915` (sobre `main` `90dad2d`). Los commits siguientes de la rama solo cambian la página web y documentos |
+| Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` (corrida `run-20261123-161157-VlXVG8`) |
+| Herramienta | Vivado 2025.2, 23 de noviembre de 2026 |
+| Parte | `xc7a100tcsg324-1` |
+
+### Prueba en la tarjeta
+
+Nexys A7 serial `210292B1820D`, programada por JTAG desde `alan-desktop` (DONE en alto). P2 con `p2_controller.html` en Chrome, por el mismo cable USB. Observó Alan el 23 de noviembre de 2026. Todas pasan.
+
+| Prueba | Esperado |
+|---|---|
+| Enter en la página | Empieza la partida |
+| Espacio después de un choque y la pausa de 2 s | Empieza la ronda siguiente |
+| W A S D | P2 gira; la dirección contraria no hace nada; los botones de P1 siguen funcionando al mismo tiempo |
+| Tecla sostenida | Un solo giro |
+| `SW0` arriba (pausa) | Las teclas no hacen nada |
+| CPU_RESET con la página conectada | El juego espera Start; después las teclas siguen funcionando |
+
+### Simulación y reportes
+
+Los reportes completos están en `evidencia/I2-2026-11-23-*.rpt`.
+
+- **Testbenches:** los 34 de `build_game_top.tcl` pasan en XSim (Vivado 2025.2), entre ellos `uart_rx_tb`, `uart_decode_tb`, `uart_link_tb` y los 10 escenarios de `game_top_tb`. El nuevo, `uart`, manda los bytes por el pin `uart_rx`: Enter empieza la ronda, `w` y `D` giran a P2 y `S` (la contraria) no hace nada.
+- **Temporización con el diseño ya ruteado:** setup +4.151 ns (WNS), hold +0.070 ns (WHS), ancho de pulso +3.000 ns, 0 extremos fallando. Entre `clk_juego` y `clk_pix`: +9.584 y +10.249 ns. `check_timing`: 0 en todo, salvo las salidas sin retardo y las 10 entradas con false path (una más: `uart_rx`).
+- **DRC:** 0 violaciones. **Metodología:** solo `TIMING-8`, como en `main`.
+- **Uso:** 974 LUTs, 668 FFs, 1 RAMB36 y 2 RAMB18.
+- **`report_cdc`:** **ninguna fila crítica**. 17 CDC-3 (Info) y 150 CDC-15 (Warning). Los toggles de `uart_link` salen como CDC-3 y sus 5 bits copiados como CDC-15, todos con `set_max_delay`; `uart_rx` tiene false path a su `sync_2ff`. `uart_link_cells.txt`: cada restricción encuentra todos sus bits. Siguen sin restricción las 3 filas de la arena del issue #54.
+
+## `game_top_z1_19nov.bit` (anterior)
+
+El bitstream para mostrar, del cierre de la semana del 19 de noviembre (Z1): `main` con `pos_link` (X1, #48 y #51), las carpetas `src/`, `testbenches/` y `constraints/` (#50) y los nombres de señales de Alan (#52). Juega igual que `game_top_match_scoreboard.bit`; la diferencia es que las posiciones y direcciones de las motos llegan a `drawcon` una vez por cuadro, así que una moto ya no se dibuja cortada. Fue el probado en la tarjeta hasta el `game_top_p2_uart.bit`.
 
 | | |
 |---|---|
@@ -75,7 +110,7 @@ Nexys A7 serial `210292B1820D`, programada por JTAG desde `alan-desktop` (DONE e
 
 ## Bitstreams anteriores
 
-Ya no están en la carpeta. Para recuperar uno: `git show COMMIT:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`, con `a249fd6` para `game_top_match_scoreboard.bit`, `586b16e` para `game_top_two_bikes.bit`, `80b55f2` para `game_top_one_wizard.bit` y `dc029bf` para los demás.
+Ya no están en la carpeta. Para recuperar uno: `git show COMMIT:proyecto_final/bitstreams/NOMBRE.bit > NOMBRE.bit`, con `90dad2d` para `game_top_z1_19nov.bit`, `a249fd6` para `game_top_match_scoreboard.bit`, `586b16e` para `game_top_two_bikes.bit`, `80b55f2` para `game_top_one_wizard.bit` y `dc029bf` para los demás.
 
 ## `game_top_two_bikes.bit` (anterior)
 

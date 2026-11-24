@@ -1,12 +1,14 @@
 // Authors: Roman (romanmg00): first version, clock Wizard, vga_out, drawcon, Bike wiring and
 // pos_link (X1, #48). Alan (AIF31): reset and synchronizers (#12), clk_juego from a counter on
-// clk_pix (ADR 0006, #16), bike_glide (#31), Arena (#40), Match and Scoreboard (#47).
-// Top level of the Tron game: clocks, reset, synchronizers and the video, movement, Arena,
-// Match and Scoreboard blocks.
+// clk_pix (ADR 0006, #16), bike_glide (#31), Arena (#40), Match and Scoreboard (#47), P2's
+// input over UART (#60).
+// Top level of the Tron game: clocks, reset, synchronizers, P2's UART input and the video,
+// movement, Arena, Match and Scoreboard blocks.
 module game_top (
     input  logic        clk, cpu_resetn,
     input  logic [15:0] sw,             // SW0 Pause, {SW15, SW14} Points Goal, SW11-SW0 drawcon
     input  logic [4:0]  btn,
+    input  logic        uart_rx,        // P2's web page over USB-UART, 115200 baud, 8N1 (C4)
     output logic [3:0]  vga_r, vga_g, vga_b,
     output logic        vga_hs, vga_vs,
     output logic [6:0]  seg,            // Scoreboard: seg[0] = CA ... seg[6] = CG, active low
@@ -61,12 +63,17 @@ module game_top (
     board_reset_sync u_rst_juego (.clk(clk_juego), .async_reset(rst_request), .rst(rst_juego));
 
     // ===============================================================
-    // 2. Input synchronizers (2 flip-flops per button and switch)
+    // 2. Inputs: synchronizers (2 flip-flops per button and switch) and P2's UART
     // ===============================================================
     logic [4:0]  btn_sync;                      // buttons on clk_juego -> match_fsm, position_logic
     logic [11:0] sw_sync;                       // SW11-SW0 on clk_pix -> drawcon
     logic        pause;                         // SW0 on clk_juego -> match_fsm, position_logic
     logic [1:0]  goal_sel;                      // {SW15, SW14} on clk_juego -> seg7_view, seg7_link
+    logic        uart_rx_sync;                  // uart_rx on clk_pix -> uart_rx
+    logic [7:0]  rx_byte;                       // uart_rx -> uart_decode
+    logic        rx_valid;                      // uart_rx -> uart_link
+    logic [4:0]  uart_cmd;                      // uart_decode -> uart_link
+    logic [4:0]  cmd_p2;                        // uart_link -> [3:0] turn_req2, [4] Start, on clk_juego
 
     // BTNC (btn[4]) is never reset, so a Start held through CPU_RESETN still reads as held
     // and match_fsm waits for its release.
@@ -85,6 +92,23 @@ module game_top (
     sync_2ff u_sync_goal0 (.clk(clk_juego), .rst(rst_juego), .async_in(sw[14]), .sync_out(goal_sel[0]));
     sync_2ff u_sync_goal1 (.clk(clk_juego), .rst(rst_juego), .async_in(sw[15]), .sync_out(goal_sel[1]));
 
+    // P2's web page sends one byte per key (ADR 0013): W A S D turn P2, Space or Enter is
+    // Start. uart_rx and uart_decode run on clk_pix; uart_link carries one command at a time
+    // to clk_juego, where it lasts 2 ticks.
+    sync_2ff u_sync_uart (.clk(clk_pix), .rst(rst_pix), .async_in(uart_rx), .sync_out(uart_rx_sync));
+
+    uart_rx u_uart_rx (
+        .clk(clk_pix), .rst(rst_pix),
+        .rx(uart_rx_sync), .rx_byte(rx_byte), .rx_valid(rx_valid)
+    );
+
+    uart_decode u_uart_decode (.rx_byte(rx_byte), .cmd(uart_cmd));
+
+    uart_link u_uart_link (
+        .clk_pix(clk_pix), .cmd(uart_cmd), .cmd_valid(rx_valid),
+        .clk_juego(clk_juego), .rst_juego(rst_juego), .cmd_juego(cmd_p2)
+    );
+
     // ===============================================================
     // 3. Match and score (G3/G5)
     // ===============================================================
@@ -94,11 +118,11 @@ module game_top (
     logic [5:0]  points_p1, points_p2;          // score_unit -> seg7_link
     logic [1:0]  lives_p1, lives_p2;
 
-    // Match control (G3): Start reaches round_fsm as a 1-tick pulse, and each new Match resets
-    // position_logic (Bikes to their starts).
+    // Match control (G3): Start (BTNC, or Space or Enter from P2's page, each on its own edge)
+    // reaches round_fsm as a 1-tick pulse, and each new Match resets position_logic.
     match_fsm u_match_fsm (
         .clk(clk_juego), .rst(rst_juego),
-        .start_btn(btn_sync[4]), .crash(crash1 || crash2), .crash_done(crash_done),
+        .start_btn(btn_sync[4]), .start_p2(cmd_p2[4]), .crash(crash1 || crash2), .crash_done(crash_done),
         .match_over(match_over), .pause(pause),
         .waiting(waiting), .new_match(new_match), .restart(restart), .round_start(round_start)
     );
@@ -125,7 +149,8 @@ module game_top (
     logic [3:0]  code2_u, code2_r, code2_d, code2_l;
     logic        codes_valid;
 
-    // The bike moves on its own in rounds, turns with the buttons and crashes at a wall.
+    // The bikes move on their own in rounds, P1 turns with the buttons and P2 with the
+    // web page, and they crash at a wall, a Trail or each other.
     position_logic #(
         .STEP_TICKS(STEP_TICKS)
     ) u_position_logic (
@@ -133,7 +158,7 @@ module game_top (
         .clk(clk_juego),
         .rst(rst_juego || restart),
         .btn({round_start, btn_sync[3:0]}), // Start only through match_fsm
-        .turn_req2(4'b0000),
+        .turn_req2(cmd_p2[3:0]),             // Up, Right, Down, Left from uart_link
         .pause(pause),
         .match_over(match_over),
         // Outputs
