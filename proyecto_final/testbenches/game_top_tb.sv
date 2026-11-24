@@ -666,6 +666,7 @@ module game_top_tb;
     task automatic rewards_scenario();
         int r0 = 32 * 128 + 39;
         press_start();
+        arena_check("new Match");                    // learns where the Prepare put them
         if (rw_cell[0] != r0 || rw_cell[1] != 9 * 128 + 10 || rw_cell[2] != 12 * 128 + 1)
             fail($sformatf("Rewards at (%0d,%0d) (%0d,%0d) (%0d,%0d); the model puts them at (39,32) (10,9) (1,12)",
                            rw_cell[0] % 128, rw_cell[0] / 128, rw_cell[1] % 128, rw_cell[1] / 128,
