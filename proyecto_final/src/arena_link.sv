@@ -1,13 +1,16 @@
 // Author: Alan (AIF31).
 // Game-side half of the Arena crossing, on clk_juego. After each Step (and when load rises) it
 // sends the heads to arena_ctrl and gets back the codes of the 4 neighbour Cells of each head.
-// With the Step at edge k: heads sent at k+1, codes and codes_valid at k+4.
+// With the Step at edge k: heads sent at k+1, codes and codes_valid at k+4. A Step also sends
+// the Reward slots taken, and the first Prepare after a reset (CPU_RESETN, or the restart of a
+// new Match) asks arena_ctrl to mix the seed (ADR 0012).
 module arena_link (
     input  logic        clk,                        // clk_juego (~60 Hz)
     input  logic        rst,                        // rst_juego, synchronous, active high
     // From position_logic
     input  logic        load,                       // Bikes held at their starts; its rise prepares the Round
     input  logic        step,                       // the Step taken; in a Crash Step no Bike moves
+    input  logic [1:0]  reward1, reward2,           // Reward taken in the Step: 0 none, 1-3 slot 0-2
     input  logic [10:0] blkpos1_x, blkpos1_y,       // heads in pixels (Cell x 16)
     input  logic [10:0] blkpos2_x, blkpos2_y,
     // To position_logic: neighbour codes of the current heads
@@ -17,6 +20,8 @@ module arena_link (
     // To arena_ctrl (clk_pix): held until codes_tgl answers
     output logic        heads_tgl,                  // toggles each time new heads are sent
     output logic        prepare,                    // 1 Prepare (start heads), 0 Step
+    output logic        reseed,                     // Prepare of a new Match: mix the seed
+    output logic [2:0]  collected,                  // Step: slots taken, [0] slot 0 ... [2] slot 2
     output logic [12:0] old_head_p1, old_head_p2,   // heads sent last time {cy, cx}: become Trail
     output logic [12:0] new_head_p1, new_head_p2,   // heads now {cy, cx}
     // From arena_ctrl
@@ -26,6 +31,8 @@ module arena_link (
 
     logic        load_last;                         // load one tick earlier, for its rise
     logic        prepare_pending, step_pending;     // an event waits to be sent
+    logic        reseed_pending;                    // no Prepare sent since the reset
+    logic [2:0]  collected_step;                    // slots taken in the Step waiting to be sent
     logic        codes_tgl_sync;                    // codes_tgl after sync_2ff
     logic        codes_tgl_last = 1'b0;             // codes_tgl_sync one tick earlier; never reset
     logic        heads_tgl_ff = 1'b0;               // the flip-flop behind heads_tgl; never reset
@@ -58,6 +65,8 @@ module arena_link (
             load_last       <= 1'b0;
             prepare_pending <= 1'b0;
             step_pending    <= 1'b0;
+            reseed_pending  <= 1'b1;
+            collected_step  <= 3'b000;
             codes           <= 32'd0;
             codes_valid     <= 1'b0;
         end else begin
@@ -75,6 +84,15 @@ module arena_link (
             else if (send_step || send_prepare)
                 step_pending <= 1'b0;
 
+            // A Step needs codes_valid, so it never comes while another one waits.
+            if (step)
+                collected_step <= {reward1 == 2'd3 || reward2 == 2'd3,
+                                   reward1 == 2'd2 || reward2 == 2'd2,
+                                   reward1 == 2'd1 || reward2 == 2'd1};
+
+            if (send_prepare)
+                reseed_pending <= 1'b0;
+
             if (codes_arrived)
                 codes <= {neighbours_p1, neighbours_p2};
 
@@ -91,11 +109,15 @@ module arena_link (
         codes_tgl_last <= codes_tgl_sync;
         if (send_prepare) begin
             prepare      <= 1'b1;
+            reseed       <= reseed_pending;
+            collected    <= 3'b000;             // a Prepare places all three
             new_head_p1  <= head_p1;
             new_head_p2  <= head_p2;
             heads_tgl_ff <= ~heads_tgl_ff;
         end else if (send_step) begin
             prepare      <= 1'b0;
+            reseed       <= 1'b0;
+            collected    <= collected_step;
             old_head_p1  <= new_head_p1;        // the heads in the Arena become Trail
             old_head_p2  <= new_head_p2;
             new_head_p1  <= head_p1;

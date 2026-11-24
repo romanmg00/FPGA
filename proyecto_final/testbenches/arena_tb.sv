@@ -4,6 +4,9 @@
 // so the phase between them drifts. The driver plays position_logic: load, step and the heads
 // change just after a clk_juego edge, and a Step waits while codes_valid = 0 (the proposed
 // policy). A golden Arena is kept from the rules and read back through the draw port, as drawcon would.
+// Rewards (ADR 0012): the driver reports a Reward when a Bike moves into one, and the golden
+// Arena places each slot with the same search as arena_ctrl_tb, from the LFSR mixed with the
+// counter value arena_ctrl uses (read from it when it starts a new Match's Prepare).
 // STEP_TICKS comes from +step_ticks=N (default 8). Not the official bench of contract section 7.
 `timescale 1ns/1ps
 module arena_tb;
@@ -11,13 +14,15 @@ module arena_tb;
     logic        rst_pix = 1'b1, rst_juego = 1'b1;
     // position_logic side
     logic        load = 1'b1, step = 1'b0;
+    logic [1:0]  reward1 = 2'd0, reward2 = 2'd0;
     logic [6:0]  cx1 = 7'd20, cx2 = 7'd59;
     logic [5:0]  cy1 = 6'd27, cy2 = 6'd27;
     logic [10:0] blkpos1_x, blkpos1_y, blkpos2_x, blkpos2_y;
     logic [3:0]  code1_u, code1_r, code1_d, code1_l, code2_u, code2_r, code2_d, code2_l;
     logic        codes_valid;
     // the crossing
-    logic        heads_tgl, prepare, codes_tgl;
+    logic        heads_tgl, prepare, reseed, codes_tgl;
+    logic [2:0]  collected;
     logic [12:0] old_head_p1, old_head_p2, new_head_p1, new_head_p2;
     logic [15:0] neighbours_p1, neighbours_p2;
     // arena_map
@@ -26,6 +31,11 @@ module arena_tb;
     logic [3:0]  ctrl_write_code, ctrl_read_code, draw_code;
 
     logic [3:0]  gold [0:8191];
+    localparam logic [31:0] SEED = 32'h1D2C_3B4A;
+    logic [31:0] glfsr = SEED;        // golden LFSR
+    logic [2:0]  want_collected = 3'b000;   // slots the driver reported in the last Step
+    int          rewards_taken = 0;
+    int          reseeds = 0;
     int          ST = 8;              // ticks per Step
     int          tk = 0;              // clk_juego rising edges so far
     int          last_step = 0;       // tick of the last Step edge or of the Start
@@ -40,13 +50,13 @@ module arena_tb;
     assign blkpos2_y = {1'b0, cy2, 4'b0000};
 
     arena_link u_link (
-        .clk(clk_juego), .rst(rst_juego), .load, .step,
+        .clk(clk_juego), .rst(rst_juego), .load, .step, .reward1, .reward2,
         .blkpos1_x, .blkpos1_y, .blkpos2_x, .blkpos2_y,
         .code1_u, .code1_r, .code1_d, .code1_l, .code2_u, .code2_r, .code2_d, .code2_l, .codes_valid,
-        .heads_tgl, .prepare, .old_head_p1, .old_head_p2, .new_head_p1, .new_head_p2,
+        .heads_tgl, .prepare, .reseed, .collected, .old_head_p1, .old_head_p2, .new_head_p1, .new_head_p2,
         .codes_tgl, .neighbours_p1, .neighbours_p2);
-    arena_ctrl u_ctrl (
-        .clk(clk_pix), .rst(rst_pix), .heads_tgl, .prepare,
+    arena_ctrl #(.FIXED_SEED(1'b0), .SEED(SEED)) u_ctrl (
+        .clk(clk_pix), .rst(rst_pix), .heads_tgl, .prepare, .reseed, .collected,
         .old_head_p1, .old_head_p2, .new_head_p1, .new_head_p2, .codes_tgl, .neighbours_p1, .neighbours_p2,
         .ctrl_addr, .ctrl_write, .ctrl_write_code, .ctrl_read_code);
     arena_map u_map (.clk(clk_pix), .ctrl_addr, .ctrl_write, .ctrl_write_code, .ctrl_read_code, .draw_addr, .draw_code);
@@ -88,7 +98,54 @@ module arena_tb;
         return at(cx2, cy2);
     endfunction
 
-    // Golden Prepare: EMPTY on cx 1..78, cy 5..48, WALL elsewhere, then both heads.
+    function automatic logic [31:0] draw(logic [31:0] s);
+        for (int i = 0; i < 32; i++) s = {s[30:0], s[31] ^ s[21] ^ s[1] ^ s[0]};
+        return s;
+    endfunction
+
+    // Golden placement of one slot (ADR 0012): up to 64 draws, then a wrapping scan.
+    task automatic gold_place(int slot);
+        logic [12:0] c;
+        bit found;
+        found = 1'b0;
+        c = 13'd0;
+        for (int n = 1; n <= 64 && !found; n++) begin
+            glfsr = draw(glfsr);
+            c = glfsr[12:0];
+            found = (gold[c] == 4'd0);
+        end
+        for (int k = 1; k <= 8192 && !found; k++) begin
+            c = c + 13'd1;
+            found = (gold[c] == 4'd0);
+        end
+        if (found) gold[c] = 4'd8 + 4'(slot);
+    endtask
+
+    // The golden Rewards follow arena_ctrl: the LFSR goes back to SEED on rst_pix; when a
+    // request starts (state s_start, 1), a Prepare drops the Rewards a cut try placed, mixes the
+    // seed if it starts a new Match, and places all three; a Step places the slots the driver
+    // reported, which must be the ones arena_link sent.
+    always @(posedge clk_pix) begin
+        if (rst_pix)
+            glfsr = SEED;
+        else if (u_ctrl.state == 4'd1) begin
+            if (u_ctrl.prepare_pix) begin
+                for (int a = 0; a < 8192; a++) if (gold[a] >= 4'd8) gold[a] = 4'd0;
+                if (u_ctrl.reseed_pix) begin
+                    reseeds++;
+                    if ((glfsr ^ u_ctrl.seed_count) != 32'd0) glfsr = glfsr ^ u_ctrl.seed_count;
+                end
+                for (int sl = 0; sl < 3; sl++) gold_place(sl);
+            end else begin
+                if (u_ctrl.collected_pix !== want_collected)
+                    fail($sformatf("arena_ctrl got collected = %b, the Step took %b", u_ctrl.collected_pix, want_collected));
+                for (int sl = 0; sl < 3; sl++) if (want_collected[sl]) gold_place(sl);
+            end
+        end
+    end
+
+    // Golden Prepare: EMPTY on cx 1..78, cy 5..48, WALL elsewhere, then both heads; the Rewards
+    // are added when arena_ctrl starts the Prepare (above).
     function automatic void gold_prepare();
         for (int a = 0; a < 8192; a++)
             gold[a] = ((a % 128) >= 1 && (a % 128) <= 78 && (a / 128) >= 5 && (a / 128) <= 48) ? 4'd0 : 4'd1;
@@ -173,13 +230,25 @@ module arena_tb;
             if (++waited > 40) fail("codes_valid never came back");
         end
         step = 1'b1;                                    // c1/c2 only decide whether the Bikes move
-        tick();                                         // edge k
         o1 = head1(); o2 = head2();
+        // A Bike that moves into a Reward takes it (codes 8-10: reward 1-3); none in a Crash Step.
+        if (!c1 && !c2) begin
+            move(1, d1);
+            move(2, d2);
+            if (gold[head1()] >= 4'd8) reward1 = 2'(gold[head1()] - 4'd7);
+            if (gold[head2()] >= 4'd8) reward2 = 2'(gold[head2()] - 4'd7);
+            cx1 = o1[6:0]; cy1 = o1[12:7]; cx2 = o2[6:0]; cy2 = o2[12:7];   // move at the edge
+        end
+        want_collected = {reward1 == 2'd3 || reward2 == 2'd3, reward1 == 2'd2 || reward2 == 2'd2,
+                          reward1 == 2'd1 || reward2 == 2'd1};
+        rewards_taken += (reward1 != 2'd0) + (reward2 != 2'd0);
+        tick();                                         // edge k
         if (!c1 && !c2) begin
             move(1, d1);
             move(2, d2);
         end
         step = 1'b0;
+        reward1 = 2'd0; reward2 = 2'd0;
         last_step = tk;
         want_heads_sent++;
         gold[o1] = 4'd2;                                // a Bike that did not move: o = head,
@@ -321,6 +390,21 @@ module arena_tb;
         // ---- Round 5: normal Steps again, both Bikes Crash on the same Step.
         start(2);
         step_on_time("Round 5 first Step", 1, 3);
+        // P1 takes Reward slot 0: it is moved by hand (in arena_map and the golden copy, while
+        // no request is open) two Cells below P1, outside every head's neighbours, and P1 goes
+        // down twice. arena_link must send collected = 001, and the slot comes back elsewhere.
+        for (int a = 0; a < 8192; a++)
+            if (gold[a] == 4'd8) begin gold[a] = 4'd0; u_map.cells[a] = 4'd0; end
+        gold[at(cx1, cy1 + 2)] = 4'd8; u_map.cells[at(cx1, cy1 + 2)] = 4'd8;
+        step_on_time("P1 down toward slot 0", 2, 0);
+        if (code1_d !== 4'd8) fail($sformatf("P1's down neighbour should be slot 0 (8), got %0d", code1_d));
+        step_on_time("P1 takes slot 0", 2, 0);
+        if (rewards_taken != 1) fail("P1 did not take slot 0");
+        begin
+            int back = 0;
+            for (int a = 0; a < 8192; a++) if (gold[a] == 4'd8) back++;
+            if (back != 1) fail($sformatf("slot 0 on %0d golden Cells after it was taken", back));
+        end
         step_on_time("Round 5 second Step", 2, 0);
         step_on_time("both Crash", 2, 0, 1, 1);
         if (gold[head1()] !== 4'd3 || gold[head2()] !== 4'd5) fail("golden double Crash");
@@ -328,7 +412,9 @@ module arena_tb;
         repeat (4) tick();
         if (codes_tgl !== heads_tgl) fail("a request is still open at the end");
         if (heads_sent != want_heads_sent) fail($sformatf("heads sent %0d times, expected %0d", heads_sent, want_heads_sent));
-        $display("PASS arena_tb STEP_TICKS=%0d (heads sent %0d times, %0d checks)", ST, heads_sent, checks);
+        if (reseeds < 2) fail($sformatf("only %0d Prepares mixed the seed; expected one after each reset", reseeds));
+        $display("PASS arena_tb STEP_TICKS=%0d (heads sent %0d times, %0d Rewards taken, %0d checks)",
+                 ST, heads_sent, rewards_taken, checks);
         $finish;
     end
 
