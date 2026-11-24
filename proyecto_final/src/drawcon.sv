@@ -108,6 +108,28 @@ module drawcon(
     logic [3:0]  sky_level;  // 0-5, band every 128 px
     assign sky_y = curr_y - 11'd64;
     assign sky_level = sky_y >> 7;
+
+    
+    // Striped sun (prototype's synthwave look): radius 160, centred on the Arena at (640, 432).
+    // sun_rows.mem has one 21-bit word per row, from y = 272 to y = 592:
+    // {lit, half width [7:0], colour [11:0]}; lit = 0 for a cut row (a stripe).
+    logic [20:0] sun_rom [0:320];
+    initial $readmemh("sun_rows.mem", sun_rom);
+
+    logic [10:0] sun_row;    // row inside the sun: curr_y - 272
+    logic [20:0] sun_word;   // that row's word
+    logic        sun_lit;    // 1: the row is drawn, 0: a stripe
+    logic [7:0]  sun_hw;     // half width of the row, in px
+    logic [11:0] sun_color;  // colour of the row
+    logic        sun;        // the pixel is inside the sun
+    assign sun_row   = curr_y - 11'd272;
+    assign sun_word  = sun_rom[sun_row[8:0]];
+    assign sun_lit   = sun_word[20];
+    assign sun_hw    = sun_word[19:12];
+    assign sun_color = sun_word[11:0];
+    assign sun = (curr_y >= 11'd272) && (curr_y <= 11'd592) && sun_lit &&
+                 (curr_x >= 11'd640 - sun_hw) && (curr_x < 11'd640 + sun_hw);
+
     // ===============================================================
     // 3.4. Drawing pixels  
     // ===============================================================   
@@ -144,6 +166,8 @@ module drawcon(
                 endcase
             end else if (curr_x[4:0]==1 || curr_x[4:0]==31 || curr_y[4:0]==1 || curr_y[4:0]==31) begin // Grid glow
                 color= {sky_level+4'd3, 4'h0, sky_level+1'b1+4'd3};
+            end else if (sun) begin                 // striped sun, under the grid
+                color = sun_color;
             end else begin                          // empty arena
                 color = {sky_level, 4'h0, sky_level+1'b1};
             end

@@ -54,6 +54,9 @@ module game_top_tb;
     // sprites (tools/png2coe.py), C_KEY is drawn in the Player's colour and C_CLEAR is transparent.
     localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h444, C_P1 = 12'h0DF,
                             C_P2 = 12'hF80, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
+    // The sun's rows (build_game_top.tcl copies sprites/sun_rows.mem into each bench folder).
+    logic [20:0] sun_rows [0:320];
+    initial $readmemh("sun_rows.mem", sun_rows);
     // Trail colours: a darker shade of each Player's colour
     localparam logic [11:0] C_T1 = 12'h068, C_T2 = 12'h840;
     // How many pixels late drawcon looks up each sprite (see above); 0 since it reads ahead.
@@ -208,6 +211,7 @@ module game_top_tb;
             int b1x, int b1y, int s1x, int s1y, int s1h,
             int b2x, int b2y, int s2x, int s2y, int s2h, logic [3:0] code, logic [11:0] line_col);
         logic [11:0] w;
+        logic [20:0] w21;
         if (y >= 64 && (x < 16 || x >= 1264 || y < 80 || y >= 784)) return C_WALL;
         if (y < 64) return C_HUD;
         if (x >= b1x - 8 && x < b1x + 24 && y >= b1y - 8 && y < b1y + 24) begin
@@ -226,6 +230,12 @@ module game_top_tb;
         // always red + 1. The 1 px glow on each side of a line is the sky 3 steps brighter.
         if (x % 32 == 1 || x % 32 == 31 || y % 32 == 1 || y % 32 == 31)
             return {4'((y - 64) / 128 + 3), 4'h0, 4'((y - 64) / 128 + 4)};
+        // Striped sun under the grid: radius 160 centred at (640, 432), one word per row of
+        // sprites/sun_rows.mem from y = 272, {lit, half width, colour}; lit = 0 is a stripe.
+        if (y >= 272 && y <= 592) begin
+            w21 = sun_rows[y - 272];
+            if (w21[20] && x >= 640 - int'(w21[19:12]) && x < 640 + int'(w21[19:12])) return w21[11:0];
+        end
         return {4'((y - 64) / 128), 4'h0, 4'((y - 64) / 128 + 1)};
     endfunction
 

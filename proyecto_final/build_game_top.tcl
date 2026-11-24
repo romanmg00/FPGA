@@ -26,6 +26,8 @@ proc start_bench {name top marker files {xsim_args ""}} {
     set dir $out/tests/$name
     file delete -force $dir
     file mkdir $dir
+    # $readmemh files are opened from the run folder: drawcon's sun table (sprites/sun_rows.mem).
+    file copy $::here/sprites/sun_rows.mem $dir
     set quoted {}
     foreach file $files {lappend quoted "'$file'"}
     set run "xvlog -sv [join $quoted] && xelab -debug off --timescale 1ns/1ps $top -s $top && xsim $top -runall -log sim.log $xsim_args"
@@ -207,6 +209,8 @@ foreach {key want} {Memory_Type Single_Port_ROM Write_Depth_A 1024 Write_Width_A
 }
 
 read_verilog -sv $design
+# drawcon's $readmemh("sun_rows.mem"): the striped sun's rows, one 21-bit word each.
+read_mem $here/sprites/sun_rows.mem
 set_property top game_top [current_fileset]
 # Lo que se sintetiza: exactamente los .sv de src/, ni testbenches, ni modelos de
 # sim_clocks/ o sim_models/, ni prototipos. Las IP (clk_wiz_0, bike_rom) van aparte, como .xci.
