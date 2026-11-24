@@ -7,8 +7,9 @@ created_at: "2026-11-23"
 # Reward generator, seed and placement schedule
 
 > Proposed by Alan on 23 November 2026 with the Rewards PR (G4). Waiting for
-> Alan's approval and Roman's review: it changes `position_logic` and `drawcon`,
-> and it settles three items the contract marks *pendiente*.
+> Alan's approval and Roman's review: it settles three items the contract marks
+> *pendiente*, and it proposes the `position_logic` and `drawcon` changes, which
+> are Roman's, in [issue #61](https://github.com/romanmg00/FPGA/issues/61).
 
 The [Agreed Specification](../decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md)
 (*Rewards and randomness*) leaves "the exact generator, seed capture/advancement
@@ -68,7 +69,8 @@ before the edge k+2, so the codes still reach `position_logic` at k+4 (contract
 §3) and the Step interval does not change. On a nearly empty Arena a
 placement usually needs 1–3 draws, about 5–11 cycles.
 
-**Collection.** `position_logic` reports `reward1` and `reward2` on the Step
+**Collection** (Roman's `position_logic`, proposed in [issue #61](https://github.com/romanmg00/FPGA/issues/61)). `position_logic`
+reports `reward1` and `reward2` on the Step
 tick: 0 none, 1–3 for slots 0–2, read from the neighbour code of the Cell the
 Bike enters, and only when it moves (none in a Crash Step,
 [ADR 0011](0011-a-crash-stops-both-bikes.md)). `score_unit` adds +1, +1 or +3;
@@ -80,7 +82,8 @@ remembers the Rewards already written for that request, so a Reward written
 just before the reset is not placed a second time. The LFSR returns to `SEED`
 on `rst_pix`.
 
-**Drawing.** `drawcon` has two `reward_rom` instances, one for each image
+**Drawing** (Roman's `drawcon`, proposed in [issue #61](https://github.com/romanmg00/FPGA/issues/61)). `drawcon` has two
+`reward_rom` instances, one for each image
 (words 0–255, the +1 gem; 256–511, the +3 star). Both are read for the pixel 2
 ahead, like the Arena code, and the code chooses between their outputs when
 both arrive. The code selects the output, not the address, so nothing is read
@@ -94,8 +97,8 @@ the Rewards: `match_fsm` holds G_START, and its `round_start`, until
 follows `{SW15, SW14}` only while `match_fsm` waits for a new Match, so it keeps
 the value of the tick on which Start was accepted, even if Pause holds the
 next states. A Match that reaches the Points Goal without a Crash ends at once:
-`position_logic` stops the Round on `match_over` as it would after a Crash, and
-`match_fsm` goes from G_PLAY to G_MATCH.
+`match_fsm` goes from G_PLAY to G_MATCH, and `position_logic` stops the Round on
+`match_over` as it would after a Crash (the last is in the issue).
 
 ## Considered options
 
@@ -124,5 +127,10 @@ next states. A Match that reaches the Points Goal without a Crash ends at once:
   Prepare, and only if Step logs are compared from power-up.
 - **Contract.** §3 *Premios (después)* and §4 *Premios* can be settled with
   this text; they are Roman's to edit.
-- **Handout.** `drawcon` reads two ROMs for the Rewards and chooses by code;
-  ADR 0009's rows 6, 7, 9 and 10 name them.
+- **Until Roman's change.** `game_top` drives `reward1` and `reward2` with 0.
+  The Rewards are placed but not drawn (`drawcon` draws codes 8–10 as empty
+  Arena), and `position_logic` already treats them as free Cells: a Bike that
+  drives onto one writes its head over it, with no Points, and the slot stays
+  empty until the next Prepare. No Goal can be reached yet.
+- **Handout.** Once `drawcon` reads two ROMs for the Rewards and chooses by
+  code, ADR 0009's rows 6, 7, 9 and 10 name them.

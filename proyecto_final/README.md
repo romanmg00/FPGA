@@ -2,12 +2,12 @@
 
 The two-player Tron game for the CS-256 class project, in SystemVerilog for the Nexys A7-100T.
 
-Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a wall, a Trail or the other Bike loses a Life, and if only one crashed, the other gets the Survival Bonus (+3). A Match ends when a Player has no Lives left. The eight 7-segment digits show the Points and the Lives, and the Points Goal while waiting for a new Match.
+Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a wall, a Trail or the other Bike loses a Life, and if only one crashed, the other gets the Survival Bonus (+3). Three Rewards (two worth +1, one worth +3) are placed on the Arena, but they are not drawn or taken yet. A Match ends when a Player has no Lives left, or reaches the Points Goal once Rewards can be taken. The eight 7-segment digits show the Points and the Lives, and the Points Goal while waiting for a new Match.
 
 - **Video:** 1280 × 800 VGA, pixel clock 83.46 MHz (`clk_pix`).
 - **Game:** a ~60 Hz clock (`clk_juego`).
 - **Inputs:** P1 turns with the board buttons. P2 turns with W A S D on a web page ([`web/p2_controller.html`](web/p2_controller.html)) that sends one byte per key over the board's USB-UART ([ADR 0013](../docs/adr/0013-p2-uart-input-one-command-mailbox.md)).
-- **Not yet:** Rewards (G4).
+- **Not yet:** Rewards drawn and taken (G4): Roman's `position_logic` and `drawcon` changes, proposed in [issue #61](https://github.com/romanmg00/FPGA/issues/61). Their placement and scoring ([ADR 0012](../docs/adr/0012-reward-generator-seed-and-placement-schedule.md)) are in.
 - **Board status:** the last build checked on the board is `game_top_p2_uart.bit`, on 23 November 2026, with P2's UART input (#60), in [`bitstreams/README.md`](bitstreams/README.md).
 
 **Where the rules come from:**
@@ -38,17 +38,18 @@ flowchart LR
         pl -->|blkpos1_x/y, blkpos2_x/y| gl[bike_glide x2]
         mf -->|waiting, new_match| sv[seg7_view]
         al[arena_link]
+        mf -->|restart| al
         pl <-->|load, step / code1_u…code2_l, codes_valid| al
     end
     subgraph P [clk_pix, 83.46 MHz]
-        ac[arena_ctrl] -->|ctrl_addr, ctrl_write, ctrl_write_code| am[(arena_map)]
+        ac[arena_ctrl<br/>Reward placement] -->|ctrl_addr, ctrl_write, ctrl_write_code| am[(arena_map)]
         am -->|arena_code: Trails| dc[drawcon<br/>bike_rom x2]
         dc --> vo[vga_out<br/>counters]
         sd[seg7_driver<br/>multidigit, sevenseg]
         ur[sync_2ff, uart_rx,<br/>uart_decode] -->|uart_cmd, rx_valid| ul[uart_link]
     end
     ul ==>|cmd_p2: turn_req2, start_p2| J
-    al <==>|heads_tgl / codes_tgl| ac
+    al <==>|heads_tgl + reseed / codes_tgl| ac
     su ==> sl[seg7_link]
     sv ==> sl
     sl ==>|*_pix copies| sd
@@ -98,7 +99,7 @@ The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Anal
 | CPU_RESETN | pin → each clock | `board_reset_sync`, one per domain | false path to the first flip-flop |
 | Buttons, SW0, SW14–SW15 | pins → `clk_juego` | `sync_2ff` | false path to the first flip-flop |
 | SW0–SW11 | pins → `clk_pix` | `sync_2ff` | false path to the first flip-flop |
-| Arena heads and neighbour codes | `clk_juego` ↔ `clk_pix` | `arena_link` sends the heads with `heads_tgl`; `arena_ctrl` answers with `codes_tgl`. Each toggle goes through `sync_2ff`, and the data is copied only after it changes | `set_max_delay -datapath_only` of one pixel period (11.982 ns) |
+| Arena heads, `reseed`, and the neighbour codes | `clk_juego` ↔ `clk_pix` | `arena_link` sends the heads with `heads_tgl`; `arena_ctrl` answers with `codes_tgl`. Each toggle goes through `sync_2ff`, and the data is copied only after it changes | `set_max_delay -datapath_only` of one pixel period (11.982 ns) |
 | Scoreboard values (20 bits) | `clk_juego` → `clk_pix` | `seg7_link`: the same toggle (`tick_toggle`) and copy | the same one-pixel bound |
 | P2's commands (5 bits) | `clk_pix` → `clk_juego` | `uart_link` ([ADR 0013](../docs/adr/0013-p2-uart-input-one-command-mailbox.md)): a command goes into `cmd_pix` and flips `cmd_tgl`; `clk_juego` sees it through `sync_2ff`, copies it and answers with `ack_tgl`. One command at a time: a key within about 50 ms of the previous one is dropped. Each command lasts 2 ticks on `clk_juego` | three `set_max_delay -datapath_only` of one pixel period: each toggle to its `sync_2ff`, and `cmd_pix` to `cmd_juego`. `build_game_top.tcl` checks that they cover every bit |
 | `uart_rx` pin | pin → `clk_pix` | `sync_2ff` | false path to the first flip-flop |
@@ -113,7 +114,7 @@ The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Anal
 | BTNC, or Space or Enter on the web page | Start a Round; after a Match ends, start a new Match |
 | CPU_RESET | Reset |
 | SW0 | Pause: the Bikes, Turns and game timers stop; video and display keep running |
-| SW14, SW15 | Points Goal: 10 with both down, 20, 30 or 40 |
+| SW14, SW15 | Points Goal: 10 with both down, 20, 30 or 40; taken when Start begins a new Match |
 | SW1–SW11 | Wired to `drawcon`, not used yet |
 
 The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each. While waiting for a new Match, it also shows `GOAL  nn`; moving SW14/SW15 then jumps to it ([ADR 0008](../docs/adr/0008-scoreboard-goal-page-before-a-match.md)).
@@ -140,11 +141,11 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 | `bike_move.sv` | One Bike's Cell, Heading and pending Turn | `clk_juego` | Roman (G1/G2) | Roman | `bike_move_tb` (Roman) |
 | **Arena** | | | | | |
 | `arena_map.sv` | Arena memory: 8192 Cells × 4-bit code (BRAM) | `clk_pix` | Alan (A1/A2) | Alan | `arena_map_tb` (Alan) |
-| `arena_ctrl.sv` | The only writer of `arena_map`: prepares a Round, writes each Step, reads the Cells around each head | `clk_pix` | Alan (A1/A2) | Alan | `arena_ctrl_tb`, `arena_tb` (Alan) |
+| `arena_ctrl.sv` | The only writer of `arena_map`: prepares a Round, writes each Step, places the Rewards ([ADR 0012](../docs/adr/0012-reward-generator-seed-and-placement-schedule.md)), reads the Cells around each head | `clk_pix` | Alan (A1/A2/G4) | Alan | `arena_ctrl_tb`, `arena_tb` (Alan) |
 | `arena_link.sv` | Game side of the Arena crossing | `clk_juego` | Alan (A1/A2) | Alan | `arena_tb` (Alan) |
 | **Match** | | | | | |
-| `match_fsm.sv` | The Match: Start, Rounds, Crash display, Match over, new Match (8 states) | `clk_juego` | Alan (G3/G5) | Alan | `match_fsm_tb`, `match_tb` (Alan) |
-| `score_unit.sv` | Lives, Points, Survival Bonus, winner or Draw | `clk_juego` | Alan (G3/G5) | Alan | `score_unit_tb`, `match_tb` (Alan) |
+| `match_fsm.sv` | The Match: Start, Rounds, Crash display, Match over (also on the Goal), new Match (8 states) | `clk_juego` | Alan (G3/G5) | Alan | `match_fsm_tb`, `match_tb` (Alan) |
+| `score_unit.sv` | Lives, Points from Rewards and the Survival Bonus, the Points Goal, winner or Draw | `clk_juego` | Alan (G3/G5) | Alan | `score_unit_tb`, `match_tb` (Alan) |
 | **Scoreboard** | | | | | |
 | `seg7_view.sv` | Which view is shown (Points, Lives, Goal), 3 s each | `clk_juego` | Alan (display) | Alan | `seg7_view_tb` (Alan) |
 | `seg7_link.sv` | Carries the 20 Scoreboard bits to `clk_pix` | both | Alan (display) | Alan | `seg7_link_tb` (Alan) |
@@ -159,7 +160,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 | **Board I/O and top** | | | | | |
 | `sync_2ff.sv` | 2-flip-flop synchronizer for one button or switch | any | Alan | Alan | `sync_2ff_tb` (Alan) |
 | `board_reset_sync.sv` | CPU_RESET into one clock domain | any | Alan | Alan | `board_reset_sync_tb` (Alan) |
-| `game_top.sv` | Top level: clocks, reset, synchronizers, every block above | both | Alan; the Wizard and the `clk_juego` counter: Roman | Roman and Alan | `game_top_tb` (Alan): 11 scenarios, read from the pins |
+| `game_top.sv` | Top level: clocks, reset, synchronizers, every block above | both | Alan; the Wizard and the `clk_juego` counter: Roman | Roman and Alan | `game_top_tb` (Alan): 12 scenarios, read from the pins |
 
 | Other file | What it is | Owner | Written by |
 |---|---|---|---|
@@ -183,7 +184,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 
 2. Pick the mode:
    - **`quick`** runs the module testbenches only, in about 20 s. Use it while working.
-   - **`sim`** also runs the 11 `game_top_tb` scenarios, up to about 20 minutes.
+   - **`sim`** also runs the 12 `game_top_tb` scenarios, up to about 20 minutes.
    - **`full`** also creates the IP from the IP Catalog, synthesizes, implements and writes the bitstream.
    - Run `sim` or `full` before every push or PR.
 3. Read the result:
@@ -315,12 +316,13 @@ Built one step (Paso) at a time:
 | 7c, 7d | Match, Lives, Points and the Scoreboard in `game_top` | Alan, #46, #47; Roman's `position_logic` ports, #45 |
 | X1 | Bike positions to clk_pix once per frame (pos_link) | Roman, #48 |
 | I2, I3 | P2's keys over UART: `uart_rx`, `uart_decode`, `uart_link` and the web page (ADR 0013) | Alan, #60 |
+| G4 | Rewards: placement in `arena_ctrl`, scoring and the Points Goal ([ADR 0012](../docs/adr/0012-reward-generator-seed-and-placement-schedule.md)); drawing and taking them are Roman's (issue #61) | Alan, PR pending |
 
 The full step log, in Spanish, is in [`docs/history/proyecto_final-pasos.md`](../docs/history/proyecto_final-pasos.md).
 
 **Still open:**
 - `tick_60hz` in `vga_out` (Paso 3b).
 - The 10 px white border (Paso 4b).
-- Reward sprites and Rewards (G4).
+- Rewards drawn and taken (G4): Roman's `position_logic` and `drawcon`, issue #61.
 - Reading the Bike sprites 2 px ahead in `drawcon` (issue #30, step 3); until then each sprite is drawn 2 px to the right.
 - Moving `bike_glide` into `position_logic` (issue #37).
