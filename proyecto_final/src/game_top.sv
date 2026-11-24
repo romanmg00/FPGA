@@ -1,10 +1,15 @@
 // Authors: Roman (romanmg00): first version, clock Wizard, vga_out, drawcon, Bike wiring and
 // pos_link (X1, #48). Alan (AIF31): reset and synchronizers (#12), clk_juego from a counter on
 // clk_pix (ADR 0006, #16), bike_glide (#31), Arena (#40), Match and Scoreboard (#47), P2's
-// input over UART (#60).
+// input over UART (#60), Rewards (G4).
 // Top level of the Tron game: clocks, reset, synchronizers, P2's UART input and the video,
 // movement, Arena, Match and Scoreboard blocks.
-module game_top (
+module game_top #(
+    // Rewards (ADR 0012): with FIXED_SEED = 1 every new Match places them from SEED, so a test
+    // can repeat them; the board build keeps 0, and Start timing changes the seed.
+    parameter bit          FIXED_SEED = 1'b0,
+    parameter logic [31:0] SEED       = 32'h1D2C_3B4A
+) (
     input  logic        clk, cpu_resetn,
     input  logic [15:0] sw,             // SW0 Pause, {SW15, SW14} Points Goal, SW11-SW0 drawcon
     input  logic [4:0]  btn,
@@ -113,24 +118,33 @@ module game_top (
     // 3. Match and score (G3/G5)
     // ===============================================================
     logic        crash1, crash2, crash_done;    // from position_logic (section 4)
+    // Reward slot each Bike takes in a Step (0 none, 1-3 slots 0-2). 0 until position_logic
+    // reports it (Roman's file; proposal in issue #61): a Bike that drives onto a Reward
+    // writes its head over it, with no Points, and the slot stays empty until the next Prepare.
+    logic [1:0]  reward1, reward2;
+    assign reward1 = 2'd0;
+    assign reward2 = 2'd0;
+    logic        codes_valid;                   // from arena_link (section 5): neighbour codes ready
     logic        waiting, new_match, restart, round_start;  // match_fsm -> position_logic, score_unit, seg7_view
     logic        match_over;                    // score_unit -> match_fsm, position_logic
     logic [5:0]  points_p1, points_p2;          // score_unit -> seg7_link
     logic [1:0]  lives_p1, lives_p2;
 
     // Match control (G3): Start (BTNC, or Space or Enter from P2's page, each on its own edge)
-    // reaches round_fsm as a 1-tick pulse, and each new Match resets position_logic.
+    // reaches round_fsm as a 1-tick pulse once the Round is prepared (codes_valid), and each new
+    // Match resets position_logic.
     match_fsm u_match_fsm (
         .clk(clk_juego), .rst(rst_juego),
         .start_btn(btn_sync[4]), .start_p2(cmd_p2[4]), .crash(crash1 || crash2), .crash_done(crash_done),
-        .match_over(match_over), .pause(pause),
+        .match_over(match_over), .pause(pause), .codes_valid(codes_valid),
         .waiting(waiting), .new_match(new_match), .restart(restart), .round_start(round_start)
     );
 
-    // Points and Lives (G5)
+    // Points and Lives (G5): Rewards, Survival Bonus, the Points Goal taken at each new Match
     score_unit u_score_unit (
         .clk(clk_juego), .rst(rst_juego),
-        .new_match(new_match), .crash1(crash1), .crash2(crash2),
+        .new_match(new_match), .waiting(waiting), .goal_sel(goal_sel), .crash1(crash1), .crash2(crash2),
+        .reward1(reward1), .reward2(reward2),
         .points_p1(points_p1), .points_p2(points_p2), .lives_p1(lives_p1), .lives_p2(lives_p2),
         .result(), .match_over(match_over)
     );
@@ -147,7 +161,6 @@ module game_top (
     logic        load, step;                    // -> arena_link
     logic [3:0]  code1_u, code1_r, code1_d, code1_l;   // from arena_link (section 5)
     logic [3:0]  code2_u, code2_r, code2_d, code2_l;
-    logic        codes_valid;
 
     // The bikes move on their own in rounds, P1 turns with the buttons and P2 with the
     // web page, and they crash at a wall, a Trail or each other.
@@ -183,8 +196,11 @@ module game_top (
     // 5. Arena
     // ===============================================================
     // position_logic <-> arena_link (clk_juego) <-> arena_ctrl (clk_pix), the only writer of
-    // arena_map; drawcon reads arena_map's draw_ port (contract section 3).
+    // arena_map; drawcon reads arena_map's draw_ port (contract section 3). arena_ctrl also
+    // places the Rewards (G4, ADR 0012).
     logic        heads_tgl, prepare;            // arena_link -> arena_ctrl
+    logic        reseed;                        // first Prepare of a new Match: mix the seed
+    logic [2:0]  collected;                     // Reward slots taken in the Step
     logic [12:0] old_head_p1, old_head_p2, new_head_p1, new_head_p2;
     logic        codes_tgl;                     // arena_ctrl -> arena_link
     logic [15:0] neighbours_p1, neighbours_p2;
@@ -196,23 +212,25 @@ module game_top (
     logic [3:0]  arena_code;                    // arena_map -> drawcon: code of that Cell
 
     // After each step, the heads go to the Arena and the codes of their neighbours come back.
+    // restart resets it with position_logic, so each new Match gets its own Prepare, which
+    // mixes Start's timing into the seed, even when the Bikes were already at their starts.
     arena_link u_arena_link (
-        .clk(clk_juego), .rst(rst_juego),
-        .load(load), .step(step),
+        .clk(clk_juego), .rst(rst_juego || restart),
+        .load(load), .step(step), .reward1(reward1), .reward2(reward2),
         .blkpos1_x(blkpos1_x), .blkpos1_y(blkpos1_y),
         .blkpos2_x(blkpos2_x), .blkpos2_y(blkpos2_y),
         .code1_u(code1_u), .code1_r(code1_r), .code1_d(code1_d), .code1_l(code1_l),
         .code2_u(code2_u), .code2_r(code2_r), .code2_d(code2_d), .code2_l(code2_l),
         .codes_valid(codes_valid),
-        .heads_tgl(heads_tgl), .prepare(prepare),
+        .heads_tgl(heads_tgl), .prepare(prepare), .reseed(reseed), .collected(collected),
         .old_head_p1(old_head_p1), .old_head_p2(old_head_p2),
         .new_head_p1(new_head_p1), .new_head_p2(new_head_p2),
         .codes_tgl(codes_tgl), .neighbours_p1(neighbours_p1), .neighbours_p2(neighbours_p2)
     );
 
-    arena_ctrl u_arena_ctrl (
+    arena_ctrl #(.FIXED_SEED(FIXED_SEED), .SEED(SEED)) u_arena_ctrl (
         .clk(clk_pix), .rst(rst_pix),
-        .heads_tgl(heads_tgl), .prepare(prepare),
+        .heads_tgl(heads_tgl), .prepare(prepare), .reseed(reseed), .collected(collected),
         .old_head_p1(old_head_p1), .old_head_p2(old_head_p2),
         .new_head_p1(new_head_p1), .new_head_p2(new_head_p2),
         .codes_tgl(codes_tgl), .neighbours_p1(neighbours_p1), .neighbours_p2(neighbours_p2),
