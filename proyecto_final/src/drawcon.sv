@@ -21,9 +21,9 @@ module drawcon(
     logic [10:0] ahead_x;
 
     // The 32 x 32 sprite box starts 8 px up and left of the drawn 16 px square, so it is centred on it.
-    assign add1_x = curr_x + 8 - blkpos1_x;
+    assign add1_x = ahead_x + 8 - blkpos1_x;
     assign add1_y = curr_y + 8 - blkpos1_y;
-    assign add2_x = curr_x + 8 - blkpos2_x;
+    assign add2_x = ahead_x + 8 - blkpos2_x;
     assign add2_y = curr_y + 8 - blkpos2_y;
 
     // Read 2 pixels ahead, so the code arrives with its pixel (2-cycle latency).
