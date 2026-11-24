@@ -15,6 +15,9 @@ module drawcon(
     output logic [12:0] arena_addr,             // arena_map: {cy, cx} of the pixel 2 ahead
     input  logic [3:0]  arena_code              // that Cell's code, 2 cycles later
 );
+    // ===============================================================
+    // 1. defining the adress for the memory maps
+    // ===============================================================
     logic [4:0] add1_x, add1_y, add2_x, add2_y; // pixel inside each 32 x 32 sprite box
     logic [11:0] color1, color2;                // sprite colour of that pixel
     logic [9:0] add1, add2;                     // bike_rom address
@@ -46,7 +49,9 @@ module drawcon(
             2'b11: add2 = {add2_x, ~add2_y};   // Left
         endcase
     end
-
+    // ===============================================================
+    // 2. reading the memory maps
+    // ===============================================================
     bike_rom bike_rom_1 (
         .clka (clk),
         .ena (1'b1),
@@ -61,20 +66,16 @@ module drawcon(
         .douta (color2)
     );
     // Sprite colour 000 is transparent; 0F0 is replaced by the Player's colour.
+
+    // ===============================================================
+    // 3. Drawing: pixels assigned to wall, player 1, player 2, hud and empty arena
+    // 3.1 pixels assigned to wall, player 1, player 2, hud
+    // ===============================================================
     logic [11:0] color;
     logic wall;
     logic player1;
     logic player2;
     logic hud;
-
-    // Frame counter: the grid line's pulse phase is frame_cnt[4:3].    
-    logic [4:0] frame_cnt = 5'b0;
-    always_ff @(posedge clk)
-    begin
-        if(curr_x == 0 && curr_y == 800) begin
-            frame_cnt <= frame_cnt + 1'b1;
-        end
-    end
     // pixels assigned to wall
     assign wall = (curr_x < 11'd16 && (curr_y>=11'd64 && curr_y < 11'd800)) ||                               // left wall, cx 0
             (curr_x < 11'd1280 && (curr_y >= 11'd64 && curr_y < 11'd80)) ||                                 // top wall, cy 4
@@ -90,7 +91,26 @@ module drawcon(
                    (color2 != 12'h000)); 
     // pixels assigned to hud
     assign hud = (curr_y < 11'd64);  
-    
+    // ===============================================================
+    // 3.2. Frame counter: the grid line's pulse phase is frame_cnt[4:3].    
+    // ===============================================================   
+    logic [4:0] frame_cnt = 5'b0;
+    always_ff @(posedge clk)
+    begin
+        if(curr_x == 0 && curr_y == 800) begin
+            frame_cnt <= frame_cnt + 1'b1;
+        end
+    end
+    // ===============================================================
+    // 3.3. empty arena color  
+    // ===============================================================   
+    logic [10:0] sky_y;      // row inside arena: curr_y - 64, so each band edge falls on a grid line
+    logic [3:0]  sky_level;  // 0-5, band every 128 px
+    assign sky_y = curr_y - 11'd64;
+    assign sky_level = sky_y >> 7;
+    // ===============================================================
+    // 3.4. Drawing pixels  
+    // ===============================================================   
     always_comb begin
         if (wall) begin // walls: white
             color = 12'hFFF;
@@ -123,9 +143,9 @@ module drawcon(
                     2'b11: color = 12'hA2C;
                 endcase
             end else if (curr_x[4:0]==1 || curr_x[4:0]==31 || curr_y[4:0]==1 || curr_y[4:0]==31) begin // Grid glow
-                color= 12'h304;
+                color= {sky_level+4'd3, 4'h0, sky_level+1'b1+4'd3};
             end else begin                          // empty arena
-                color = 12'h001;
+                color = {sky_level, 4'h0, sky_level+1'b1};
             end
         end
         draw_r = color[11:8];

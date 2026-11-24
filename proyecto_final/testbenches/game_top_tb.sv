@@ -53,7 +53,7 @@ module game_top_tb;
     // Colours from the specification and the Python prototype, not read from drawcon. In the
     // sprites (tools/png2coe.py), C_KEY is drawn in the Player's colour and C_CLEAR is transparent.
     localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h444, C_P1 = 12'h0DF,
-                            C_P2 = 12'hF80, C_EMPTY = 12'h001, C_GLOW = 12'h304, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
+                            C_P2 = 12'hF80, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
     // Trail colours: a darker shade of each Player's colour
     localparam logic [11:0] C_T1 = 12'h068, C_T2 = 12'h840;
     // How many pixels late drawcon looks up each sprite (see above); 0 since it reads ahead.
@@ -221,8 +221,12 @@ module game_top_tb;
         if (code == 4'd2) return C_T1;    // Trails only; heads are not painted
         if (code == 4'd4) return C_T2;
         if (x % 32 == 0 || y % 32 == 0) return line_col; // violet grid every 32 px (prototype's look)
-        if (x % 32 == 1 || x % 32 == 31 || y % 32 == 1 || y % 32 == 31) return C_GLOW;   // 1 px glow each side
-        return C_EMPTY;
+        // Sky gradient (prototype's sunset sky, 001 at the top to 506 at the bottom): six
+        // 128 px bands counted from y = 64, so each band edge lies under a grid line; blue is
+        // always red + 1. The 1 px glow on each side of a line is the sky 3 steps brighter.
+        if (x % 32 == 1 || x % 32 == 31 || y % 32 == 1 || y % 32 == 31)
+            return {4'((y - 64) / 128 + 3), 4'h0, 4'((y - 64) / 128 + 4)};
+        return {4'((y - 64) / 128), 4'h0, 4'((y - 64) / 128 + 1)};
     endfunction
 
     // Rebuilds one whole frame from the pins: sync widths, line and frame length,
