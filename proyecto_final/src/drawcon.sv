@@ -60,60 +60,77 @@ module drawcon(
         .addra (add2),
         .douta (color2)
     );
-
     // Sprite colour 000 is transparent; 0F0 is replaced by the Player's colour.
-    always_comb begin
-        if ((curr_x < 11'd16 && (curr_y>=11'd64 && curr_y < 11'd800)) ||                // left wall, cx 0
-            (curr_x < 11'd1280 && (curr_y >= 11'd64 && curr_y < 11'd80)) ||             // top wall, cy 4
-            (curr_x < 11'd1280 && (curr_y >= 11'd784 && curr_y < 11'd800)) ||           // bottom wall, cy 49
-            ((curr_x >= 11'd1264 && curr_x < 11'd1280) && (curr_y >= 11'd64 && curr_y < 11'd800)))  // right wall, cx 79
-            begin // walls: white
-            draw_r = 4'b1111;
-            draw_g = 4'b1111;
-            draw_b = 4'b1111;
-        end else if (curr_y < 11'd64) begin // HUD: cy 0-3, grey
-            draw_r = 4'b0100;
-            draw_g = 4'b0100;
-            draw_b = 4'b0100;
-        end else if ((curr_x>= (blkpos1_x - 8)) && (curr_y>= (blkpos1_y - 8)) &&   // box left and top
-                   (curr_x < (blkpos1_x + 24)) && (curr_y < (blkpos1_y + 24)) &&   // box right and bottom
-                   (color1 != 12'h000)) begin 
-            if(color1 == 12'h0F0) begin    // P1 cyan
-                draw_r = 4'b0000;
-                draw_g = 4'b1101;
-                draw_b = 4'b1111;
-            end else begin                 
-                draw_r = color1[11:8];
-                draw_g = color1[7:4];
-                draw_b = color1[3:0];
-            end
-        end else if ((curr_x>= (blkpos2_x - 8)) && (curr_y>= (blkpos2_y - 8)) &&   // box left and top
+    logic [11:0] color;
+    logic wall;
+    logic player1;
+    logic player2;
+    logic hud;
+
+    // Frame counter: the grid line's pulse phase is frame_cnt[4:3].    
+    logic [4:0] frame_cnt = 5'b0;
+    always_ff @(posedge clk)
+    begin
+        if(curr_x == 0 && curr_y == 800) begin
+            frame_cnt <= frame_cnt + 1'b1;
+        end
+    end
+    // pixels assigned to wall
+    assign wall = (curr_x < 11'd16 && (curr_y>=11'd64 && curr_y < 11'd800)) ||                               // left wall, cx 0
+            (curr_x < 11'd1280 && (curr_y >= 11'd64 && curr_y < 11'd80)) ||                                 // top wall, cy 4
+            (curr_x < 11'd1280 && (curr_y >= 11'd784 && curr_y < 11'd800)) ||                               // bottom wall, cy 49
+            ((curr_x >= 11'd1264 && curr_x < 11'd1280) && (curr_y >= 11'd64 && curr_y < 11'd800));         // right wall, cx 79
+    // pixels assigned to player 1
+    assign player1 = ((curr_x>= (blkpos1_x - 8)) && (curr_y>= (blkpos1_y - 8)) &&                         // box left and top
+                   (curr_x < (blkpos1_x + 24)) && (curr_y < (blkpos1_y + 24)) &&                         // box right and bottom
+                   (color1 != 12'h000)); 
+    // pixels assigned to player 2
+    assign player2 = ((curr_x>= (blkpos2_x - 8)) && (curr_y>= (blkpos2_y - 8)) &&   // box left and top
                    (curr_x < (blkpos2_x + 24)) && (curr_y < (blkpos2_y + 24)) &&   // box right and bottom
-                   (color2 != 12'h000)) begin 
-            if(color2 == 12'h0F0) begin    // P2 orange
-                draw_r = 4'b1111;
-                draw_g = 4'b1000;
-                draw_b = 4'b0000;
-            end else begin
-                draw_r = color2[11:8];
-                draw_g = color2[7:4];
-                draw_b = color2[3:0];
-            end
+                   (color2 != 12'h000)); 
+    // pixels assigned to hud
+    assign hud = (curr_y < 11'd64);  
+    
+    always_comb begin
+        if (wall) begin // walls: white
+            color = 12'hFFF;
+        end else if(hud) begin
+            color = 12'h444;
+        end else if (player1) begin 
+                if(color1 == 12'h0F0) begin    // P1 cyan
+                    color = 12'h0DF;
+                end else begin                 
+                    color = color1;
+                end
+        end else if (player2) begin 
+                if(color2 == 12'h0F0) begin    // P2 orange
+                    color = 12'hF80;
+                end else begin
+                    color = color2;
+                end
         // Trails and empty Arena are read from arena_map's port B. The 4-bit code is:
         // 0 EMPTY, 1 WALL, 2 P1 Trail, 3 P1 head, 4 P2 Trail, 5 P2 head, 8-10 Rewards
         end else if (arena_code == 4'd2) begin  // P1 Trail
-            draw_r = 4'b0000;
-            draw_g = 4'b0110;
-            draw_b = 4'b1000;
+            color = 12'h068;
         end else if (arena_code == 4'd4) begin  // P2 Trail
-            draw_r = 4'b1000;
-            draw_g = 4'b0100;
-            draw_b = 4'b0000;
-        end else begin                          // empty Arena
-            draw_r = 4'b0000;
-            draw_g = 4'b0000;
-            draw_b = 4'b0000;
+            color = 12'h840;
+        end else begin                          
+            if(curr_x[4:0]==0 || curr_y[4:0]==0)begin // Purple grid line
+                case(frame_cnt[4:3])                  // Breathing effect
+                    2'b00: color = 12'h818;
+                    2'b01: color = 12'hA2C;
+                    2'b10: color = 12'hD2E;
+                    2'b11: color = 12'hA2C;
+                endcase
+            end else if (curr_x[4:0]==1 || curr_x[4:0]==31 || curr_y[4:0]==1 || curr_y[4:0]==31) begin // Grid glow
+                color= 12'h304;
+            end else begin                          // empty arena
+                color = 12'h001;
+            end
         end
+        draw_r = color[11:8];
+        draw_g = color[7:4];
+        draw_b = color[3:0];
     end
 
 endmodule
