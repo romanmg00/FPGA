@@ -2,7 +2,7 @@
 // The only writer of arena_map, on clk_pix. Per request: a Prepare (clear, heads, three Rewards)
 // or a Step (Trails, heads, Rewards taken placed again), then the neighbours of both heads.
 module arena_ctrl #(
-    parameter bit          FIXED_SEED = 1'b0,          // 1: every Match starts at SEED (tests)
+    parameter bit          FIXED_SEED = 1'b0,          // 1: every Match starts at SEED (tests), 0: free-running
     parameter logic [31:0] SEED       = 32'h1D2C_3B4A  // never 0
 ) (
     input  logic        clk,                        // clk_pix
@@ -38,10 +38,8 @@ module arena_ctrl #(
     logic [12:0] read_head;
     logic [31:0] codes;                             // P1 up, right, down, left, then P2
     // Rewards
-    logic [31:0] seed_count = 32'd0;                // clk_pix cycles since configuration
     logic [31:0] lfsr, lfsr_next;                   // lfsr_next: one draw later
     logic [2:0]  todo;                              // slots still to place
-    logic [2:0]  placed = 3'b000;                   // slots written in this request
     logic [1:0]  slot;
     logic [12:0] cand;                              // Cell being tried, {cy, cx}
     logic [13:0] tries;                             // 1-64 draws, then 65-8256 scanned words
@@ -100,19 +98,16 @@ module arena_ctrl #(
         endcase
     end
 
-    always_ff @(posedge clk)
-        seed_count <= seed_count + 32'd1;
-
     always_ff @(posedge clk) begin
-        if (state == s_put)                                // with its write, even on a reset edge
-            placed[slot] <= 1'b1;
         if (rst) begin
             state <= s_idle;
             count <= 13'd0;
             lfsr  <= SEED;
         end else
             case (state)
-                s_idle:
+                s_idle: begin
+                    if (!FIXED_SEED)
+                        lfsr <= lfsr_next;                         // one draw per idle cycle
                     if (heads_tgl_sync != codes_tgl_ff) begin      // new heads: copy them
                         prepare_pix     <= prepare;
                         reseed_pix      <= reseed;
@@ -124,19 +119,15 @@ module arena_ctrl #(
                         count           <= 13'd0;
                         state           <= s_start;
                     end
+                end
                 s_start:
                     if (prepare_pix) begin                         // the clear removes every Reward
-                        if (reseed_pix) begin
-                            if (FIXED_SEED)
-                                lfsr <= SEED;
-                            else if ((lfsr ^ seed_count) != 32'd0) // Start timing; 0 would stop the LFSR
-                                lfsr <= lfsr ^ seed_count;
-                        end
-                        placed <= 3'b000;
-                        todo   <= 3'b111;
-                        state  <= s_clear;
+                        if (FIXED_SEED && reseed_pix)
+                            lfsr <= SEED;
+                        todo  <= 3'b111;
+                        state <= s_clear;
                     end else begin
-                        todo  <= collected_pix & ~placed;
+                        todo  <= collected_pix;
                         state <= s_write;
                     end
                 s_clear:
@@ -190,7 +181,6 @@ module arena_ctrl #(
                         codes <= {codes[27:0], ctrl_read_code};
                     if (count == 13'd8) begin                      // the 8th code is in: answer
                         codes_tgl_ff <= ~codes_tgl_ff;
-                        placed       <= 3'b000;
                         state        <= s_idle;
                     end else
                         count <= count + 13'd1;
