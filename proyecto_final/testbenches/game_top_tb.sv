@@ -1,4 +1,12 @@
 // Author: Alan (AIF31). Changes by Roman (romanmg00): frames checked through pos_link, no tearing (X1, #48).
+// Rewards (G4, ADR 0012): game_top runs with FIXED_SEED = 1, so every new Match places the
+// Rewards from SEED on the Cells prototipos/tron_fpga/model gives: slot 0 (39,32), slot 1 (10,9),
+// slot 2 (1,12), clear of the paths the older scenarios drive. The Arena model learns where the
+// Rewards are once the codes are valid and checks that they only sit on EMPTY Cells and do not
+// move. position_logic does not report a Reward taken yet and drawcon does not draw them (both
+// Roman's, proposed in an issue), so a Reward Cell is drawn as empty Arena, and a Bike that
+// drives onto one writes its head over it: no Points, and the slot stays empty until the next
+// Prepare. rewards drives P1 over slot 0 and checks exactly that.
 // Builder's own check of game_top, mostly from its pins, with sim_clocks/ in place of
 // the pixel Wizard and sim_models/ in place of bike_rom; not the official bench of contract
 // section 7. It checks that the
@@ -30,7 +38,7 @@
 // earlier, port B's latency). arena_check compares the whole of arena_map with a Trail model
 // kept here from the bike moves: the Cells a bike left are its Trail, its head is a head.
 // Match and Scoreboard (G3/G5, ADR 0008): Start reaches round_fsm through match_fsm, so
-// press_start waits up to 10 ticks for the Round. The Scoreboard is read from seg and an.
+// press_start waits up to 16 ticks for the Round. The Scoreboard is read from seg and an.
 // match plays one Match to its end (P1's Lives set to 1 with force; match_tb plays whole
 // Matches on clk_juego alone) and pause checks SW0 and a Start held through CPU_RESETN.
 // uart sends P2's keys as 8N1 frames on the uart_rx pin at 115200 baud: Enter starts the
@@ -80,6 +88,8 @@ module game_top_tb;
     int last_step_tick = -1;  // tick of the last step seen; -1 before the first of a Round
     string bike_file;
     logic [11:0] bike_mem [0:1023];  // the sprite pointing up, word {row, column}
+    int          rw_cell [0:2];      // where the model knows each Reward slot is; -1 not known,
+                                     // -2 a Bike drove over it: absent until the next Prepare
     // Drawn positions and headings as drawcon sees them, one entry per clk_pix cycle. After a
     // clk_pix edge, entry 0 holds the cycle whose colour vga_out just put on the pins, and
     // entry n the cycle n earlier: boxes use entry 0, sprite lookups entry SPRITE_SHIFT.
@@ -106,7 +116,7 @@ module game_top_tb;
     // Arena model: what arena_map must hold after the last step's writes.
     logic [3:0] arena_want [0:8191];
 
-    game_top dut (.clk, .cpu_resetn, .sw, .btn, .uart_rx, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs),
+    game_top #(.FIXED_SEED(1'b1)) dut (.clk, .cpu_resetn, .sw, .btn, .uart_rx, .vga_r(r), .vga_g(g), .vga_b(b), .vga_hs(hs), .vga_vs(vs),
                   .seg, .dp, .an);
     always #5 clk = ~clk;
 
@@ -222,6 +232,7 @@ module game_top_tb;
             w = sprite_word(x - SPRITE_SHIFT, y, s2x, s2y, s2h);
             if (w != C_CLEAR) return w == C_KEY ? C_P2 : w;
         end
+        // Rewards (codes 8-10) are not drawn yet: empty Arena.
         if (code == 4'd2) return C_T1;    // Trails only; heads are not painted
         if (code == 4'd4) return C_T2;
         if (x % 32 == 0 || y % 32 == 0) return line_col; // violet grid every 32 px (prototype's look)
@@ -355,8 +366,41 @@ module game_top_tb;
                            p1x, p1y, p2x, p2y));
     endtask
 
+    // Where the Rewards are, read from arena_map once the codes are valid (the Arena is not
+    // being written then). Each slot is on at most one Cell, which the model holds EMPTY; a slot
+    // the model knows has not moved; a slot just prepared is on a Cell, and one a Bike drove
+    // over stays absent (nobody reports it taken, so arena_ctrl does not place it again).
+    task automatic learn_rewards(string what);
+        int found [0:2];
+        found = '{-1, -1, -1};
+        for (int a = 0; a < 8192; a++)
+            if (dut.u_arena_map.cells[a] >= 4'd8 && dut.u_arena_map.cells[a] <= 4'd10) begin
+                int sl = dut.u_arena_map.cells[a] - 4'd8;
+                if (found[sl] != -1) fail($sformatf("%s: Reward slot %0d on two Cells", what, sl));
+                if (arena_want[a] !== 4'd0)
+                    fail($sformatf("%s: Reward slot %0d on Cell (%0d,%0d), which holds %0d",
+                                   what, sl, a % 128, a / 128, arena_want[a]));
+                found[sl] = a;
+            end
+        for (int sl = 0; sl < 3; sl++) begin
+            if (rw_cell[sl] == -2) begin
+                if (found[sl] != -1)
+                    fail($sformatf("%s: Reward slot %0d is back at (%0d,%0d), but nobody reported it taken",
+                                   what, sl, found[sl] % 128, found[sl] / 128));
+                continue;
+            end
+            if (found[sl] == -1) fail($sformatf("%s: Reward slot %0d is missing", what, sl));
+            if (rw_cell[sl] != -1 && found[sl] != rw_cell[sl])
+                fail($sformatf("%s: Reward slot %0d moved from (%0d,%0d) to (%0d,%0d) without being taken", what, sl,
+                               rw_cell[sl] % 128, rw_cell[sl] / 128, found[sl] % 128, found[sl] / 128));
+            rw_cell[sl] = found[sl];
+        end
+    endtask
+
     // Arena after a Prepare: EMPTY on cx 1..78, cy 5..48, WALL elsewhere, heads at the bikes.
+    // The three Rewards are learnt when the Prepare's codes are valid.
     task automatic arena_model_prepare();
+        rw_cell = '{-1, -1, -1};
         for (int a = 0; a < 8192; a++)
             arena_want[a] = ((a % 128) >= 1 && (a % 128) <= 78 && (a / 128) >= 5 && (a / 128) <= 48) ? 4'd0 : 4'd1;
         arena_want[(dut.blkpos1_y / 16) * 128 + dut.blkpos1_x / 16] = 4'd3;
@@ -371,15 +415,18 @@ module game_top_tb;
             #1;
             if (++waited > 6) fail($sformatf("%s: codes_valid did not come back", what));
         end
+        learn_rewards(what);
         for (int a = 0; a < 8192; a++)
-            if (dut.u_arena_map.cells[a] !== arena_want[a])
+            if (a != rw_cell[0] && a != rw_cell[1] && a != rw_cell[2] && dut.u_arena_map.cells[a] !== arena_want[a])
                 fail($sformatf("%s: Arena Cell (%0d,%0d) holds %0d, expected %0d",
                                what, a % 128, a / 128, dut.u_arena_map.cells[a], arena_want[a]));
-        $display("ok   %s: the whole Arena matches the Trail model", what);
+        $display("ok   %s: the whole Arena matches the Trail model; Rewards at (%0d,%0d) (%0d,%0d) (%0d,%0d)", what,
+                 rw_cell[0] % 128, rw_cell[0] / 128, rw_cell[1] % 128, rw_cell[1] / 128, rw_cell[2] % 128, rw_cell[2] / 128);
     endtask
 
     // Holds BTNC until the Round runs, then releases it: the synchroniser, match_fsm and
-    // round_fsm take up to 6 ticks (new Match) or 4 (next Round). The Arena was prepared
+    // round_fsm take up to 10 ticks (new Match: match_fsm waits for its Prepare's codes) or 4
+    // (next Round). A new Match's Arena is prepared after Start; a next Round's was prepared
     // when the bikes went back to their starts.
     task automatic press_start();
         int waited = 0;
@@ -387,7 +434,7 @@ module game_top_tb;
         while (dut.u_position_logic.run !== 1'b1) begin
             @(posedge dut.clk_juego);
             #1;
-            if (++waited > 10) fail("BTNC did not start the Round within 10 ticks");
+            if (++waited > 16) fail("BTNC did not start the Round within 16 ticks");
         end
         btn = B_NONE;
         arena_model_prepare();
@@ -397,16 +444,25 @@ module game_top_tb;
     // Waits for the next clk_juego edge where a bike moves or the Round stops, and checks
     // how far each bike moved (in cells) and, after the first step of a Round, that the
     // step came exactly STEP ticks after the previous one. Returns 1 if the Round stopped.
+    // While it waits, the Rewards are learnt once the codes are valid; a bike that moves onto
+    // one writes its head over it, and the slot stays absent (run_over counts them).
+    int run_over = 0;
     task automatic next_step(string what, int dx1, int dy1, int dx2, int dy2, output logic crashed);
         int x1 = dut.blkpos1_x, y1 = dut.blkpos1_y, x2 = dut.blkpos2_x, y2 = dut.blkpos2_y;
         int nx1, ny1, nx2, ny2;
         int waited = 0;
+        bit learned = 1'b0;
         do begin
+            if (!learned && dut.codes_valid === 1'b1) begin
+                learn_rewards(what);
+                learned = 1'b1;
+            end
             @(posedge dut.clk_juego);
             #1;
             if (++waited > 3 * STEP) fail($sformatf("%s: no step within %0d ticks", what, 3 * STEP));
         end while (dut.blkpos1_x == x1 && dut.blkpos1_y == y1 && dut.blkpos2_x == x2
                    && dut.blkpos2_y == y2 && dut.u_position_logic.run === 1'b1);
+        if (!learned) fail($sformatf("%s: the step came without valid codes", what));
         crashed = (dut.u_position_logic.run !== 1'b1);
         if (last_step_tick >= 0 && ticks - last_step_tick != STEP)
             fail($sformatf("%s: step came %0d ticks after the previous one, expected %0d",
@@ -414,6 +470,19 @@ module game_top_tb;
         last_step_tick = ticks;
         // Copied to ints first: XSim 2025.2 evaluated int'(dut.blkpos1_x) - x1 here as 0 - x1.
         nx1 = dut.blkpos1_x; ny1 = dut.blkpos1_y; nx2 = dut.blkpos2_x; ny2 = dut.blkpos2_y;
+        // A bike that moved onto a Reward writes its head over it; nobody reports it taken yet.
+        for (int sl = 0; sl < 3; sl++) begin
+            if ((nx1 != x1 || ny1 != y1) && rw_cell[sl] == (ny1 / 16) * 128 + nx1 / 16) begin
+                run_over++;
+                rw_cell[sl] = -2;
+                $display("ok   %s: P1 drives over Reward slot %0d", what, sl);
+            end
+            if ((nx2 != x2 || ny2 != y2) && rw_cell[sl] == (ny2 / 16) * 128 + nx2 / 16) begin
+                run_over++;
+                rw_cell[sl] = -2;
+                $display("ok   %s: P2 drives over Reward slot %0d", what, sl);
+            end
+        end
         // Arena model: a bike that moved leaves its Trail; its new Cell is its head.
         if (nx1 != x1 || ny1 != y1) begin
             arena_want[(y1 / 16) * 128 + x1 / 16] = 4'd2;
@@ -627,6 +696,41 @@ module game_top_tb;
         step_ok("released and pressed again", 1, 0, -1, 0);
     endtask
 
+    // P1 drives down 5 Cells and right 19 onto Reward slot 0 at (39,32) while P2 goes left along
+    // row 27. Until position_logic reports Rewards taken, the Bike's head replaces the Reward:
+    // no Points, slot 0 stays absent, and slots 1 and 2 stay where they are.
+    task automatic rewards_scenario();
+        int r0 = 32 * 128 + 39;
+        press_start();
+        arena_check("new Match");                    // learns where the Prepare put them
+        if (rw_cell[0] != r0 || rw_cell[1] != 9 * 128 + 10 || rw_cell[2] != 12 * 128 + 1)
+            fail($sformatf("Rewards at (%0d,%0d) (%0d,%0d) (%0d,%0d); the model puts them at (39,32) (10,9) (1,12)",
+                           rw_cell[0] % 128, rw_cell[0] / 128, rw_cell[1] % 128, rw_cell[1] / 128,
+                           rw_cell[2] % 128, rw_cell[2] / 128));
+        $display("ok   Rewards at (39,32) (10,9) (1,12), as the model");
+        btn = B_D;
+        for (int i = 1; i <= 5; i++) step_ok($sformatf("down %0d", i), 0, 1, -1, 0);
+        btn = B_R;
+        for (int i = 1; i <= 18; i++) step_ok($sformatf("right %0d", i), 1, 0, -1, 0);
+        btn = B_NONE;
+        step_ok("right 19: over slot 0", 1, 0, -1, 0);
+        // SW0 holds the game while the checks below run: they take longer than one Step.
+        sw[0] = 1'b1;
+        if (run_over != 1 || rw_cell[0] != -2) fail($sformatf("%0d Rewards driven over, expected slot 0 only", run_over));
+        wait_ticks(1);
+        if (dut.points_p1 !== 6'd0 || dut.points_p2 !== 6'd0)
+            fail($sformatf("Points %0d-%0d after driving over slot 0, expected 0-0", dut.points_p1, dut.points_p2));
+        arena_check("slot 0 driven over");
+        if (dut.u_arena_map.cells[r0] !== 4'd3) fail("P1's head is not on (39,32)");
+        $display("ok   slot 0 under P1's head, no Points, not placed again; slots 1 and 2 stay");
+        check_frame_here("P1 on slot 0's Cell");
+        expect_at("paused on slot 0", 39 * 16, 32 * 16, 35 * 16, P2_Y0);
+        sw[0] = 1'b0;
+        last_step_tick = -1;
+        step_ok("one more Step", 1, 0, -1, 0);
+        arena_check("after one more Step");
+    endtask
+
     task automatic resets_short();
         reset_test(50);
         reset_test(100);
@@ -649,6 +753,43 @@ module game_top_tb;
         #(UART_BIT_NS);
     endtask
 
+    // P2 turns back under its own Trail from the web page, as on the board on 23 November:
+    // left 4 Cells, s (down one), d (right), then right 3 Cells along the row just below its
+    // Trail. The Cell ahead is always empty, so none of those Steps may Crash; then w turns it
+    // up into its Trail, which must.
+    task automatic uart_uturn();
+        int waited = 0;
+        uart_send(8'h0D);                            // Enter: Start
+        while (dut.u_position_logic.run !== 1'b1) begin
+            @(posedge dut.clk_juego);
+            #1;
+            if (++waited > 16) fail("Enter did not start the Round within 16 ticks");
+        end
+        arena_model_prepare();
+        last_step_tick = -1;
+        for (int i = 1; i <= 4; i++) step_ok($sformatf("P2 left %0d", i), 1, 0, -1, 0);
+        uart_send("s");
+        step_ok("s: P2 down one", 1, 0, 0, 1);
+        uart_send("d");
+        step_ok("d: P2 right, under its Trail", 1, 0, 1, 0);
+        for (int i = 2; i <= 4; i++) step_ok($sformatf("P2 right %0d under its Trail", i), 1, 0, 1, 0);
+        // P2 is now under the first Cell of its Trail, (59, 27). w turns it up into that Trail:
+        // a Crash. In a Crash Step no Bike moves (ADR 0011), so P2's Heading, and its sprite,
+        // still face right.
+        uart_send("w");
+        begin
+            logic crashed;
+            next_step("w: P2 up into its Trail", 0, 0, 0, 0, crashed);
+            if (!crashed) fail("w into P2's own Trail did not Crash");
+        end
+        if (dut.lives_p2 !== 2'd2 || dut.lives_p1 !== 2'd3)
+            fail($sformatf("after P2's Crash Lives are P1 %0d, P2 %0d; expected 3 and 2", dut.lives_p1, dut.lives_p2));
+        if (dut.heading2 !== 2'd1) fail($sformatf("after the Crash P2's Heading is %0d, expected 1 (right)", dut.heading2));
+        check_frame_here("P2 crashed under its own Trail");
+        arena_check("after the Crash");
+        $display("ok   w under its own Trail: P2 Crashes, and its sprite still faces right");
+    endtask
+
     // P2 plays from the web page (ADR 0013). Bytes that are not commands start nothing; Enter
     // (CR) starts the Round; W turns P2 up, an uppercase S (its reverse) is ignored, D turns
     // it right, and Space during the Round does nothing. P1 keeps going right. Each byte is
@@ -663,7 +804,7 @@ module game_top_tb;
         while (dut.u_position_logic.run !== 1'b1) begin
             @(posedge dut.clk_juego);
             #1;
-            if (++waited > 10) fail("Enter did not start the Round within 10 ticks");
+            if (++waited > 16) fail("Enter did not start the Round within 16 ticks");
         end
         arena_model_prepare();
         last_step_tick = -1;
@@ -689,6 +830,7 @@ module game_top_tb;
         if (!$value$plusargs("bike_mem=%s", bike_file))
             fail("no sprite data: run xsim with -testplusarg bike_mem=<file>.mem");
         $readmemh(bike_file, bike_mem);
+        rw_cell = '{-1, -1, -1};
         foreach (bike_mem[i])
             if ($isunknown(bike_mem[i])) fail($sformatf("%s does not fill sprite word %0d", bike_file, i));
         // board_reset_sync starts asserted, so the first clk_juego edge (about 8 ms) puts the
@@ -710,7 +852,9 @@ module game_top_tb;
             "reset_long":   reset_long();
             "match":        match_scenario();
             "pause":        pause_scenario();
+            "rewards":      rewards_scenario();
             "uart":         uart_scenario();
+            "uart_uturn":   uart_uturn();
             "all": begin
                 idle();
                 steps();
@@ -727,6 +871,8 @@ module game_top_tb;
                 match_scenario();
                 cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
                 pause_scenario();
+                cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
+                rewards_scenario();
                 cpu_resetn = 1'b0; #60ms; cpu_resetn = 1'b1; #60ms;
                 uart_scenario();
             end

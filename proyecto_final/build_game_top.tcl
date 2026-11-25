@@ -1,4 +1,5 @@
 # Author: Alan (AIF31). Changes by Roman (romanmg00): pos_link, its bench and its constraint checks (X1, #48).
+# Rewards (G4): the rewards scenario and the reseed crossing check.
 # Construye game_top desde el repositorio, sin proyecto previo.
 #   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [quick|sim|full]
 # quick corre los testbenches de modulos (unos 20 s) y salta game_top_tb, que tarda hasta 20 min;
@@ -141,7 +142,7 @@ start_bench match_tb match_tb "PASS match_tb" [concat [list $tb/match_tb.sv $src
 start_bench uart_rx_tb uart_rx_tb "PASS uart_rx_tb" [list $tb/uart_rx_tb.sv $src/uart_rx.sv $src/sync_2ff.sv]
 start_bench uart_decode_tb uart_decode_tb "PASS uart_decode_tb" [list $tb/uart_decode_tb.sv $src/uart_decode.sv]
 start_bench uart_link_tb uart_link_tb "PASS uart_link_tb" [list $tb/uart_link_tb.sv $src/uart_link.sv $src/sync_2ff.sv]
-foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long match pause uart}}] {
+foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long match pause rewards uart uart_uturn}}] {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
         [concat [list $tb/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
         "-testplusarg scenario=$scenario -testplusarg 'bike_mem=$bike_mem'"
@@ -297,6 +298,7 @@ set arena_report {}
 foreach {what pattern} {heads_tgl u_arena_link/heads_tgl_ff_reg
         heads_tgl_sync u_arena_ctrl/u_sync_heads_tgl/meta_reg
         heads {u_arena_link/prepare_reg u_arena_link/old_head_p*_reg[*] u_arena_link/new_head_p*_reg[*]}
+        reseed u_arena_link/reseed_reg
         heads_pix {u_arena_ctrl/*_pix_reg*}
         codes_tgl u_arena_ctrl/codes_tgl_ff_reg codes_tgl_sync u_arena_link/u_sync_codes_tgl/meta_reg
         codes_pix {u_arena_ctrl/codes_reg[*]} codes_juego {u_arena_link/codes_reg[*]}} {

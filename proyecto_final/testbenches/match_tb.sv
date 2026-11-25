@@ -24,10 +24,11 @@ module match_tb;
 
     match_fsm u_match_fsm (
         .clk, .rst, .start_btn(start), .start_p2(1'b0), .crash(crash1 || crash2), .crash_done, .match_over, .pause,
-        .waiting, .new_match, .restart, .round_start
+        .codes_valid, .waiting, .new_match, .restart, .round_start
     );
     score_unit u_score_unit (
-        .clk, .rst, .new_match, .crash1, .crash2,
+        .clk, .rst, .new_match, .waiting, .goal_sel(2'd0), .crash1, .crash2,
+        .reward1(2'd0), .reward2(2'd0),             // position_logic does not report Rewards yet
         .points_p1, .points_p2, .lives_p1, .lives_p2, .result, .match_over
     );
     position_logic #(.STEP_TICKS(STEP)) u_position_logic (

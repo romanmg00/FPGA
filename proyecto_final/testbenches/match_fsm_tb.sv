@@ -6,11 +6,12 @@ module match_fsm_tb;
 
     logic clk = 1'b0, rst = 1'b1;
     logic start_btn = 1'b0, start_p2 = 1'b0, crash = 1'b0, crash_done = 1'b0, match_over = 1'b0, pause = 1'b0;
+    logic codes_valid = 1'b1;
     logic waiting, new_match, restart, round_start;
     int   new_count = 0, round_start_count = 0;     // ticks with new_match / round_start high at the edge
 
     match_fsm dut (
-        .clk, .rst, .start_btn, .start_p2, .crash, .crash_done, .match_over, .pause,
+        .clk, .rst, .start_btn, .start_p2, .crash, .crash_done, .match_over, .pause, .codes_valid,
         .waiting, .new_match, .restart, .round_start
     );
 
@@ -26,7 +27,7 @@ module match_fsm_tb;
         logic w, n, g;
         w = (dut.state == 3'd0 || dut.state == 3'd4);
         n = (dut.state == 3'd5) && !pause;
-        g = (dut.state == 3'd7) && !pause;
+        g = (dut.state == 3'd7) && !pause && codes_valid;
         if (waiting !== w || new_match !== n || restart !== n || round_start !== g)
             fail($sformatf("%s: state %0d pause=%b gives waiting=%b new_match=%b restart=%b round_start=%b",
                            when, dut.state, pause, waiting, new_match, restart, round_start));
@@ -173,6 +174,28 @@ module match_fsm_tb;
         for (int i = 0; i < 1000; i++)
             if (log[i] != "1") fail("no timeout: the Round left G_PLAY without a Crash");
         $display("ok   no timeout: 1000 ticks in G_PLAY");
+
+        // The Points Goal reached without a Crash ends the Match at once, with no Crash
+        // display (match_over comes from score_unit the tick after the Step); one press then
+        // starts a new Match.
+        go_to(1);
+        log = ""; new_count = 0; round_start_count = 0;
+        match_over = 1'b1;
+        ticks(3);
+        press();
+        match_over = 1'b0;                                   // score_unit clears it with new_match
+        ticks(4);
+        check("Goal without a Crash, then a new Match", "44456711", 1, 1);
+
+        // G_START waits for the Prepare's codes (codes_valid), so the Round is released only
+        // after the three Rewards are placed; round_start comes once, when they arrive.
+        go_to(6);
+        log = ""; round_start_count = 0;
+        codes_valid = 1'b0;
+        ticks(3);
+        codes_valid = 1'b1;
+        ticks(2);
+        check("G_START waits for codes_valid", "77711", -1, 1);
 
         // Pause in each state: the state holds, the 1-tick actions wait, a press made during
         // Pause does not count afterwards.
