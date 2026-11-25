@@ -1,5 +1,5 @@
 # Author: Alan (AIF31). Changes by Roman (romanmg00): pos_link, its bench and its constraint checks (X1, #48).
-# Rewards (G4): the rewards scenario and the reseed crossing check.
+# Rewards (G4): the rewards scenario, the reseed and collected crossing checks, and reward_rom.
 # Construye game_top desde el repositorio, sin proyecto previo.
 #   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [quick|sim|full]
 # quick corre los testbenches de modulos (unos 20 s) y salta game_top_tb, que tarda hasta 20 min;
@@ -59,13 +59,13 @@ proc wait_benches {} {
         emit $out/tests/PASS.txt "All testbenches passed"
     }
 }
-# Regla de docs/design/CS-256 Vivado IP Inventory.md: los Wizards y bike_rom son IP generada
-# por Vivado. Primera revision: ningun archivo del diseno define un modulo con el nombre de una
+# Regla de docs/design/CS-256 Vivado IP Inventory.md: los Wizards, bike_rom y reward_rom son IP
+# generada por Vivado. Primera revision: ningun archivo del diseno define un modulo con el nombre de una
 # de ellas. Los modelos de sim_clocks/ y sim_models/ solo van a los testbenches.
 proc check_no_handwritten_ip {files} {
     foreach file $files {
         set f [open $file]; set text [read $f]; close $f
-        if {[regexp -line {^\s*module\s+(clk_wiz_\w*|bike_rom)\M} $text found]} {
+        if {[regexp -line {^\s*module\s+(clk_wiz_\w*|bike_rom|reward_rom)\M} $text found]} {
             error "$file define a mano un modulo de IP: $found"
         }
     }
@@ -106,6 +106,10 @@ proc coe_to_mem {coe mem words} {
 file mkdir $out/tests
 set bike_mem $out/tests/bike_synth.mem
 coe_to_mem $here/sprites/bike_synth.coe $bike_mem 1024
+# sim_models/reward_rom.sv y game_top_tb leen sprites/reward_neon.coe igual: 512 palabras, la
+# gema de +1 (0-255) y la estrella de +3 (256-511).
+set reward_mem $out/tests/reward_neon.mem
+coe_to_mem $here/sprites/reward_neon.coe $reward_mem 512
 
 start_bench sync_2ff_tb sync_2ff_tb "PASS sync_2ff_tb" [list $tb/sync_2ff_tb.sv $src/sync_2ff.sv]
 start_bench board_reset_sync_tb board_reset_sync_tb "PASS board_reset_sync_tb" [list $tb/board_reset_sync_tb.sv $src/board_reset_sync.sv]
@@ -144,8 +148,9 @@ start_bench uart_decode_tb uart_decode_tb "PASS uart_decode_tb" [list $tb/uart_d
 start_bench uart_link_tb uart_link_tb "PASS uart_link_tb" [list $tb/uart_link_tb.sv $src/uart_link.sv $src/sync_2ff.sv]
 foreach scenario [expr {$mode eq "quick" ? {} : {idle steps turns head_on wall_crash resets_short reset_long match pause rewards uart uart_uturn}}] {
     start_bench game_top_tb_$scenario game_top_tb "PASS game_top_tb $scenario" \
-        [concat [list $tb/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv] $design] \
-        "-testplusarg scenario=$scenario -testplusarg 'bike_mem=$bike_mem'"
+        [concat [list $tb/game_top_tb.sv $here/sim_clocks/clk_wiz_0.sv $here/sim_models/bike_rom.sv \
+            $here/sim_models/reward_rom.sv] $design] \
+        "-testplusarg scenario=$scenario -testplusarg 'bike_mem=$bike_mem' -testplusarg 'reward_mem=$reward_mem'"
 }
 
 proc build_bitstream {} {
@@ -209,12 +214,35 @@ foreach {key want} {Memory_Type Single_Port_ROM Write_Depth_A 1024 Write_Width_A
     }
 }
 
+# reward_rom (G4) igual, con los valores de ip/reward_rom/reward_rom.tcl y sprites/reward_neon.coe:
+# 512 x 12, latencia 2. drawcon tiene dos instancias, una por imagen.
+create_ip -name blk_mem_gen -vendor xilinx.com -library ip -module_name reward_rom -dir $out/ip
+set rrom [get_ips reward_rom]
+set_property -dict [list CONFIG.Interface_Type Native CONFIG.Memory_Type Single_Port_ROM \
+    CONFIG.Write_Width_A 12 CONFIG.Read_Width_A 12 CONFIG.Write_Depth_A 512 CONFIG.Enable_A Use_ENA_Pin \
+    CONFIG.Register_PortA_Output_of_Memory_Primitives true CONFIG.Register_PortA_Output_of_Memory_Core false \
+    CONFIG.Use_RSTA_Pin false CONFIG.Port_A_Write_Rate 0 CONFIG.Load_Init_File true \
+    CONFIG.Coe_File $here/sprites/reward_neon.coe] $rrom
+set_property generate_synth_checkpoint false [get_files */reward_rom.xci]
+generate_target all $rrom
+emit $out/reward_rom-properties.txt [report_property -return_string $rrom]
+if {[llength $rrom] != 1 || ![string match xilinx.com:ip:blk_mem_gen:* [get_property IPDEF $rrom]]} {
+    error "reward_rom no es IP del catalogo: [get_property IPDEF $rrom]"
+}
+foreach {key want} {Memory_Type Single_Port_ROM Write_Depth_A 512 Write_Width_A 12 Read_Width_A 12
+        Register_PortA_Output_of_Memory_Primitives true Register_PortA_Output_of_Memory_Core false
+        Load_Init_File true} {
+    if {[get_property CONFIG.$key $rrom] ne $want} {
+        error "reward_rom: $key es [get_property CONFIG.$key $rrom], se esperaba $want"
+    }
+}
+
 read_verilog -sv $design
 # drawcon's $readmemh("sun_rows.mem"): the striped sun's rows, one 21-bit word each.
 read_mem $here/sprites/sun_rows.mem
 set_property top game_top [current_fileset]
 # Lo que se sintetiza: exactamente los .sv de src/, ni testbenches, ni modelos de
-# sim_clocks/ o sim_models/, ni prototipos. Las IP (clk_wiz_0, bike_rom) van aparte, como .xci.
+# sim_clocks/ o sim_models/, ni prototipos. Las IP (clk_wiz_0, bike_rom, reward_rom) van aparte, como .xci.
 set expected [lsort [glob $src/*.sv]]
 # foreach instead of lmap: lmap is Tcl 8.6, and Vivado 2020.2 ships Tcl 8.5.
 set got {}
@@ -298,7 +326,7 @@ set arena_report {}
 foreach {what pattern} {heads_tgl u_arena_link/heads_tgl_ff_reg
         heads_tgl_sync u_arena_ctrl/u_sync_heads_tgl/meta_reg
         heads {u_arena_link/prepare_reg u_arena_link/old_head_p*_reg[*] u_arena_link/new_head_p*_reg[*]}
-        reseed u_arena_link/reseed_reg
+        reseed u_arena_link/reseed_reg collected {u_arena_link/collected_reg[*]}
         heads_pix {u_arena_ctrl/*_pix_reg*}
         codes_tgl u_arena_ctrl/codes_tgl_ff_reg codes_tgl_sync u_arena_link/u_sync_codes_tgl/meta_reg
         codes_pix {u_arena_ctrl/codes_reg[*]} codes_juego {u_arena_link/codes_reg[*]}} {
