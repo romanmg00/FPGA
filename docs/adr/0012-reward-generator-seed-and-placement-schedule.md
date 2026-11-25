@@ -103,6 +103,10 @@ press shorter than one `clk_juego` period (about 16.7 ms) can reach only
 `clk_pix`. A duplicate then needs the press to begin in the about 10 `clk_pix` cycles
 between that Reward's write and the answer (about 120 ns of a 16.7 ms tick) of a
 Step that takes a Reward, and it lasts until the next Prepare, at the next Round.
+Alan accepted this limit on 25 November: a deliberate press is longer than one
+`clk_juego` period; bounce on release comes right after a reset, when no Step
+can take a Reward; and bounce on press is followed by the long press, which
+resets both domains.
 
 **Drawing** (Roman's `drawcon`, proposed in [issue #61](https://github.com/romanmg00/FPGA/issues/61)). `drawcon` has two
 `reward_rom` instances, one for each image
