@@ -4,26 +4,24 @@ module match_fsm (
     input  logic clk,             // clk_juego
     input  logic rst,
     input  logic start_btn,       // BTNC
-    input  logic start_p2,        // Space or Enter from P2's web page (uart_link), 2 ticks
+    input  logic start_p2,        // Space or Enter from P2's page
     input  logic crash,
     input  logic crash_done,      // Crash pause is over
-    input  logic match_over,      // a Player reached the Points Goal or has no Lives left
+    input  logic match_over,      // Goal reached or no Lives left
     input  logic pause,           // SW0
-    input  logic codes_valid,     // arena_link: the Prepare is answered, the Rewards are placed
+    input  logic codes_valid,     // the Prepare is answered
     output logic waiting,
     output logic new_match,
     output logic restart,
     output logic round_start
 );
 
-    // s_new and s_go last 1 tick each; s_start waits for codes_valid, so a Round is released
-    // only after its Prepare has placed the three Rewards. The order keeps the contract's codes 0-4.
+    // s_new and s_go last 1 tick; s_start waits until the Prepare has placed the Rewards.
     typedef enum logic [2:0] {s_idle, s_play, s_crash, s_ready, s_match, s_new, s_go, s_start} state_t;
     state_t state, next_state;
     logic   start_btn_last, start_p2_last, start_press;
 
-    // Each Start source has its own rising edge, so a held BTNC does not hide a Start from the
-    // web page. Like BTNC, a page Start that lasts through a reset is not a press.
+    // One rising edge per Start source.
     always_ff @(posedge clk) begin
         if (rst) begin
             start_btn_last <= 1'b1;

@@ -5,8 +5,7 @@
 // Top level of the Tron game: clocks, reset, synchronizers, P2's UART input and the video,
 // movement, Arena, Match and Scoreboard blocks.
 module game_top #(
-    // Rewards (ADR 0012): with FIXED_SEED = 1 every new Match places them from SEED, so a test
-    // can repeat them; the board build keeps 0, and Start timing changes the seed.
+    // Rewards (ADR 0012): FIXED_SEED = 1 places them from SEED every Match (tests); board: 0.
     parameter bit          FIXED_SEED = 1'b0,
     parameter logic [31:0] SEED       = 32'h1D2C_3B4A
 ) (
@@ -29,10 +28,8 @@ module game_top #(
     logic        clk_pix;                       // clk_wiz_0, 83.46 MHz
     logic        clk_juego;                     // counter + BUFG, ~60 Hz
     logic        clk_juego_toggle = 1'b0;
-    // clk_juego comes from a counter on clk_pix, with no second Clocking Wizard (ADR 0006):
-    // it toggles every CLK_JUEGO_N cycles, 83,455,882 Hz / (2 * 695,466) = 59.99997 Hz.
-    // game_top_timing.xdc uses -divide_by 2 * CLK_JUEGO_N, and build_game_top.tcl checks that
-    // they match. The counter goes from 0 to N-1, so it needs $clog2(N) = 20 bits.
+    // clk_juego toggles every CLK_JUEGO_N cycles of clk_pix (ADR 0006): 83,455,882 Hz /
+    // (2 * 695,466) = 59.99997 Hz. game_top_timing.xdc uses the same N; the build checks it.
     localparam int CLK_JUEGO_N = 695_466;
     localparam int CLK_CNT_W   = $clog2(CLK_JUEGO_N);
     logic [CLK_CNT_W-1:0] clk_cnt = '0;
@@ -46,8 +43,7 @@ module game_top #(
         .clk_out1(clk_pix)
     );
 
-    // The divider is NOT reset: position_logic has a synchronous reset, so it needs
-    // clk_juego edges during the reset. If this clock stopped, it would never see it.
+    // Not reset: position_logic's synchronous reset needs clk_juego edges.
     always_ff @(posedge clk_pix) begin
         clk_cnt <= clk_cnt + 1'b1;
         if (clk_cnt == CLK_CNT_W'(CLK_JUEGO_N - 1)) begin
@@ -80,8 +76,7 @@ module game_top #(
     logic [4:0]  uart_cmd;                      // uart_decode -> uart_link
     logic [4:0]  cmd_p2;                        // uart_link -> [3:0] turn_req2, [4] Start, on clk_juego
 
-    // BTNC (btn[4]) is never reset, so a Start held through CPU_RESETN still reads as held
-    // and match_fsm waits for its release.
+    // BTNC's synchronizer is not reset, so a Start held through CPU_RESETN is not a press.
     for (genvar i = 0; i < 5; i++) begin : g_btn
         sync_2ff u_sync (.clk(clk_juego), .rst((i == 4) ? 1'b0 : rst_juego), .async_in(btn[i]), .sync_out(btn_sync[i]));
     end
@@ -90,16 +85,13 @@ module game_top #(
         sync_2ff u_sync (.clk(clk_pix), .rst(rst_pix), .async_in(sw[i]), .sync_out(sw_sync[i]));
     end
 
-    // Switches read on clk_juego: Pause and the Points Goal. The two goal bits are synchronized
-    // apart; a change of both between two ticks can show a middle value for one tick, which
-    // only restarts the Goal view.
+    // Pause and the Points Goal on clk_juego. The goal bits are synchronized apart: a middle
+    // value for one tick only restarts the Goal view.
     sync_2ff u_sync_pause (.clk(clk_juego), .rst(rst_juego), .async_in(sw[0]),  .sync_out(pause));
     sync_2ff u_sync_goal0 (.clk(clk_juego), .rst(rst_juego), .async_in(sw[14]), .sync_out(goal_sel[0]));
     sync_2ff u_sync_goal1 (.clk(clk_juego), .rst(rst_juego), .async_in(sw[15]), .sync_out(goal_sel[1]));
 
-    // P2's web page sends one byte per key (ADR 0013): W A S D turn P2, Space or Enter is
-    // Start. uart_rx and uart_decode run on clk_pix; uart_link carries one command at a time
-    // to clk_juego, where it lasts 2 ticks.
+    // P2's web page, one byte per key (ADR 0013): W A S D turn, Space or Enter is Start.
     sync_2ff u_sync_uart (.clk(clk_pix), .rst(rst_pix), .async_in(uart_rx), .sync_out(uart_rx_sync));
 
     uart_rx u_uart_rx (
@@ -119,20 +111,17 @@ module game_top #(
     // ===============================================================
     logic        crash1, crash2, crash_done;    // from position_logic (section 4)
     // Reward slot each Bike takes in a Step (0 none, 1-3 slots 0-2). 0 until position_logic
-    // reports it (Roman's file; proposal in issue #61): a Bike that drives onto a Reward
-    // writes its head over it, with no Points, and the slot stays empty until the next Prepare.
+    // reports it (#61): a Bike drives over a Reward for no Points, and its slot stays empty.
     logic [1:0]  reward1, reward2;
     assign reward1 = 2'd0;
     assign reward2 = 2'd0;
-    logic        codes_valid;                   // from arena_link (section 5): neighbour codes ready
+    logic        codes_valid;                   // from arena_link (section 5)
     logic        waiting, new_match, restart, round_start;  // match_fsm -> position_logic, score_unit, seg7_view
     logic        match_over;                    // score_unit -> match_fsm, position_logic
     logic [5:0]  points_p1, points_p2;          // score_unit -> seg7_link
     logic [1:0]  lives_p1, lives_p2;
 
-    // Match control (G3): Start (BTNC, or Space or Enter from P2's page, each on its own edge)
-    // reaches round_fsm as a 1-tick pulse once the Round is prepared (codes_valid), and each new
-    // Match resets position_logic.
+    // Match control (G3): Start reaches round_fsm once the Round is prepared.
     match_fsm u_match_fsm (
         .clk(clk_juego), .rst(rst_juego),
         .start_btn(btn_sync[4]), .start_p2(cmd_p2[4]), .crash(crash1 || crash2), .crash_done(crash_done),
@@ -140,7 +129,7 @@ module game_top #(
         .waiting(waiting), .new_match(new_match), .restart(restart), .round_start(round_start)
     );
 
-    // Points and Lives (G5): Rewards, Survival Bonus, the Points Goal taken at each new Match
+    // Points, Lives and the Points Goal (G4, G5)
     score_unit u_score_unit (
         .clk(clk_juego), .rst(rst_juego),
         .new_match(new_match), .waiting(waiting), .goal_sel(goal_sel), .crash1(crash1), .crash2(crash2),
@@ -152,8 +141,7 @@ module game_top #(
     // ===============================================================
     // 4. Movement (position_logic)
     // ===============================================================
-    // Ticks of clk_juego per step (ADR 0007, ADR 0010): 8 gives about 7.5 Cells/s. One value
-    // for position_logic and both bike_glide, so the slide always lasts exactly one step.
+    // clk_juego ticks per Step (ADR 0007, 0010): 8 is about 7.5 Cells/s, shared with bike_glide.
     localparam int STEP_TICKS = 8;
     logic [10:0] blkpos1_x, blkpos1_y;          // -> arena_link, bike_glide: bike Cell in pixels
     logic [10:0] blkpos2_x, blkpos2_y;
@@ -162,8 +150,7 @@ module game_top #(
     logic [3:0]  code1_u, code1_r, code1_d, code1_l;   // from arena_link (section 5)
     logic [3:0]  code2_u, code2_r, code2_d, code2_l;
 
-    // The bikes move on their own in rounds, P1 turns with the buttons and P2 with the
-    // web page, and they crash at a wall, a Trail or each other.
+    // P1 turns with the buttons, P2 with the web page.
     position_logic #(
         .STEP_TICKS(STEP_TICKS)
     ) u_position_logic (
@@ -196,11 +183,10 @@ module game_top #(
     // 5. Arena
     // ===============================================================
     // position_logic <-> arena_link (clk_juego) <-> arena_ctrl (clk_pix), the only writer of
-    // arena_map; drawcon reads arena_map's draw_ port (contract section 3). arena_ctrl also
-    // places the Rewards (G4, ADR 0012).
+    // arena_map; drawcon reads its draw_ port (contract section 3).
     logic        heads_tgl, prepare;            // arena_link -> arena_ctrl
-    logic        reseed;                        // first Prepare of a new Match: mix the seed
-    logic [2:0]  collected;                     // Reward slots taken in the Step
+    logic        reseed;
+    logic [2:0]  collected;
     logic [12:0] old_head_p1, old_head_p2, new_head_p1, new_head_p2;
     logic        codes_tgl;                     // arena_ctrl -> arena_link
     logic [15:0] neighbours_p1, neighbours_p2;
@@ -211,9 +197,7 @@ module game_top #(
     logic [12:0] arena_addr;                    // from drawcon (section 7): Cell of the pixel
     logic [3:0]  arena_code;                    // arena_map -> drawcon: code of that Cell
 
-    // After each step, the heads go to the Arena and the codes of their neighbours come back.
-    // restart resets it with position_logic, so each new Match gets its own Prepare, which
-    // mixes Start's timing into the seed, even when the Bikes were already at their starts.
+    // restart resets it too, so each new Match sends its own Prepare (and a new seed).
     arena_link u_arena_link (
         .clk(clk_juego), .rst(rst_juego || restart),
         .load(load), .step(step), .reward1(reward1), .reward2(reward2),
@@ -278,9 +262,8 @@ module game_top #(
         .glide_y(glide2_y)
     );
 
-    // Drawn positions and headings cross from clk_juego to clk_pix (X1, issue #30): a toggle
-    // through sync_2ff copies them to a pending register, which drawcon gets at curr_y == 800,
-    // so a whole frame is drawn with the same positions.
+    // Drawn positions and headings cross to clk_pix (X1, #30) and change only at curr_y == 800,
+    // so a whole frame uses the same positions.
     pos_link u_pos_link (
         // clk_juego side
         .clk_juego(clk_juego),
@@ -347,8 +330,7 @@ module game_top #(
     logic [5:0]  points_p1_pix, points_p2_pix;  // seg7_link -> seg7_driver (clk_pix)
     logic [1:0]  lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix;
 
-    // The view on clk_juego, one crossing to clk_pix, and the
-    // homework 1 display path scanning the eight digits.
+    // The view on clk_juego, crossed to clk_pix, then homework 1's scan of the eight digits.
     seg7_view #(.VIEW_TICKS(180)) u_seg7_view (
         .clk(clk_juego), .rst(rst_juego),
         .new_match(new_match), .waiting(waiting), .goal_sel(goal_sel), .view(view)

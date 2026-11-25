@@ -1,26 +1,26 @@
 // Author: Alan (AIF31).
 module score_unit (
     input  logic       clk,                    // clk_juego
-    input  logic       rst,                    // rst_juego
+    input  logic       rst,
     input  logic       new_match,
-    input  logic       waiting,                // match_fsm waits for a new Match: the Goal follows the switches
+    input  logic       waiting,
     input  logic [1:0] goal_sel,               // {SW15, SW14}: Points Goal 10, 20, 30, 40
     input  logic       crash1, crash2,
-    input  logic [1:0] reward1, reward2,       // Reward taken in this Step: 0 none, 1-2 a +1 slot, 3 the +3 slot
-    output logic [5:0] points_p1, points_p2,   // up to 39 + 3 + 3 = 45, so no wrap in 6 bits
+    input  logic [1:0] reward1, reward2,       // 0 none, 1-2 a +1 slot, 3 the +3 slot
+    output logic [5:0] points_p1, points_p2,   // at most 39 + 3 + 3 = 45
     output logic [1:0] lives_p1, lives_p2,
     output logic [1:0] result,                 // 0 Match on, 1 P1 wins, 2 P2 wins, 3 Draw
     output logic       match_over
 );
 
-    logic [5:0] goal;                          // Points Goal of this Match
+    logic [5:0] goal;                          // this Match's Points Goal
     logic [5:0] reward_points_p1, reward_points_p2;
     logic [5:0] next_points_p1, next_points_p2;
     logic [1:0] next_lives_p1, next_lives_p2;
-    logic       reached_p1, reached_p2;        // the Goal reached or exceeded after this Step
+    logic       reached_p1, reached_p2;        // at or over the Goal after this Step
     logic [1:0] next_result;
 
-    // The values after this Step: Rewards, Crashes and the Survival Bonus, then who won.
+    // Rewards, Crashes and the Survival Bonus.
     always_comb
     begin
         case (reward1)
@@ -62,9 +62,7 @@ module score_unit (
             next_result = 2'd0;                // the Match goes on
     end
 
-    // Priority: reset or a new Match, then a Step with a Crash or a Reward while the Match is
-    // on. After a result nothing changes until the next Match, so the final values stay on the
-    // Scoreboard.
+    // A Step with a Crash or a Reward updates Points, Lives and the result.
     always_ff @(posedge clk)
     begin
         if (rst || new_match)
@@ -85,9 +83,7 @@ module score_unit (
         end
     end
 
-    // The Goal follows the switches only while match_fsm waits for a new Match, so it holds the
-    // value of the tick on which Start was accepted (the last waiting tick), even if Pause then
-    // holds the new Match's first states.
+    // The Goal follows {SW15, SW14} only while waiting, so it keeps the tick Start was accepted.
     always_ff @(posedge clk)
     begin
         if (rst)

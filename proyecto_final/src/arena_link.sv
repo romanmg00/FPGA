@@ -1,51 +1,44 @@
 // Author: Alan (AIF31).
-// Game-side half of the Arena crossing, on clk_juego. After each Step (and when load rises) it
-// sends the heads to arena_ctrl and gets back the codes of the 4 neighbour Cells of each head.
-// With the Step at edge k: heads sent at k+1, codes and codes_valid at k+4. A Step also sends
-// the Reward slots taken, and the first Prepare after a reset (CPU_RESETN, or the restart of a
-// new Match) asks arena_ctrl to mix the seed (ADR 0012).
+// Arena crossing, clk_juego side: sends the heads to arena_ctrl after each Step and when load
+// rises, and gets back their neighbour codes. Step at edge k: heads at k+1, codes at k+4.
 module arena_link (
-    input  logic        clk,                        // clk_juego (~60 Hz)
-    input  logic        rst,                        // rst_juego, synchronous, active high
+    input  logic        clk,                        // clk_juego
+    input  logic        rst,
     // From position_logic
-    input  logic        load,                       // Bikes held at their starts; its rise prepares the Round
-    input  logic        step,                       // the Step taken; in a Crash Step no Bike moves
-    input  logic [1:0]  reward1, reward2,           // Reward taken in the Step: 0 none, 1-3 slot 0-2
-    input  logic [10:0] blkpos1_x, blkpos1_y,       // heads in pixels (Cell x 16)
+    input  logic        load,                       // its rise prepares the Round
+    input  logic        step,
+    input  logic [1:0]  reward1, reward2,           // 0 none, 1-3 slot 0-2
+    input  logic [10:0] blkpos1_x, blkpos1_y,       // heads, in pixels
     input  logic [10:0] blkpos2_x, blkpos2_y,
-    // To position_logic: neighbour codes of the current heads
+    // To position_logic
     output logic [3:0]  code1_u, code1_r, code1_d, code1_l,
     output logic [3:0]  code2_u, code2_r, code2_d, code2_l,
-    output logic        codes_valid,                // 1 when the codes are those of the current heads
-    // To arena_ctrl (clk_pix): held until codes_tgl answers
-    output logic        heads_tgl,                  // toggles each time new heads are sent
-    output logic        prepare,                    // 1 Prepare (start heads), 0 Step
-    output logic        reseed,                     // Prepare of a new Match: mix the seed
-    output logic [2:0]  collected,                  // Step: slots taken, [0] slot 0 ... [2] slot 2
-    output logic [12:0] old_head_p1, old_head_p2,   // heads sent last time {cy, cx}: become Trail
-    output logic [12:0] new_head_p1, new_head_p2,   // heads now {cy, cx}
+    output logic        codes_valid,                // the codes are those of the current heads
+    // To arena_ctrl (clk_pix)
+    output logic        heads_tgl,
+    output logic        prepare,                    // 1 Prepare, 0 Step
+    output logic        reseed,
+    output logic [2:0]  collected,                  // slots taken, [0] slot 0
+    output logic [12:0] old_head_p1, old_head_p2,   // {cy, cx}: become Trail
+    output logic [12:0] new_head_p1, new_head_p2,   // {cy, cx}: become heads
     // From arena_ctrl
-    input  logic        codes_tgl,                  // equals heads_tgl once the codes are ready
-    input  logic [15:0] neighbours_p1, neighbours_p2    // {up, right, down, left} of each head
+    input  logic        codes_tgl,
+    input  logic [15:0] neighbours_p1, neighbours_p2    // {up, right, down, left}
 );
 
-    logic        load_last;                         // load one tick earlier, for its rise
-    logic        prepare_pending, step_pending;     // an event waits to be sent
+    logic        load_last;
+    logic        prepare_pending, step_pending;     // waiting to be sent
     logic        reseed_pending;                    // no Prepare sent since the reset
-    logic [2:0]  collected_step;                    // slots taken in the Step waiting to be sent
-    logic        codes_tgl_sync;                    // codes_tgl after sync_2ff
-    logic        codes_tgl_last = 1'b0;             // codes_tgl_sync one tick earlier; never reset
-    logic        heads_tgl_ff = 1'b0;               // the flip-flop behind heads_tgl; never reset
+    logic [2:0]  collected_step;
+    logic        codes_tgl_sync;
+    logic        codes_tgl_last = 1'b0;
+    logic        heads_tgl_ff = 1'b0;
     logic        idle;                              // no heads waiting for their codes
-    logic        codes_arrived;                     // the codes of the heads sent arrive
+    logic        codes_arrived;
     logic        send_prepare, send_step;
-    logic [12:0] head_p1, head_p2;                  // heads now, {cy, cx}
+    logic [12:0] head_p1, head_p2;                  // {cy, cx}
     logic [31:0] codes;                             // u1 r1 d1 l1 u2 r2 d2 l2
 
-    // The codes cross with a toggle; they have been stable for ticks when it shows.
-    // The toggles and their synchronizer are never reset: a reset must not fake or repeat a
-    // send or an answer. Heads sent before a reset are still answered, and only then the
-    // Prepare that follows the reset is sent.
     sync_2ff u_sync_codes_tgl (.clk(clk), .rst(1'b0), .async_in(codes_tgl), .sync_out(codes_tgl_sync));
 
     assign head_p1 = {blkpos1_y[9:4], blkpos1_x[10:4]};   // cy is 0..49, so 6 bits
@@ -72,8 +65,7 @@ module arena_link (
         end else begin
             load_last <= load;
 
-            // Events wait until no heads are waiting. At 6 or 8 ticks per Step they never wait.
-            // The Prepare goes one tick after load rises: bike_move loads the starts at the rise.
+            // The Prepare goes one tick after load rises, once bike_move has loaded the starts.
             if (load && !load_last)
                 prepare_pending <= 1'b1;
             else if (send_prepare)
@@ -104,7 +96,7 @@ module arena_link (
         end
     end
 
-    // The heads sent: they change only when new ones are sent, and are held until their codes.
+    // The heads sent, held until their codes come back.
     always_ff @(posedge clk) begin
         codes_tgl_last <= codes_tgl_sync;
         if (send_prepare) begin

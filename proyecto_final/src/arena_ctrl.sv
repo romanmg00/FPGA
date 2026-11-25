@@ -1,28 +1,24 @@
 // Author: Alan (AIF31).
-// The only writer of arena_map. For each new heads it does a Prepare (clear, start heads, the
-// three Rewards) or a Step (old heads to Trail, new heads, a new Cell for each Reward taken),
-// then reads the 4 neighbours of each head, so the codes already show the Rewards placed.
-// Rewards (ADR 0012): a 32-bit LFSR, taps 31, 21, 1, 0, shifted 32 times per draw; up to 64
-// draws, then a scan of all 8192 words from the last draw on. The first EMPTY Cell takes the
-// Reward; with none, that slot stays absent until the next Prepare.
+// The only writer of arena_map, on clk_pix. Per request: a Prepare (clear, heads, three Rewards)
+// or a Step (Trails, heads, Rewards taken placed again), then the neighbours of both heads.
 module arena_ctrl #(
-    parameter bit          FIXED_SEED = 1'b0,          // 1: each new Match starts the LFSR at SEED (tests)
-    parameter logic [31:0] SEED       = 32'h1D2C_3B4A  // LFSR value after reset; never 0
+    parameter bit          FIXED_SEED = 1'b0,          // 1: every Match starts at SEED (tests)
+    parameter logic [31:0] SEED       = 32'h1D2C_3B4A  // never 0
 ) (
     input  logic        clk,                        // clk_pix
     input  logic        rst,
     // From arena_link (clk_juego)
-    input  logic        heads_tgl,                  // toggles when new heads are sent
+    input  logic        heads_tgl,
     input  logic        prepare,                    // 1 Prepare, 0 Step
-    input  logic        reseed,                     // Prepare of a new Match: mix the seed
-    input  logic [2:0]  collected,                  // Step: Reward slots taken, [0] slot 0 ... [2] slot 2
+    input  logic        reseed,
+    input  logic [2:0]  collected,                  // slots taken, [0] slot 0
     input  logic [12:0] old_head_p1, old_head_p2,   // {cy, cx}: become Trail
     input  logic [12:0] new_head_p1, new_head_p2,   // {cy, cx}: become heads
     // To arena_link
-    output logic        codes_tgl,                  // equals heads_tgl when the codes are ready
+    output logic        codes_tgl,
     output logic [15:0] neighbours_p1, neighbours_p2,   // {up, right, down, left}
     // arena_map
-    output logic [12:0] ctrl_addr,                  // {cy, cx} of the Cell
+    output logic [12:0] ctrl_addr,                  // {cy, cx}
     output logic        ctrl_write,
     output logic [3:0]  ctrl_write_code,            // 0 EMPTY, 1 WALL, 2-5 Trails and heads, 8-10 Rewards
     input  logic [3:0]  ctrl_read_code              // 1 cycle after ctrl_addr
@@ -32,25 +28,24 @@ module arena_ctrl #(
                               s_put, s_read} state_t;
     state_t state;
 
-    logic        heads_tgl_sync;                    // heads_tgl after 2 synchronizers, on clk_pix
-    logic        codes_tgl_ff = 1'b0;               // never reset
+    logic        heads_tgl_sync;
+    logic        codes_tgl_ff = 1'b0;
     logic        prepare_pix, reseed_pix;           // clk_pix copies of the inputs
     logic [2:0]  collected_pix;
     logic [12:0] old_head_p1_pix, old_head_p2_pix, new_head_p1_pix, new_head_p2_pix;
     logic [12:0] count;                             // s_clear: Cell; s_write: write 0-3; s_read: read 0-8
-    logic        playable;                          // the Cell being cleared is inside the walls
+    logic        playable;                          // inside the walls
     logic [12:0] read_head;
     logic [31:0] codes;                             // P1 up, right, down, left, then P2
     // Rewards
-    logic [31:0] seed_count = 32'd0;                // clk_pix cycles since configuration; never reset
-    logic [31:0] lfsr, lfsr_next;                   // lfsr_next: lfsr shifted 32 times (one draw)
-    logic [2:0]  todo;                              // slots still to place in this request
-    logic [2:0]  placed = 3'b000;                   // slots already written for this request; never reset
-    logic [1:0]  slot;                              // the slot being placed
-    logic [12:0] cand;                              // the Cell being tried, {cy, cx}
+    logic [31:0] seed_count = 32'd0;                // clk_pix cycles since configuration
+    logic [31:0] lfsr, lfsr_next;                   // lfsr_next: one draw later
+    logic [2:0]  todo;                              // slots still to place
+    logic [2:0]  placed = 3'b000;                   // slots written in this request
+    logic [1:0]  slot;
+    logic [12:0] cand;                              // Cell being tried, {cy, cx}
     logic [13:0] tries;                             // 1-64 draws, then 65-8256 scanned words
 
-    // Not reset
     sync_2ff u_sync_heads_tgl (.clk(clk), .rst(1'b0), .async_in(heads_tgl), .sync_out(heads_tgl_sync));
 
     assign codes_tgl     = codes_tgl_ff;
@@ -59,8 +54,8 @@ module arena_ctrl #(
     assign playable  = (count[6:0] >= 7'd1 && count[6:0] <= 7'd78 && count[12:7] >= 6'd5 && count[12:7] <= 6'd48);
     assign read_head = count[2] ? new_head_p2_pix : new_head_p1_pix;   // reads 0-3 P1, 4-7 P2
 
-    // One draw: 32 shifts left, the new bit 0 is bit 31 ^ bit 21 ^ bit 1 ^ bit 0
-    // (x^32 + x^22 + x^2 + x + 1, maximal length), as prototipos/tron_fpga/model/lfsr.py.
+    // One draw: 32 shifts left, new bit 0 = bit 31 ^ 21 ^ 1 ^ 0 (maximal length), as in
+    // prototipos/tron_fpga/model/lfsr.py.
     always_comb begin
         lfsr_next = lfsr;
         for (int i = 0; i < 32; i++)
@@ -108,8 +103,6 @@ module arena_ctrl #(
     always_ff @(posedge clk)
         seed_count <= seed_count + 32'd1;
 
-    // A reset leaves codes_tgl alone, so heads cut by a reset are served again from the start.
-    // placed is not reset either: a Reward written before the reset is not placed twice.
     always_ff @(posedge clk) begin
         if (state == s_put)                                // with its write, even on a reset edge
             placed[slot] <= 1'b1;
@@ -157,7 +150,7 @@ module arena_ctrl #(
                         state <= s_slot;
                     else
                         count <= count + 13'd1;
-                // Rewards, lowest slot first.
+                // Rewards, lowest slot first: up to 64 draws, then a scan; first EMPTY Cell wins.
                 s_slot: begin
                     tries <= 14'd0;
                     if (todo[0]) begin

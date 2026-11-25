@@ -1,10 +1,8 @@
 // Author: Alan (AIF31).
-// Bytes from P2's web page to commands, one bit each, in turn_req2's order: cmd[0] Up (W),
-// cmd[1] Right (D), cmd[2] Down (S), cmd[3] Left (A), cmd[4] Start (Space or Enter).
-// Enter is sent as one CR byte (ADR 0013). Upper and lower case are both accepted; any other
-// byte, LF included, is not a command and gives 0.
+// One byte from P2's page to a command bit: [0] Up, [1] Right, [2] Down, [3] Left (as
+// turn_req2), [4] Start. Either case; any other byte, LF included, gives 0.
 module uart_decode (
-    input  logic [7:0] rx_byte,     // from uart_rx
+    input  logic [7:0] rx_byte,
     output logic [4:0] cmd
 );
 
