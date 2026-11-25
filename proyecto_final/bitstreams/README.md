@@ -2,9 +2,44 @@
 
 Aquí va solo el último bitstream probado, para llevarlo a la revisión con el TA y poder repetir las pruebas. Los anteriores se borran de la carpeta, pero su registro se queda abajo y el archivo se recupera del historial de Git. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
 
-## `game_top_p2_uart.bit`
+## `game_top_g4_25nov.bit`
 
-El bitstream para mostrar: P2 juega desde la página web ([`web/p2_controller.html`](../web/p2_controller.html)) por la USB-UART (I2, I3; [ADR 0013](../../docs/adr/0013-p2-uart-input-one-command-mailbox.md), propuesto; PR #60). W A S D giran a P2; Espacio o Enter (un byte CR) son Start para cualquiera de los dos jugadores, igual que BTNC. `uart_rx` y `uart_decode` corren en `clk_pix`, y `uart_link` pasa un comando a la vez a `clk_juego`, donde dura 2 ticks; una tecla a menos de unos 50 ms de la anterior se pierde. Lo demás juega igual que `game_top_z1_19nov.bit`. **Este es el probado en la tarjeta.**
+El bitstream para mostrar: `main` con el fondo synthwave de Roman (#62: cielo por franjas, sol con franjas, cuadrícula violeta que pulsa; el sol y el cielo se calculan una vez por línea) y la colocación de premios, sus puntos y la meta de puntos de Alan (G4, #63; [ADR 0012](../../docs/adr/0012-reward-generator-seed-and-placement-schedule.md), propuesto). Los premios están en la arena pero todavía no se ven ni se toman (issue #61): las motos pasan sobre ellos. Una partida nueva empieza unos 4 ticks después de Start, cuando su preparación ya colocó los premios. Lo demás juega igual que `game_top_p2_uart.bit`. **Este es el probado en la tarjeta.**
+
+| | |
+|---|---|
+| SHA-256 | `44a035f8b1c153ff7e31e2742ebaa900902fd3f69c82af1398e5ba5a06a0896b` |
+| Fuente | Mismo código que `main` `e9b4187` (merge de #63) salvo comentarios. La corrida usó `cb5d5ba` (el cálculo por línea de `drawcon`, con un comentario más largo que el de `28d7458`) mezclado con `2ef4e32` (#63 antes de `fcd2b27`, que solo acorta comentarios). Sin comentarios ni espacios, cada archivo de `src/`, `constraints/`, `testbenches/`, `sim_models/`, `sim_clocks/` y `build_game_top.tcl` es igual al de `main` |
+| Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` (corrida `run-20261125-160349-ncXYDz`) |
+| Herramienta | Vivado 2025.2, 25 de noviembre de 2026 |
+| Parte | `xc7a100tcsg324-1` |
+
+### Prueba en la tarjeta
+
+Nexys A7 serial `210292B1820D`, programada por JTAG desde `alan-desktop` (DONE en alto). Observó Alan el 25 de noviembre de 2026. Todas pasan.
+
+| Prueba | Esperado |
+|---|---|
+| Arranque | Fondo synthwave: cielo violeta por franjas, sol con franjas al centro, cuadrícula violeta cada 32 px que pulsa unas dos veces por segundo; muros blancos, HUD gris, motos en sus salidas; no se ve ningún premio |
+| Capas | Estelas y motos encima de la cuadrícula y del sol; la cuadrícula no cambia de color a media pantalla |
+| BTNC, o Enter/Espacio en la página | Partida nueva; las motos avanzan unos 4 ticks después |
+| W A S D en la página | P2 gira |
+| Una partida completa (choques, bono, ronda nueva, fin por vidas) | Igual que antes; ninguna moto choca con algo invisible |
+| `{SW15, SW14}` mientras espera | La vista `GOAL` muestra 10/20/30/40 |
+
+### Simulación y reportes
+
+Los reportes completos están en `evidencia/G4-2026-11-25-*.rpt`.
+
+- **Testbenches:** las 36 corridas de `build_game_top.tcl` pasan en XSim (Vivado 2025.2), entre ellas los 12 escenarios de `game_top_tb` (con `rewards` y `uart_uturn`), que revisan cada píxel del fondo y que los premios solo ocupen celdas vacías.
+- **Temporización con el diseño ya ruteado:** setup +2.250 ns (WNS), hold +0.047 ns (WHS), ancho de pulso +3.000 ns, 0 extremos fallando. La ruta peor ya no es el sol (+0.942 ns antes del cálculo por línea) sino la caja del sprite de las motos (`vcnt_reg[1]` → `pix_b_reg[1]`, 9 niveles). `check_timing`: 0 en todo, salvo las 29 salidas sin retardo.
+- **DRC:** 0 violaciones. **Metodología:** solo `SYNTH-6` en `u_arena_map/cells_reg`; el `TIMING-8` de antes desaparece.
+- **Uso:** 1291 LUTs, 840 FFs, 1 RAMB36 y 2 RAMB18.
+- **`report_cdc`:** **ninguna fila crítica**. 17 CDC-3 (Info) y 159 CDC-15 (Warning), **todas con `set_max_delay` o false path**. Las 3 filas de la arena del issue #54 (`codes_reg[0..2]`) vuelven a tener su `set_max_delay`; el issue se cerró.
+
+## `game_top_p2_uart.bit` (anterior)
+
+El bitstream para mostrar: P2 juega desde la página web ([`web/p2_controller.html`](../web/p2_controller.html)) por la USB-UART (I2, I3; [ADR 0013](../../docs/adr/0013-p2-uart-input-one-command-mailbox.md), propuesto; PR #60). W A S D giran a P2; Espacio o Enter (un byte CR) son Start para cualquiera de los dos jugadores, igual que BTNC. `uart_rx` y `uart_decode` corren en `clk_pix`, y `uart_link` pasa un comando a la vez a `clk_juego`, donde dura 2 ticks; una tecla a menos de unos 50 ms de la anterior se pierde. Lo demás juega igual que `game_top_z1_19nov.bit`. Fue el probado en la tarjeta hasta el `game_top_g4_25nov.bit`.
 
 | | |
 |---|---|
