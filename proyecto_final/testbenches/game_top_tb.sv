@@ -61,7 +61,10 @@ module game_top_tb;
     // Colours from the specification and the Python prototype, not read from drawcon. In the
     // sprites (tools/png2coe.py), C_KEY is drawn in the Player's colour and C_CLEAR is transparent.
     localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h444, C_P1 = 12'h0DF,
-                            C_P2 = 12'hF80, C_EMPTY = 12'h000, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
+                            C_P2 = 12'hF80, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
+    // The sun's rows (build_game_top.tcl copies sprites/sun_rows.mem into each bench folder).
+    logic [20:0] sun_rows [0:320];
+    initial $readmemh("sun_rows.mem", sun_rows);
     // Trail colours: a darker shade of each Player's colour
     localparam logic [11:0] C_T1 = 12'h068, C_T2 = 12'h840;
     // How many pixels late drawcon looks up each sprite (see above); 0 since it reads ahead.
@@ -216,8 +219,9 @@ module game_top_tb;
     // pixels earlier on the same line, with the drawn position (sNx, sNy) and heading sNh.
     function automatic logic [11:0] expected_colour(int x, int y,
             int b1x, int b1y, int s1x, int s1y, int s1h,
-            int b2x, int b2y, int s2x, int s2y, int s2h, logic [3:0] code);
+            int b2x, int b2y, int s2x, int s2y, int s2h, logic [3:0] code, logic [11:0] line_col);
         logic [11:0] w;
+        logic [20:0] w21;
         if (y >= 64 && (x < 16 || x >= 1264 || y < 80 || y >= 784)) return C_WALL;
         if (y < 64) return C_HUD;
         if (x >= b1x - 8 && x < b1x + 24 && y >= b1y - 8 && y < b1y + 24) begin
@@ -231,7 +235,19 @@ module game_top_tb;
         // Rewards (codes 8-10) are not drawn yet: empty Arena.
         if (code == 4'd2) return C_T1;    // Trails only; heads are not painted
         if (code == 4'd4) return C_T2;
-        return C_EMPTY;
+        if (x % 32 == 0 || y % 32 == 0) return line_col; // violet grid every 32 px (prototype's look)
+        // Sky gradient (prototype's sunset sky, 001 at the top to 506 at the bottom): six
+        // 128 px bands counted from y = 64, so each band edge lies under a grid line; blue is
+        // always red + 1. The 1 px glow on each side of a line is the sky 3 steps brighter.
+        if (x % 32 == 1 || x % 32 == 31 || y % 32 == 1 || y % 32 == 31)
+            return {4'((y - 64) / 128 + 3), 4'h0, 4'((y - 64) / 128 + 4)};
+        // Striped sun under the grid: radius 160 centred at (640, 432), one word per row of
+        // sprites/sun_rows.mem from y = 272, {lit, half width, colour}; lit = 0 is a stripe.
+        if (y >= 272 && y <= 592) begin
+            w21 = sun_rows[y - 272];
+            if (w21[20] && x >= 640 - int'(w21[19:12]) && x < 640 + int'(w21[19:12])) return w21[11:0];
+        end
+        return {4'((y - 64) / 128), 4'h0, 4'((y - 64) / 128 + 1)};
     endfunction
 
     // Rebuilds one whole frame from the pins: sync widths, line and frame length,
@@ -241,7 +257,9 @@ module game_top_tb;
     // the starts, so they use the start headings.
     task automatic check_frame(string what, int p1x, int p1y, int p2x, int p2y, bit live = 1'b0);
         realtime t0, frame_ns;
-        logic [11:0] want;
+        logic [11:0] want, want_alt;
+        logic [11:0] line_col;     // this frame's grid line colour, taken from its first line pixel
+        bit          line_seen;    // line_col holds this frame's colour
         int x, y;
         logic [47:0] first_draw;   // drawn positions and headings at the first visible pixel
         // A dead raster fails here, not at the bench's overall watchdog.
@@ -255,6 +273,7 @@ module game_top_tb;
         disable fork;
         @(negedge dut.clk_pix);
         t0 = $realtime;
+        line_seen = 1'b0;
         for (int v = 0; v < V_TOTAL; v++) begin
             for (int h = 0; h < H_TOTAL; h++) begin
                 if (hs !== (h >= 136)) fail($sformatf("%s: vga_hs=%b at h=%0d v=%0d", what, hs, h, v));
@@ -270,13 +289,30 @@ module game_top_tb;
                         first_draw = {e1x[0], e1y[0], e2x[0], e2y[0], e1h[0], e2h[0]};
                     else if ({e1x[0], e1y[0], e2x[0], e2y[0], e1h[0], e2h[0]} !== first_draw)
                         fail($sformatf("%s: drawn positions changed inside the frame at (%0d,%0d) (tearing)", what, x, y));
-                    if (live)
-                        want = expected_colour(x, y,
-                            e1x[0], e1y[0], e1x[SPRITE_SHIFT], e1y[SPRITE_SHIFT], e1h[SPRITE_SHIFT],
-                            e2x[0], e2y[0], e2x[SPRITE_SHIFT], e2y[SPRITE_SHIFT], e2h[SPRITE_SHIFT], e_code);
-                    else
-                        want = expected_colour(x, y, p1x, p1y, p1x, p1y, P1_H0,
-                                               p2x, p2y, p2x, p2y, P2_H0, e_code);
+                    // The grid line pulses (818, A2C, D2E, A2C, 8 frames each), so its colour is not
+                    // known ahead: a pixel is on a line when the expected colour depends on line_col.
+                    // The first line pixel of the frame must be one of the pulse colours, and every
+                    // other line pixel of the same frame must match it (no change mid-frame).
+                    for (int k = 0; k < 2; k++) begin
+                        if (live)
+                            want = expected_colour(x, y,
+                                e1x[0], e1y[0], e1x[SPRITE_SHIFT], e1y[SPRITE_SHIFT], e1h[SPRITE_SHIFT],
+                                e2x[0], e2y[0], e2x[SPRITE_SHIFT], e2y[SPRITE_SHIFT], e2h[SPRITE_SHIFT], e_code,
+                                k ? 12'hFFF : 12'h000);
+                        else
+                            want = expected_colour(x, y, p1x, p1y, p1x, p1y, P1_H0,
+                                                   p2x, p2y, p2x, p2y, P2_H0, e_code, k ? 12'hFFF : 12'h000);
+                        if (k == 0) want_alt = want;
+                    end
+                    if (want != want_alt) begin
+                        if (!line_seen) begin
+                            if (!({r, g, b} inside {12'h818, 12'hA2C, 12'hD2E}))
+                                fail($sformatf("%s: grid line shows %03h, not a pulse colour, at h=%0d v=%0d", what, {r, g, b}, h, v));
+                            line_col = {r, g, b};
+                            line_seen = 1'b1;
+                        end
+                        want = line_col;
+                    end
                 end
                 if ({r, g, b} !== want)
                     fail($sformatf("%s: pins show %03h, expected %03h at h=%0d v=%0d", what, {r, g, b}, want, h, v));
