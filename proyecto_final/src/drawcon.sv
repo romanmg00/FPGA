@@ -120,15 +120,28 @@ module drawcon(
     logic [20:0] sun_word;   // that row's word
     logic        sun_lit;    // 1: the row is drawn, 0: a stripe
     logic [7:0]  sun_hw;     // half width of the row, in px
-    logic [11:0] sun_color;  // colour of the row
     logic        sun;        // the pixel is inside the sun
     assign sun_row   = curr_y - 11'd272;
     assign sun_word  = sun_rom[sun_row[8:0]];
     assign sun_lit   = sun_word[20];
     assign sun_hw    = sun_word[19:12];
-    assign sun_color = sun_word[11:0];
-    assign sun = (curr_y >= 11'd272) && (curr_y <= 11'd592) && sun_lit &&
-                 (curr_x >= 11'd640 - sun_hw) && (curr_x < 11'd640 + sun_hw);
+
+    // Sky, glow and sun of the row, worked out a cycle ahead.
+    logic [11:0] sky_color;  // empty Arena colour of the row
+    logic [11:0] glow_color; // grid glow colour of the row
+    logic        sun_on;     // the row is inside the sun and lit
+    logic [10:0] sun_left;   // first sun pixel of the row: 640 - half width
+    logic [10:0] sun_right;  // first pixel past the sun: 640 + half width
+    logic [11:0] sun_color;  // colour of the row
+    always_ff @(posedge clk) begin
+        sky_color  <= {sky_level, 4'h0, sky_level+1'b1};
+        glow_color <= {sky_level+4'd3, 4'h0, sky_level+1'b1+4'd3};
+        sun_on     <= (curr_y >= 11'd272) && (curr_y <= 11'd592) && sun_lit;
+        sun_left   <= 11'd640 - sun_hw;
+        sun_right  <= 11'd640 + sun_hw;
+        sun_color  <= sun_word[11:0];
+    end
+    assign sun = sun_on && (curr_x >= sun_left) && (curr_x < sun_right);
 
     // ===============================================================
     // 3.4. Drawing pixels  
@@ -165,11 +178,11 @@ module drawcon(
                     2'b11: color = 12'hA2C;
                 endcase
             end else if (curr_x[4:0]==1 || curr_x[4:0]==31 || curr_y[4:0]==1 || curr_y[4:0]==31) begin // Grid glow
-                color= {sky_level+4'd3, 4'h0, sky_level+1'b1+4'd3};
+                color = glow_color;
             end else if (sun) begin                 // striped sun, under the grid
                 color = sun_color;
             end else begin                          // empty arena
-                color = {sky_level, 4'h0, sky_level+1'b1};
+                color = sky_color;
             end
         end
         draw_r = color[11:8];
