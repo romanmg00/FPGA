@@ -1,0 +1,202 @@
+// Author: Alan (AIF31), proposed for Roman's HUD (contract section 4).
+// Each Player's Points and Lives in the 64 px band, laid out as prototipos/tron_fpga/juego/hud.py.
+module texto_capa (
+    input  logic        clk,                    // clk_pix
+    input  logic [10:0] curr_x, curr_y,
+    input  logic [5:0]  points_p1, points_p2,   // from seg7_link
+    input  logic [1:0]  lives_p1, lives_p2,     // from seg7_link
+    output logic [11:0] hud_color               // colour of (curr_x, curr_y)
+);
+
+    // ===============================================================
+    // 1. Points and Lives of this frame
+    // ===============================================================
+    logic [3:0] tens_p1, ones_p1, tens_p2, ones_p2;
+    logic [6:0] segs_tens_p1, segs_ones_p1, segs_tens_p2, segs_ones_p2;   // sevenseg: [0] = a ... [6] = g, active low
+
+    assign tens_p1 = points_p1 / 10;
+    assign ones_p1 = points_p1 % 10;
+    assign tens_p2 = points_p2 / 10;
+    assign ones_p2 = points_p2 % 10;
+
+    sevenseg u_tens_p1 (.num(tens_p1), .a(segs_tens_p1[0]), .b(segs_tens_p1[1]), .c(segs_tens_p1[2]),
+        .d(segs_tens_p1[3]), .e(segs_tens_p1[4]), .f(segs_tens_p1[5]), .g(segs_tens_p1[6]));
+    sevenseg u_ones_p1 (.num(ones_p1), .a(segs_ones_p1[0]), .b(segs_ones_p1[1]), .c(segs_ones_p1[2]),
+        .d(segs_ones_p1[3]), .e(segs_ones_p1[4]), .f(segs_ones_p1[5]), .g(segs_ones_p1[6]));
+    sevenseg u_tens_p2 (.num(tens_p2), .a(segs_tens_p2[0]), .b(segs_tens_p2[1]), .c(segs_tens_p2[2]),
+        .d(segs_tens_p2[3]), .e(segs_tens_p2[4]), .f(segs_tens_p2[5]), .g(segs_tens_p2[6]));
+    sevenseg u_ones_p2 (.num(ones_p2), .a(segs_ones_p2[0]), .b(segs_ones_p2[1]), .c(segs_ones_p2[2]),
+        .d(segs_ones_p2[3]), .e(segs_ones_p2[4]), .f(segs_ones_p2[5]), .g(segs_ones_p2[6]));
+
+    logic [6:0] lit_tens_p1 = 7'd0, lit_ones_p1 = 7'd0;    // [0] = a ... [6] = g, 1 lit
+    logic [6:0] lit_tens_p2 = 7'd0, lit_ones_p2 = 7'd0;
+    logic [1:0] frame_lives_p1 = 2'd0, frame_lives_p2 = 2'd0;
+
+    // Copied once per frame, so the whole band shows the same values.
+    always_ff @(posedge clk)
+    begin
+        if (curr_x == 0 && curr_y == 800)
+        begin
+            lit_tens_p1    <= ~segs_tens_p1;
+            lit_ones_p1    <= ~segs_ones_p1;
+            lit_tens_p2    <= ~segs_tens_p2;
+            lit_ones_p2    <= ~segs_ones_p2;
+            frame_lives_p1 <= lives_p1;
+            frame_lives_p2 <= lives_p2;
+        end
+    end
+
+    // ===============================================================
+    // 2. Rows of the current line
+    // ===============================================================
+    // Digits: rows 21-52, an 8 x 16 glyph at scale 2 (juego/font.py). Lives: rows 29-44.
+    logic [10:0] digit_y;                // curr_y - 21; glyph row = digit_y[4:1]
+    logic [10:0] icon_y;                 // curr_y - 29; icon row = icon_y[3:0]
+    assign digit_y = curr_y - 11'd21;
+    assign icon_y  = curr_y - 11'd29;
+
+    // Life icons: word {icon, row}, bit c = column c. 0-15 full Life, 16-31 lost Life.
+    logic [15:0] icon_rom [0:63];
+    initial $readmemh("hud_icons.mem", icon_rom);
+
+    logic        digit_row;              // the line crosses the digits
+    logic        row_a, row_bf, row_g, row_ce, row_d;   // the line crosses these segments
+    logic        icon_row;               // the line crosses the Life icons
+    logic [15:0] life_bits, lost_bits;   // this line of a full and a lost Life
+    always_ff @(posedge clk)
+    begin
+        digit_row <= (curr_y >= 11'd21) && (curr_y < 11'd53);
+        row_a     <= (digit_y[4:1] <= 4'd1);
+        row_bf    <= (digit_y[4:1] >= 4'd1) && (digit_y[4:1] <= 4'd7);
+        row_g     <= (digit_y[4:1] == 4'd7) || (digit_y[4:1] == 4'd8);
+        row_ce    <= (digit_y[4:1] >= 4'd8) && (digit_y[4:1] <= 4'd14);
+        row_d     <= (digit_y[4:1] >= 4'd14);
+        icon_row  <= (curr_y >= 11'd29) && (curr_y < 11'd45);
+        life_bits <= icon_rom[{2'd0, icon_y[3:0]}];
+        lost_bits <= icon_rom[{2'd1, icon_y[3:0]}];
+    end
+
+    // ===============================================================
+    // 3. The next pixel: digit or Life box, and its column in the box
+    // ===============================================================
+    logic [10:0] next_x;                 // curr_x + 1
+    assign next_x = curr_x + 11'd1;
+
+    // Digits 16 px wide: P1 at x 24 and 44, P2 at 1220 and 1240.
+    logic        in_digit;
+    logic [6:0]  digit_lit;              // that digit's lit segments
+    logic [10:0] digit_dx;               // column in the box; glyph column = digit_dx[3:1]
+    logic [11:0] digit_color;
+    always_comb
+    begin
+        in_digit    = 1'b1;
+        digit_lit   = lit_tens_p1;
+        digit_dx    = next_x - 11'd24;
+        digit_color = 12'h0DF;           // P1 cyan
+        if (next_x >= 11'd24 && next_x < 11'd40)
+        begin
+            digit_lit = lit_tens_p1;
+            digit_dx  = next_x - 11'd24;
+        end
+        else if (next_x >= 11'd44 && next_x < 11'd60)
+        begin
+            digit_lit = lit_ones_p1;
+            digit_dx  = next_x - 11'd44;
+        end
+        else if (next_x >= 11'd1220 && next_x < 11'd1236)
+        begin
+            digit_lit   = lit_tens_p2;
+            digit_dx    = next_x - 11'd1220;
+            digit_color = 12'hF80;       // P2 orange
+        end
+        else if (next_x >= 11'd1240 && next_x < 11'd1256)
+        begin
+            digit_lit   = lit_ones_p2;
+            digit_dx    = next_x - 11'd1240;
+            digit_color = 12'hF80;
+        end
+        else
+            in_digit = 1'b0;
+    end
+
+    // Lives 16 px wide, Life k at x 68 + 20k for P1 and 1156 + 20k for P2; Life k is full while k < Lives.
+    logic        in_life;
+    logic        life_full;
+    logic [10:0] life_dx;                // column in the box
+    logic [11:0] life_color;
+    always_comb
+    begin
+        in_life    = 1'b1;
+        life_full  = 1'b0;
+        life_dx    = next_x - 11'd68;
+        life_color = 12'h0DF;
+        if (next_x >= 11'd68 && next_x < 11'd84)
+        begin
+            life_full = (frame_lives_p1 > 2'd0);
+            life_dx   = next_x - 11'd68;
+        end
+        else if (next_x >= 11'd88 && next_x < 11'd104)
+        begin
+            life_full = (frame_lives_p1 > 2'd1);
+            life_dx   = next_x - 11'd88;
+        end
+        else if (next_x >= 11'd108 && next_x < 11'd124)
+        begin
+            life_full = (frame_lives_p1 > 2'd2);
+            life_dx   = next_x - 11'd108;
+        end
+        else if (next_x >= 11'd1156 && next_x < 11'd1172)
+        begin
+            life_full  = (frame_lives_p2 > 2'd0);
+            life_dx    = next_x - 11'd1156;
+            life_color = 12'hF80;
+        end
+        else if (next_x >= 11'd1176 && next_x < 11'd1192)
+        begin
+            life_full  = (frame_lives_p2 > 2'd1);
+            life_dx    = next_x - 11'd1176;
+            life_color = 12'hF80;
+        end
+        else if (next_x >= 11'd1196 && next_x < 11'd1212)
+        begin
+            life_full  = (frame_lives_p2 > 2'd2);
+            life_dx    = next_x - 11'd1196;
+            life_color = 12'hF80;
+        end
+        else
+            in_life = 1'b0;
+    end
+
+    // ===============================================================
+    // 4. Colour of the next pixel
+    // ===============================================================
+    // Segments of the glyph (juego/font.py): a, d, g in columns 1-6, e, f in 0-1, b, c in 6-7.
+    logic [2:0] gx;
+    logic       col_mid, col_left, col_right;
+    logic [6:0] here;                    // segments that cover the pixel, [0] = a ... [6] = g
+    logic       digit_on, life_on;
+    assign gx        = digit_dx[3:1];
+    assign col_mid   = (gx >= 3'd1) && (gx <= 3'd6);
+    assign col_left  = (gx <= 3'd1);
+    assign col_right = (gx >= 3'd6);
+    assign here      = {col_mid   && row_g,     // g
+                        col_left  && row_bf,    // f
+                        col_left  && row_ce,    // e
+                        col_mid   && row_d,     // d
+                        col_right && row_ce,    // c
+                        col_right && row_bf,    // b
+                        col_mid   && row_a};    // a
+    assign digit_on  = in_digit && digit_row && ((digit_lit & here) != 7'd0);
+    assign life_on   = in_life && icon_row && (life_full ? life_bits[life_dx[3:0]] : lost_bits[life_dx[3:0]]);
+
+    always_ff @(posedge clk)
+    begin
+        if (digit_on)
+            hud_color <= digit_color;
+        else if (life_on)
+            hud_color <= life_color;
+        else
+            hud_color <= 12'h000;        // band background
+    end
+
+endmodule

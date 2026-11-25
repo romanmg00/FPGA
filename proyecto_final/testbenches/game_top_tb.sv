@@ -43,6 +43,11 @@
 // Matches on clk_juego alone) and pause checks SW0 and a Start held through CPU_RESETN.
 // uart sends P2's keys as 8N1 frames on the uart_rx pin at 115200 baud: Enter starts the
 // Round, W and D turn P2, a reversal is ignored, and bytes that are not commands do nothing.
+// HUD (contract section 4, texto_capa): the 64 px band is predicted pixel by
+// pixel from prototipos/tron_fpga/juego/hud.py and font.py, with the Points and Lives seg7_link
+// carries to clk_pix, copied at curr_x = 0, curr_y = 800 as texto_capa does. Once score_unit's
+// values have held for 40 ms, check_frame also requires the band to show them, and expect_hud
+// checks given Points and Lives after a Crash.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
 // own simulator: xsim game_top_tb -runall -testplusarg scenario=steps
 // Without +scenario they all run one after another in one simulation.
@@ -60,11 +65,15 @@ module game_top_tb;
     localparam int P1_H0 = 1, P2_H0 = 3;
     // Colours from the specification and the Python prototype, not read from drawcon. In the
     // sprites (tools/png2coe.py), C_KEY is drawn in the Player's colour and C_CLEAR is transparent.
-    localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h444, C_P1 = 12'h0DF,
+    localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h000, C_P1 = 12'h0DF,
                             C_P2 = 12'hF80, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
     // The sun's rows (build_game_top.tcl copies sprites/sun_rows.mem into each bench folder).
     logic [20:0] sun_rows [0:320];
     initial $readmemh("sun_rows.mem", sun_rows);
+    // The HUD's 16 x 16 icons from juego/font.py ICONS (proyecto_final/prototypes/core_blocks/tools/
+    // make_hud_icons.py): word {icon, row}, bit c = column c; icon 0 a Life, 1 a lost Life.
+    logic [15:0] hud_icons [0:63];
+    initial $readmemh("hud_icons.mem", hud_icons);
     // Trail colours: a darker shade of each Player's colour
     localparam logic [11:0] C_T1 = 12'h068, C_T2 = 12'h840;
     // How many pixels late drawcon looks up each sprite (see above); 0 since it reads ahead.
@@ -113,6 +122,20 @@ module game_top_tb;
         e_addr[1] <= e_addr[0];
         e_addr[0] <= dut.arena_addr;
     end
+    // Points and Lives the band shows this frame: seg7_link's clk_pix copy, taken at
+    // curr_x = 0, curr_y = 800. score_changed: when score_unit's values last changed.
+    logic [5:0] hud_pts1 = 6'd0, hud_pts2 = 6'd0;
+    logic [1:0] hud_lives1 = 2'd0, hud_lives2 = 2'd0;
+    realtime    score_changed = 0;
+    always @(posedge dut.clk_pix)
+        if (dut.curr_x == 11'd0 && dut.curr_y == 11'd800) begin
+            hud_pts1   <= dut.points_p1_pix;
+            hud_pts2   <= dut.points_p2_pix;
+            hud_lives1 <= dut.lives_p1_pix;
+            hud_lives2 <= dut.lives_p2_pix;
+        end
+    always @(dut.points_p1, dut.points_p2, dut.lives_p1, dut.lives_p2)
+        score_changed = $realtime;
     // Arena model: what arena_map must hold after the last step's writes.
     logic [3:0] arena_want [0:8191];
 
@@ -212,6 +235,67 @@ module game_top_tb;
         endcase
     endfunction
 
+    // juego/font.py _SEGMENTS: does segment s of the 8 x 16 glyph cover column c, row r?
+    // Rectangles {col0, row0, col1, row1} with exclusive ends.
+    function automatic bit seg_covers(byte s, int c, int r);
+        case (s)
+            "a":     return c >= 1 && c < 7 && r >= 0  && r < 2;
+            "b":     return c >= 6 && c < 8 && r >= 1  && r < 8;
+            "c":     return c >= 6 && c < 8 && r >= 8  && r < 15;
+            "d":     return c >= 1 && c < 7 && r >= 14 && r < 16;
+            "e":     return c >= 0 && c < 2 && r >= 8  && r < 15;
+            "f":     return c >= 0 && c < 2 && r >= 1  && r < 8;
+            default: return c >= 1 && c < 7 && r >= 7  && r < 9;    // g
+        endcase
+    endfunction
+
+    // juego/font.py _DIGIT_SEGMENTS: is glyph pixel (c, r) lit in digit d?
+    function automatic bit digit_lit(int d, int c, int r);
+        string segs;
+        case (d)
+            0: segs = "abcdef";   1: segs = "bc";       2: segs = "abged";   3: segs = "abgcd";
+            4: segs = "fgbc";     5: segs = "afgcd";    6: segs = "afgedc";  7: segs = "abc";
+            8: segs = "abcdefg";  default: segs = "abcdfg";
+        endcase
+        for (int i = 0; i < segs.len(); i++)
+            if (seg_covers(segs[i], c, r)) return 1'b1;
+        return 1'b0;
+    endfunction
+
+    // The band pixel (x, y < 64) for these Points and Lives, from juego/hud.py layout() with
+    // BORDER_PX 10, GAP 4, 16 x 16 icons and the 8 x 16 glyph at scale 2 (16 x 32). P1's group
+    // starts at x 24: two digits, 2 GAP, three Lives. P2's is mirrored and ends at x 1256:
+    // Lives, 2 GAP, digits. Life k is full while k < Lives.
+    function automatic logic [11:0] hud_colour(int x, int y, int pts1, int pts2, int lives1, int lives2);
+        int dig_y  = 10 + (64 - 10 - 32) / 2;          // 21
+        int icon_y = dig_y + (32 - 16) / 2;            // 29
+        int pts_w  = 2 * 16 + 4;
+        int lives_w = 3 * 16 + 2 * 4;
+        int p2_x0  = 1280 - 24 - (pts_w + 2 * 4 + lives_w);
+        int dig_x [0:1], life_x [0:1], pts [0:1], lives [0:1];
+        logic [11:0] col [0:1];
+        dig_x  = '{24, p2_x0 + lives_w + 2 * 4};       // 24, 1220
+        life_x = '{24 + pts_w + 2 * 4, p2_x0};         // 68, 1156
+        pts    = '{pts1, pts2};
+        lives  = '{lives1, lives2};
+        col    = '{C_P1, C_P2};
+        for (int p = 0; p < 2; p++) begin
+            for (int d = 0; d < 2; d++) begin
+                int bx = dig_x[p] + d * (16 + 4);
+                if (x >= bx && x < bx + 16 && y >= dig_y && y < dig_y + 32 &&
+                    digit_lit(d == 0 ? pts[p] / 10 : pts[p] % 10, (x - bx) / 2, (y - dig_y) / 2))
+                    return col[p];
+            end
+            for (int k = 0; k < 3; k++) begin
+                int bx = life_x[p] + k * (16 + 4);
+                if (x >= bx && x < bx + 16 && y >= icon_y && y < icon_y + 16 &&
+                    hud_icons[(k < lives[p] ? 0 : 16) + y - icon_y][x - bx])
+                    return col[p];
+            end
+        end
+        return C_HUD;
+    endfunction
+
     // What the screen must show, written from the specification and PR #35's sprite format,
     // not from drawcon. Walls cover the HUD's lower edge; P1 is drawn over P2 if they ever
     // overlap. Sprite words 000 are transparent (tools/png2coe.py): the pixel shows P2, then
@@ -223,7 +307,7 @@ module game_top_tb;
         logic [11:0] w;
         logic [20:0] w21;
         if (y >= 64 && (x < 16 || x >= 1264 || y < 80 || y >= 784)) return C_WALL;
-        if (y < 64) return C_HUD;
+        if (y < 64) return hud_colour(x, y, hud_pts1, hud_pts2, hud_lives1, hud_lives2);
         if (x >= b1x - 8 && x < b1x + 24 && y >= b1y - 8 && y < b1y + 24) begin
             w = sprite_word(x - SPRITE_SHIFT, y, s1x, s1y, s1h);
             if (w != C_CLEAR) return w == C_KEY ? C_P1 : w;
@@ -271,6 +355,11 @@ module game_top_tb;
             end
         join_any
         disable fork;
+        if ($realtime - score_changed > 40ms &&
+            {hud_pts1, hud_pts2, hud_lives1, hud_lives2} !== {dut.points_p1, dut.points_p2, dut.lives_p1, dut.lives_p2})
+            fail($sformatf("%s: the band shows Points %0d-%0d, Lives %0d-%0d; score_unit has %0d-%0d, %0d-%0d",
+                           what, hud_pts1, hud_pts2, hud_lives1, hud_lives2,
+                           dut.points_p1, dut.points_p2, dut.lives_p1, dut.lives_p2));
         @(negedge dut.clk_pix);
         t0 = $realtime;
         line_seen = 1'b0;
@@ -329,6 +418,17 @@ module game_top_tb;
     // Checks the frame at the bikes' drawn positions, which may be sliding.
     task automatic check_frame_here(string what);
         check_frame(what, 0, 0, 0, 0, 1'b1);
+    endtask
+
+    // 40 ms on (a clk_juego tick through seg7_link, then a frame), the band shows these Points
+    // and Lives, and the whole frame is right.
+    task automatic expect_hud(string what, int pts1, int pts2, int lives1, int lives2);
+        #40ms;
+        if (hud_pts1 != pts1 || hud_pts2 != pts2 || hud_lives1 != lives1 || hud_lives2 != lives2)
+            fail($sformatf("%s: the band shows Points %0d-%0d, Lives %0d-%0d; expected %0d-%0d, %0d-%0d",
+                           what, hud_pts1, hud_pts2, hud_lives1, hud_lives2, pts1, pts2, lives1, lives2));
+        check_frame_here(what);
+        $display("ok   %s: the band shows Points %0d-%0d, Lives %0d-%0d", what, pts1, pts2, lives1, lives2);
     endtask
 
     // ADR 0010: after a one-Cell step the drawn position has covered round(16 t / STEP) px t ticks later.
@@ -612,6 +712,7 @@ module game_top_tb;
         if (!crashed) fail("P1 did not crash into the top Wall");
         check_frame_here("P1 crashed into the top Wall");
         arena_check("P1 crashed into the top Wall");
+        expect_hud("P1 crashed: P1 loses a Life, P2 +3", 0, 3, 2, 3);
     endtask
 
     // One Match to its end, read from the Scoreboard pins. P1's Lives are set to 1, so its
@@ -652,6 +753,7 @@ module game_top_tb;
         if (dut.u_match_fsm.state !== 3'd4) fail($sformatf("match_fsm in state %0d, expected 4 (G_MATCH)", dut.u_match_fsm.state));
         if (prepares != prep) fail("a Prepare at the end of the Match");
         arena_check("Match over: the Arena is kept");
+        expect_hud("Match over: P1 has no Lives, P2 +3", 0, 3, 0, 3);
         force dut.u_seg7_view.view = 2'd1;           // Lives, without waiting 3 s for the view
         wait_ticks(2);
         expect_scoreboard("Match over, Lives view", "L203L100");
@@ -787,6 +889,7 @@ module game_top_tb;
         if (dut.heading2 !== 2'd1) fail($sformatf("after the Crash P2's Heading is %0d, expected 1 (right)", dut.heading2));
         check_frame_here("P2 crashed under its own Trail");
         arena_check("after the Crash");
+        expect_hud("P2 crashed: P2 loses a Life, P1 +3", 3, 0, 3, 2);
         $display("ok   w under its own Trail: P2 Crashes, and its sprite still faces right");
     endtask
 

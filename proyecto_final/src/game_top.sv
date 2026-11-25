@@ -1,7 +1,7 @@
 // Authors: Roman (romanmg00): first version, clock Wizard, vga_out, drawcon, Bike wiring and
 // pos_link (X1, #48). Alan (AIF31): reset and synchronizers (#12), clk_juego from a counter on
 // clk_pix (ADR 0006, #16), bike_glide (#31), Arena (#40), Match and Scoreboard (#47), P2's
-// input over UART (#60), Rewards (G4).
+// input over UART (#60), Rewards (G4), HUD (texto_capa, proposed).
 // Top level of the Tron game: clocks, reset, synchronizers, P2's UART input and the video,
 // movement, Arena, Match and Scoreboard blocks.
 module game_top #(
@@ -284,6 +284,7 @@ module game_top #(
     // 7. Video (drawcon, vga_out)
     // ===============================================================
     logic [3:0]  draw_r, draw_g, draw_b;        // drawcon -> vga_out
+    logic [11:0] hud_color;                     // from texto_capa (section 9)
 
     drawcon u_drawcon(
         // Inputs
@@ -302,7 +303,8 @@ module game_top #(
         .draw_g(draw_g),
         .draw_b(draw_b),
         .arena_addr(arena_addr),
-        .arena_code(arena_code)
+        .arena_code(arena_code),
+        .hud_color(hud_color)
     );
 
     vga_out u_vga_out(
@@ -327,7 +329,7 @@ module game_top #(
     // 8. Physical Scoreboard (ADR 0008)
     // ===============================================================
     logic [1:0]  view;                          // seg7_view -> seg7_link
-    logic [5:0]  points_p1_pix, points_p2_pix;  // seg7_link -> seg7_driver (clk_pix)
+    logic [5:0]  points_p1_pix, points_p2_pix;  // seg7_link -> seg7_driver, texto_capa (clk_pix)
     logic [1:0]  lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix;
 
     // The view on clk_juego, crossed to clk_pix, then homework 1's scan of the eight digits.
@@ -354,6 +356,18 @@ module game_top #(
         .seg(seg), .an(an)
     );
     assign dp = 1'b1;
+
+    // ===============================================================
+    // 9. HUD (texto_capa)
+    // ===============================================================
+    // The same clk_pix copy of Points and Lives as the Scoreboard.
+    texto_capa u_texto_capa (
+        .clk(clk_pix),
+        .curr_x(curr_x), .curr_y(curr_y),
+        .points_p1(points_p1_pix), .points_p2(points_p2_pix),
+        .lives_p1(lives_p1_pix), .lives_p2(lives_p2_pix),
+        .hud_color(hud_color)
+    );
 
 endmodule
 
