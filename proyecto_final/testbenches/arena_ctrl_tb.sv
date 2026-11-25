@@ -24,7 +24,8 @@ module arena_ctrl_tb;
     logic [3:0]  f_write_code, f_read_code;
 
     logic [3:0]  gold [0:8191];
-    logic [31:0] glfsr = SEED;          // golden LFSR, mixed and reset as the design's
+    logic [31:0] glfsr = SEED;          // golden LFSR, reset and stepped as the design's
+    int          idle_draws = 0;        // dut's idle draws not yet applied to glfsr
     int          checks = 0;
     bit          use_f = 1'b1;          // wait for dut_f's answers too
 
@@ -52,20 +53,26 @@ module arena_ctrl_tb;
         return {6'(cy), 7'(cx)};
     endfunction
 
-    // The golden LFSR follows the design's: back to SEED on a reset, and the seed mixed in on
-    // the cycle a reseed Prepare passes s_start (state 1), with the counter value of that cycle.
-    always @(posedge clk) begin
-        if (rst)
-            glfsr = SEED;
-        else if (dut.state == 4'd1 && dut.prepare_pix && dut.reseed_pix && (glfsr ^ dut.seed_count) != 32'd0)
-            glfsr = glfsr ^ dut.seed_count;
-    end
-
     // ADR 0012: one draw is 32 shifts left, the new bit is bit 31 ^ 21 ^ 1 ^ 0.
     function automatic logic [31:0] draw(logic [31:0] s);
         for (int i = 0; i < 32; i++) s = {s[30:0], s[31] ^ s[21] ^ s[1] ^ s[0]};
         return s;
     endfunction
+
+    // The golden LFSR follows dut's (FIXED_SEED = 0): back to SEED on a reset, and one draw on
+    // each edge in s_idle (state 0), applied when the next request passes s_start (state 1),
+    // so that gold_place, called after the answer, draws from the request's own start.
+    always @(posedge clk) begin
+        if (rst) begin
+            glfsr = SEED;
+            idle_draws = 0;
+        end else if (dut.state == 4'd0)
+            idle_draws++;
+        else if (dut.state == 4'd1) begin
+            repeat (idle_draws) glfsr = draw(glfsr);
+            idle_draws = 0;
+        end
+    end
 
     // Golden placement of one slot: up to 64 draws (cx = bits 6-0, cy = bits 12-7), then the
     // words after the last draw, wrapping, 8192 of them. Returns its clk_pix cycles: 1 to pick
@@ -235,12 +242,12 @@ module arena_ctrl_tb;
         if (codes_tgl !== 1'b0) fail("codes_tgl is not 0 after reset");
 
         // Prepare of a new Match: the cleared Arena has 3432 EMPTY and 4760 WALL words, then two
-        // heads and three Rewards. dut mixes its cycle counter into the seed; dut_f starts at SEED.
+        // heads and three Rewards. dut's LFSR has run since the reset; dut_f starts at SEED.
         p1 = at(20, 27); p2 = at(59, 27);
         prepare_arena("Prepare of a new Match", p1, p2, 1'b1);
         expect_f_slots("first Prepare", 39, 32, 10, 9, 1, 12);
         if (map.cells[at(39, 32)] == 4'd8 && map.cells[at(10, 9)] == 4'd9 && map.cells[at(1, 12)] == 4'd10)
-            fail("the new Match did not mix the counter into the seed: dut placed as from SEED");
+            fail("dut's LFSR did not run while idle: it placed as from SEED");
         empty = 0;
         gold_clear();
         for (int a = 0; a < 8192; a++) empty += (gold[a] == 4'd0);
@@ -338,7 +345,7 @@ module arena_ctrl_tb;
 
         // Reset in the middle of a clear: codes_tgl is not touched, so the held Prepare is still
         // open and is served again from the start. The old Trails must not survive, and the
-        // Rewards are placed from SEED, where the reset put the LFSR.
+        // LFSR starts again from SEED, where the reset put it.
         @(negedge clk);
         prepare = 1'b1; reseed = 1'b0; collected = 3'b000;
         new_head_p1 = p1; new_head_p2 = p2;
@@ -377,51 +384,67 @@ module arena_ctrl_tb;
 
         // A reset after each of the first 40 edges of a Step that takes slot 0, also on and after
         // its answer: the answer never changes during the reset, then exactly one answer comes.
-        // Whether the cut fell before or after the Reward was written, slot 0 ends up on exactly
-        // one Cell, which was EMPTY; every other word is the golden one.
-        for (int k = 1; k <= 40; k++) begin
-            logic answer_before;
-            logic [12:0] h1, h2, old_r0;
-            int count0, where0;
-            h1 = at(21, 27);                    // P1 takes slot 0 at (22,27); P2 stays
-            h2 = at(58, 27);
-            // Put slot 0 right of P1's head, by hand, so that P1 can take it.
-            old_r0 = gold_slot(0);
-            if (old_r0 >= 0) begin gold[old_r0] = 4'd0; map.cells[old_r0] = 4'd0; end
-            gold[nb(h1, 1)] = 4'd8; map.cells[nb(h1, 1)] = 4'd8;
-            @(negedge clk);
-            prepare = 1'b0; collected = 3'b001;
-            old_head_p1 = h1; old_head_p2 = h2; new_head_p1 = nb(h1, 1); new_head_p2 = h2;
-            heads_tgl = ~heads_tgl;
-            repeat (k) @(posedge clk);
-            @(negedge clk) rst = 1'b1;
-            answer_before = codes_tgl;
-            @(posedge clk); #1;
-            if (codes_tgl !== answer_before) fail($sformatf("reset after edge %0d changed the answer", k));
-            @(negedge clk) rst = 1'b0;
-            cyc = 0;
-            while (codes_tgl !== heads_tgl) begin
+        // A cut after the Reward write places slot 0 again, so it is on one or two Cells, each
+        // EMPTY before; every other word is the golden one. The Prepare that follows a reset
+        // then leaves every slot on exactly one Cell.
+        begin
+            int singles = 0, doubles = 0;
+            for (int k = 1; k <= 40; k++) begin
+                logic answer_before;
+                logic [12:0] h1, h2;
+                int count0, n, old_r0;
+                h1 = at(21, 27);                // P1 takes slot 0 at (22,27); P2 stays
+                h2 = at(58, 27);
+                // Put slot 0 right of P1's head, by hand, so that P1 can take it.
+                if (gold[nb(h1, 1)] !== 4'd0) fail($sformatf("edge %0d: (22,27) is not EMPTY", k));
+                old_r0 = gold_slot(0);
+                if (old_r0 >= 0) begin gold[old_r0] = 4'd0; map.cells[old_r0] = 4'd0; end
+                gold[nb(h1, 1)] = 4'd8; map.cells[nb(h1, 1)] = 4'd8;
+                @(negedge clk);
+                prepare = 1'b0; collected = 3'b001;
+                old_head_p1 = h1; old_head_p2 = h2; new_head_p1 = nb(h1, 1); new_head_p2 = h2;
+                heads_tgl = ~heads_tgl;
+                repeat (k) @(posedge clk);
+                @(negedge clk) rst = 1'b1;
+                answer_before = codes_tgl;
                 @(posedge clk); #1;
-                if (++cyc > 1000) fail($sformatf("Step not answered after a reset after edge %0d", k));
+                if (codes_tgl !== answer_before) fail($sformatf("reset after edge %0d changed the answer", k));
+                @(negedge clk) rst = 1'b0;
+                cyc = 0;
+                while (codes_tgl !== heads_tgl) begin
+                    @(posedge clk); #1;
+                    if (++cyc > 1000) fail($sformatf("Step not answered after a reset after edge %0d", k));
+                end
+                repeat (30) begin
+                    @(posedge clk); #1;
+                    if (codes_tgl !== heads_tgl) fail($sformatf("a second answer after a reset after edge %0d", k));
+                end
+                gold[h1] = 4'd2; gold[nb(h1, 1)] = 4'd3; gold[h2] = 4'd5;
+                count0 = 0;
+                for (int a = 0; a < 8192; a++)
+                    if (map.cells[a] == 4'd8) begin
+                        count0++;
+                        if (gold[a] !== 4'd0) fail($sformatf("reset after edge %0d: slot 0 on a Cell holding %0d", k, gold[a]));
+                        gold[a] = 4'd8;
+                    end
+                if (count0 < 1 || count0 > 2) fail($sformatf("reset after edge %0d: slot 0 on %0d Cells", k, count0));
+                if (count0 == 2) doubles++; else singles++;
+                glfsr = dut.lfsr;               // the cut draws are not modelled; go on from here
+                idle_draws = 0;
+                expect_nbr($sformatf("Step with a reset after edge %0d", k), nb(h1, 1), h2);
+                scan($sformatf("Step with a reset after edge %0d", k));
+                // The Prepare arena_link sends after a reset, with the Bikes at h1 and h2.
+                prepare_arena($sformatf("Prepare after the reset after edge %0d", k), h1, h2, 1'b1);
+                for (int s = 0; s < 3; s++) begin
+                    n = 0;
+                    for (int a = 0; a < 8192; a++) n += (map.cells[a] == 4'd8 + 4'(s));
+                    if (n != 1) fail($sformatf("Prepare after the reset after edge %0d: slot %0d on %0d Cells", k, s, n));
+                end
             end
-            repeat (30) begin
-                @(posedge clk); #1;
-                if (codes_tgl !== heads_tgl) fail($sformatf("a second answer after a reset after edge %0d", k));
-            end
-            gold[h1] = 4'd2; gold[nb(h1, 1)] = 4'd3; gold[h2] = 4'd5;
-            count0 = 0; where0 = -1;
-            for (int a = 0; a < 8192; a++)
-                if (map.cells[a] == 4'd8) begin count0++; where0 = a; end
-            if (count0 != 1) fail($sformatf("reset after edge %0d: slot 0 on %0d Cells", k, count0));
-            if (gold[where0] !== 4'd0) fail($sformatf("reset after edge %0d: slot 0 on a Cell holding %0d", k, gold[where0]));
-            gold[where0] = 4'd8;
-            expect_nbr($sformatf("Step with a reset after edge %0d", k), nb(h1, 1), h2);
-            // Put P1 back for the next try: its new head becomes EMPTY again, the old one its head.
-            gold[nb(h1, 1)] = 4'd0; map.cells[nb(h1, 1)] = 4'd0;
-            gold[h1] = 4'd3; map.cells[h1] = 4'd3;
+            if (singles == 0 || doubles == 0)
+                fail($sformatf("the sweep cut %0d Steps before the Reward write and %0d after; expected both", singles, doubles));
+            $display("ok   reset sweep: slot 0 on one Cell after %0d cuts, on two after %0d, one after each Prepare", singles, doubles);
         end
-        glfsr = dut.lfsr;                       // the cut draws are not modelled; go on from here
-        scan("after the reset sweep");
 
         // Steps back to back: each one is sent on the edge after the previous answer.
         gold_clear();
