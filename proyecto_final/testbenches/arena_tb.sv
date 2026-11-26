@@ -4,9 +4,7 @@
 // so the phase between them drifts. The driver plays position_logic: load, step and the heads
 // change just after a clk_juego edge, and a Step waits while codes_valid = 0 (the proposed
 // policy). A golden Arena is kept from the rules and read back through the draw port, as drawcon would.
-// Rewards (ADR 0012): the driver reports a Reward when a Bike moves into one, and the golden
-// Arena places each slot with the same search as arena_ctrl_tb, from a golden LFSR stepped as
-// arena_ctrl's (FIXED_SEED = 0): SEED on rst_pix, one draw per clk_pix edge in s_idle.
+// Rewards: the driver reports one when a Bike enters it; golden placement as in arena_ctrl_tb.
 // STEP_TICKS comes from +step_ticks=N (default 8). Not the official bench of contract section 7.
 `timescale 1ns/1ps
 module arena_tb;
@@ -121,10 +119,7 @@ module arena_tb;
         if (found) gold[c] = 4'd8 + 4'(slot);
     endtask
 
-    // The golden Rewards follow arena_ctrl: the LFSR goes back to SEED on rst_pix and makes one
-    // draw on each edge in s_idle (state 0); when a request starts (state s_start, 1), a Prepare
-    // drops the Rewards a cut try placed and places all three; a Step places the slots the
-    // driver reported, which must be the ones arena_link sent. Prepares with reseed are counted.
+    // Golden Rewards: SEED on rst_pix, one draw per s_idle (0) edge, placed at s_start (1).
     always @(posedge clk_pix) begin
         if (rst_pix)
             glfsr = SEED;

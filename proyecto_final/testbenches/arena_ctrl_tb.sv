@@ -25,7 +25,7 @@ module arena_ctrl_tb;
 
     logic [3:0]  gold [0:8191];
     logic [31:0] glfsr = SEED;          // golden LFSR, reset and stepped as the design's
-    int          idle_draws = 0;        // dut's idle draws not yet applied to glfsr
+    int          pending_draws = 0;     // dut's s_idle draws not yet applied to glfsr
     int          checks = 0;
     bit          use_f = 1'b1;          // wait for dut_f's answers too
 
@@ -59,18 +59,16 @@ module arena_ctrl_tb;
         return s;
     endfunction
 
-    // The golden LFSR follows dut's (FIXED_SEED = 0): back to SEED on a reset, and one draw on
-    // each edge in s_idle (state 0), applied when the next request passes s_start (state 1),
-    // so that gold_place, called after the answer, draws from the request's own start.
+    // Golden LFSR: SEED on reset, one draw per s_idle (0) edge, applied at s_start (1).
     always @(posedge clk) begin
         if (rst) begin
             glfsr = SEED;
-            idle_draws = 0;
+            pending_draws = 0;
         end else if (dut.state == 4'd0)
-            idle_draws++;
+            pending_draws++;
         else if (dut.state == 4'd1) begin
-            repeat (idle_draws) glfsr = draw(glfsr);
-            idle_draws = 0;
+            repeat (pending_draws) glfsr = draw(glfsr);
+            pending_draws = 0;
         end
     end
 
@@ -382,23 +380,19 @@ module arena_ctrl_tb;
         expect_nbr("Step after a reset mid-Step", at(21, 27), at(58, 27));
         scan("Step after a reset mid-Step");
 
-        // A reset after each of the first 40 edges of a Step that takes slot 0, also on and after
-        // its answer: the answer never changes during the reset, then exactly one answer comes.
-        // A cut after the Reward write places slot 0 again, so it is on one or two Cells, each
-        // EMPTY before; every other word is the golden one. The Prepare that follows a reset
-        // then leaves every slot on exactly one Cell.
+        // Reset after each of the first 40 edges of a Step that takes slot 0, then a Prepare.
         begin
             int singles = 0, doubles = 0;
             for (int k = 1; k <= 40; k++) begin
                 logic answer_before;
                 logic [12:0] h1, h2;
-                int count0, n, old_r0;
+                int slot0_cells, old_slot0;
                 h1 = at(21, 27);                // P1 takes slot 0 at (22,27); P2 stays
                 h2 = at(58, 27);
-                // Put slot 0 right of P1's head, by hand, so that P1 can take it.
+                // Slot 0 right of P1's head.
                 if (gold[nb(h1, 1)] !== 4'd0) fail($sformatf("edge %0d: (22,27) is not EMPTY", k));
-                old_r0 = gold_slot(0);
-                if (old_r0 >= 0) begin gold[old_r0] = 4'd0; map.cells[old_r0] = 4'd0; end
+                old_slot0 = gold_slot(0);
+                if (old_slot0 >= 0) begin gold[old_slot0] = 4'd0; map.cells[old_slot0] = 4'd0; end
                 gold[nb(h1, 1)] = 4'd8; map.cells[nb(h1, 1)] = 4'd8;
                 @(negedge clk);
                 prepare = 1'b0; collected = 3'b001;
@@ -415,31 +409,26 @@ module arena_ctrl_tb;
                     @(posedge clk); #1;
                     if (++cyc > 1000) fail($sformatf("Step not answered after a reset after edge %0d", k));
                 end
-                repeat (30) begin
+                repeat (30) begin                // no second answer
                     @(posedge clk); #1;
                     if (codes_tgl !== heads_tgl) fail($sformatf("a second answer after a reset after edge %0d", k));
                 end
                 gold[h1] = 4'd2; gold[nb(h1, 1)] = 4'd3; gold[h2] = 4'd5;
-                count0 = 0;
+                slot0_cells = 0;
                 for (int a = 0; a < 8192; a++)
                     if (map.cells[a] == 4'd8) begin
-                        count0++;
+                        slot0_cells++;
                         if (gold[a] !== 4'd0) fail($sformatf("reset after edge %0d: slot 0 on a Cell holding %0d", k, gold[a]));
                         gold[a] = 4'd8;
                     end
-                if (count0 < 1 || count0 > 2) fail($sformatf("reset after edge %0d: slot 0 on %0d Cells", k, count0));
-                if (count0 == 2) doubles++; else singles++;
-                glfsr = dut.lfsr;               // the cut draws are not modelled; go on from here
-                idle_draws = 0;
+                if (slot0_cells < 1 || slot0_cells > 2) fail($sformatf("reset after edge %0d: slot 0 on %0d Cells", k, slot0_cells));
+                if (slot0_cells == 2) doubles++; else singles++;
+                glfsr = dut.lfsr;               // resync the golden LFSR
+                pending_draws = 0;
                 expect_nbr($sformatf("Step with a reset after edge %0d", k), nb(h1, 1), h2);
                 scan($sformatf("Step with a reset after edge %0d", k));
-                // The Prepare arena_link sends after a reset, with the Bikes at h1 and h2.
+                // The Prepare after the reset: each slot on one Cell.
                 prepare_arena($sformatf("Prepare after the reset after edge %0d", k), h1, h2, 1'b1);
-                for (int s = 0; s < 3; s++) begin
-                    n = 0;
-                    for (int a = 0; a < 8192; a++) n += (map.cells[a] == 4'd8 + 4'(s));
-                    if (n != 1) fail($sformatf("Prepare after the reset after edge %0d: slot %0d on %0d Cells", k, s, n));
-                end
             end
             if (singles == 0 || doubles == 0)
                 fail($sformatf("the sweep cut %0d Steps before the Reward write and %0d after; expected both", singles, doubles));

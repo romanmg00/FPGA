@@ -124,7 +124,7 @@ module arena_ctrl #(
                     if (prepare_pix) begin                         // the clear removes every Reward
                         if (FIXED_SEED && reseed_pix)
                             lfsr <= SEED;
-                        todo  <= 3'b111;
+                        todo  <= 3'b111;                   // all three slots
                         state <= s_clear;
                     end else begin
                         todo  <= collected_pix;

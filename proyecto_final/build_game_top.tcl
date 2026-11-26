@@ -1,5 +1,4 @@
 # Author: Alan (AIF31). Changes by Roman (romanmg00): pos_link, its bench and its constraint checks (X1, #48).
-# Rewards (G4): the rewards scenario.
 # Construye game_top desde el repositorio, sin proyecto previo.
 #   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [quick|sim|full]
 # quick corre los testbenches de modulos (unos 20 s) y salta game_top_tb, que tarda hasta 20 min;
