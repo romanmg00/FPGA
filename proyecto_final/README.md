@@ -45,6 +45,7 @@ flowchart LR
         ac[arena_ctrl<br/>Reward placement] -->|ctrl_addr, ctrl_write, ctrl_write_code| am[(arena_map)]
         am -->|arena_code: Trails| dc[drawcon<br/>bike_rom x2]
         dc --> vo[vga_out<br/>counters]
+        hl[hud_layer] -->|hud_color| dc
         sd[seg7_driver<br/>multidigit, sevenseg]
         ur[sync_2ff, uart_rx,<br/>uart_decode] -->|uart_cmd, rx_valid| ul[uart_link]
     end
@@ -53,6 +54,7 @@ flowchart LR
     su ==> sl[seg7_link]
     sv ==> sl
     sl ==>|*_pix copies| sd
+    sl ==>|*_pix copies| hl
     gl ==>|glide1_x/y, glide2_x/y| pk[pos_link]
     pl ==>|heading1, heading2| pk
     pk ==>|toggle + copy, then at row 800| dc
@@ -100,7 +102,7 @@ The pages in [`diagrams/`](diagrams/) are Vivado's own RTL schematics (*RTL Anal
 | Buttons, SW0, SW14–SW15 | pins → `clk_juego` | `sync_2ff` | false path to the first flip-flop |
 | SW0–SW11 | pins → `clk_pix` | `sync_2ff` | false path to the first flip-flop |
 | Arena heads, `reseed`, and the neighbour codes | `clk_juego` ↔ `clk_pix` | `arena_link` sends the heads with `heads_tgl`; `arena_ctrl` answers with `codes_tgl`. Each toggle goes through `sync_2ff`, and the data is copied only after it changes | `set_max_delay -datapath_only` of one pixel period (11.982 ns) |
-| Scoreboard values (20 bits) | `clk_juego` → `clk_pix` | `seg7_link`: the same toggle (`tick_toggle`) and copy | the same one-pixel bound |
+| Scoreboard and HUD values (25 bits) | `clk_juego` → `clk_pix` | `seg7_link`: the same toggle (`tick_toggle`) and copy; Points, Lives, view and Goal for `seg7_driver`, and for `hud_layer` also the Bikes waiting for Start, the result and the crashed Players | the same one-pixel bound; `build_game_top.tcl` checks that it covers all 25 bits |
 | P2's commands (5 bits) | `clk_pix` → `clk_juego` | `uart_link` ([ADR 0013](../docs/adr/0013-p2-uart-input-one-command-mailbox.md)): a command goes into `cmd_pix` and flips `cmd_tgl`; `clk_juego` sees it through `sync_2ff`, copies it and answers with `ack_tgl`. One command at a time: a key within about 50 ms of the previous one is dropped. Each command lasts 2 ticks on `clk_juego` | three `set_max_delay -datapath_only` of one pixel period: each toggle to its `sync_2ff`, and `cmd_pix` to `cmd_juego`. `build_game_top.tcl` checks that they cover every bit |
 | `uart_rx` pin | pin → `clk_pix` | `sync_2ff` | false path to the first flip-flop |
 | Drawn Bike positions and Headings (48 bits) | `clk_juego` → `clk_pix` (`drawcon`, `bike_rom`) | `pos_link` (X1, [issue #30](https://github.com/romanmg00/FPGA/issues/30)): a toggle that flips every tick goes through `sync_2ff`; when it changes, the values are copied to `pend*`, and at `curr_y == 800` (vertical blanking) to the `draw*` registers `drawcon` reads, so a whole frame is drawn with one set | two `set_max_delay -datapath_only` of one pixel period: the toggle to `sync_2ff`, and the `bike_glide`/`bike_move` registers to `pend*` |
@@ -131,7 +133,8 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 | **Video** | | | | | |
 | `counters.sv` | `hcnt` 0–1679 per line, `vcnt` 0–827 per frame | `clk_pix` | Roman | Roman | `counters_tb` (Roman; not self-checking, not run by the build) |
 | `vga_out.sv` | Sync pulses, blanking, `curr_x`/`curr_y` | `clk_pix` | Roman | Roman | `vga_out_tb` (Roman) |
-| `drawcon.sv` | Colour of each pixel: walls, HUD, Bike sprites, Trails, and the synthwave background (sky bands, striped sun, pulsing grid) | `clk_pix` | Roman | Roman; changes by Alan | through `game_top_tb` (Alan) |
+| `drawcon.sv` | Colour of each pixel: walls, the HUD band (from `hud_layer`), Bike sprites, Trails, and the synthwave background (sky bands, striped sun, pulsing grid) | `clk_pix` | Roman | Roman; changes by Alan | through `game_top_tb` (Alan) |
+| `hud_layer.sv` | The HUD in the 64 px band: each Player's Points (16 × 32 seven-segment digits) and Lives (diamonds), and a play or crown icon ([ADR 0014](../docs/adr/0014-hud-segment-digits-icon-rom-and-scoreboard-crossing.md), proposed); icons from `sprites/hud_icons.mem` | `clk_pix` | Roman (the contract's `texto_capa`) | Alan, proposed | `hud_layer_tb` (Alan); `game_top_tb` |
 | `bike_glide.sv` | Drawn position of one Bike, sliding from its previous Cell to its current one ([ADR 0010](../docs/adr/0010-bikes-sliding-between-cells.md)) | `clk_juego` | not in §4 | Alan | `bike_glide_tb` (Alan) |
 | `pos_link.sv` | Carries the drawn positions and Headings to `clk_pix` and holds them for a whole frame (X1) | both | Roman (the contract's `pos_link` paragraph; not in §4) | Roman; changes by Alan | `pos_link_tb` (Roman; changes by Alan) |
 | **Movement** | | | | | |
@@ -148,7 +151,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 | `score_unit.sv` | Lives, Points from Rewards and the Survival Bonus, the Points Goal, winner or Draw | `clk_juego` | Alan (G3/G5) | Alan | `score_unit_tb`, `match_tb` (Alan) |
 | **Scoreboard** | | | | | |
 | `seg7_view.sv` | Which view is shown (Points, Lives, Goal), 3 s each | `clk_juego` | Alan (display) | Alan | `seg7_view_tb` (Alan) |
-| `seg7_link.sv` | Carries the 20 Scoreboard bits to `clk_pix` | both | Alan (display) | Alan | `seg7_link_tb` (Alan) |
+| `seg7_link.sv` | Carries the 25 Scoreboard and HUD bits to `clk_pix` | both | Alan (display) | Alan | `seg7_link_tb` (Alan) |
 | `seg7_driver.sv` | Turns Points, Lives and the Goal into eight digits | `clk_pix` | Alan (display) | Alan | `seg7_driver_tb` (Alan) |
 | `multidigit.sv` | Scans the eight digits on one set of segment pins | `clk_pix` | Alan (display) | Alan, from his homework 1 | `multidigit_tb` (Alan) |
 | `sevenseg.sv` | 7-segment decoder: 0–9, P, L, G, A, blank | none | Alan (display) | Alan, from his homework 1 | `sevenseg_tb` (Alan) |
