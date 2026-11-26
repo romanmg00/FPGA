@@ -286,9 +286,7 @@ if {[llength $pend_cells] == 0} {
 if {[llength $tgl_cells] != 2} {
     error "game_top_timing.xdc: el set_max_delay del toggle de pos_link deberia encontrar pos_tgl_reg y meta_reg, no [llength $tgl_cells] celdas"
 }
-# Los dos set_max_delay del cruce del marcador (seg7_link): cada patron debe encontrar todos sus
-# bits (los 25 del marcador y del HUD), para que un cambio de nombres o un registro absorbido no
-# deje bits sin restriccion. Los numeros quedan en seg7_link_cells.txt.
+# Los dos set_max_delay de seg7_link cubren sus 25 bits. Los numeros quedan en seg7_link_cells.txt.
 set link_report {}
 foreach {what pattern want} {toggle u_seg7_link/tick_toggle_reg 1 sync u_seg7_link/u_sync_toggle/meta_reg 1
         values_juego {u_seg7_link/values_juego_reg[*]} 25 values_pix {u_seg7_link/values_pix_reg[*]} 25} {

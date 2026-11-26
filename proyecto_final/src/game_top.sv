@@ -1,7 +1,7 @@
 // Authors: Roman (romanmg00): first version, clock Wizard, vga_out, drawcon, Bike wiring and
 // pos_link (X1, #48). Alan (AIF31): reset and synchronizers (#12), clk_juego from a counter on
 // clk_pix (ADR 0006, #16), bike_glide (#31), Arena (#40), Match and Scoreboard (#47), P2's
-// input over UART (#60), Rewards (G4), HUD (hud_layer, proposed).
+// input over UART (#60), Rewards (G4), HUD (hud_layer).
 // Top level of the Tron game: clocks, reset, synchronizers, P2's UART input and the video,
 // movement, Arena, Match and Scoreboard blocks.
 module game_top #(
@@ -67,7 +67,7 @@ module game_top #(
     // 2. Inputs: synchronizers (2 flip-flops per button and switch) and P2's UART
     // ===============================================================
     logic [4:0]  btn_sync;                      // buttons on clk_juego -> match_fsm, position_logic
-    logic [11:0] sw_sync;                       // SW11-SW0 on clk_pix -> drawcon
+    logic [11:0] sw_sync;                       // SW11-SW0 on clk_pix -> drawcon; SW0 also -> hud_layer
     logic        pause;                         // SW0 on clk_juego -> match_fsm, position_logic
     logic [1:0]  goal_sel;                      // {SW15, SW14} on clk_juego -> seg7_view, seg7_link
     logic        uart_rx_sync;                  // uart_rx on clk_pix -> uart_rx
@@ -117,18 +117,20 @@ module game_top #(
     assign reward2 = 2'd0;
     logic        codes_valid;                   // from arena_link (section 5)
     logic        waiting, new_match, restart, round_start;  // match_fsm -> position_logic, score_unit, seg7_view
+    logic        waiting_start;                 // match_fsm -> seg7_link
     logic        match_over;                    // score_unit -> match_fsm, position_logic
     logic [5:0]  points_p1, points_p2;          // score_unit -> seg7_link
     logic [1:0]  lives_p1, lives_p2;
     logic [1:0]  result;                        // score_unit -> seg7_link: 0 Match on, 1 P1 wins, 2 P2 wins, 3 Draw
-    logic [1:0]  crashed = 2'b00;               // -> seg7_link: {P2, P1} crashed, until the Crash pause ends
+    logic        crashed_p1 = 1'b0, crashed_p2 = 1'b0;   // -> seg7_link
 
     // Match control (G3): Start reaches round_fsm once the Round is prepared.
     match_fsm u_match_fsm (
         .clk(clk_juego), .rst(rst_juego),
         .start_btn(btn_sync[4]), .start_p2(cmd_p2[4]), .crash(crash1 || crash2), .crash_done(crash_done),
         .match_over(match_over), .pause(pause), .codes_valid(codes_valid),
-        .waiting(waiting), .new_match(new_match), .restart(restart), .round_start(round_start)
+        .waiting(waiting), .waiting_start(waiting_start), .new_match(new_match), .restart(restart),
+        .round_start(round_start)
     );
 
     // Points, Lives and the Points Goal (G4, G5)
@@ -140,12 +142,15 @@ module game_top #(
         .result(result), .match_over(match_over)
     );
 
-    // Which Bikes crashed, for the HUD's blink.
+    // Crashed Bikes, until the Crash pause ends.
     always_ff @(posedge clk_juego) begin
-        if (rst_juego || restart || crash_done)
-            crashed <= 2'b00;
-        else if (crash1 || crash2)
-            crashed <= {crash2, crash1};
+        if (rst_juego || restart || crash_done) begin
+            crashed_p1 <= 1'b0;
+            crashed_p2 <= 1'b0;
+        end else if (crash1 || crash2) begin
+            crashed_p1 <= crash1;
+            crashed_p2 <= crash2;
+        end
     end
 
     // ===============================================================
@@ -156,7 +161,7 @@ module game_top #(
     logic [10:0] blkpos1_x, blkpos1_y;          // -> arena_link, bike_glide: bike Cell in pixels
     logic [10:0] blkpos2_x, blkpos2_y;
     logic [1:0]  heading1, heading2;            // -> pos_link
-    logic        load, step;                    // -> arena_link; load also -> seg7_link
+    logic        load, step;                    // -> arena_link
     logic [3:0]  code1_u, code1_r, code1_d, code1_l;   // from arena_link (section 5)
     logic [3:0]  code2_u, code2_r, code2_d, code2_l;
 
@@ -308,13 +313,13 @@ module game_top #(
         .sw(sw_sync),
         .heading1(draw_heading1),
         .heading2(draw_heading2),
+        .hud_color(hud_color),
         // Outputs
         .draw_r(draw_r),
         .draw_g(draw_g),
         .draw_b(draw_b),
         .arena_addr(arena_addr),
-        .arena_code(arena_code),
-        .hud_color(hud_color)
+        .arena_code(arena_code)
     );
 
     vga_out u_vga_out(
@@ -341,8 +346,8 @@ module game_top #(
     logic [1:0]  view;                          // seg7_view -> seg7_link
     logic [5:0]  points_p1_pix, points_p2_pix;  // seg7_link -> seg7_driver, hud_layer (clk_pix)
     logic [1:0]  lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix;
-    logic        waiting_start_pix;             // seg7_link -> hud_layer (clk_pix)
-    logic [1:0]  result_pix, crashed_pix;
+    logic        waiting_start_pix, crashed_p1_pix, crashed_p2_pix;   // seg7_link -> hud_layer (clk_pix)
+    logic [1:0]  result_pix;
 
     // The view on clk_juego, crossed to clk_pix, then homework 1's scan of the eight digits.
     seg7_view #(.VIEW_TICKS(180)) u_seg7_view (
@@ -354,12 +359,13 @@ module game_top #(
         .clk_juego(clk_juego),
         .points_p1(points_p1), .points_p2(points_p2), .lives_p1(lives_p1), .lives_p2(lives_p2),
         .view(view), .goal_sel(goal_sel),
-        .waiting_start(load), .result(result), .crashed(crashed),
+        .waiting_start(waiting_start), .result(result), .crashed_p1(crashed_p1), .crashed_p2(crashed_p2),
         .clk_pix(clk_pix),
         .points_p1_pix(points_p1_pix), .points_p2_pix(points_p2_pix),
         .lives_p1_pix(lives_p1_pix), .lives_p2_pix(lives_p2_pix),
         .view_pix(view_pix), .goal_sel_pix(goal_sel_pix),
-        .waiting_start_pix(waiting_start_pix), .result_pix(result_pix), .crashed_pix(crashed_pix)
+        .waiting_start_pix(waiting_start_pix), .result_pix(result_pix),
+        .crashed_p1_pix(crashed_p1_pix), .crashed_p2_pix(crashed_p2_pix)
     );
 
     seg7_driver #(.COUNT_BITS(17)) u_seg7_driver (
@@ -376,11 +382,12 @@ module game_top #(
     // ===============================================================
     // The same clk_pix copy of Points and Lives as the Scoreboard.
     hud_layer u_hud_layer (
-        .clk(clk_pix),
-        .curr_x(curr_x), .curr_y(curr_y),
+        .clk(clk_pix), .rst(rst_pix),
+        .curr_x(curr_x), .curr_y(curr_y), .pause(sw_sync[0]),
         .points_p1(points_p1_pix), .points_p2(points_p2_pix),
         .lives_p1(lives_p1_pix), .lives_p2(lives_p2_pix),
-        .waiting_start(waiting_start_pix), .result(result_pix), .crashed(crashed_pix),
+        .waiting_start(waiting_start_pix), .result(result_pix),
+        .crashed_p1(crashed_p1_pix), .crashed_p2(crashed_p2_pix),
         .hud_color(hud_color)
     );
 

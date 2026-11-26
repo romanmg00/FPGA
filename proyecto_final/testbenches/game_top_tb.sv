@@ -43,15 +43,8 @@
 // Matches on clk_juego alone) and pause checks SW0 and a Start held through CPU_RESETN.
 // uart sends P2's keys as 8N1 frames on the uart_rx pin at 115200 baud: Enter starts the
 // Round, W and D turn P2, a reversal is ignored, and bytes that are not commands do nothing.
-// HUD (contract section 4, hud_layer): the 64 px band is predicted pixel by
-// pixel from prototipos/tron_fpga/juego/hud.py and font.py, with the Points and Lives seg7_link
-// carries to clk_pix, copied at curr_x = 0, curr_y = 800 as hud_layer does. Once score_unit's
-// values have held for 40 ms, check_frame also requires the band to show them, and expect_hud
-// checks given Points and Lives after a Crash. The play icon, the crown and the blinks follow
-// hud.py's phases: IDLE or READY while the Bikes wait for Start, CRASH during the Crash pause,
-// MATCH_OVER after it; phase_ticks are frames since the phase began. check_frame ties the
-// phase to match_fsm's state, the crashed Players to the last Crash and the crown to
-// score_unit's result; idle, wall_crash and match check frames with the blinking items off.
+// HUD (hud_layer): every band pixel is predicted from juego/hud.py and font.py, with the
+// values seg7_link copies once per frame; check_frame ties them to score_unit and match_fsm.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
 // own simulator: xsim game_top_tb -runall -testplusarg scenario=steps
 // Without +scenario they all run one after another in one simulation.
@@ -128,25 +121,27 @@ module game_top_tb;
         e_addr[0] <= dut.arena_addr;
     end
     // What the band shows this frame: seg7_link's clk_pix copy, taken at curr_x = 0,
-    // curr_y = 800, and hud.py's phase (0 playing, 1 IDLE or READY, 2 CRASH, 3 MATCH_OVER) with
-    // its ticks in frames. score_changed: when score_unit's values or match_fsm's state last
-    // changed. last_crash: {P2, P1} of the last Crash.
+    // curr_y = 800 and in every cycle of rst_pix, and hud.py's phase (0 playing, 1 IDLE or
+    // READY, 2 CRASH, 3 MATCH_OVER) with its ticks in frames, held while SW0 pauses the game.
+    // score_changed: when score_unit's values or match_fsm's state last changed. last_crash:
+    // {P2, P1} of the last Crash.
     logic [5:0] hud_pts1 = 6'd0, hud_pts2 = 6'd0;
     logic [1:0] hud_lives1 = 2'd0, hud_lives2 = 2'd0, hud_result = 2'd0, hud_crashed = 2'd0;
     int         hud_phase = -1, hud_ticks = 0;
     realtime    score_changed = 0;
     logic [1:0] last_crash = 2'd0;
     always @(posedge dut.clk_pix)
-        if (dut.curr_x == 11'd0 && dut.curr_y == 11'd800) begin
+        if (dut.rst_pix || (dut.curr_x == 11'd0 && dut.curr_y == 11'd800)) begin
             int phase;
-            phase = dut.waiting_start_pix ? 1 : (dut.crashed_pix != 2'd0) ? 2 : (dut.result_pix != 2'd0) ? 3 : 0;
+            phase = dut.waiting_start_pix ? 1 : (dut.crashed_p1_pix || dut.crashed_p2_pix) ? 2 :
+                    (dut.result_pix != 2'd0) ? 3 : 0;
             hud_pts1    <= dut.points_p1_pix;
             hud_pts2    <= dut.points_p2_pix;
             hud_lives1  <= dut.lives_p1_pix;
             hud_lives2  <= dut.lives_p2_pix;
             hud_result  <= dut.result_pix;
-            hud_crashed <= dut.crashed_pix;
-            hud_ticks   <= (phase == hud_phase) ? hud_ticks + 1 : 0;
+            hud_crashed <= {dut.crashed_p2_pix, dut.crashed_p1_pix};
+            hud_ticks   <= (dut.rst_pix || phase != hud_phase) ? 0 : dut.sw_sync[0] ? hud_ticks : hud_ticks + 1;
             hud_phase   <= phase;
         end
     always @(dut.points_p1, dut.points_p2, dut.lives_p1, dut.lives_p2, dut.u_score_unit.result, dut.u_match_fsm.state)
@@ -398,14 +393,15 @@ module game_top_tb;
             fail($sformatf("%s: the band shows Points %0d-%0d, Lives %0d-%0d; score_unit has %0d-%0d, %0d-%0d",
                            what, hud_pts1, hud_pts2, hud_lives1, hud_lives2,
                            dut.points_p1, dut.points_p2, dut.lives_p1, dut.lives_p2));
-        // match_fsm: 1 s_play, 2 s_crash, 4 s_match; the Bikes wait for Start in the others.
+        // match_fsm: the Bikes wait for Start in 0 s_idle and 3 s_ready; 2 s_crash; 4 s_match.
         if ($realtime - score_changed > 40ms) begin
             int want_phase;
             case (dut.u_match_fsm.state)
-                3'd1:    want_phase = 0;
+                3'd0:    want_phase = 1;
+                3'd3:    want_phase = 1;
                 3'd2:    want_phase = 2;
                 3'd4:    want_phase = 3;
-                default: want_phase = 1;
+                default: want_phase = 0;
             endcase
             if (hud_phase != want_phase)
                 fail($sformatf("%s: the band is in phase %0d, match_fsm in state %0d", what, hud_phase, dut.u_match_fsm.state));
@@ -694,9 +690,17 @@ module game_top_tb;
     task automatic idle();
         #300ms;
         expect_at("no Start for 300 ms", P1_X0, P1_Y0, P2_X0, P2_Y0);
+        expect_blink_off("waiting for Start: the play icon blinks off", 1);
         sw = 16'h0FFF; #1ms;
         check_frame("switches up: same colours", P1_X0, P1_Y0, P2_X0, P2_Y0);
-        expect_blink_off("waiting for Start: the play icon blinks off", 1);
+        begin
+            int t0 = hud_ticks;
+            #100ms;
+            if (hud_ticks != t0 || dut.u_hud_layer.blink != 5'(t0))
+                fail($sformatf("SW0 up: the play icon's blink moved from frame %0d to %0d (hud_layer %0d)",
+                               t0, hud_ticks, dut.u_hud_layer.blink));
+        end
+        $display("ok   SW0 up: the play icon's blink holds");
     endtask
 
     // BTNC starts the Round; both bikes move one cell on the same edge, every STEP ticks, and

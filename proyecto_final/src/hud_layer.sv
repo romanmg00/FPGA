@@ -2,13 +2,15 @@
 // Points, Lives and the play or crown icon in the 64 px band, laid out as juego/hud.py.
 module hud_layer (
     input  logic        clk,                    // clk_pix
+    input  logic        rst,
     input  logic [10:0] curr_x, curr_y,
+    input  logic        pause,                  // SW0
     // From seg7_link
     input  logic [5:0]  points_p1, points_p2,
     input  logic [1:0]  lives_p1, lives_p2,
     input  logic        waiting_start,
     input  logic [1:0]  result,                 // 0 Match on, 1 P1 wins, 2 P2 wins, 3 Draw
-    input  logic [1:0]  crashed,                // {P2, P1}
+    input  logic        crashed_p1, crashed_p2,
     output logic [11:0] hud_color               // colour of (curr_x, curr_y)
 );
 
@@ -33,40 +35,44 @@ module hud_layer (
         .d(segs_ones_p2[3]), .e(segs_ones_p2[4]), .f(segs_ones_p2[5]), .g(segs_ones_p2[6]));
 
     logic [6:0] lit_tens_p1 = 7'd0, lit_ones_p1 = 7'd0, lit_tens_p2 = 7'd0, lit_ones_p2 = 7'd0;   // 1 lit
-    logic [1:0] frame_lives_p1 = 2'd0, frame_lives_p2 = 2'd0;
-    logic [1:0] frame_result = 2'd0, frame_crashed = 2'd0;
+    logic [1:0] frame_lives_p1 = 2'd0, frame_lives_p2 = 2'd0, frame_result = 2'd0;
+    logic       frame_crashed_p1 = 1'b0, frame_crashed_p2 = 1'b0;
     logic       frame_wait = 1'b0, frame_crown = 1'b0;
-    logic [4:0] blink = 5'd0;            // frames since the phase changed; [4] = 1: blinking items off
+    logic [4:0] blink = 5'd0;            // [4] = 1 hides blinking items
     logic       crown;                   // Match over, after its Crash pause
-    assign crown = (result != 2'd0) && (crashed == 2'b00);
+    logic       in_crash, frame_in_crash;
+    assign crown          = (result != 2'd0) && !crashed_p1 && !crashed_p2;
+    assign in_crash       = crashed_p1 || crashed_p2;
+    assign frame_in_crash = frame_crashed_p1 || frame_crashed_p2;
 
-    // Copied once per frame.
+    // Copied once per frame, and in every cycle of rst.
     always_ff @(posedge clk)
     begin
-        if (curr_x == 0 && curr_y == 800)
+        if (rst || (curr_x == 11'd0 && curr_y == 11'd800))
         begin
-            lit_tens_p1    <= ~segs_tens_p1;
-            lit_ones_p1    <= ~segs_ones_p1;
-            lit_tens_p2    <= ~segs_tens_p2;
-            lit_ones_p2    <= ~segs_ones_p2;
-            frame_lives_p1 <= lives_p1;
-            frame_lives_p2 <= lives_p2;
-            frame_result   <= result;
-            frame_crashed  <= crashed;
-            frame_wait     <= waiting_start;
-            frame_crown    <= crown;
-            if ({waiting_start, crown, crashed != 2'b00} != {frame_wait, frame_crown, frame_crashed != 2'b00})
+            lit_tens_p1      <= ~segs_tens_p1;
+            lit_ones_p1      <= ~segs_ones_p1;
+            lit_tens_p2      <= ~segs_tens_p2;
+            lit_ones_p2      <= ~segs_ones_p2;
+            frame_lives_p1   <= lives_p1;
+            frame_lives_p2   <= lives_p2;
+            frame_result     <= result;
+            frame_crashed_p1 <= crashed_p1;
+            frame_crashed_p2 <= crashed_p2;
+            frame_wait       <= waiting_start;
+            frame_crown      <= crown;
+            if (rst || {waiting_start, crown, in_crash} != {frame_wait, frame_crown, frame_in_crash})
                 blink <= 5'd0;
-            else
+            else if (!pause)
                 blink <= blink + 5'd1;
         end
     end
 
     // Blinking: the play icon while waiting for Start, a crashed Player's digits.
-    logic show_play, show_p1, show_p2;
-    assign show_play = frame_wait && !blink[4];
-    assign show_p1   = !(frame_crashed[0] && blink[4]);
-    assign show_p2   = !(frame_crashed[1] && blink[4]);
+    logic show_play, show_digits_p1, show_digits_p2;
+    assign show_play      = frame_wait && !blink[4];
+    assign show_digits_p1 = !(frame_crashed_p1 && blink[4]);
+    assign show_digits_p2 = !(frame_crashed_p2 && blink[4]);
 
     // ===============================================================
     // 2. Rows of the current line
@@ -146,18 +152,19 @@ module hud_layer (
     // 4. Colour of the next pixel
     // ===============================================================
     // Glyph columns (juego/font.py): a, d, g in 1-6; e, f in 0-1; b, c in 6-7.
-    logic [2:0] gx;
+    logic [2:0] glyph_col;
     logic       mid, left, right;
-    logic [6:0] here;                    // segments at the pixel, [0] = a ... [6] = g
-    assign gx    = digit_dx[3:1];
-    assign mid   = (gx >= 3'd1) && (gx <= 3'd6);
-    assign left  = (gx <= 3'd1);
-    assign right = (gx >= 3'd6);
-    assign here  = {mid && row_g, left && row_bf, left && row_ce, mid && row_d,
-                    right && row_ce, right && row_bf, mid && row_a};
+    logic [6:0] pixel_segments;          // segments that cover the pixel, [0] = a ... [6] = g
+    assign glyph_col      = digit_dx[3:1];
+    assign mid            = (glyph_col >= 3'd1) && (glyph_col <= 3'd6);
+    assign left           = (glyph_col <= 3'd1);
+    assign right          = (glyph_col >= 3'd6);
+    assign pixel_segments = {mid && row_g, left && row_bf, left && row_ce, mid && row_d,
+                             right && row_ce, right && row_bf, mid && row_a};
 
     logic digit_on, life_on, state_on;
-    assign digit_on = digit_row && (digit_dx < 11'd16) && (p2 ? show_p2 : show_p1) && ((digit_lit & here) != 7'd0);
+    assign digit_on = digit_row && (digit_dx < 11'd16) && (p2 ? show_digits_p2 : show_digits_p1) &&
+                      ((digit_lit & pixel_segments) != 7'd0);
     assign life_on  = icon_row && (life_dx < 11'd16) && (life_full ? life_bits[life_dx[3:0]] : lost_bits[life_dx[3:0]]);
     assign state_on = icon_row && (state_dx < 11'd16) &&
                       (frame_crown ? crown_bits[state_dx[3:0]] : show_play && play_bits[state_dx[3:0]]);

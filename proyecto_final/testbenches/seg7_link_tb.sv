@@ -8,18 +8,18 @@ module seg7_link_tb;
     logic       clk_juego = 1'b0, clk_pix = 1'b0;
     logic [5:0] points_p1 = 6'd0, points_p2 = 6'd0;
     logic [1:0] lives_p1 = 2'd0, lives_p2 = 2'd0, view = 2'd0, goal_sel = 2'd0;
-    logic       waiting_start = 1'b0;
-    logic [1:0] result = 2'd0, crashed = 2'd0;
+    logic       waiting_start = 1'b0, crashed_p1 = 1'b0, crashed_p2 = 1'b0;
+    logic [1:0] result = 2'd0;
     logic [5:0] points_p1_pix, points_p2_pix;
     logic [1:0] lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix;
-    logic       waiting_start_pix;
-    logic [1:0] result_pix, crashed_pix;
+    logic       waiting_start_pix, crashed_p1_pix, crashed_p2_pix;
+    logic [1:0] result_pix;
 
     seg7_link dut (
         .clk_juego, .points_p1, .points_p2, .lives_p1, .lives_p2, .view, .goal_sel,
-        .waiting_start, .result, .crashed,
+        .waiting_start, .result, .crashed_p1, .crashed_p2,
         .clk_pix, .points_p1_pix, .points_p2_pix, .lives_p1_pix, .lives_p2_pix, .view_pix,
-        .goal_sel_pix, .waiting_start_pix, .result_pix, .crashed_pix
+        .goal_sel_pix, .waiting_start_pix, .result_pix, .crashed_p1_pix, .crashed_p2_pix
     );
 
     localparam real PIX_NS = 11.982;          // clk_pix period (83.46 MHz)
@@ -34,11 +34,11 @@ module seg7_link_tb;
     endfunction
 
     function automatic logic [24:0] bundle_in();
-        return {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, waiting_start, result, crashed};
+        return {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, waiting_start, result, crashed_p2, crashed_p1};
     endfunction
     function automatic logic [24:0] bundle_out();
         return {points_p1_pix, points_p2_pix, lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix,
-                waiting_start_pix, result_pix, crashed_pix};
+                waiting_start_pix, result_pix, crashed_p2_pix, crashed_p1_pix};
     endfunction
 
     // Every clk_pix edge: on a copy (new_tick, the synchronized toggle changed) the output must
@@ -68,7 +68,7 @@ module seg7_link_tb;
             1: v = (i % 2) ? 25'h1FFFFFF : 25'h0000000;  // every bit changes on every tick
             default: v = 25'(i);                         // a count: shows a lost or repeated tick
         endcase
-        {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, waiting_start, result, crashed} = v;
+        {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, waiting_start, result, crashed_p2, crashed_p1} = v;
     endtask
 
     // n ticks of clk_juego with this period, starting after a phase offset. The values change

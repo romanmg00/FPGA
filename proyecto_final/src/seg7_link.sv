@@ -5,9 +5,9 @@ module seg7_link (
     input  logic [1:0] lives_p1, lives_p2,          // from score_unit
     input  logic [1:0] view,                        // from seg7_view
     input  logic [1:0] goal_sel,                    // {SW15, SW14} on clk_juego
-    input  logic       waiting_start,               // Bikes at their starts, waiting for Start
+    input  logic       waiting_start,               // from match_fsm
     input  logic [1:0] result,                      // from score_unit: 0 Match on, 1 P1 wins, 2 P2 wins, 3 Draw
-    input  logic [1:0] crashed,                     // {P2, P1} crashed, until the Crash pause ends
+    input  logic       crashed_p1, crashed_p2,
     input  logic       clk_pix,                     // 83.46 MHz
     output logic [5:0] points_p1_pix, points_p2_pix,
     output logic [1:0] lives_p1_pix, lives_p2_pix,
@@ -15,7 +15,7 @@ module seg7_link (
     output logic [1:0] goal_sel_pix,
     output logic       waiting_start_pix,
     output logic [1:0] result_pix,
-    output logic [1:0] crashed_pix
+    output logic       crashed_p1_pix, crashed_p2_pix
 );
 
     logic [24:0] values_juego = 25'd0;      // clk_juego: the values of this tick
@@ -27,7 +27,7 @@ module seg7_link (
 
     always_ff @(posedge clk_juego)
     begin
-        values_juego <= {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, waiting_start, result, crashed};
+        values_juego <= {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, waiting_start, result, crashed_p2, crashed_p1};
         tick_toggle  <= ~tick_toggle;
     end
 
@@ -46,6 +46,6 @@ module seg7_link (
     end
 
     assign {points_p1_pix, points_p2_pix, lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix,
-            waiting_start_pix, result_pix, crashed_pix} = values_pix;
+            waiting_start_pix, result_pix, crashed_p2_pix, crashed_p1_pix} = values_pix;
 
 endmodule

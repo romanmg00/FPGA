@@ -1,11 +1,6 @@
 // Author: Alan (AIF31).
-// hud_layer alone: every pixel of the 64 px band against prototipos/tron_fpga/juego/hud.py and
-// font.py, for each Player's Points 0-45 and Lives 0-3, the play icon, the crown of each result
-// and the blinks. Inputs are copied only at curr_x = 0, curr_y = 800: values given at other
-// pixels, or changed during the band, must not show. The raster is driven as vga_out gives it:
-// hud_color is the colour of the pixel in curr_x.
-// hud.py's phases from the inputs: IDLE or READY while waiting_start, CRASH while crashed != 0,
-// MATCH_OVER once result != 0 with no Crash shown. Its phase_ticks are frames since the phase began.
+// hud_layer alone: every pixel of the band against juego/hud.py and font.py, for Points 0-45,
+// Lives 0-3, the play and crown icons, the blinks, Pause and rst.
 `timescale 1ns/1ps
 module hud_layer_tb;
     localparam logic [11:0] C_BAND = 12'h000, C_P1 = 12'h0DF, C_P2 = 12'hF80, C_FG = 12'hFFF;
@@ -13,14 +8,15 @@ module hud_layer_tb;
     logic [10:0] curr_x = 11'd0, curr_y = 11'd0;
     logic [5:0]  points_p1 = 6'd0, points_p2 = 6'd0;
     logic [1:0]  lives_p1 = 2'd0, lives_p2 = 2'd0;
-    logic        waiting_start = 1'b0;
-    logic [1:0]  result = 2'd0, crashed = 2'd0;
+    logic        rst = 1'b0, pause = 1'b0, waiting_start = 1'b0, crashed_p1 = 1'b0, crashed_p2 = 1'b0;
+    logic [1:0]  result = 2'd0;
     logic [11:0] hud_color;
     int          pixels = 0, bands = 0;
 
-    // The values of the last copy, and hud.py's phase and ticks for them.
+    // The values of the last copy, and hud.py's phase (0 playing, 1 IDLE or READY, 2 CRASH,
+    // 3 MATCH_OVER) and its ticks in frames, held while paused.
     int          m_pts1 = 0, m_pts2 = 0, m_lives1 = 0, m_lives2 = 0, m_result = 0, m_crashed = 0;
-    int          m_phase = -1;           // 0 playing, 1 IDLE/READY, 2 CRASH, 3 MATCH_OVER
+    int          m_phase = -1;
     int          m_ticks = 0;
 
     // juego/font.py ICONS through make_hud_icons.py: word {icon, row}, bit c = column c.
@@ -28,9 +24,9 @@ module hud_layer_tb;
     initial $readmemh("hud_icons.mem", hud_icons);
 
     hud_layer dut (
-        .clk(clk), .curr_x(curr_x), .curr_y(curr_y),
+        .clk(clk), .rst(rst), .curr_x(curr_x), .curr_y(curr_y), .pause(pause),
         .points_p1(points_p1), .points_p2(points_p2), .lives_p1(lives_p1), .lives_p2(lives_p2),
-        .waiting_start(waiting_start), .result(result), .crashed(crashed),
+        .waiting_start(waiting_start), .result(result), .crashed_p1(crashed_p1), .crashed_p2(crashed_p2),
         .hud_color(hud_color)
     );
     always #6 clk = ~clk;
@@ -134,23 +130,23 @@ module hud_layer_tb;
     task automatic copy(int pts1, int pts2, int lives1, int lives2, int ws, int res, int cr);
         int phase = ws ? 1 : (cr != 0) ? 2 : (res != 0) ? 3 : 0;
         {points_p1, points_p2, lives_p1, lives_p2} = {6'(45 - pts1), 6'(45 - pts2), ~2'(lives1), ~2'(lives2)};
-        {waiting_start, result, crashed} = {~1'(ws), ~2'(res), ~2'(cr)};
+        {waiting_start, result, crashed_p2, crashed_p1} = {~1'(ws), ~2'(res), ~2'(cr)};
         pixel_at(0, 799);
         pixel_at(1, 800);
         pixel_at(1279, 800);
         {points_p1, points_p2, lives_p1, lives_p2} = {6'(pts1), 6'(pts2), 2'(lives1), 2'(lives2)};
-        {waiting_start, result, crashed} = {1'(ws), 2'(res), 2'(cr)};
+        {waiting_start, result, crashed_p2, crashed_p1} = {1'(ws), 2'(res), 2'(cr)};
         pixel_at(0, 800);
         pixel_at(1, 800);
         {points_p1, points_p2, lives_p1, lives_p2} = {6'(pts2), 6'(pts1), 2'(lives2), 2'(lives1)};
-        {waiting_start, result, crashed} = {~1'(ws), ~2'(res), ~2'(cr)};
+        {waiting_start, result, crashed_p2, crashed_p1} = {~1'(ws), ~2'(res), ~2'(cr)};
         m_pts1    = pts1;
         m_pts2    = pts2;
         m_lives1  = lives1;
         m_lives2  = lives2;
         m_result  = res;
         m_crashed = cr;
-        m_ticks = (phase == m_phase) ? m_ticks + 1 : 0;
+        m_ticks = (phase != m_phase) ? 0 : pause ? m_ticks : m_ticks + 1;
         m_phase = phase;
     endtask
 
@@ -207,6 +203,24 @@ module hud_layer_tb;
         frames("waiting again", 20, 1, 0, 0, '{0, 16});
         frames("P1 crashed again", 10, 0, 0, 1, '{0});
         frames("waiting after the Crash", 2, 1, 0, 0, '{0, 1});
+        // Pause holds the blink.
+        pause = 1'b1;
+        frames("waiting, paused", 30, 1, 0, 0, '{29});
+        pause = 1'b0;
+        frames("waiting, resumed", 20, 1, 0, 0, '{13, 14});
+        // rst copies the inputs in every cycle and restarts the blink: no frame start needed.
+        frames("Match over before rst", 20, 0, 1, 0, '{19});
+        {points_p1, points_p2, lives_p1, lives_p2} = {6'd0, 6'd0, 2'd3, 2'd3};
+        {waiting_start, result, crashed_p2, crashed_p1} = {1'b1, 2'd0, 1'b0, 1'b0};
+        rst = 1'b1;
+        pixel_at(500, 300);
+        pixel_at(501, 300);
+        rst = 1'b0;
+        m_pts1 = 0; m_pts2 = 0; m_lives1 = 3; m_lives2 = 3; m_result = 0; m_crashed = 0;
+        m_phase = 1;
+        m_ticks = 0;
+        check_band("after rst: idle at once");
+        $display("ok   Pause holds the blink; rst shows the idle band at once");
 
         $display("ok   %0d bands, %0d pixels", bands, pixels);
         $display("PASS hud_layer_tb");

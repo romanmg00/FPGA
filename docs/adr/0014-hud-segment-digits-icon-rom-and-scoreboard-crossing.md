@@ -46,14 +46,17 @@ prototype already rebuilt in HDL and checked on the board on 12 November
   November), play icon and Draw crown `FFF`.
 - **Values from the Scoreboard's crossing.** `seg7_link` already copies Points
   and Lives to `clk_pix` for `seg7_driver`; it now carries 25 bits instead of
-  20, adding the Bikes waiting for Start (`position_logic`'s `load`), the
-  Match result and which Players crashed (a `game_top` register, set by the
-  Crash and cleared when its 2 s pause ends). `hud_layer` copies them once per
-  frame, at `curr_x = 0`, `curr_y = 800`, so a frame never shows two values.
+  20, adding the Bikes waiting for Start (`match_fsm`'s new `waiting_start`,
+  `s_idle` or `s_ready`), the Match result and which Players crashed
+  (`crashed_p1`, `crashed_p2`: `game_top` registers, set by the Crash and
+  cleared when its 2 s pause ends). `hud_layer` copies them once per frame, at
+  `curr_x = 0`, `curr_y = 800`, so a frame never shows two values, and in every
+  cycle of `rst_pix`, so a reset shows the reset values at once.
 - **Blinks on frames.** `hud.py` blinks 16 ticks on and 16 off from the start
-  of each phase. `hud_layer` counts frames since the phase last changed and
-  hides the play icon, or a crashed Player's digits, when bit 4 is set. A frame
-  and a `clk_juego` tick differ by 108 `clk_pix` cycles in 1.39 million.
+  of each phase, and holds them during Pause. `hud_layer` counts frames since
+  the phase last changed, not while SW0 is up, and hides the play icon, or a
+  crashed Player's digits, when bit 4 is set. A frame and a `clk_juego` tick
+  differ by 108 `clk_pix` cycles in 1.39 million.
 - **Registered colour.** The colour of each pixel is worked out for the next
   pixel (`curr_x + 1`) and registered; what depends only on the line (segment
   rows and icon rows) is registered once per line. The HUD adds no logic
@@ -78,8 +81,7 @@ prototype already rebuilt in HDL and checked on the board on 12 November
   `values_pix_reg[*]`; `build_game_top.tcl` now requires 25 cells on each side
   instead of at least one.
 - Tests: `hud_layer_tb` checks every band pixel for Points 0–45, Lives 0–3,
-  the play icon, the three crowns and the blinks against a model written from
+  the play icon, the three crowns, the blinks, Pause and reset against a model written from
   `hud.py` and `font.py`; `game_top_tb` predicts every band pixel in every
   checked frame, ties the band to `score_unit` and `match_fsm`, and checks the
   numbers after the Crashes in `wall_crash`, `match` and `uart_uturn`.
-- Pause does not stop the blinks, unlike the viewer's `phase_ticks`.

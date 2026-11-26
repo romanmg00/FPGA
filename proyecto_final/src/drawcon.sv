@@ -14,7 +14,7 @@ module drawcon(
     output logic [3:0] draw_b,
     output logic [12:0] arena_addr,             // arena_map: {cy, cx} of the pixel 2 ahead
     input  logic [3:0]  arena_code,             // that Cell's code, 2 cycles later
-    input  logic [11:0] hud_color               // hud_layer: colour of the pixel in the band
+    input  logic [11:0] hud_color               // hud_layer: colour of (curr_x, curr_y) in the band
 );
     // ===============================================================
     // 1. defining the adress for the memory maps
