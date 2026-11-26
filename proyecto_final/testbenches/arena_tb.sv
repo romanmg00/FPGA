@@ -4,9 +4,7 @@
 // so the phase between them drifts. The driver plays position_logic: load, step and the heads
 // change just after a clk_juego edge, and a Step waits while codes_valid = 0 (the proposed
 // policy). A golden Arena is kept from the rules and read back through the draw port, as drawcon would.
-// Rewards (ADR 0012): the driver reports a Reward when a Bike moves into one, and the golden
-// Arena places each slot with the same search as arena_ctrl_tb, from the LFSR mixed with the
-// counter value arena_ctrl uses (read from it when it starts a new Match's Prepare).
+// Rewards: the driver reports one when a Bike enters it; golden placement as in arena_ctrl_tb.
 // STEP_TICKS comes from +step_ticks=N (default 8). Not the official bench of contract section 7.
 `timescale 1ns/1ps
 module arena_tb;
@@ -121,20 +119,16 @@ module arena_tb;
         if (found) gold[c] = 4'd8 + 4'(slot);
     endtask
 
-    // The golden Rewards follow arena_ctrl: the LFSR goes back to SEED on rst_pix; when a
-    // request starts (state s_start, 1), a Prepare drops the Rewards a cut try placed, mixes the
-    // seed if it starts a new Match, and places all three; a Step places the slots the driver
-    // reported, which must be the ones arena_link sent.
+    // Golden Rewards: SEED on rst_pix, one draw per s_idle (0) edge, placed at s_start (1).
     always @(posedge clk_pix) begin
         if (rst_pix)
             glfsr = SEED;
+        else if (u_ctrl.state == 4'd0)
+            glfsr = draw(glfsr);
         else if (u_ctrl.state == 4'd1) begin
             if (u_ctrl.prepare_pix) begin
                 for (int a = 0; a < 8192; a++) if (gold[a] >= 4'd8) gold[a] = 4'd0;
-                if (u_ctrl.reseed_pix) begin
-                    reseeds++;
-                    if ((glfsr ^ u_ctrl.seed_count) != 32'd0) glfsr = glfsr ^ u_ctrl.seed_count;
-                end
+                if (u_ctrl.reseed_pix) reseeds++;
                 for (int sl = 0; sl < 3; sl++) gold_place(sl);
             end else begin
                 if (u_ctrl.collected_pix !== want_collected)
@@ -412,7 +406,7 @@ module arena_tb;
         repeat (4) tick();
         if (codes_tgl !== heads_tgl) fail("a request is still open at the end");
         if (heads_sent != want_heads_sent) fail($sformatf("heads sent %0d times, expected %0d", heads_sent, want_heads_sent));
-        if (reseeds < 2) fail($sformatf("only %0d Prepares mixed the seed; expected one after each reset", reseeds));
+        if (reseeds < 2) fail($sformatf("only %0d Prepares had reseed = 1; expected one after each reset", reseeds));
         $display("PASS arena_tb STEP_TICKS=%0d (heads sent %0d times, %0d Rewards taken, %0d checks)",
                  ST, heads_sent, rewards_taken, checks);
         $finish;

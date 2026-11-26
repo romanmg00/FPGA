@@ -24,10 +24,10 @@ set_max_delay -datapath_only 11.982 -from [get_cells {u_glide*/glide_x_reg[*] u_
 ## Cruce de la arena (contrato, sección 3). clk_juego y clk_pix no tienen un periodo común que
 ## Vivado pueda expandir, así que esas rutas se tratan como asíncronas: los toggles van a
 ## sync_2ff, y las cabezas y los códigos se copian solo después de su toggle; aquí se acota su retardo.
-## heads_tgl lleva las cabezas de arena_link a arena_ctrl (copias *_pix), con reseed y collected de los
+## heads_tgl lleva las cabezas de arena_link a arena_ctrl (copias *_pix), con collected de los
 ## premios (G4); codes_tgl devuelve los códigos.
 set_max_delay -datapath_only 11.982 -from [get_cells u_arena_link/heads_tgl_ff_reg] -to [get_cells u_arena_ctrl/u_sync_heads_tgl/meta_reg]
-set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_link/prepare_reg u_arena_link/reseed_reg u_arena_link/collected_reg[*] u_arena_link/old_head_p*_reg[*] u_arena_link/new_head_p*_reg[*]}] -to [get_cells {u_arena_ctrl/*_pix_reg*}]
+set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_link/prepare_reg u_arena_link/collected_reg[*] u_arena_link/old_head_p*_reg[*] u_arena_link/new_head_p*_reg[*]}] -to [get_cells {u_arena_ctrl/*_pix_reg*}]
 set_max_delay -datapath_only 11.982 -from [get_cells u_arena_ctrl/codes_tgl_ff_reg] -to [get_cells u_arena_link/u_sync_codes_tgl/meta_reg]
 set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_ctrl/codes_reg[*]}] -to [get_cells {u_arena_link/codes_reg[*]}]
 

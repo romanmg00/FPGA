@@ -1,5 +1,5 @@
 // Author: Roman (romanmg00). Changes by Alan (AIF31): Trails read from arena_map's port B (#40),
-// sprite colour 000 drawn as transparent (#39), Rewards from reward_rom (G4).
+// sprite colour 000 drawn as transparent (#39), Trail pulse stripes, Rewards from reward_rom (G4).
 // Colour of each pixel. Priority: walls, HUD, bike 1, bike 2, Rewards, Trails, empty Arena.
 module drawcon(
     input              clk,                     // clk_pix
@@ -118,6 +118,14 @@ module drawcon(
             frame_cnt <= frame_cnt + 1'b1;
         end
     end
+
+    // Trail pulse stripes: (x + y - 2 frame) mod 64 < 6, worked out for the next pixel.
+    logic [5:0] stripe_pos;  // (x + y - 2 frame) mod 64 of the next pixel
+    logic       stripe;      // the pixel is on a stripe
+    assign stripe_pos = curr_x[5:0] + 6'd1 + curr_y[5:0] - {frame_cnt, 1'b0};
+    always_ff @(posedge clk) begin
+        stripe <= (stripe_pos < 6'd6);
+    end
     // ===============================================================
     // 3.3. empty arena color  
     // ===============================================================   
@@ -194,10 +202,18 @@ module drawcon(
                 end else begin
                     color = reward_big;
                 end
-        end else if (arena_code == 4'd2) begin  // P1 Trail
-            color = 12'h068;
-        end else if (arena_code == 4'd4) begin  // P2 Trail
-            color = 12'h840;
+        end else if (arena_code == 4'd2) begin  // P1 Trail: cyan, stripe c/4 + CCC
+            if (stripe) begin
+                color = 12'hCFF;
+            end else begin
+                color = 12'h0DF;
+            end
+        end else if (arena_code == 4'd4) begin  // P2 Trail: orange, stripe c/4 + CCC
+            if (stripe) begin
+                color = 12'hFEC;
+            end else begin
+                color = 12'hF80;
+            end
         end else begin                          
             if(curr_x[4:0]==0 || curr_y[4:0]==0)begin // Purple grid line
                 case(frame_cnt[4:3])                  // Breathing effect

@@ -1,5 +1,4 @@
 # Author: Alan (AIF31). Changes by Roman (romanmg00): pos_link, its bench and its constraint checks (X1, #48).
-# Rewards (G4): the rewards scenario, the reseed and collected crossing checks, and reward_rom.
 # Construye game_top desde el repositorio, sin proyecto previo.
 #   vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR [quick|sim|full]
 # quick corre los testbenches de modulos (unos 20 s) y salta game_top_tb, que tarda hasta 20 min;
@@ -326,7 +325,7 @@ set arena_report {}
 foreach {what pattern} {heads_tgl u_arena_link/heads_tgl_ff_reg
         heads_tgl_sync u_arena_ctrl/u_sync_heads_tgl/meta_reg
         heads {u_arena_link/prepare_reg u_arena_link/old_head_p*_reg[*] u_arena_link/new_head_p*_reg[*]}
-        reseed u_arena_link/reseed_reg collected {u_arena_link/collected_reg[*]}
+        collected {u_arena_link/collected_reg[*]}
         heads_pix {u_arena_ctrl/*_pix_reg*}
         codes_tgl u_arena_ctrl/codes_tgl_ff_reg codes_tgl_sync u_arena_link/u_sync_codes_tgl/meta_reg
         codes_pix {u_arena_ctrl/codes_reg[*]} codes_juego {u_arena_link/codes_reg[*]}} {
