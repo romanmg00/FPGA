@@ -97,12 +97,16 @@ again, so the slot can be on two Cells. Nothing in `arena_ctrl` remembers the
 first write. A CPU_RESETN press that `clk_juego`'s synchronizer sees resets
 `arena_link` too, and `round_fsm` resets into `s_release` (load = 1) while
 `arena_link` resets `load_last` to 0, so the first request after that reset is
-always a Prepare, which clears the Arena. The duplicate lives less than a tick,
-with the Bikes held at their starts. `board_reset_sync` samples CPU_RESETN, so a
-press shorter than one `clk_juego` period (about 16.7 ms) can reach only
-`clk_pix`. A duplicate then needs the press to begin in the about 10 `clk_pix` cycles
-between that Reward's write and the answer (about 120 ns of a 16.7 ms tick) of a
-Step that takes a Reward, and it lasts until the next Prepare, at the next Round.
+always a Prepare, which clears the Arena. The duplicate lasts until that
+Prepare, a few ticks, with the Bikes held at their starts: `rst_juego` ends up
+to two `clk_juego` edges after `rst_pix`, and the Prepare goes one tick after
+`load` rises, once the replayed Step's answer is back. `board_reset_sync`
+samples CPU_RESETN, so a press shorter than one `clk_juego` period (about
+16.7 ms) can reach only `clk_pix`. A duplicate then needs the press to begin
+between the Step's first Reward write and its answer: about 10 `clk_pix` cycles
+(about 120 ns) when the Step takes one Reward, and up to the search for the
+second slot (at most about 16,600 cycles, 0.2 ms) when it takes two. That
+duplicate lasts until the next Prepare, at the next Round.
 Alan accepted this limit on 25 November: a deliberate press is longer than one
 `clk_juego` period; bounce on release comes right after a reset, when no Step
 can take a Reward; and bounce on press is followed by the long press, which
@@ -156,7 +160,8 @@ next states. A Match that reaches the Points Goal without a Crash ends at once:
 - **`reseed` in the board build.** With `FIXED_SEED` = 0, `arena_ctrl` does not
   use `reseed`, so synthesis removes its copy and `arena_link`'s `reseed`
   register. The Arena crossing constraint and `build_game_top.tcl`'s check no
-  longer name it; `arena_tb` still checks that `arena_link` sends it.
+  longer name it; `arena_tb` still checks that `arena_link` sends it. A
+  `FIXED_SEED` = 1 synthesis would need its bound and check back.
 - **Contract.** §3 *Premios (después)* and §4 *Premios* can be settled with
   this text; they are Roman's to edit.
 - **Until Roman's change.** `game_top` drives `reward1` and `reward2` with 0.
