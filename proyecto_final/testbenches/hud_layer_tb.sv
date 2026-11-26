@@ -1,10 +1,10 @@
 // Author: Alan (AIF31).
-// texto_capa alone: every pixel of the 64 px band against prototipos/tron_fpga/juego/hud.py and
+// hud_layer alone: every pixel of the 64 px band against prototipos/tron_fpga/juego/hud.py and
 // font.py, for each Player's Points 0-45 and Lives 0-3. Inputs are copied only at curr_x = 0,
 // curr_y = 800: values given at other pixels, or changed during the band, must not show.
 // The raster is driven as vga_out gives it: hud_color is the colour of the pixel in curr_x.
 `timescale 1ns/1ps
-module texto_capa_tb;
+module hud_layer_tb;
     localparam logic [11:0] C_BAND = 12'h000, C_P1 = 12'h0DF, C_P2 = 12'hF80;
     logic        clk = 1'b0;
     logic [10:0] curr_x = 11'd0, curr_y = 11'd0;
@@ -17,7 +17,7 @@ module texto_capa_tb;
     logic [15:0] hud_icons [0:63];
     initial $readmemh("hud_icons.mem", hud_icons);
 
-    texto_capa dut (
+    hud_layer dut (
         .clk(clk), .curr_x(curr_x), .curr_y(curr_y),
         .points_p1(points_p1), .points_p2(points_p2), .lives_p1(lives_p1), .lives_p2(lives_p2),
         .hud_color(hud_color)
@@ -26,7 +26,7 @@ module texto_capa_tb;
 
     function automatic void fail(string msg);
         $display("FAIL %s", msg);
-        $fatal(1, "texto_capa_tb failed");
+        $fatal(1, "hud_layer_tb failed");
     endfunction
 
     // juego/font.py _SEGMENTS: does segment s of the 8 x 16 glyph cover column c, row r?
@@ -133,7 +133,7 @@ module texto_capa_tb;
         for (int n = 0; n <= 45; n++)
             check_band(n, 45 - n, n % 4, (n / 4) % 4);
         $display("ok   46 bands, %0d pixels: Points 0-45 and Lives 0-3 of each Player", pixels);
-        $display("PASS texto_capa_tb");
+        $display("PASS hud_layer_tb");
         $finish;
     end
 endmodule

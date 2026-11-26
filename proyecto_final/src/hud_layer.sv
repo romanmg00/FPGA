@@ -1,6 +1,6 @@
 // Author: Alan (AIF31), proposed for Roman's HUD (contract section 4).
 // Each Player's Points and Lives in the 64 px band, laid out as prototipos/tron_fpga/juego/hud.py.
-module texto_capa (
+module hud_layer (
     input  logic        clk,                    // clk_pix
     input  logic [10:0] curr_x, curr_y,
     input  logic [5:0]  points_p1, points_p2,   // from seg7_link

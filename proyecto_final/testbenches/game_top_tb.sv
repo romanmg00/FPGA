@@ -43,9 +43,9 @@
 // Matches on clk_juego alone) and pause checks SW0 and a Start held through CPU_RESETN.
 // uart sends P2's keys as 8N1 frames on the uart_rx pin at 115200 baud: Enter starts the
 // Round, W and D turn P2, a reversal is ignored, and bytes that are not commands do nothing.
-// HUD (contract section 4, texto_capa): the 64 px band is predicted pixel by
+// HUD (contract section 4, hud_layer): the 64 px band is predicted pixel by
 // pixel from prototipos/tron_fpga/juego/hud.py and font.py, with the Points and Lives seg7_link
-// carries to clk_pix, copied at curr_x = 0, curr_y = 800 as texto_capa does. Once score_unit's
+// carries to clk_pix, copied at curr_x = 0, curr_y = 800 as hud_layer does. Once score_unit's
 // values have held for 40 ms, check_frame also requires the band to show them, and expect_hud
 // checks given Points and Lives after a Crash.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
