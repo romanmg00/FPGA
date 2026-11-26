@@ -31,7 +31,7 @@ set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_link/prepare_reg u
 set_max_delay -datapath_only 11.982 -from [get_cells u_arena_ctrl/codes_tgl_ff_reg] -to [get_cells u_arena_link/u_sync_codes_tgl/meta_reg]
 set_max_delay -datapath_only 11.982 -from [get_cells {u_arena_ctrl/codes_reg[*]}] -to [get_cells {u_arena_link/codes_reg[*]}]
 
-## Cruce del marcador (seg7_link, ADR 0008): clk_juego carga los 20 bits y cambia un toggle; clk_pix
+## Cruce del marcador (seg7_link, ADR 0008): clk_juego carga los 25 bits y cambia un toggle; clk_pix
 ## sincroniza el toggle y copia los bits cuando lo ve cambiar. Mismo patron que la arena:
 ## aqui se acota el retardo del toggle y de los datos a un pixel. build_game_top.tcl revisa
 ## que los dos lados existan.

@@ -28,7 +28,7 @@ proc start_bench {name top marker files {xsim_args ""}} {
     file delete -force $dir
     file mkdir $dir
     # $readmemh files are opened from the run folder: drawcon's sun table (sprites/sun_rows.mem)
-    # and hud_layer's Life icons (sprites/hud_icons.mem).
+    # and hud_layer's icons (sprites/hud_icons.mem).
     file copy $::here/sprites/sun_rows.mem $::here/sprites/hud_icons.mem $dir
     set quoted {}
     foreach file $files {lappend quoted "'$file'"}
@@ -216,7 +216,7 @@ foreach {key want} {Memory_Type Single_Port_ROM Write_Depth_A 1024 Write_Width_A
 read_verilog -sv $design
 # drawcon's $readmemh("sun_rows.mem"): the striped sun's rows, one 21-bit word each.
 read_mem $here/sprites/sun_rows.mem
-# hud_layer's $readmemh("hud_icons.mem"): 16 x 16 Life icons, one 16-bit word per row.
+# hud_layer's $readmemh("hud_icons.mem"): 16 x 16 icons, one 16-bit word per row.
 read_mem $here/sprites/hud_icons.mem
 set_property top game_top [current_fileset]
 # Lo que se sintetiza: exactamente los .sv de src/, ni testbenches, ni modelos de
@@ -286,15 +286,16 @@ if {[llength $pend_cells] == 0} {
 if {[llength $tgl_cells] != 2} {
     error "game_top_timing.xdc: el set_max_delay del toggle de pos_link deberia encontrar pos_tgl_reg y meta_reg, no [llength $tgl_cells] celdas"
 }
-# Los dos set_max_delay del cruce del marcador (seg7_link): cada lado debe existir, para que un
-# cambio de nombres no deje el cruce sin restriccion. Los numeros quedan en seg7_link_cells.txt.
+# Los dos set_max_delay del cruce del marcador (seg7_link): cada patron debe encontrar todos sus
+# bits (los 25 del marcador y del HUD), para que un cambio de nombres o un registro absorbido no
+# deje bits sin restriccion. Los numeros quedan en seg7_link_cells.txt.
 set link_report {}
-foreach {what pattern} {toggle u_seg7_link/tick_toggle_reg sync u_seg7_link/u_sync_toggle/meta_reg
-        values_juego {u_seg7_link/values_juego_reg[*]} values_pix {u_seg7_link/values_pix_reg[*]}} {
+foreach {what pattern want} {toggle u_seg7_link/tick_toggle_reg 1 sync u_seg7_link/u_sync_toggle/meta_reg 1
+        values_juego {u_seg7_link/values_juego_reg[*]} 25 values_pix {u_seg7_link/values_pix_reg[*]} 25} {
     set cells [get_cells -quiet $pattern]
-    lappend link_report "$what: [llength $cells]"
-    if {[llength $cells] == 0} {
-        error "game_top_timing.xdc: el set_max_delay de seg7_link no encuentra $pattern"
+    lappend link_report "$what: [llength $cells] of $want"
+    if {[llength $cells] != $want} {
+        error "game_top_timing.xdc: el set_max_delay de seg7_link encuentra [llength $cells] celdas en $pattern, se esperaban $want"
     }
 }
 emit $out/seg7_link_cells.txt [join $link_report \n]

@@ -120,6 +120,8 @@ module game_top #(
     logic        match_over;                    // score_unit -> match_fsm, position_logic
     logic [5:0]  points_p1, points_p2;          // score_unit -> seg7_link
     logic [1:0]  lives_p1, lives_p2;
+    logic [1:0]  result;                        // score_unit -> seg7_link: 0 Match on, 1 P1 wins, 2 P2 wins, 3 Draw
+    logic [1:0]  crashed = 2'b00;               // -> seg7_link: {P2, P1} crashed, until the Crash pause ends
 
     // Match control (G3): Start reaches round_fsm once the Round is prepared.
     match_fsm u_match_fsm (
@@ -135,8 +137,16 @@ module game_top #(
         .new_match(new_match), .waiting(waiting), .goal_sel(goal_sel), .crash1(crash1), .crash2(crash2),
         .reward1(reward1), .reward2(reward2),
         .points_p1(points_p1), .points_p2(points_p2), .lives_p1(lives_p1), .lives_p2(lives_p2),
-        .result(), .match_over(match_over)
+        .result(result), .match_over(match_over)
     );
+
+    // Which Bikes crashed, for the HUD's blink.
+    always_ff @(posedge clk_juego) begin
+        if (rst_juego || restart || crash_done)
+            crashed <= 2'b00;
+        else if (crash1 || crash2)
+            crashed <= {crash2, crash1};
+    end
 
     // ===============================================================
     // 4. Movement (position_logic)
@@ -146,7 +156,7 @@ module game_top #(
     logic [10:0] blkpos1_x, blkpos1_y;          // -> arena_link, bike_glide: bike Cell in pixels
     logic [10:0] blkpos2_x, blkpos2_y;
     logic [1:0]  heading1, heading2;            // -> pos_link
-    logic        load, step;                    // -> arena_link
+    logic        load, step;                    // -> arena_link; load also -> seg7_link
     logic [3:0]  code1_u, code1_r, code1_d, code1_l;   // from arena_link (section 5)
     logic [3:0]  code2_u, code2_r, code2_d, code2_l;
 
@@ -331,6 +341,8 @@ module game_top #(
     logic [1:0]  view;                          // seg7_view -> seg7_link
     logic [5:0]  points_p1_pix, points_p2_pix;  // seg7_link -> seg7_driver, hud_layer (clk_pix)
     logic [1:0]  lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix;
+    logic        waiting_start_pix;             // seg7_link -> hud_layer (clk_pix)
+    logic [1:0]  result_pix, crashed_pix;
 
     // The view on clk_juego, crossed to clk_pix, then homework 1's scan of the eight digits.
     seg7_view #(.VIEW_TICKS(180)) u_seg7_view (
@@ -342,10 +354,12 @@ module game_top #(
         .clk_juego(clk_juego),
         .points_p1(points_p1), .points_p2(points_p2), .lives_p1(lives_p1), .lives_p2(lives_p2),
         .view(view), .goal_sel(goal_sel),
+        .waiting_start(load), .result(result), .crashed(crashed),
         .clk_pix(clk_pix),
         .points_p1_pix(points_p1_pix), .points_p2_pix(points_p2_pix),
         .lives_p1_pix(lives_p1_pix), .lives_p2_pix(lives_p2_pix),
-        .view_pix(view_pix), .goal_sel_pix(goal_sel_pix)
+        .view_pix(view_pix), .goal_sel_pix(goal_sel_pix),
+        .waiting_start_pix(waiting_start_pix), .result_pix(result_pix), .crashed_pix(crashed_pix)
     );
 
     seg7_driver #(.COUNT_BITS(17)) u_seg7_driver (
@@ -366,6 +380,7 @@ module game_top #(
         .curr_x(curr_x), .curr_y(curr_y),
         .points_p1(points_p1_pix), .points_p2(points_p2_pix),
         .lives_p1(lives_p1_pix), .lives_p2(lives_p2_pix),
+        .waiting_start(waiting_start_pix), .result(result_pix), .crashed(crashed_pix),
         .hud_color(hud_color)
     );
 
