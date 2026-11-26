@@ -35,7 +35,8 @@
 // as for sim_models/bike_rom.sv.
 // Arena (contract section 3): every visible pixel's Trail colour must match the code drawcon
 // received, and that code must come from the pixel's own Cell (dut.arena_addr two cycles
-// earlier, port B's latency). arena_check compares the whole of arena_map with a Trail model
+// earlier, port B's latency); Trail pixels with (x + y - 2 frame_cnt) mod 64 < 6 are stripes.
+// arena_check compares the whole of arena_map with a Trail model
 // kept here from the bike moves: the Cells a bike left are its Trail, its head is a head.
 // Match and Scoreboard (G3/G5, ADR 0008): Start reaches round_fsm through match_fsm, so
 // press_start waits up to 16 ticks for the Round. The Scoreboard is read from seg and an.
@@ -65,8 +66,8 @@ module game_top_tb;
     // The sun's rows (build_game_top.tcl copies sprites/sun_rows.mem into each bench folder).
     logic [20:0] sun_rows [0:320];
     initial $readmemh("sun_rows.mem", sun_rows);
-    // Trail colours: a darker shade of each Player's colour
-    localparam logic [11:0] C_T1 = 12'h068, C_T2 = 12'h840;
+    // Trail colours: each Player's colour, with pulse stripes in shine(colour)
+    localparam logic [11:0] C_T1 = 12'h0DF, C_T2 = 12'hF80;
     // How many pixels late drawcon looks up each sprite (see above); 0 since it reads ahead.
     localparam int SPRITE_SHIFT = 0;
 
@@ -90,6 +91,7 @@ module game_top_tb;
     logic [11:0] bike_mem [0:1023];  // the sprite pointing up, word {row, column}
     int          rw_cell [0:2];      // where the model knows each Reward slot is; -1 not known,
                                      // -2 a Bike drove over it: absent until the next Prepare
+    int          trail_px = 0, stripe_px = 0;  // Trail pixels checked off and on a stripe
     // Drawn positions and headings as drawcon sees them, one entry per clk_pix cycle. After a
     // clk_pix edge, entry 0 holds the cycle whose colour vga_out just put on the pins, and
     // entry n the cycle n earlier: boxes use entry 0, sprite lookups entry SPRITE_SHIFT.
@@ -158,6 +160,17 @@ module game_top_tb;
             fail($sformatf("at %0.3f ms with rst_pix low, pos_link gives drawcon unknown values: P1 (%0d,%0d) P2 (%0d,%0d)",
                            $realtime / 1e6, dut.draw1_x, dut.draw1_y, dut.draw2_x, dut.draw2_y));
 
+    // frame_cnt advances by one per frame; the first frame after a pixel reset is not compared.
+    int prev_frame_cnt = -1;
+    always @(posedge vs or posedge dut.rst_pix)
+        if (dut.rst_pix !== 1'b0) prev_frame_cnt = -1;
+        else begin
+            if (prev_frame_cnt >= 0 && dut.u_drawcon.frame_cnt !== 5'(prev_frame_cnt + 1))
+                fail($sformatf("at %0.3f ms frame_cnt went from %0d to %0d in one frame",
+                               $realtime / 1e6, prev_frame_cnt, dut.u_drawcon.frame_cnt));
+            prev_frame_cnt = dut.u_drawcon.frame_cnt;
+        end
+
     task automatic wait_ticks(int n);
         repeat (n) @(posedge dut.clk_juego);
         #1;
@@ -212,14 +225,20 @@ module game_top_tb;
         endcase
     endfunction
 
+    // Pulse stripe colour (juego/fx.py shine): c/4 + CCC per channel.
+    function automatic logic [11:0] shine(logic [11:0] c);
+        return ((c >> 2) & 12'h333) + 12'hCCC;
+    endfunction
+
     // What the screen must show, written from the specification and PR #35's sprite format,
     // not from drawcon. Walls cover the HUD's lower edge; P1 is drawn over P2 if they ever
     // overlap. Sprite words 000 are transparent (tools/png2coe.py): the pixel shows P2, then
     // the empty Arena. (bNx, bNy) place each 32 x 32 box; its word is looked up SPRITE_SHIFT
     // pixels earlier on the same line, with the drawn position (sNx, sNy) and heading sNh.
+    // stripe_phase is the frame's (2 frame_cnt) mod 64.
     function automatic logic [11:0] expected_colour(int x, int y,
             int b1x, int b1y, int s1x, int s1y, int s1h,
-            int b2x, int b2y, int s2x, int s2y, int s2h, logic [3:0] code, logic [11:0] line_col);
+            int b2x, int b2y, int s2x, int s2y, int s2h, logic [3:0] code, logic [11:0] line_col, int stripe_phase);
         logic [11:0] w;
         logic [20:0] w21;
         if (y >= 64 && (x < 16 || x >= 1264 || y < 80 || y >= 784)) return C_WALL;
@@ -233,8 +252,9 @@ module game_top_tb;
             if (w != C_CLEAR) return w == C_KEY ? C_P2 : w;
         end
         // Rewards (codes 8-10) are not drawn yet: empty Arena.
-        if (code == 4'd2) return C_T1;    // Trails only; heads are not painted
-        if (code == 4'd4) return C_T2;
+        // Trails only; heads are not painted. Stripes: (x + y - 2 frame) mod 64 < 6.
+        if (code == 4'd2) return (x + y + 64 - stripe_phase) % 64 < 6 ? shine(C_T1) : C_T1;
+        if (code == 4'd4) return (x + y + 64 - stripe_phase) % 64 < 6 ? shine(C_T2) : C_T2;
         if (x % 32 == 0 || y % 32 == 0) return line_col; // violet grid every 32 px (prototype's look)
         // Sky gradient (prototype's sunset sky, 001 at the top to 506 at the bottom): six
         // 128 px bands counted from y = 64, so each band edge lies under a grid line; blue is
@@ -262,6 +282,7 @@ module game_top_tb;
         bit          line_seen;    // line_col holds this frame's colour
         int x, y;
         logic [47:0] first_draw;   // drawn positions and headings at the first visible pixel
+        int          stripe_phase; // this frame's (2 frame_cnt) mod 64
         // A dead raster fails here, not at the bench's overall watchdog.
         fork
             @(posedge vs);
@@ -285,9 +306,10 @@ module game_top_tb;
                     if (e_addr[2] !== {6'(y >> 4), 7'(x >> 4)})
                         fail($sformatf("%s: Arena read for pixel (%0d,%0d) used address %h, expected Cell (%0d,%0d)",
                                        what, x, y, e_addr[2], x >> 4, y >> 4));
-                    if (x == 0 && y == 0)
+                    if (x == 0 && y == 0) begin
                         first_draw = {e1x[0], e1y[0], e2x[0], e2y[0], e1h[0], e2h[0]};
-                    else if ({e1x[0], e1y[0], e2x[0], e2y[0], e1h[0], e2h[0]} !== first_draw)
+                        stripe_phase = (2 * dut.u_drawcon.frame_cnt) % 64;
+                    end else if ({e1x[0], e1y[0], e2x[0], e2y[0], e1h[0], e2h[0]} !== first_draw)
                         fail($sformatf("%s: drawn positions changed inside the frame at (%0d,%0d) (tearing)", what, x, y));
                     // The grid line pulses (818, A2C, D2E, A2C, 8 frames each), so its colour is not
                     // known ahead: a pixel is on a line when the expected colour depends on line_col.
@@ -298,10 +320,10 @@ module game_top_tb;
                             want = expected_colour(x, y,
                                 e1x[0], e1y[0], e1x[SPRITE_SHIFT], e1y[SPRITE_SHIFT], e1h[SPRITE_SHIFT],
                                 e2x[0], e2y[0], e2x[SPRITE_SHIFT], e2y[SPRITE_SHIFT], e2h[SPRITE_SHIFT], e_code,
-                                k ? 12'hFFF : 12'h000);
+                                k ? 12'hFFF : 12'h000, stripe_phase);
                         else
                             want = expected_colour(x, y, p1x, p1y, p1x, p1y, P1_H0,
-                                                   p2x, p2y, p2x, p2y, P2_H0, e_code, k ? 12'hFFF : 12'h000);
+                                                   p2x, p2y, p2x, p2y, P2_H0, e_code, k ? 12'hFFF : 12'h000, stripe_phase);
                         if (k == 0) want_alt = want;
                     end
                     if (want != want_alt) begin
@@ -313,6 +335,8 @@ module game_top_tb;
                         end
                         want = line_col;
                     end
+                    if (want == C_T1 || want == C_T2) trail_px++;
+                    if (want == shine(C_T1) || want == shine(C_T2)) stripe_px++;
                 end
                 if ({r, g, b} !== want)
                     fail($sformatf("%s: pins show %03h, expected %03h at h=%0d v=%0d", what, {r, g, b}, want, h, v));
@@ -879,6 +903,11 @@ module game_top_tb;
             default: fail($sformatf("unknown scenario %s", scenario));
         endcase
 
+        // Scenarios that draw Trails must check some on a stripe.
+        if (scenario inside {"steps", "turns", "head_on", "wall_crash", "rewards", "uart", "uart_uturn", "all"}
+                && stripe_px == 0)
+            fail($sformatf("%0d Trail pixels checked, none on a pulse stripe", trail_px));
+        $display("ok   %0d Trail pixels checked on a pulse stripe, %0d off it", stripe_px, trail_px);
         $display("PASS game_top_tb %s", scenario);
         $finish;
     end
