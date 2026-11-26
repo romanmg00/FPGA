@@ -2,9 +2,45 @@
 
 Aquí va solo el último bitstream probado, para llevarlo a la revisión con el TA y poder repetir las pruebas. Los anteriores se borran de la carpeta, pero su registro se queda abajo y el archivo se recupera del historial de Git. Programar por JTAG no se guarda: con el botón PROG o al apagar la tarjeta, la FPGA carga lo que tenga en su flash. En la tarjeta de Alan eso es la prueba vieja de cuatro cuadrantes, no una falla del diseño.
 
-## `game_top_g4_25nov.bit`
+## `game_top_hud_26nov.bit`
 
-El bitstream para mostrar: `main` con el fondo synthwave de Roman (#62: cielo por franjas, sol con franjas, cuadrícula violeta que pulsa; el sol y el cielo se calculan una vez por línea) y la colocación de premios, sus puntos y la meta de puntos de Alan (G4, #63; [ADR 0012](../../docs/adr/0012-reward-generator-seed-and-placement-schedule.md), propuesto). Los premios están en la arena pero todavía no se ven ni se toman (issue #61): las motos pasan sobre ellos. Una partida nueva empieza unos 4 ticks después de Start, cuando su preparación ya colocó los premios. Lo demás juega igual que `game_top_p2_uart.bit`. **Este es el probado en la tarjeta.**
+El bitstream para mostrar: `main` después de #65 (`arena_ctrl` con LFSR libre) y #67 (estelas con franjas que se deslizan), con el HUD de la rama `hdl/hud` (PR #68; [ADR 0014](../../docs/adr/0014-hud-segment-digits-icon-rom-and-scoreboard-crossing.md), propuesto) en la franja de 64 px: por jugador, puntos en dos dígitos de 7 segmentos de 16 × 32 px y tres diamantes de vida (huecos al perderse), P2 en espejo; al centro, un "play" que parpadea mientras se espera Start y, al terminar la partida, una corona del color del ganador. Los dígitos del que chocó parpadean en la pausa de choque; SW0 detiene los parpadeos. Los premios están en la arena pero todavía no se ven ni se toman (#66 es borrador). **Este es el probado en la tarjeta.**
+
+| | |
+|---|---|
+| SHA-256 | `5925c508fbc3a8ffbbfa4ce5d0558d9996757a74b3ba01e3ac9abae63755bf1d` |
+| Fuente | Rama `hdl/hud`, commit `1ba1ede` (merge de `main` `526a642` con #65 y #67) |
+| Cómo se construye | `vivado -mode batch -source proyecto_final/build_game_top.tcl -tclargs OUT_DIR full`, en el contenedor Ubuntu 24.04 de `alan-desktop` (corrida `run-20261126-173708-dXqGe4`) |
+| Herramienta | Vivado 2025.2, 26 de noviembre de 2026 |
+| Parte | `xc7a100tcsg324-1` |
+
+### Prueba en la tarjeta
+
+Nexys A7 serial `210292B1820D`, programada por JTAG desde `alan-desktop` (DONE en alto). Observó Alan el 26 de noviembre de 2026. Todas pasan. El HUD también se probó por partes en las corridas de `d2dfc1f` (25 nov), `247597f` y `fc6325f` (26 nov).
+
+| Prueba | Esperado |
+|---|---|
+| Arranque o `CPU_RESETN` | Franja negra arriba: `00` y tres diamantes llenos por jugador (P1 cian a la izquierda, P2 naranja a la derecha, en espejo); "play" blanco al centro que parpadea unas dos veces por segundo. Después de una partida, el reset muestra esto de inmediato |
+| Start | El "play" desaparece en cuanto empieza la ronda |
+| Un choque | El que chocó pierde un diamante (queda hueco) y el otro suma 3; durante la pausa de 2 s parpadean los dígitos del que chocó |
+| SW0 arriba | Se detienen los parpadeos; siguen al bajarlo |
+| Fin de la partida | Después de la pausa de choque, una corona del color del ganador al centro, sin parpadear; una partida nueva la quita |
+| Estelas | En `0DF`/`F80` con franjas claras diagonales que se deslizan |
+| Premios | Colocados pero invisibles: las motos pasan por cualquier celda vacía sin chocar; una partida nueva empieza unos ticks después de Start |
+
+### Simulación y reportes
+
+Los reportes completos están en `evidencia/HUD-2026-11-26-*.rpt`.
+
+- **Testbenches:** las 37 corridas de `build_game_top.tcl` pasan en XSim (Vivado 2025.2), entre ellas `hud_layer_tb` (cada píxel de la franja: puntos 0–45, vidas 0–3, íconos, parpadeos, pausa y reset) y los 12 escenarios de `game_top_tb`, que predicen cada píxel de la franja y de las estelas con franjas.
+- **Temporización con el diseño ya ruteado:** setup +2.542 ns (WNS), hold +0.041 ns (WHS), ancho de pulso +3.000 ns, 0 extremos fallando. La ruta peor es del contador horizontal al color del HUD (`hcnt_reg[0]` → `u_hud_layer/hud_color_reg[5]`, 12 niveles). `check_timing`: 0 en todo, salvo las 29 salidas sin retardo.
+- **DRC:** 0 violaciones. **Metodología:** solo `SYNTH-6` en `u_arena_map/cells_reg`.
+- **Uso:** 1397 LUTs, 894 FFs, 1 RAMB36 y 2 RAMB18; `hud_layer` usa 39 LUTs y 74 FFs.
+- **`report_cdc`:** **ninguna fila crítica**. 17 CDC-3 (Info) y 164 CDC-15 (Warning), **todas con `set_max_delay` o false path**. El cruce de `seg7_link` lleva 26 bits; `build_game_top.tcl` revisa que el `set_max_delay` cubra los 26 de cada lado.
+
+## `game_top_g4_25nov.bit` (anterior)
+
+El bitstream para mostrar: `main` con el fondo synthwave de Roman (#62: cielo por franjas, sol con franjas, cuadrícula violeta que pulsa; el sol y el cielo se calculan una vez por línea) y la colocación de premios, sus puntos y la meta de puntos de Alan (G4, #63; [ADR 0012](../../docs/adr/0012-reward-generator-seed-and-placement-schedule.md), propuesto). Los premios están en la arena pero todavía no se ven ni se toman (issue #61): las motos pasan sobre ellos. Una partida nueva empieza unos 4 ticks después de Start, cuando su preparación ya colocó los premios. Lo demás juega igual que `game_top_p2_uart.bit`. Fue el probado en la tarjeta hasta el `game_top_hud_26nov.bit`.
 
 | | |
 |---|---|

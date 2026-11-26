@@ -8,7 +8,7 @@ Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a
 - **Game:** a ~60 Hz clock (`clk_juego`).
 - **Inputs:** P1 turns with the board buttons. P2 turns with W A S D on a web page ([`web/p2_controller.html`](web/p2_controller.html)) that sends one byte per key over the board's USB-UART ([ADR 0013](../docs/adr/0013-p2-uart-input-one-command-mailbox.md)).
 - **Not yet:** Rewards drawn and taken (G4): Roman's `position_logic` and `drawcon` changes, proposed in [issue #61](https://github.com/romanmg00/FPGA/issues/61). Their placement and scoring ([ADR 0012](../docs/adr/0012-reward-generator-seed-and-placement-schedule.md)) are in.
-- **Board status:** the last build checked on the board is `game_top_g4_25nov.bit`, on 25 November 2026: `main` with the synthwave background (#62) and Reward placement (#63), in [`bitstreams/README.md`](bitstreams/README.md).
+- **Board status:** the last build checked on the board is `game_top_hud_26nov.bit`, on 26 November 2026: `main` after #65 and #67 (Trail stripes) with the HUD (PR #68), in [`bitstreams/README.md`](bitstreams/README.md).
 
 **Where the rules come from:**
 - [Agreed specification of 20 October](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md): the rules, locked.

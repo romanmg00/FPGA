@@ -1,0 +1,49 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Thu Nov 26 14:40:38 2026
+| Host         : 46a6ecb52e54 running 64-bit Ubuntu"
+VERSION_ID="24.04 24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+| Command      : report_utilization -hierarchical -file /builds/run-20261126-173708-dXqGe4/report_utilization.rpt
+| Design       : game_top
+| Device       : xc7a100tcsg324-1
+| Speed File   : -1
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++--------------------+---------------------------+------------+------------+---------+------+-----+--------+--------+------------+
+|      Instance      |           Module          | Total LUTs | Logic LUTs | LUTRAMs | SRLs | FFs | RAMB36 | RAMB18 | DSP Blocks |
++--------------------+---------------------------+------------+------------+---------+------+-----+--------+--------+------------+
+| game_top           |                     (top) |       1397 |       1397 |       0 |    0 | 894 |      1 |      2 |          0 |
+|   (game_top)       |                     (top) |          6 |          6 |       0 |    0 |  23 |      0 |      0 |          0 |
+|   (u_drawcon)      |                   drawcon |        128 |        128 |       0 |    0 |  49 |      0 |      0 |          0 |
+|   u_arena_ctrl     |                arena_ctrl |        210 |        210 |       0 |    0 | 169 |      0 |      0 |          0 |
+|     (u_arena_ctrl) |                arena_ctrl |        206 |        206 |       0 |    0 | 167 |      0 |      0 |          0 |
+|   u_arena_link     |                arena_link |         17 |         17 |       0 |    0 |  93 |      0 |      0 |          0 |
+|     (u_arena_link) |                arena_link |         15 |         15 |       0 |    0 |  91 |      0 |      0 |          0 |
+|   u_glide1         |                bike_glide |         40 |         40 |       0 |    0 |  54 |      0 |      0 |          0 |
+|   u_glide2         |             bike_glide_16 |         40 |         40 |       0 |    0 |  54 |      0 |      0 |          0 |
+|   u_hud_layer      |                 hud_layer |         39 |         39 |       0 |    0 |  74 |      0 |      0 |          0 |
+|   u_pos_link       |                  pos_link |        136 |        136 |       0 |    0 | 100 |      0 |      0 |          0 |
+|     (u_pos_link)   |                  pos_link |        135 |        135 |       0 |    0 |  98 |      0 |      0 |          0 |
+|   u_position_logic |            position_logic |        390 |        390 |       0 |    0 |  50 |      0 |      0 |          0 |
+|     u_bike_move1   |                 bike_move |        182 |        182 |       0 |    0 |  18 |      0 |      0 |          0 |
+|     u_bike_move2   | bike_move__parameterized0 |        190 |        190 |       0 |    0 |  18 |      0 |      0 |          0 |
+|   u_seg7_link      |                 seg7_link |         49 |         49 |       0 |    0 |  56 |      0 |      0 |          0 |
+|     (u_seg7_link)  |                 seg7_link |         48 |         48 |       0 |    0 |  54 |      0 |      0 |          0 |
+|   u_vga_out        |                   vga_out |        256 |        256 |       0 |    0 |  36 |      0 |      0 |          0 |
+|     c_counter      |                  counters |        256 |        256 |       0 |    0 |  22 |      0 |      0 |          0 |
++--------------------+---------------------------+------------+------------+---------+------+-----+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+
