@@ -8,7 +8,7 @@ Two Bikes move one Cell per Step on a grid and leave a Trail. A Bike that hits a
 - **Game:** a ~60 Hz clock (`clk_juego`).
 - **Inputs:** P1 turns with the board buttons. P2 turns with W A S D on a web page ([`web/p2_controller.html`](web/p2_controller.html)) that sends one byte per key over the board's USB-UART ([ADR 0013](../docs/adr/0013-p2-uart-input-one-command-mailbox.md)).
 - **Not yet:** Rewards drawn and taken (G4): Roman's `position_logic` and `drawcon` changes, proposed in [issue #61](https://github.com/romanmg00/FPGA/issues/61). Their placement and scoring ([ADR 0012](../docs/adr/0012-reward-generator-seed-and-placement-schedule.md)) are in.
-- **Board status:** the last build checked on the board is `game_top_p2_uart.bit`, on 23 November 2026, with P2's UART input (#60), in [`bitstreams/README.md`](bitstreams/README.md).
+- **Board status:** the last build checked on the board is `game_top_g4_25nov.bit`, on 25 November 2026: `main` with the synthwave background (#62) and Reward placement (#63), in [`bitstreams/README.md`](bitstreams/README.md).
 
 **Where the rules come from:**
 - [Agreed specification of 20 October](../docs/decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md): the rules, locked.
@@ -131,7 +131,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 | **Video** | | | | | |
 | `counters.sv` | `hcnt` 0–1679 per line, `vcnt` 0–827 per frame | `clk_pix` | Roman | Roman | `counters_tb` (Roman; not self-checking, not run by the build) |
 | `vga_out.sv` | Sync pulses, blanking, `curr_x`/`curr_y` | `clk_pix` | Roman | Roman | `vga_out_tb` (Roman) |
-| `drawcon.sv` | Colour of each pixel: walls, HUD, Trails, Bike sprites | `clk_pix` | Roman | Roman; changes by Alan | through `game_top_tb` (Alan) |
+| `drawcon.sv` | Colour of each pixel: walls, HUD, Bike sprites, Trails, and the synthwave background (sky bands, striped sun, pulsing grid) | `clk_pix` | Roman | Roman; changes by Alan | through `game_top_tb` (Alan) |
 | `bike_glide.sv` | Drawn position of one Bike, sliding from its previous Cell to its current one ([ADR 0010](../docs/adr/0010-bikes-sliding-between-cells.md)) | `clk_juego` | not in §4 | Alan | `bike_glide_tb` (Alan) |
 | `pos_link.sv` | Carries the drawn positions and Headings to `clk_pix` and holds them for a whole frame (X1) | both | Roman (the contract's `pos_link` paragraph; not in §4) | Roman; changes by Alan | `pos_link_tb` (Roman; changes by Alan) |
 | **Movement** | | | | | |
@@ -169,7 +169,7 @@ The Scoreboard shows `P2 nn P1 nn` (Points) and `L2 nn L1 nn` (Lives), 3 s each.
 | `build_game_top.tcl` | Runs the testbenches and builds the bitstream | Alan | Alan |
 | `schematics.tcl` | Exports the schematics in `diagrams/` | Alan | Alan |
 | `ip/` | IP settings: `clk_wiz_0`, `bike_rom`, `reward_rom` (`.xci` and scripts to recreate them) | Roman | Roman |
-| `sprites/` | Sprite data (`.coe`, RGB444) | Roman | Roman |
+| `sprites/` | Sprite data (`.coe`, RGB444), and the sun's rows (`sun_rows.mem`, read by `drawcon` with `$readmemh`; a Vivado GUI project must add it as a design source, or the sun is black) | Roman | Roman |
 | `sim_clocks/`, `sim_models/` | **Simulation only**: an ideal `clk_wiz_0` and a `bike_rom` model. Never synthesized | — | Alan |
 
 ## Simulate and build
@@ -315,8 +315,10 @@ Built one step (Paso) at a time:
 | 7a, 7b | Scoreboard display and views | Alan, #34 |
 | 7c, 7d | Match, Lives, Points and the Scoreboard in `game_top` | Alan, #46, #47; Roman's `position_logic` ports, #45 |
 | X1 | Bike positions to clk_pix once per frame (pos_link) | Roman, #48 |
+| X1 | Bike sprites read 2 px ahead in `drawcon` | Roman, #59 |
 | I2, I3 | P2's keys over UART: `uart_rx`, `uart_decode`, `uart_link` and the web page (ADR 0013) | Alan, #60 |
-| G4 | Rewards: placement in `arena_ctrl`, scoring and the Points Goal ([ADR 0012](../docs/adr/0012-reward-generator-seed-and-placement-schedule.md)); drawing and taking them are Roman's (issue #61) | Alan, PR pending |
+| G4 | Rewards: placement in `arena_ctrl`, scoring and the Points Goal ([ADR 0012](../docs/adr/0012-reward-generator-seed-and-placement-schedule.md)); drawing and taking them are Roman's (issue #61) | Alan, #63 |
+| Look | Synthwave background: sky bands, striped sun, pulsing violet grid; sun and sky worked out once per line | Roman, #62; the per-line registers by Alan |
 
 The full step log, in Spanish, is in [`docs/history/proyecto_final-pasos.md`](../docs/history/proyecto_final-pasos.md).
 
@@ -324,5 +326,4 @@ The full step log, in Spanish, is in [`docs/history/proyecto_final-pasos.md`](..
 - `tick_60hz` in `vga_out` (Paso 3b).
 - The 10 px white border (Paso 4b).
 - Rewards drawn and taken (G4): Roman's `position_logic` and `drawcon`, issue #61.
-- Reading the Bike sprites 2 px ahead in `drawcon` (issue #30, step 3); until then each sprite is drawn 2 px to the right.
 - Moving `bike_glide` into `position_logic` (issue #37).
