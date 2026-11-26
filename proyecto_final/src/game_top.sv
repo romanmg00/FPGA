@@ -67,8 +67,8 @@ module game_top #(
     // 2. Inputs: synchronizers (2 flip-flops per button and switch) and P2's UART
     // ===============================================================
     logic [4:0]  btn_sync;                      // buttons on clk_juego -> match_fsm, position_logic
-    logic [11:0] sw_sync;                       // SW11-SW0 on clk_pix -> drawcon; SW0 also -> hud_layer
-    logic        pause;                         // SW0 on clk_juego -> match_fsm, position_logic
+    logic [11:0] sw_sync;                       // SW11-SW0 on clk_pix -> drawcon
+    logic        pause;                         // SW0 on clk_juego -> match_fsm, position_logic, seg7_link
     logic [1:0]  goal_sel;                      // {SW15, SW14} on clk_juego -> seg7_view, seg7_link
     logic        uart_rx_sync;                  // uart_rx on clk_pix -> uart_rx
     logic [7:0]  rx_byte;                       // uart_rx -> uart_decode
@@ -346,7 +346,7 @@ module game_top #(
     logic [1:0]  view;                          // seg7_view -> seg7_link
     logic [5:0]  points_p1_pix, points_p2_pix;  // seg7_link -> seg7_driver, hud_layer (clk_pix)
     logic [1:0]  lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix;
-    logic        waiting_start_pix, crashed_p1_pix, crashed_p2_pix;   // seg7_link -> hud_layer (clk_pix)
+    logic        pause_pix, waiting_start_pix, crashed_p1_pix, crashed_p2_pix;   // seg7_link -> hud_layer (clk_pix)
     logic [1:0]  result_pix;
 
     // The view on clk_juego, crossed to clk_pix, then homework 1's scan of the eight digits.
@@ -358,12 +358,12 @@ module game_top #(
     seg7_link u_seg7_link (
         .clk_juego(clk_juego),
         .points_p1(points_p1), .points_p2(points_p2), .lives_p1(lives_p1), .lives_p2(lives_p2),
-        .view(view), .goal_sel(goal_sel),
+        .view(view), .goal_sel(goal_sel), .pause(pause),
         .waiting_start(waiting_start), .result(result), .crashed_p1(crashed_p1), .crashed_p2(crashed_p2),
         .clk_pix(clk_pix),
         .points_p1_pix(points_p1_pix), .points_p2_pix(points_p2_pix),
         .lives_p1_pix(lives_p1_pix), .lives_p2_pix(lives_p2_pix),
-        .view_pix(view_pix), .goal_sel_pix(goal_sel_pix),
+        .view_pix(view_pix), .goal_sel_pix(goal_sel_pix), .pause_pix(pause_pix),
         .waiting_start_pix(waiting_start_pix), .result_pix(result_pix),
         .crashed_p1_pix(crashed_p1_pix), .crashed_p2_pix(crashed_p2_pix)
     );
@@ -383,8 +383,8 @@ module game_top #(
     // The same clk_pix copy of Points and Lives as the Scoreboard.
     hud_layer u_hud_layer (
         .clk(clk_pix), .rst(rst_pix),
-        .curr_x(curr_x), .curr_y(curr_y), .pause(sw_sync[0]),
-        .points_p1(points_p1_pix), .points_p2(points_p2_pix),
+        .curr_x(curr_x), .curr_y(curr_y),
+        .pause(pause_pix), .points_p1(points_p1_pix), .points_p2(points_p2_pix),
         .lives_p1(lives_p1_pix), .lives_p2(lives_p2_pix),
         .waiting_start(waiting_start_pix), .result(result_pix),
         .crashed_p1(crashed_p1_pix), .crashed_p2(crashed_p2_pix),

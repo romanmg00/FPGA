@@ -45,8 +45,8 @@ prototype already rebuilt in HDL and checked on the board on 12 November
   x 632. Band `000`, P1 `0DF` and P2 `F80` as the Bikes (Alan's choice on 25
   November), play icon and Draw crown `FFF`.
 - **Values from the Scoreboard's crossing.** `seg7_link` already copies Points
-  and Lives to `clk_pix` for `seg7_driver`; it now carries 25 bits instead of
-  20, adding the Bikes waiting for Start (`match_fsm`'s new `waiting_start`,
+  and Lives to `clk_pix` for `seg7_driver`; it now carries 26 bits instead of
+  20, adding Pause (SW0 on `clk_juego`), the Bikes waiting for Start (`match_fsm`'s new `waiting_start`,
   `s_idle` or `s_ready`), the Match result and which Players crashed
   (`crashed_p1`, `crashed_p2`: `game_top` registers, set by the Crash and
   cleared when its 2 s pause ends). `hud_layer` copies them once per frame, at
@@ -54,7 +54,7 @@ prototype already rebuilt in HDL and checked on the board on 12 November
   cycle of `rst_pix`, so a reset shows the reset values at once.
 - **Blinks on frames.** `hud.py` blinks 16 ticks on and 16 off from the start
   of each phase, and holds them during Pause. `hud_layer` counts frames since
-  the phase last changed, not while SW0 is up, and hides the play icon, or a
+  the phase last changed, not during Pause, and hides the play icon, or a
   crashed Player's digits, when bit 4 is set. A frame and a `clk_juego` tick
   differ by 108 `clk_pix` cycles in 1.39 million.
 - **Registered colour.** The colour of each pixel is worked out for the next
@@ -78,7 +78,7 @@ prototype already rebuilt in HDL and checked on the board on 12 November
 - The contract's §4 row and §7 change: Roman writes them (Spanish text in the
   HUD PR).
 - `seg7_link`'s `set_max_delay` already covers `values_juego_reg[*]` and
-  `values_pix_reg[*]`; `build_game_top.tcl` now requires 25 cells on each side
+  `values_pix_reg[*]`; `build_game_top.tcl` now requires 26 cells on each side
   instead of at least one.
 - Tests: `hud_layer_tb` checks every band pixel for Points 0–45, Lives 0–3,
   the play icon, the three crowns, the blinks, Pause and reset against a model written from

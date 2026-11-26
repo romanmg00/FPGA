@@ -4,8 +4,8 @@ module hud_layer (
     input  logic        clk,                    // clk_pix
     input  logic        rst,
     input  logic [10:0] curr_x, curr_y,
-    input  logic        pause,                  // SW0
     // From seg7_link
+    input  logic        pause,                  // SW0
     input  logic [5:0]  points_p1, points_p2,
     input  logic [1:0]  lives_p1, lives_p2,
     input  logic        waiting_start,

@@ -1,6 +1,6 @@
 // Author: Alan (AIF31).
 // Self-checking bench for seg7_link: clk_juego and clk_pix run unrelated, with several periods
-// and phases and then the real ratio. Every tick's 25 bits must reach clk_pix whole and in
+// and phases and then the real ratio. Every tick's 26 bits must reach clk_pix whole and in
 // order, one copy per tick, and the output must not change between copies.
 `timescale 1ns/1ps
 module seg7_link_tb;
@@ -8,24 +8,24 @@ module seg7_link_tb;
     logic       clk_juego = 1'b0, clk_pix = 1'b0;
     logic [5:0] points_p1 = 6'd0, points_p2 = 6'd0;
     logic [1:0] lives_p1 = 2'd0, lives_p2 = 2'd0, view = 2'd0, goal_sel = 2'd0;
-    logic       waiting_start = 1'b0, crashed_p1 = 1'b0, crashed_p2 = 1'b0;
+    logic       pause = 1'b0, waiting_start = 1'b0, crashed_p1 = 1'b0, crashed_p2 = 1'b0;
     logic [1:0] result = 2'd0;
     logic [5:0] points_p1_pix, points_p2_pix;
     logic [1:0] lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix;
-    logic       waiting_start_pix, crashed_p1_pix, crashed_p2_pix;
+    logic       pause_pix, waiting_start_pix, crashed_p1_pix, crashed_p2_pix;
     logic [1:0] result_pix;
 
     seg7_link dut (
         .clk_juego, .points_p1, .points_p2, .lives_p1, .lives_p2, .view, .goal_sel,
-        .waiting_start, .result, .crashed_p1, .crashed_p2,
+        .pause, .waiting_start, .result, .crashed_p1, .crashed_p2,
         .clk_pix, .points_p1_pix, .points_p2_pix, .lives_p1_pix, .lives_p2_pix, .view_pix,
-        .goal_sel_pix, .waiting_start_pix, .result_pix, .crashed_p1_pix, .crashed_p2_pix
+        .goal_sel_pix, .pause_pix, .waiting_start_pix, .result_pix, .crashed_p1_pix, .crashed_p2_pix
     );
 
     localparam real PIX_NS = 11.982;          // clk_pix period (83.46 MHz)
     always #(PIX_NS / 2) clk_pix = ~clk_pix;
 
-    logic [24:0] sent [$];                    // the values of each tick, in order
+    logic [25:0] sent [$];                    // the values of each tick, in order
     int          copies = 0;                  // copies seen on clk_pix
 
     function automatic void fail(string msg);
@@ -33,11 +33,11 @@ module seg7_link_tb;
         $fatal(1, "seg7_link_tb failed");
     endfunction
 
-    function automatic logic [24:0] bundle_in();
-        return {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, waiting_start, result, crashed_p2, crashed_p1};
+    function automatic logic [25:0] bundle_in();
+        return {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, pause, waiting_start, result, crashed_p2, crashed_p1};
     endfunction
-    function automatic logic [24:0] bundle_out();
-        return {points_p1_pix, points_p2_pix, lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix,
+    function automatic logic [25:0] bundle_out();
+        return {points_p1_pix, points_p2_pix, lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix, pause_pix,
                 waiting_start_pix, result_pix, crashed_p2_pix, crashed_p1_pix};
     endfunction
 
@@ -45,7 +45,7 @@ module seg7_link_tb;
     // be the next tick's values; on any other edge it must not change.
     always @(posedge clk_pix) begin
         logic        copy;
-        logic [24:0] last_out;
+        logic [25:0] last_out;
         copy   = dut.new_tick;
         last_out = bundle_out();
         #0.001;
@@ -62,13 +62,13 @@ module seg7_link_tb;
 
     // New values on clk_juego, as score_unit, seg7_view, position_logic and the switches change them.
     task automatic new_values(int pattern, int i);
-        logic [24:0] v;
+        logic [25:0] v;
         case (pattern)
-            0: v = 25'($urandom);
-            1: v = (i % 2) ? 25'h1FFFFFF : 25'h0000000;  // every bit changes on every tick
-            default: v = 25'(i);                         // a count: shows a lost or repeated tick
+            0: v = 26'($urandom);
+            1: v = (i % 2) ? 26'h3FFFFFF : 26'h0000000;  // every bit changes on every tick
+            default: v = 26'(i);                         // a count: shows a lost or repeated tick
         endcase
-        {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, waiting_start, result, crashed_p2, crashed_p1} = v;
+        {points_p1, points_p2, lives_p1, lives_p2, view, goal_sel, pause, waiting_start, result, crashed_p2, crashed_p1} = v;
     endtask
 
     // n ticks of clk_juego with this period, starting after a phase offset. The values change

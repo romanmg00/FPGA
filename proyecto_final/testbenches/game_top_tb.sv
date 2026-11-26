@@ -141,7 +141,7 @@ module game_top_tb;
             hud_lives2  <= dut.lives_p2_pix;
             hud_result  <= dut.result_pix;
             hud_crashed <= {dut.crashed_p2_pix, dut.crashed_p1_pix};
-            hud_ticks   <= (dut.rst_pix || phase != hud_phase) ? 0 : dut.sw_sync[0] ? hud_ticks : hud_ticks + 1;
+            hud_ticks   <= (dut.rst_pix || phase != hud_phase) ? 0 : dut.pause_pix ? hud_ticks : hud_ticks + 1;
             hud_phase   <= phase;
         end
     always @(dut.points_p1, dut.points_p2, dut.lives_p1, dut.lives_p2, dut.u_score_unit.result, dut.u_match_fsm.state)
@@ -693,12 +693,14 @@ module game_top_tb;
         expect_blink_off("waiting for Start: the play icon blinks off", 1);
         sw = 16'h0FFF; #1ms;
         check_frame("switches up: same colours", P1_X0, P1_Y0, P2_X0, P2_Y0);
+        #80ms;                                       // Pause reaches the HUD through seg7_link
         begin
-            int t0 = hud_ticks;
+            int         t0 = hud_ticks;
+            logic [4:0] b0 = dut.u_hud_layer.blink;
             #100ms;
-            if (hud_ticks != t0 || dut.u_hud_layer.blink != 5'(t0))
-                fail($sformatf("SW0 up: the play icon's blink moved from frame %0d to %0d (hud_layer %0d)",
-                               t0, hud_ticks, dut.u_hud_layer.blink));
+            if (hud_ticks != t0 || dut.u_hud_layer.blink !== b0)
+                fail($sformatf("SW0 up: the play icon's blink moved from frame %0d to %0d (hud_layer %0d to %0d)",
+                               t0, hud_ticks, b0, dut.u_hud_layer.blink));
         end
         $display("ok   SW0 up: the play icon's blink holds");
     endtask
