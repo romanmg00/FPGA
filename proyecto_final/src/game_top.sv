@@ -298,6 +298,7 @@ module game_top #(
     // ===============================================================
     logic [3:0]  draw_r, draw_g, draw_b;        // drawcon -> vga_out
     logic [11:0] hud_color;                     // from hud_layer (section 9)
+    logic        crashed_p1_pix, crashed_p2_pix;   // from seg7_link (section 8): blink the crashed Bike
 
     drawcon u_drawcon(
         // Inputs
@@ -312,6 +313,8 @@ module game_top #(
         .heading1(draw_heading1),
         .heading2(draw_heading2),
         .hud_color(hud_color),
+        .crashed1(crashed_p1_pix),
+        .crashed2(crashed_p2_pix),
         // Outputs
         .draw_r(draw_r),
         .draw_g(draw_g),
@@ -344,7 +347,7 @@ module game_top #(
     logic [1:0]  view;                          // seg7_view -> seg7_link
     logic [5:0]  points_p1_pix, points_p2_pix;  // seg7_link -> seg7_driver, hud_layer (clk_pix)
     logic [1:0]  lives_p1_pix, lives_p2_pix, view_pix, goal_sel_pix;
-    logic        pause_pix, waiting_start_pix, crashed_p1_pix, crashed_p2_pix;   // seg7_link -> hud_layer (clk_pix)
+    logic        pause_pix, waiting_start_pix;   // seg7_link -> hud_layer (clk_pix)
     logic [1:0]  result_pix;
 
     // The view on clk_juego, crossed to clk_pix, then homework 1's scan of the eight digits.

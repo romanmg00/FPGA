@@ -200,6 +200,13 @@ module game_top_tb;
 
     // frame_cnt advances by one per frame; the first frame after a pixel reset is not compared.
     int prev_frame_cnt = -1;
+    // The crashed flags each frame is drawn with: copied at the frame's start, (0, 800), with
+    // frame_cnt, from the clk_pix copy that seg7_link gives (the Crash pause, both Players).
+    logic [1:0] frame_crashed = 2'b00;
+    int blink_frames = 0;           // checked frames that hid a crashed Bike
+    always @(posedge dut.clk_pix)
+        if (dut.curr_x == 11'd0 && dut.curr_y == 11'd800)
+            frame_crashed <= {dut.crashed_p2_pix, dut.crashed_p1_pix};
     always @(posedge vs or posedge dut.rst_pix)
         if (dut.rst_pix !== 1'b0) prev_frame_cnt = -1;
         else begin
@@ -358,16 +365,20 @@ module game_top_tb;
     // stripe_phase is the frame's (2 frame_cnt) mod 64.
     function automatic logic [11:0] expected_colour(int x, int y,
             int b1x, int b1y, int s1x, int s1y, int s1h,
-            int b2x, int b2y, int s2x, int s2y, int s2h, logic [3:0] code, logic [11:0] line_col, int stripe_phase);
+            int b2x, int b2y, int s2x, int s2y, int s2h, logic [3:0] code, logic [11:0] line_col, int stripe_phase,
+            bit hide1 = 1'b0, bit hide2 = 1'b0);
         logic [11:0] w;
         logic [20:0] w21;
+        // The handout's 10 px white border, over everything, the HUD band included.
+        if (x < 10 || x >= 1270 || y < 10 || y >= 790) return C_WALL;
         if (y >= 64 && (x < 16 || x >= 1264 || y < 80 || y >= 784)) return C_WALL;
         if (y < 64) return hud_colour(x, y);
-        if (x >= b1x - 8 && x < b1x + 24 && y >= b1y - 8 && y < b1y + 24) begin
+        // A crashed Bike blinks during the Crash pause: hidden in the frames where hideN is set.
+        if (!hide1 && x >= b1x - 8 && x < b1x + 24 && y >= b1y - 8 && y < b1y + 24) begin
             w = sprite_word(x - SPRITE_SHIFT, y, s1x, s1y, s1h);
             if (w != C_CLEAR) return w == C_KEY ? C_P1 : w;
         end
-        if (x >= b2x - 8 && x < b2x + 24 && y >= b2y - 8 && y < b2y + 24) begin
+        if (!hide2 && x >= b2x - 8 && x < b2x + 24 && y >= b2y - 8 && y < b2y + 24) begin
             w = sprite_word(x - SPRITE_SHIFT, y, s2x, s2y, s2h);
             if (w != C_CLEAR) return w == C_KEY ? C_P2 : w;
         end
@@ -411,6 +422,7 @@ module game_top_tb;
         int x, y;
         logic [47:0] first_draw;   // drawn positions and headings at the first visible pixel
         int          stripe_phase; // this frame's (2 frame_cnt) mod 64
+        bit          hide1, hide2; // this frame hides that crashed Bike (16 frames on, 16 off)
         // A dead raster fails here, not at the bench's overall watchdog.
         fork
             @(posedge vs);
@@ -459,6 +471,9 @@ module game_top_tb;
                     if (x == 0 && y == 0) begin
                         first_draw = {e1x[0], e1y[0], e2x[0], e2y[0], e1h[0], e2h[0]};
                         stripe_phase = (2 * dut.u_drawcon.frame_cnt) % 64;
+                        hide1 = frame_crashed[0] && dut.u_drawcon.frame_cnt[4];
+                        hide2 = frame_crashed[1] && dut.u_drawcon.frame_cnt[4];
+                        if (hide1 || hide2) blink_frames++;
                     end else if ({e1x[0], e1y[0], e2x[0], e2y[0], e1h[0], e2h[0]} !== first_draw)
                         fail($sformatf("%s: drawn positions changed inside the frame at (%0d,%0d) (tearing)", what, x, y));
                     // The grid line pulses (818, A2C, D2E, A2C, 8 frames each), so its colour is not
@@ -470,10 +485,11 @@ module game_top_tb;
                             want = expected_colour(x, y,
                                 e1x[0], e1y[0], e1x[SPRITE_SHIFT], e1y[SPRITE_SHIFT], e1h[SPRITE_SHIFT],
                                 e2x[0], e2y[0], e2x[SPRITE_SHIFT], e2y[SPRITE_SHIFT], e2h[SPRITE_SHIFT], e_code,
-                                k ? 12'hFFF : 12'h000, stripe_phase);
+                                k ? 12'hFFF : 12'h000, stripe_phase, hide1, hide2);
                         else
                             want = expected_colour(x, y, p1x, p1y, p1x, p1y, P1_H0,
-                                                   p2x, p2y, p2x, p2y, P2_H0, e_code, k ? 12'hFFF : 12'h000, stripe_phase);
+                                                   p2x, p2y, p2x, p2y, P2_H0, e_code, k ? 12'hFFF : 12'h000, stripe_phase,
+                                                   hide1, hide2);
                         if (k == 0) want_alt = want;
                     end
                     if (want != want_alt) begin
@@ -812,6 +828,12 @@ module game_top_tb;
         arena_check("P1 crashed into the top Wall");
         expect_hud("P1 crashed: P1 loses a Life, P2 +3", 0, 3, 2, 3);
         expect_blink_off("Crash pause: P1's digits blink off", 2);
+        // The crashed Bike blinks too: check a whole frame in which P1 is hidden, and one in which it shows.
+        wait (frame_crashed[0] && dut.u_drawcon.frame_cnt[4] && dut.u_drawcon.frame_cnt[3:0] < 4'd12);
+        check_frame_here("Crash pause: P1's Bike blinks off");
+        if (blink_frames == 0) fail("Crash pause: no checked frame hid the crashed Bike");
+        wait (frame_crashed[0] && !dut.u_drawcon.frame_cnt[4] && dut.u_drawcon.frame_cnt[3:0] < 4'd12);
+        check_frame_here("Crash pause: P1's Bike blinks on");
     endtask
 
     // One Match to its end, read from the Scoreboard pins. P1's Lives are set to 1, so its

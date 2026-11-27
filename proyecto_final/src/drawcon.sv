@@ -14,7 +14,8 @@ module drawcon(
     output logic [3:0] draw_b,
     output logic [12:0] arena_addr,             // arena_map: {cy, cx} of the pixel 2 ahead
     input  logic [3:0]  arena_code,             // that Cell's code, 2 cycles later
-    input  logic [11:0] hud_color               // hud_layer: colour of (curr_x, curr_y) in the band
+    input  logic [11:0] hud_color,              // hud_layer: colour of (curr_x, curr_y) in the band
+    input  logic        crashed1, crashed2      // seg7_link: the Bike crashed, until the Crash pause ends
 );
     // ===============================================================
     // 1. defining the adress for the memory maps
@@ -93,6 +94,7 @@ module drawcon(
     logic wall;
     logic player1;
     logic player2;
+    logic hide1, hide2;     // from 3.2: the crashed Bike is in the hidden half of its blink
     logic hud;
     // pixels assigned to wall
     assign wall = (curr_x < 11'd16 && (curr_y>=11'd64 && curr_y < 11'd800)) ||                               // left wall, cx 0
@@ -102,23 +104,33 @@ module drawcon(
     // pixels assigned to player 1
     assign player1 = ((curr_x>= (blkpos1_x - 8)) && (curr_y>= (blkpos1_y - 8)) &&                         // box left and top
                    (curr_x < (blkpos1_x + 24)) && (curr_y < (blkpos1_y + 24)) &&                         // box right and bottom
-                   (color1 != 12'h000)); 
+                   (color1 != 12'h000) && !hide1); 
     // pixels assigned to player 2
     assign player2 = ((curr_x>= (blkpos2_x - 8)) && (curr_y>= (blkpos2_y - 8)) &&   // box left and top
                    (curr_x < (blkpos2_x + 24)) && (curr_y < (blkpos2_y + 24)) &&   // box right and bottom
-                   (color2 != 12'h000)); 
+                   (color2 != 12'h000) && !hide2); 
     // pixels assigned to hud
-    assign hud = (curr_y < 11'd64);  
+    assign hud = (curr_y < 11'd64);
+    // 10 px white border around the whole screen (handout), over the HUD too
+    logic border;
+    assign border = (curr_x < 11'd10) || (curr_x >= 11'd1270) || (curr_y < 11'd10) || (curr_y >= 11'd790);
     // ===============================================================
     // 3.2. Frame counter: the grid line's pulse phase is frame_cnt[4:3].    
     // ===============================================================   
     logic [4:0] frame_cnt = 5'b0;
+    // Crashed Bikes blink during the Crash pause: 16 frames shown, 16 hidden (frame_cnt[4]).
+    // The flags are copied with frame_cnt, so a Bike is never hidden in only part of a frame.
+    logic frame_crashed1 = 1'b0, frame_crashed2 = 1'b0;
     always_ff @(posedge clk)
     begin
         if(curr_x == 0 && curr_y == 800) begin
             frame_cnt <= frame_cnt + 1'b1;
+            frame_crashed1 <= crashed1;
+            frame_crashed2 <= crashed2;
         end
     end
+    assign hide1 = frame_crashed1 && frame_cnt[4];
+    assign hide2 = frame_crashed2 && frame_cnt[4];
 
     // Trail pulse stripes: (x + y - 2 frame) mod 64 < 6, worked out for the next pixel.
     logic [5:0] stripe_pos;  // (x + y - 2 frame) mod 64 of the next pixel
@@ -173,7 +185,7 @@ module drawcon(
     // 3.4. Drawing pixels  
     // ===============================================================   
     always_comb begin
-        if (wall) begin // walls: white
+        if (wall || border) begin // walls and border: white
             color = 12'hFFF;
         end else if(hud) begin
             color = hud_color;
