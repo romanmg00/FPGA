@@ -2,8 +2,9 @@
 // Self-checking bench for the Match: match_fsm, score_unit and position_logic (with Roman's
 // round_fsm inside) wired as in game_top, on clk_juego alone, one tick per edge, so whole
 // Matches take microseconds. The Arena is empty here (codes 0): Bikes crash into the Walls and
-// into each other. Every tick checks that match_fsm and round_fsm agree (plan section 4.1) and
-// that no Step is taken while codes_valid = 0.
+// into each other. For the Points Goal the bench puts Rewards in front of the Bikes (code 8 or
+// 10 as P1's right and P2's left neighbour). Every tick checks that match_fsm and round_fsm agree
+// (plan section 4.1) and that no Step is taken while codes_valid = 0.
 `timescale 1ns/1ps
 module match_tb;
 
@@ -21,24 +22,25 @@ module match_tb;
     logic [10:0] p1x, p1y, p2x, p2y;
     logic [1:0]  h1, h2;
     logic        load, step;
+    logic [1:0]  reward1, reward2;
+    logic [3:0]  ahead1 = 4'd0, ahead2 = 4'd0;     // code in front of P1 (right) and P2 (left)
 
     match_fsm u_match_fsm (
         .clk, .rst, .start_btn(start), .start_p2(1'b0), .crash(crash1 || crash2), .crash_done, .match_over, .pause,
         .codes_valid, .waiting, .new_match, .restart, .round_start
     );
     score_unit u_score_unit (
-        .clk, .rst, .new_match, .waiting, .goal_sel(2'd0), .crash1, .crash2,
-        .reward1(2'd0), .reward2(2'd0),             // position_logic does not report Rewards yet
+        .clk, .rst, .new_match, .waiting, .goal_sel(2'd0), .crash1, .crash2, .reward1, .reward2,
         .points_p1, .points_p2, .lives_p1, .lives_p2, .result, .match_over
     );
     position_logic #(.STEP_TICKS(STEP)) u_position_logic (
         .clk, .rst(rst || restart), .btn({round_start, dir}), .turn_req2(4'b0000),
         .pause, .match_over,
         .blkpos1_x(p1x), .blkpos1_y(p1y), .blkpos2_x(p2x), .blkpos2_y(p2y),
-        .heading1(h1), .heading2(h2), .crash1, .crash2, .crash_done,
+        .heading1(h1), .heading2(h2), .crash1, .crash2, .crash_done, .reward1, .reward2,
         .load, .step,
-        .code1_u(4'd0), .code1_r(4'd0), .code1_d(4'd0), .code1_l(4'd0),
-        .code2_u(4'd0), .code2_r(4'd0), .code2_d(4'd0), .code2_l(4'd0),
+        .code1_u(4'd0), .code1_r(ahead1), .code1_d(4'd0), .code1_l(4'd0),
+        .code2_u(4'd0), .code2_r(4'd0), .code2_d(4'd0), .code2_l(ahead2),
         .codes_valid
     );
 
@@ -155,6 +157,38 @@ module match_tb;
         lasted = ticks - crash_tick;
     endtask
 
+    int crashes_before_goal;
+
+    // Plays n Steps with these codes in front of the Bikes (both go straight), then clears them.
+    task automatic steps_with(int n, logic [3:0] c1, logic [3:0] c2);
+        int seen, waited;
+        ahead1 = c1; ahead2 = c2;
+        for (int i = 0; i < n; i++) begin
+            seen = step_tick;
+            waited = 0;
+            while (step_tick == seen) begin
+                tick();
+                if (++waited > 3 * STEP) fail("no Step");
+            end
+        end
+        ahead1 = 4'd0; ahead2 = 4'd0;
+    endtask
+
+    // After a Goal Step: the Match is over at once, with no Crash display (G_MATCH), the Round
+    // stopped (round_fsm in s_crash), and no Step comes after it.
+    task automatic expect_goal_end(string what, int res);
+        int last = step_tick;
+        tick();
+        if (u_match_fsm.state !== 3'd4 || round_st() != 2 || u_position_logic.run !== 1'b0)
+            fail($sformatf("%s: match_fsm %0d, round_fsm %0d, run %b after the Goal", what,
+                           u_match_fsm.state, round_st(), u_position_logic.run));
+        if (result !== 2'(res)) fail($sformatf("%s: result %0d, expected %0d", what, result, res));
+        tick(3 * 120);
+        if (step_tick != last || u_match_fsm.state !== 3'd4 || u_position_logic.run !== 1'b0)
+            fail($sformatf("%s: the Match went on after the Goal", what));
+        if (crashes != crashes_before_goal) fail($sformatf("%s: a Crash after the Goal", what));
+    endtask
+
     int base_display, lasted, gap, held;
 
     initial begin
@@ -251,6 +285,38 @@ module match_tb;
         if (lasted != base_display + 25)
             fail($sformatf("Crash display with 25 paused ticks lasted %0d, expected %0d", lasted, base_display + 25));
         $display("ok   Pause in the Crash display: %0d ticks instead of %0d", lasted, base_display);
+
+        // ---- The Points Goal (10). P1 takes the +3 Reward on 4 Steps: 3, 6, 9, 12. The Match
+        // ends on the Step that reaches the Goal, with no Crash, and the total 12 is kept.
+        reset();
+        press_start("Goal Match");
+        crashes_before_goal = crashes;
+        steps_with(3, 4'd10, 4'd0);
+        tick();
+        expect_score("P1 on 9 after three +3 Rewards", 9, 0, 3, 3, 0);
+        steps_with(1, 4'd10, 4'd8);
+        expect_goal_end("P1 reaches the Goal", 1);
+        expect_score("P1 12 - P2 1: P1 wins on the Goal", 12, 1, 3, 3, 1);
+        expect_score("held after the Goal", 12, 1, 3, 3, 1);
+        // One press starts a new Match from the Goal's G_MATCH.
+        press_start("new Match after the Goal");
+        expect_score("new Match after the Goal", 0, 0, 3, 3, 0);
+        expect_starts("new Match after the Goal");
+
+        // Both reach the Goal in one Step: P1 9 + 1 = 10, P2 9 + 3 = 12: P2 wins on more Points.
+        crashes_before_goal = crashes;
+        steps_with(3, 4'd10, 4'd10);
+        steps_with(1, 4'd9, 4'd10);
+        expect_goal_end("both reach the Goal", 2);
+        expect_score("both on the Goal: P2 wins 12 to 10", 10, 12, 3, 3, 2);
+        // Both reach it with the same total: a Draw.
+        press_start("Goal Draw");
+        crashes_before_goal = crashes;
+        steps_with(3, 4'd10, 4'd10);
+        steps_with(1, 4'd8, 4'd8);
+        expect_goal_end("both reach 10 together", 3);
+        expect_score("both on 10: Draw", 10, 10, 3, 3, 3);
+        $display("ok   Matches won on the Points Goal, and a Draw on it");
 
         // A reset in each state of match_fsm returns everything to power-up.
         for (int target = 0; target < 8; target++) begin

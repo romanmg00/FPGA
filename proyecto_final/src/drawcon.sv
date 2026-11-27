@@ -1,6 +1,6 @@
 // Author: Roman (romanmg00). Changes by Alan (AIF31): Trails read from arena_map's port B (#40),
-// sprite colour 000 drawn as transparent (#39), Trail pulse stripes.
-// Colour of each pixel. Priority: walls, HUD, bike 1, bike 2, Trails, empty Arena.
+// sprite colour 000 drawn as transparent (#39), Trail pulse stripes, Rewards from reward_rom (G4).
+// Colour of each pixel. Priority: walls, HUD, bike 1, bike 2, Rewards, Trails, empty Arena.
 module drawcon(
     input              clk,                     // clk_pix
     input logic [10:0] curr_x, curr_y,          // current pixel
@@ -22,6 +22,7 @@ module drawcon(
     logic [11:0] color1, color2;                // sprite colour of that pixel
     logic [9:0] add1, add2;                     // bike_rom address
     logic [10:0] ahead_x;
+    logic [11:0] reward_small, reward_big;      // reward_rom words: +1 gem and +3 star at that pixel
 
     // The 32 x 32 sprite box starts 8 px up and left of the drawn 16 px square, so it is centred on it.
     assign add1_x = ahead_x + 8 - blkpos1_x;
@@ -66,6 +67,22 @@ module drawcon(
         .douta (color2)
     );
     // Sprite colour 000 is transparent; 0F0 is replaced by the Player's colour.
+
+    // Both Reward images are read for the pixel 2 ahead; its Arena code picks one when they arrive.
+    // A 16 x 16 Reward fills its Cell: the address is the pixel inside the Cell.
+    reward_rom reward_rom_small (           // words 0-255: the +1 gem (slots 0 and 1)
+        .clka (clk),
+        .ena (1'b1),
+        .addra ({1'b0, curr_y[3:0], ahead_x[3:0]}),
+        .douta (reward_small)
+    );
+
+    reward_rom reward_rom_big (             // words 256-511: the +3 star (slot 2)
+        .clka (clk),
+        .ena (1'b1),
+        .addra ({1'b1, curr_y[3:0], ahead_x[3:0]}),
+        .douta (reward_big)
+    );
 
     // ===============================================================
     // 3. Drawing: pixels assigned to wall, player 1, player 2, hud and empty arena
@@ -171,8 +188,20 @@ module drawcon(
                 end else begin
                     color = color2;
                 end
-        // Trails and empty Arena are read from arena_map's port B. The 4-bit code is:
+        // Rewards, Trails and empty Arena are read from arena_map's port B. The 4-bit code is:
         // 0 EMPTY, 1 WALL, 2 P1 Trail, 3 P1 head, 4 P2 Trail, 5 P2 head, 8-10 Rewards
+        end else if ((arena_code == 4'd8 || arena_code == 4'd9) && reward_small != 12'h000) begin
+                if(reward_small == 12'h0F0) begin  // +1 Reward yellow
+                    color = 12'hFE3;
+                end else begin
+                    color = reward_small;
+                end
+        end else if (arena_code == 4'd10 && reward_big != 12'h000) begin
+                if(reward_big == 12'h0F0) begin    // +3 Reward neon green
+                    color = 12'h3F9;
+                end else begin
+                    color = reward_big;
+                end
         end else if (arena_code == 4'd2) begin  // P1 Trail: cyan, stripe c/4 + CCC
             if (stripe) begin
                 color = 12'hCFF;

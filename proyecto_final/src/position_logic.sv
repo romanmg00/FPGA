@@ -1,5 +1,6 @@
 // Author: Roman (romanmg00): Rounds, Steps, Turns, both Bikes, the wall and Bike-to-Bike Crashes
-// Changes by Alan (AIF31): Crashes into Trails and heads (#40), both Bikes stop in a Crash (#39)
+// Changes by Alan (AIF31): Crashes into Trails and heads (#40), both Bikes stop in a Crash (#39),
+// Rewards taken and a Goal ends the Round (G4)
 // Flow: buttons -> bike_move (next Cell) -> wall, Bike and
 // Arena checks -> advance, or Crash.
 module position_logic #(
@@ -19,6 +20,7 @@ module position_logic #(
     output logic [1:0]  heading1, heading2,     // 0 Up, 1 Right, 2 Down, 3 Left
     output logic        crash1, crash2,
     output logic        crash_done,             // Crash pause
+    output logic [1:0]  reward1, reward2,       // Reward taken in this Step: 0 none, 1 slot 0, 2 slot 1, 3 slot 2
     // Arena
     output logic        load,                   // Bikes at their start
     output logic        step,                   // the Step taken; in a Crash Step no Bike moves
@@ -44,11 +46,12 @@ module position_logic #(
 
     // Round: wait for Start (load = 1), run, Crash pause, wait for Start's release.
     // After the Match's last Crash, t stays 0, so round_fsm stays in the Crash.
+    // A Match won on the Goal with no Crash also stops the Round there (match_over).
     round_fsm u_round_fsm(
         .clk(clk),
         .rst(rst),
         .s(btn[4]),
-        .c(crash),
+        .c(crash || match_over),
         .t(crash_done && !match_over),
         .load(load),
         .run(run)
@@ -156,6 +159,27 @@ module position_logic #(
                     (next_cx2 == cx1 && next_cy2  == cy1) ||
                     occupied2);
     assign crash = crash1 || crash2;
+
+    // A Bike that moves into a Reward takes it: codes 8, 9, 10 are slots 0, 1, 2.
+    // No Reward is taken in a Crash Step.
+    always_comb begin
+        reward1 = 2'd0;
+        reward2 = 2'd0;
+        if (advance1)
+            case (code_next1)
+                4'd8:    reward1 = 2'd1;
+                4'd9:    reward1 = 2'd2;
+                4'd10:   reward1 = 2'd3;
+                default: reward1 = 2'd0;
+            endcase
+        if (advance2)
+            case (code_next2)
+                4'd8:    reward2 = 2'd1;
+                4'd9:    reward2 = 2'd2;
+                4'd10:   reward2 = 2'd3;
+                default: reward2 = 2'd0;
+            endcase
+    end
 
     // Cells to pixels: x 16 is 4 zero bits on the right.
     assign blkpos1_x = {cx1, 4'b0000}; 
