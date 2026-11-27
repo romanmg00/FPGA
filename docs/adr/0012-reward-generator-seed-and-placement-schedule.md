@@ -117,8 +117,9 @@ resets both domains.
 (words 0–255, the +1 gem; 256–511, the +3 star). Both are read for the pixel 2
 ahead, like the Arena code, and the code chooses between their outputs when
 both arrive. The code selects the output, not the address, so nothing is read
-in series. `0F0` is tinted yellow (`FE3`, +1) or violet (`C8F`, +3), the
-Python viewer's synthwave Reward colours, and `000` is transparent. Layers:
+in series. `0F0` is tinted yellow (`FE3`, +1, the Python viewer's colour) or
+neon green (`3F9`, +3; the viewer's violet `C8F` was hard to see on the
+board's violet sky), and `000` is transparent. Layers:
 background, Arena, Rewards, Bikes.
 
 **Release and Goal.** A Round is released only after its Prepare has placed

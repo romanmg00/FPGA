@@ -197,8 +197,8 @@ module drawcon(
                     color = reward_small;
                 end
         end else if (arena_code == 4'd10 && reward_big != 12'h000) begin
-                if(reward_big == 12'h0F0) begin    // +3 Reward violet
-                    color = 12'hC8F;
+                if(reward_big == 12'h0F0) begin    // +3 Reward neon green
+                    color = 12'h3F9;
                 end else begin
                     color = reward_big;
                 end

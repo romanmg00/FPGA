@@ -68,8 +68,8 @@ module game_top_tb;
     initial $readmemh("sun_rows.mem", sun_rows);
     // Trail colours: each Player's colour, with pulse stripes in shine(colour)
     localparam logic [11:0] C_T1 = 12'h0DF, C_T2 = 12'hF80;
-    // Reward tints, from the Python viewer's synthwave palette: +1 (slots 0, 1) and +3 (slot 2)
-    localparam logic [11:0] C_R1 = 12'hFE3, C_R3 = 12'hC8F;
+    // Reward tints: +1 (slots 0, 1) yellow from the Python viewer; +3 (slot 2) neon green
+    localparam logic [11:0] C_R1 = 12'hFE3, C_R3 = 12'h3F9;
     // How many pixels late drawcon looks up each sprite (see above); 0 since it reads ahead.
     localparam int SPRITE_SHIFT = 0;
 
