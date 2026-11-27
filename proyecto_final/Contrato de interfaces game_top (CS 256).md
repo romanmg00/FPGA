@@ -145,7 +145,7 @@ Lo que hace cada lado (en el PR #40; Roman revisa los cambios a sus módulos):
 
 **Juego → video y display** — Video **pendiente**: el juego entrega la posición y dirección de cada moto (ya en `pos_link`, PR #48), si parpadea por el choque y los tres premios. Los anchos de los puntos deben aguantar el total del último paso sin desbordarse (por ejemplo, 39 + 3 + 3).
 
-Display (Paso 7d): `score_unit` y `seg7_view` en `clk_juego` → `seg7_link` → `seg7_driver` en `clk_pix`. Cada tick, `seg7_link` carga 20 bits (puntos 6 + 6, vidas 2 + 2, vista 2 y meta 2) y cambia un toggle; en `clk_pix` el toggle pasa por `sync_2ff` y los 20 bits se copian cuando cambia, el mismo patrón que la respuesta de la arena. El toggle y su sincronizador no se resetean. `game_top_timing.xdc` acota las dos rutas a un píxel y `build_game_top.tcl` revisa que existan.
+Display y marcador en pantalla: `score_unit`, `seg7_view`, `match_fsm` y `position_logic` en `clk_juego` → `seg7_link` → `seg7_driver` y `hud_layer` en `clk_pix`. Cada tick, `seg7_link` carga 26 bits (puntos 6 + 6, vidas 2 + 2, vista 2, meta 2, pausa 1, motos esperando Start 1, resultado 2 y quién chocó 1 + 1) y cambia un toggle; en `clk_pix` el toggle pasa por `sync_2ff` y los 26 bits se copian cuando cambia, el mismo patrón que la respuesta de la arena. Así el display de la placa y el marcador en pantalla leen la misma copia y nunca muestran valores distintos. El toggle y su sincronizador no se resetean. `game_top_timing.xdc` acota las dos rutas a un píxel y `build_game_top.tcl` revisa que cubran los 26 bits de cada lado. Quién chocó son dos registros de `game_top` en `clk_juego` (`crashed_p1`, `crashed_p2`): se ponen con `crash1`/`crash2` y se borran con `crash_done`, `restart` o el reset.
 
 ## 4. Interfaz módulo por módulo
 
@@ -155,7 +155,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | --- | --- | --- | --- |
 | Clocking Wizard + contador de `clk_juego` | Roman | `clk_pix` de 83.46 MHz; `clk_juego` de ~60 Hz desde un contador sobre `clk_pix` (ADR 0006) | Un solo Wizard en el código desde el 5 nov: testbenches y temporización ruteada pasan; falta probar el bitstream en la tarjeta |
 | `vga_out` | Roman | Contadores, pulsos de sync, blanking y `curr_x`/`curr_y` | Escrito; `vga_out_tb` pasa en XSim. Falta decidir `tick_60hz` |
-| `drawcon` | Roman | Color de cada píxel: borde, arena, premios y motos | Paredes, HUD y dos motos en colores planos (PR #25); estelas desde `arena_map` (PR #40); faltan premios, sprites y borde de 10 px |
+| `drawcon` | Roman | Color de cada píxel: borde, arena, premios y motos | Paredes, HUD y dos motos en colores planos (PR #25); estelas desde `arena_map` (PR #40); faltan premios, sprites y borde de 10 px. La franja del marcador viene de `hud_layer` (`hud_color`, PR #68) |
 | `pos_link` | Roman | Lleva a `clk_pix` las posiciones dibujadas y las direcciones de las motos, una vez por cuadro (X1) | `pos_link_tb` pasa en XSim; en `game_top`, `report_cdc` sin filas críticas y temporización ruteada cumplida (PR #48). Falta probarlo en la tarjeta |
 | `sprite_rom` | Roman | Motos de 32 × 32 (1024 palabras) y premios de 16 × 16 (256 palabras), `.coe` RGB444 | Por hacer |
 | Movimiento y choques (G1/G2) | Roman | Giros, giro pendiente, lectura de las dos celdas destino y resultado de cada moto | Dos motos con giros, giro pendiente y choques con pared y entre motos en `position_logic` (PR #25); choque con estelas por las vecinas de `arena_map` (PR #40). Faltan los premios |
@@ -167,7 +167,7 @@ Cada módulo tiene un responsable (sección 7) y los puertos de abajo son su con
 | Página web de control | Alan | WASD, Espacio/Enter por Web Serial | Por hacer |
 | `seg7_driver` | Alan | Display alternado de puntos y vidas; meta de puntos antes de una partida (ADR 0008) | `sevenseg` y `multidigit` (tarea 1 del curso, con P, L, G, A y blanco; barrido en `clk_pix` con habilitación), `seg7_view` y `seg7_driver` pasan en XSim (Pasos 7a y 7b). En `game_top` desde el Paso 7d, con `seg7_link` como cruce a `clk_pix`; `game_top_tb` lee los dígitos de los pines. Probado en la tarjeta el 17 nov |
 | `game_top` + XDC | Alan | Instancia y conecta todo; relojes, reset, pines, automatización del build | Conecta el Wizard, el contador de `clk_juego`, los sincronizadores, las motos, la arena, la partida y el marcador; `build_game_top.tcl` corre las pruebas (`quick`, `sim`) y construye el bitstream (`full`). Faltan la UART y los LED |
-| Marcador en pantalla (`texto_capa`, `font_rom`) | Roman | Puntos y vidas en la franja de 64 px, con texto de 32 px | Después del núcleo (*Should*) |
+| Marcador en pantalla (`hud_layer`) | Roman | Puntos y vidas de cada jugador en la franja de 64 px, con dígitos de 32 px, y un ícono de play o corona al centro | Escrito por Alan y aprobado por Roman ([ADR 0014](../docs/adr/0014-hud-segment-digits-icon-rom-and-scoreboard-crossing.md), PR #68): `hud_layer_tb` y `game_top_tb` revisan cada píxel de la franja; probado en la tarjeta el 25 y 26 de noviembre |
 
 Los testbenches oficiales de cada módulo los escribe la otra persona (sección 7).
 
@@ -189,6 +189,24 @@ module vga_out (
 Un cuadro dura 1680 × 828 = 1,391,040 ciclos de `clk_pix` (~60 Hz). Con el ADR 0002 el reloj del juego sale del divisor, así que `tick_60hz` ya no mueve el juego; hay que decidir si se queda como señal de video (por ejemplo, para animaciones de `drawcon`) o se quita. Hoy vale 0 en `vga_out.sv`.
 
 **`drawcon`** (Roman). Sigue el dibujo combinacional del handout, con coordenadas alineadas a la salida. Capas, de abajo hacia arriba: fondo, arena (paredes y estelas en el color de su jugador), premios, motos y, más adelante, el marcador. El **borde blanco de 10 px va encima de todo**: ninguna capa lo tapa. Las paredes lo cubren en la arena, y una moto de 32 × 32 centrada en una celda de la orilla (por ejemplo `cx = 1`) se sale hasta los píxeles `x = 8..9`; esa parte del sprite se recorta. Una moto que chocó parpadea en su última celda válida durante la pantalla de choque. Los puertos hacia la arena y el juego dependen de la sección 3 (**pendiente**).
+
+**`hud_layer`** (Roman; escrito por Alan, ADR 0014). En `clk_pix`. Dibuja la franja de 64 px como `prototipos/tron_fpga/juego/hud.py`: por jugador, dos dígitos de 7 segmentos de 16 × 32 px (el glifo de 8 × 16 de `font.py` a escala 2) y tres diamantes de vida de 16 × 16, huecos al perderse; P2 en espejo. P1 en `0DF` (dígitos en x 24 y 44, vidas en 68, 88 y 108) y P2 en `F80` (vidas en 1156, 1176 y 1196, dígitos en 1220 y 1240); dígitos en y 21, íconos en y 29; fondo `000`. Al centro (x 632), un "play" blanco que parpadea mientras las motos esperan Start y, al terminar la partida y su pausa de choque, una corona del color del ganador (blanca si hay empate). Durante la pausa de choque parpadean los dígitos del que chocó. Cada parpadeo es de 16 cuadros encendido y 16 apagado, desde el inicio de cada fase, y se detiene con la pausa (SW0). No hay `font_rom`: los segmentos salen de `sevenseg` (tarea 1) y de siete comparaciones; los íconos, de `sprites/hud_icons.mem` (64 palabras de 16 bits, generado desde el visor). El color de cada píxel se calcula para `curr_x + 1` y se registra. Copia sus entradas una vez por cuadro, en `curr_x == 0, curr_y == 800`, como `pos_link`, y en cada ciclo de `rst`.
+
+```systemverilog
+module hud_layer (
+    input  logic        clk,                    // clk_pix
+    input  logic        rst,                    // rst_pix
+    input  logic [10:0] curr_x, curr_y,
+    // de seg7_link
+    input  logic        pause,                  // SW0
+    input  logic [5:0]  points_p1, points_p2,
+    input  logic [1:0]  lives_p1, lives_p2,
+    input  logic        waiting_start,          // motos en la salida, esperando Start
+    input  logic [1:0]  result,                 // 0 partida en curso, 1 gana P1, 2 gana P2, 3 empate
+    input  logic        crashed_p1, crashed_p2, // hasta que termina la pausa de choque
+    output logic [11:0] hud_color               // color de (curr_x, curr_y); drawcon lo usa si curr_y < 64
+);
+```
 
 **`pos_link`** (Roman, X1, [issue #30](https://github.com/romanmg00/FPGA/issues/30)). Lleva a `clk_pix` las posiciones dibujadas (`glide*` de `bike_glide`) y las direcciones (`heading*` de `position_logic`): 48 bits. En `clk_juego`, `pos_tgl` se invierte en cada tick. En `clk_pix`, pasa por `sync_2ff`; cuando cambia, los 48 bits se copian a `pend*`, y en `curr_y == 800` pasan a `draw*`, que es lo que lee `drawcon`. Así todo un cuadro se dibuja con las mismas posiciones (sin cortes) y nunca con bits mezclados. Después de un reset, las posiciones de salida llegan a `drawcon` en hasta dos cuadros. `rst_pix` pone `pend*` y `draw*` en 0, así que hasta la primera copia `drawcon` recibe 0, nunca un valor indefinido. La copia a `pend*` supone que los 48 bits cambian solo en el flanco de `clk_juego` que invierte `pos_tgl` y quedan quietos todo el tick (~16.7 ms), mucho más que los 3 a 4 ciclos de `clk_pix` que tarda el toggle en cruzar.
 
@@ -402,7 +420,7 @@ El equipo es **Roman y Alan**. Los dos diseñan módulos y escriben testbenches;
 
 | Persona | Diseña |
 | --- | --- |
-| **Roman** | Clocking Wizard y video (`vga_out`), `drawcon`, ROM de sprites y, después, el marcador en pantalla; en el juego, movimiento, giros y choques (G1/G2) |
+| **Roman** | Clocking Wizard y video (`vga_out`), `drawcon`, ROM de sprites y el marcador en pantalla (`hud_layer`, escrito por Alan en el PR #68 y revisado por Roman); en el juego, movimiento, giros y choques (G1/G2) |
 | **Alan** | Rondas, partida, vidas y puntos (G3/G5); arena y memoria rápida, colocación de premios (A1/A2/G4); botones, UART y página web, display; `game_top`, restricciones y automatización del build; modelo de reglas compartido y adaptadores de los visores |
 | **Los dos** | Este contrato, el límite entre juego, servicio y dibujo, integración y pruebas en la placa, testbenches oficiales de los bloques del otro, revisión de timing, CDC y DRC, y la evidencia de cada reporte |
 

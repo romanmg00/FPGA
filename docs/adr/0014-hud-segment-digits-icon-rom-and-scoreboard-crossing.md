@@ -1,6 +1,6 @@
 ---
 title: HUD drawn from segment rectangles and a 64-word icon ROM, fed by the Scoreboard's crossing
-status: proposed
+status: accepted
 created_at: "2026-11-26"
 ---
 
@@ -10,6 +10,9 @@ created_at: "2026-11-26"
 > is Roman's (contract §4, "Marcador en pantalla (`texto_capa`, `font_rom`)"),
 > so this waits for Roman's review. It departs from that row's module names and
 > its font ROM.
+>
+> Accepted by Roman on 27 November 2026: the look, the departures from the
+> contract row, and the contract text, which Roman's PR #68 commit applies.
 
 The [Agreed Specification](../decisions/CS-256%20Tron%20Agreed%20Specification%202026-10-20.md)
 reserves the top 64 px for the HUD and says to "start with 32 px text", kept
