@@ -161,7 +161,7 @@ module position_logic #(
     assign crash = crash1 || crash2;
 
     // A Bike that moves into a Reward takes it: codes 8, 9, 10 are slots 0, 1, 2.
-    // In a Crash Step no Bike moves, so no Reward is taken (ADR 0011).
+    // No Reward is taken in a Crash Step.
     always_comb begin
         reward1 = 2'd0;
         reward2 = 2'd0;
