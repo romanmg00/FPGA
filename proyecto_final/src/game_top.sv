@@ -110,11 +110,7 @@ module game_top #(
     // 3. Match and score (G3/G5)
     // ===============================================================
     logic        crash1, crash2, crash_done;    // from position_logic (section 4)
-    // Reward slot each Bike takes in a Step (0 none, 1-3 slots 0-2). 0 until position_logic
-    // reports it (#61): a Bike drives over a Reward for no Points, and its slot stays empty.
-    logic [1:0]  reward1, reward2;
-    assign reward1 = 2'd0;
-    assign reward2 = 2'd0;
+    logic [1:0]  reward1, reward2;              // from position_logic: 0 none, 1-3 slot 0-2 taken
     logic        codes_valid;                   // from arena_link (section 5)
     logic        waiting, new_match, restart, round_start;  // match_fsm -> position_logic, score_unit, seg7_view
     logic        waiting_start;                 // match_fsm -> seg7_link
@@ -186,6 +182,8 @@ module game_top #(
         .crash1(crash1),
         .crash2(crash2),
         .crash_done(crash_done),
+        .reward1(reward1),
+        .reward2(reward2),
         // Arena
         .load(load),
         .step(step),

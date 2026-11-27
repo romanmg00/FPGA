@@ -1,5 +1,6 @@
 // Author: Roman (romanmg00), in a bench file Alan (AIF31) started for the moving block (#12).
-// Changes by Alan (AIF31): Arena codes (#40) and Crash Step checks (ADR 0011, #39).
+// Changes by Alan (AIF31): Arena codes (#40), Crash Step checks (ADR 0011, #39), Rewards taken
+// and the Goal ending a Round (G4, cases 14-16).
 // Self-checking testbench for position_logic with two bikes: round_fsm, step counter, crash
 // timer, both bike_move instances, the wall check and the bike-to-bike crash rules together.
 // It drives clk, the buttons and turn_req2 directly, with no clock divider or Clocking Wizard:
@@ -29,6 +30,8 @@ module position_logic_tb;
     logic [3:0]  turn2;
     logic        pause, mo;       // SW0 and match_over, shared by both DUTs
     logic        c1, c2, cd;      // dut's crash1, crash2 and crash_done ports
+    logic [1:0]  w1, w2;          // dut's reward1 and reward2 ports
+    logic [3:0]  c1r = 4'd0, c2l = 4'd0;   // codes of the Cells right of P1 and left of P2
     logic [10:0] p1x, p1y, p2x, p2y;
     logic [1:0]  h1, h2;
     logic [10:0] b1x, b1y, b2x, b2y;
@@ -41,11 +44,12 @@ module position_logic_tb;
         .pause(pause), .match_over(mo),
         .blkpos1_x(p1x), .blkpos1_y(p1y), .blkpos2_x(p2x), .blkpos2_y(p2y),
         .heading1(h1), .heading2(h2),
-        .crash1(c1), .crash2(c2), .crash_done(cd),
-        // Arena codes all empty and valid: the bikes behave as before the Arena
+        .crash1(c1), .crash2(c2), .crash_done(cd), .reward1(w1), .reward2(w2),
+        // Arena codes empty and valid (the bikes behave as before the Arena), except the Cells
+        // ahead of the bikes on their starting row in cases 14-15
         .load(), .step(),
-        .code1_u(4'd0), .code1_r(4'd0), .code1_d(4'd0), .code1_l(4'd0),
-        .code2_u(4'd0), .code2_r(4'd0), .code2_d(4'd0), .code2_l(4'd0),
+        .code1_u(4'd0), .code1_r(c1r), .code1_d(4'd0), .code1_l(4'd0),
+        .code2_u(4'd0), .code2_r(4'd0), .code2_d(4'd0), .code2_l(c2l),
         .codes_valid(1'b1)
     );
 
@@ -54,7 +58,7 @@ module position_logic_tb;
         .pause(pause), .match_over(mo),
         .blkpos1_x(b1x), .blkpos1_y(b1y), .blkpos2_x(b2x), .blkpos2_y(b2y),
         .heading1(bh1), .heading2(bh2),
-        .crash1(), .crash2(), .crash_done(),
+        .crash1(), .crash2(), .crash_done(), .reward1(), .reward2(),
         // Arena codes all empty and valid: the bikes behave as before the Arena
         .load(), .step(),
         .code1_u(4'd0), .code1_r(4'd0), .code1_d(4'd0), .code1_l(4'd0),
@@ -254,6 +258,58 @@ module position_logic_tb;
         ticks(0, B_NADA, K_NADA, 2);
         ticks(0, B_C, K_NADA, 1);     revisa("13 Start de la partida nueva", 20, 27, 1, 59, 27, 3, 1);
         pasos(1, B_NADA, K_NADA);     revisa("13 avanzan de nuevo", 21, 27, 1, 58, 27, 3, 1);
+
+        // Case 14: a bike that moves into a Reward reports its slot on the step tick (codes 8,
+        // 9, 10 are slots 0, 1, 2: reward 1, 2, 3); nothing on the other ticks.
+        nueva_ronda();
+        c1r = 4'd9; c2l = 4'd10;
+        ticks(0, B_NADA, K_NADA, STEP - 2);
+        if (w1 !== 2'd0 || w2 !== 2'd0) begin
+            $display("ERROR 14: reward1=%0d reward2=%0d before the step", w1, w2);
+            errores++;
+        end
+        ticks(0, B_NADA, K_NADA, 1);
+        if (w1 !== 2'd2 || w2 !== 2'd3) begin
+            $display("ERROR 14: reward1=%0d reward2=%0d on the step, se esperaba 2 y 3", w1, w2);
+            errores++;
+        end
+        c1r = 4'd8; c2l = 4'd0;
+        #1;
+        if (w1 !== 2'd1 || w2 !== 2'd0) begin
+            $display("ERROR 14: reward1=%0d reward2=%0d with codes 8 and 0, se esperaba 1 y 0", w1, w2);
+            errores++;
+        end
+        ticks(0, B_NADA, K_NADA, 1);  revisa("14 entran a los premios", 21, 27, 1, 58, 27, 3, 1);
+        if (w1 !== 2'd0 || w2 !== 2'd0) begin
+            $display("ERROR 14: reward1=%0d reward2=%0d after the step", w1, w2);
+            errores++;
+        end
+
+        // Case 15: a Crash Step takes no Reward (ADR 0011): P2 crashes into a Trail (code 4)
+        // while a Reward is ahead of P1; neither moves and reward1 stays 0.
+        c1r = 4'd10; c2l = 4'd4;
+        ticks(0, B_NADA, K_NADA, STEP - 1);  revisa_choque("15 choca solo P2", 0, 1);
+        if (w1 !== 2'd0 || w2 !== 2'd0) begin
+            $display("ERROR 15: reward1=%0d reward2=%0d in a Crash Step, se esperaba 0", w1, w2);
+            errores++;
+        end
+        ticks(0, B_NADA, K_NADA, 1);  revisa("15 nadie se mueve", 21, 27, 1, 58, 27, 3, 0);
+        c1r = 4'd0; c2l = 4'd0;
+
+        // Case 16: match_over while the round runs (a Goal with no Crash) stops it like a Crash:
+        // no more steps, no crash pulse, and round_fsm stays out of the round until a reset.
+        nueva_ronda();
+        pasos(2, B_NADA, K_NADA);     revisa("16 dos pasos", 22, 27, 1, 57, 27, 3, 1);
+        choques = 0;
+        mo = 1'b1;
+        ticks(0, B_NADA, K_NADA, 1);  revisa("16 meta: la ronda se detiene", 22, 27, 1, 57, 27, 3, 0);
+        ticks(0, B_C, K_NADA, 300);   revisa("16 sigue detenida, Start no hace nada", 22, 27, 1, 57, 27, 3, 0);
+        if (choques !== 0) begin
+            $display("ERROR 16: %0d pulsos de crash despues de la meta", choques);
+            errores++;
+        end
+        mo = 1'b0;
+        ticks(1, B_NADA, K_NADA, 1);  revisa("16 restart: a la salida", 20, 27, 1, 59, 27, 3, 0);
 
         if (errores == 0) $display("PRUEBAS OK");
         else              $display("FALLARON %0d revisiones", errores);
