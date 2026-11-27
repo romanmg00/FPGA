@@ -44,6 +44,8 @@
 // Matches on clk_juego alone) and pause checks SW0 and a Start held through CPU_RESETN.
 // uart sends P2's keys as 8N1 frames on the uart_rx pin at 115200 baud: Enter starts the
 // Round, W and D turn P2, a reversal is ignored, and bytes that are not commands do nothing.
+// HUD (hud_layer): every band pixel is predicted from juego/hud.py and font.py, with the
+// values seg7_link copies once per frame; check_frame ties them to score_unit and match_fsm.
 // Each scenario starts from power-up, so the build runs them at the same time, each in its
 // own simulator: xsim game_top_tb -runall -testplusarg scenario=steps
 // Without +scenario they all run one after another in one simulation.
@@ -61,11 +63,16 @@ module game_top_tb;
     localparam int P1_H0 = 1, P2_H0 = 3;
     // Colours from the specification and the Python prototype, not read from drawcon. In the
     // sprites (tools/png2coe.py), C_KEY is drawn in the Player's colour and C_CLEAR is transparent.
-    localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h444, C_P1 = 12'h0DF,
+    localparam logic [11:0] C_WALL = 12'hFFF, C_HUD = 12'h000, C_P1 = 12'h0DF,
                             C_P2 = 12'hF80, C_KEY = 12'h0F0, C_CLEAR = 12'h000;
     // The sun's rows (build_game_top.tcl copies sprites/sun_rows.mem into each bench folder).
     logic [20:0] sun_rows [0:320];
     initial $readmemh("sun_rows.mem", sun_rows);
+    // The HUD's 16 x 16 icons from juego/font.py ICONS (proyecto_final/prototypes/core_blocks/tools/
+    // make_hud_icons.py): word {icon, row}, bit c = column c; icon 0 a Life, 1 a lost Life,
+    // 2 play, 3 crown.
+    logic [15:0] hud_icons [0:63];
+    initial $readmemh("hud_icons.mem", hud_icons);
     // Trail colours: each Player's colour, with pulse stripes in shine(colour)
     localparam logic [11:0] C_T1 = 12'h0DF, C_T2 = 12'hF80;
     // Reward tints: +1 (slots 0, 1) yellow from the Python viewer; +3 (slot 2) neon green
@@ -118,6 +125,34 @@ module game_top_tb;
         e_addr[1] <= e_addr[0];
         e_addr[0] <= dut.arena_addr;
     end
+    // What the band shows this frame: seg7_link's clk_pix copy, taken at curr_x = 0,
+    // curr_y = 800 and in every cycle of rst_pix, and hud.py's phase (0 playing, 1 IDLE or
+    // READY, 2 CRASH, 3 MATCH_OVER) with its ticks in frames, held while SW0 pauses the game.
+    // score_changed: when score_unit's values or match_fsm's state last changed. last_crash:
+    // {P2, P1} of the last Crash.
+    logic [5:0] hud_pts1 = 6'd0, hud_pts2 = 6'd0;
+    logic [1:0] hud_lives1 = 2'd0, hud_lives2 = 2'd0, hud_result = 2'd0, hud_crashed = 2'd0;
+    int         hud_phase = -1, hud_ticks = 0;
+    realtime    score_changed = 0;
+    logic [1:0] last_crash = 2'd0;
+    always @(posedge dut.clk_pix)
+        if (dut.rst_pix || (dut.curr_x == 11'd0 && dut.curr_y == 11'd800)) begin
+            int phase;
+            phase = dut.waiting_start_pix ? 1 : (dut.crashed_p1_pix || dut.crashed_p2_pix) ? 2 :
+                    (dut.result_pix != 2'd0) ? 3 : 0;
+            hud_pts1    <= dut.points_p1_pix;
+            hud_pts2    <= dut.points_p2_pix;
+            hud_lives1  <= dut.lives_p1_pix;
+            hud_lives2  <= dut.lives_p2_pix;
+            hud_result  <= dut.result_pix;
+            hud_crashed <= {dut.crashed_p2_pix, dut.crashed_p1_pix};
+            hud_ticks   <= (dut.rst_pix || phase != hud_phase) ? 0 : dut.pause_pix ? hud_ticks : hud_ticks + 1;
+            hud_phase   <= phase;
+        end
+    always @(dut.points_p1, dut.points_p2, dut.lives_p1, dut.lives_p2, dut.u_score_unit.result, dut.u_match_fsm.state)
+        score_changed = $realtime;
+    always @(posedge dut.clk_juego)
+        if (dut.crash1 || dut.crash2) last_crash <= {dut.crash2, dut.crash1};
     // Arena model: what arena_map must hold after the last step's writes.
     logic [3:0] arena_want [0:8191];
 
@@ -228,6 +263,88 @@ module game_top_tb;
         endcase
     endfunction
 
+    // juego/font.py _SEGMENTS: does segment s of the 8 x 16 glyph cover column c, row r?
+    // Rectangles {col0, row0, col1, row1} with exclusive ends.
+    function automatic bit seg_covers(byte s, int c, int r);
+        case (s)
+            "a":     return c >= 1 && c < 7 && r >= 0  && r < 2;
+            "b":     return c >= 6 && c < 8 && r >= 1  && r < 8;
+            "c":     return c >= 6 && c < 8 && r >= 8  && r < 15;
+            "d":     return c >= 1 && c < 7 && r >= 14 && r < 16;
+            "e":     return c >= 0 && c < 2 && r >= 8  && r < 15;
+            "f":     return c >= 0 && c < 2 && r >= 1  && r < 8;
+            default: return c >= 1 && c < 7 && r >= 7  && r < 9;    // g
+        endcase
+    endfunction
+
+    // juego/font.py _DIGIT_SEGMENTS: is glyph pixel (c, r) lit in digit d?
+    function automatic bit digit_lit(int d, int c, int r);
+        string segs;
+        case (d)
+            0: segs = "abcdef";   1: segs = "bc";       2: segs = "abged";   3: segs = "abgcd";
+            4: segs = "fgbc";     5: segs = "afgcd";    6: segs = "afgedc";  7: segs = "abc";
+            8: segs = "abcdefg";  default: segs = "abcdfg";
+        endcase
+        for (int i = 0; i < segs.len(); i++)
+            if (seg_covers(segs[i], c, r)) return 1'b1;
+        return 1'b0;
+    endfunction
+
+    // hud.py _blink_on: shown in the first 16 ticks of every 32.
+    function automatic bit blink_on(int ticks);
+        return (ticks / 16) % 2 == 0;
+    endfunction
+
+    // The band pixel (x, y < 64) for this frame's values, from juego/hud.py layout() with
+    // BORDER_PX 10, GAP 4, 16 x 16 icons and the 8 x 16 glyph at scale 2 (16 x 32). P1's group
+    // starts at x 24: two digits, 2 GAP, three Lives. P2's is mirrored and ends at x 1256:
+    // Lives, 2 GAP, digits. Life k is full while k < Lives. The state icon is centred: x 1280 / 2
+    // - 8. draw() and _state_icon(): a crashed Player's digits blink in CRASH; play blinks in IDLE
+    // and READY, in hud_fg; the crown in MATCH_OVER is the winner's colour, hud_fg for a Draw.
+    function automatic logic [11:0] hud_colour(int x, int y);
+        int dig_y  = 10 + (64 - 10 - 32) / 2;          // 21
+        int icon_y = dig_y + (32 - 16) / 2;            // 29
+        int pts_w  = 2 * 16 + 4;
+        int lives_w = 3 * 16 + 2 * 4;
+        int p2_x0  = 1280 - 24 - (pts_w + 2 * 4 + lives_w);
+        int state_x = 1280 / 2 - 16 / 2;               // 632
+        int dig_x [0:1], life_x [0:1], pts [0:1], lives [0:1];
+        logic [11:0] col [0:1];
+        int icon;                                      // state icon: 2 play, 3 crown, -1 none
+        logic [11:0] icon_col;
+        dig_x  = '{24, p2_x0 + lives_w + 2 * 4};       // 24, 1220
+        life_x = '{24 + pts_w + 2 * 4, p2_x0};         // 68, 1156
+        pts    = '{hud_pts1, hud_pts2};
+        lives  = '{hud_lives1, hud_lives2};
+        col    = '{C_P1, C_P2};
+        for (int p = 0; p < 2; p++) begin
+            for (int d = 0; d < 2; d++) begin
+                int bx = dig_x[p] + d * (16 + 4);
+                if (hud_phase == 2 && hud_crashed[p] && !blink_on(hud_ticks)) continue;
+                if (x >= bx && x < bx + 16 && y >= dig_y && y < dig_y + 32 &&
+                    digit_lit(d == 0 ? pts[p] / 10 : pts[p] % 10, (x - bx) / 2, (y - dig_y) / 2))
+                    return col[p];
+            end
+            for (int k = 0; k < 3; k++) begin
+                int bx = life_x[p] + k * (16 + 4);
+                if (x >= bx && x < bx + 16 && y >= icon_y && y < icon_y + 16 &&
+                    hud_icons[(k < lives[p] ? 0 : 16) + y - icon_y][x - bx])
+                    return col[p];
+            end
+        end
+        icon = -1;
+        icon_col = 12'hFFF;
+        if (hud_phase == 1 && blink_on(hud_ticks)) icon = 2;
+        if (hud_phase == 3) begin
+            icon = 3;
+            icon_col = (hud_result == 2'd1) ? C_P1 : (hud_result == 2'd2) ? C_P2 : 12'hFFF;
+        end
+        if (icon >= 0 && x >= state_x && x < state_x + 16 && y >= icon_y && y < icon_y + 16 &&
+            hud_icons[16 * icon + y - icon_y][x - state_x])
+            return icon_col;
+        return C_HUD;
+    endfunction
+
     // Pulse stripe colour (juego/fx.py shine): c/4 + CCC per channel.
     function automatic logic [11:0] shine(logic [11:0] c);
         return ((c >> 2) & 12'h333) + 12'hCCC;
@@ -245,7 +362,7 @@ module game_top_tb;
         logic [11:0] w;
         logic [20:0] w21;
         if (y >= 64 && (x < 16 || x >= 1264 || y < 80 || y >= 784)) return C_WALL;
-        if (y < 64) return C_HUD;
+        if (y < 64) return hud_colour(x, y);
         if (x >= b1x - 8 && x < b1x + 24 && y >= b1y - 8 && y < b1y + 24) begin
             w = sprite_word(x - SPRITE_SHIFT, y, s1x, s1y, s1h);
             if (w != C_CLEAR) return w == C_KEY ? C_P1 : w;
@@ -303,6 +420,28 @@ module game_top_tb;
             end
         join_any
         disable fork;
+        if ($realtime - score_changed > 40ms &&
+            {hud_pts1, hud_pts2, hud_lives1, hud_lives2} !== {dut.points_p1, dut.points_p2, dut.lives_p1, dut.lives_p2})
+            fail($sformatf("%s: the band shows Points %0d-%0d, Lives %0d-%0d; score_unit has %0d-%0d, %0d-%0d",
+                           what, hud_pts1, hud_pts2, hud_lives1, hud_lives2,
+                           dut.points_p1, dut.points_p2, dut.lives_p1, dut.lives_p2));
+        // match_fsm: the Bikes wait for Start in 0 s_idle and 3 s_ready; 2 s_crash; 4 s_match.
+        if ($realtime - score_changed > 40ms) begin
+            int want_phase;
+            case (dut.u_match_fsm.state)
+                3'd0:    want_phase = 1;
+                3'd3:    want_phase = 1;
+                3'd2:    want_phase = 2;
+                3'd4:    want_phase = 3;
+                default: want_phase = 0;
+            endcase
+            if (hud_phase != want_phase)
+                fail($sformatf("%s: the band is in phase %0d, match_fsm in state %0d", what, hud_phase, dut.u_match_fsm.state));
+            if (hud_phase == 2 && hud_crashed !== last_crash)
+                fail($sformatf("%s: the band blinks Players %b, the last Crash was %b", what, hud_crashed, last_crash));
+            if (hud_result !== dut.u_score_unit.result)
+                fail($sformatf("%s: the band has result %0d, score_unit %0d", what, hud_result, dut.u_score_unit.result));
+        end
         @(negedge dut.clk_pix);
         t0 = $realtime;
         line_seen = 1'b0;
@@ -346,7 +485,7 @@ module game_top_tb;
                         end
                         want = line_col;
                     end
-                    if (want == C_T1 || want == C_T2) trail_px++;
+                    if (y >= 64 && (want == C_T1 || want == C_T2)) trail_px++;
                     if (want == shine(C_T1) || want == shine(C_T2)) stripe_px++;
                 end
                 if ({r, g, b} !== want)
@@ -366,6 +505,24 @@ module game_top_tb;
     // Checks the frame at the bikes' drawn positions, which may be sliding.
     task automatic check_frame_here(string what);
         check_frame(what, 0, 0, 0, 0, 1'b1);
+    endtask
+
+    // 40 ms on (a clk_juego tick through seg7_link, then a frame), the band shows these Points
+    // and Lives, and the whole frame is right.
+    task automatic expect_hud(string what, int pts1, int pts2, int lives1, int lives2);
+        #40ms;
+        if (hud_pts1 != pts1 || hud_pts2 != pts2 || hud_lives1 != lives1 || hud_lives2 != lives2)
+            fail($sformatf("%s: the band shows Points %0d-%0d, Lives %0d-%0d; expected %0d-%0d, %0d-%0d",
+                           what, hud_pts1, hud_pts2, hud_lives1, hud_lives2, pts1, pts2, lives1, lives2));
+        check_frame_here(what);
+        $display("ok   %s: the band shows Points %0d-%0d, Lives %0d-%0d", what, pts1, pts2, lives1, lives2);
+    endtask
+
+    // Checks the next frame in which the blinking items of this phase are off (ticks 16-29).
+    task automatic expect_blink_off(string what, int phase);
+        wait (hud_phase == phase && hud_ticks % 32 >= 16 && hud_ticks % 32 < 30);
+        check_frame_here(what);
+        $display("ok   %s: phase %0d, frame %0d of the phase", what, phase, hud_ticks);
     endtask
 
     // ADR 0010: after a one-Cell step the drawn position has covered round(16 t / STEP) px t ticks later.
@@ -563,8 +720,19 @@ module game_top_tb;
     task automatic idle();
         #300ms;
         expect_at("no Start for 300 ms", P1_X0, P1_Y0, P2_X0, P2_Y0);
+        expect_blink_off("waiting for Start: the play icon blinks off", 1);
         sw = 16'h0FFF; #1ms;
         check_frame("switches up: same colours", P1_X0, P1_Y0, P2_X0, P2_Y0);
+        #80ms;                                       // Pause reaches the HUD through seg7_link
+        begin
+            int         t0 = hud_ticks;
+            logic [4:0] b0 = dut.u_hud_layer.blink;
+            #100ms;
+            if (hud_ticks != t0 || dut.u_hud_layer.blink !== b0)
+                fail($sformatf("SW0 up: the play icon's blink moved from frame %0d to %0d (hud_layer %0d to %0d)",
+                               t0, hud_ticks, b0, dut.u_hud_layer.blink));
+        end
+        $display("ok   SW0 up: the play icon's blink holds");
     endtask
 
     // BTNC starts the Round; both bikes move one cell on the same edge, every STEP ticks, and
@@ -642,6 +810,8 @@ module game_top_tb;
         if (!crashed) fail("P1 did not crash into the top Wall");
         check_frame_here("P1 crashed into the top Wall");
         arena_check("P1 crashed into the top Wall");
+        expect_hud("P1 crashed: P1 loses a Life, P2 +3", 0, 3, 2, 3);
+        expect_blink_off("Crash pause: P1's digits blink off", 2);
     endtask
 
     // One Match to its end, read from the Scoreboard pins. P1's Lives are set to 1, so its
@@ -682,6 +852,10 @@ module game_top_tb;
         if (dut.u_match_fsm.state !== 3'd4) fail($sformatf("match_fsm in state %0d, expected 4 (G_MATCH)", dut.u_match_fsm.state));
         if (prepares != prep) fail("a Prepare at the end of the Match");
         arena_check("Match over: the Arena is kept");
+        expect_hud("Match over: P1 has no Lives, P2 +3", 0, 3, 0, 3);
+        if (hud_phase != 3 || hud_result != 2'd2)
+            fail($sformatf("Match over: the band is in phase %0d with result %0d, expected the crown of P2", hud_phase, hud_result));
+        $display("ok   Match over: P2's crown");
         force dut.u_seg7_view.view = 2'd1;           // Lives, without waiting 3 s for the view
         wait_ticks(2);
         expect_scoreboard("Match over, Lives view", "L203L100");
@@ -829,6 +1003,7 @@ module game_top_tb;
         if (dut.heading2 !== 2'd1) fail($sformatf("after the Crash P2's Heading is %0d, expected 1 (right)", dut.heading2));
         check_frame_here("P2 crashed under its own Trail");
         arena_check("after the Crash");
+        expect_hud("P2 crashed: P2 loses a Life, P1 +3", 3, 0, 3, 2);
         $display("ok   w under its own Trail: P2 Crashes, and its sprite still faces right");
     endtask
 

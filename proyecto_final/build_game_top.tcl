@@ -26,8 +26,9 @@ proc start_bench {name top marker files {xsim_args ""}} {
     set dir $out/tests/$name
     file delete -force $dir
     file mkdir $dir
-    # $readmemh files are opened from the run folder: drawcon's sun table (sprites/sun_rows.mem).
-    file copy $::here/sprites/sun_rows.mem $dir
+    # $readmemh files are opened from the run folder: drawcon's sun table (sprites/sun_rows.mem)
+    # and hud_layer's icons (sprites/hud_icons.mem).
+    file copy $::here/sprites/sun_rows.mem $::here/sprites/hud_icons.mem $dir
     set quoted {}
     foreach file $files {lappend quoted "'$file'"}
     set run "xvlog -sv [join $quoted] && xelab -debug off --timescale 1ns/1ps $top -s $top && xsim $top -runall -log sim.log $xsim_args"
@@ -76,7 +77,8 @@ set movement [list $src/round_fsm.sv $src/step_counter.sv $src/bike_move.sv $src
 set design [concat [list $src/counters.sv $src/vga_out.sv $src/drawcon.sv $src/sync_2ff.sv \
     $src/board_reset_sync.sv $src/arena_map.sv $src/arena_ctrl.sv $src/arena_link.sv] $movement [list $src/bike_glide.sv \
     $src/pos_link.sv $src/match_fsm.sv $src/score_unit.sv $src/seg7_view.sv $src/seg7_link.sv $src/seg7_driver.sv \
-    $src/multidigit.sv $src/sevenseg.sv $src/uart_rx.sv $src/uart_decode.sv $src/uart_link.sv $src/game_top.sv]]
+    $src/multidigit.sv $src/sevenseg.sv $src/uart_rx.sv $src/uart_decode.sv $src/uart_link.sv $src/hud_layer.sv \
+    $src/game_top.sv]]
 check_no_handwritten_ip $design
 
 # CLK_JUEGO_N vive en game_top.sv y 2 * N en game_top_timing.xdc, porque el XDC no puede
@@ -138,6 +140,8 @@ start_bench match_fsm_tb match_fsm_tb "PASS match_fsm_tb" [list $tb/match_fsm_tb
 start_bench score_unit_tb score_unit_tb "PASS score_unit_tb" [list $tb/score_unit_tb.sv $src/score_unit.sv]
 # Scoreboard crossing (Paso 7d): seg7_link alone, clk_juego and clk_pix unrelated.
 start_bench seg7_link_tb seg7_link_tb "PASS seg7_link_tb" [list $tb/seg7_link_tb.sv $src/seg7_link.sv $src/sync_2ff.sv]
+# HUD: hud_layer alone, every pixel of the band.
+start_bench hud_layer_tb hud_layer_tb "PASS hud_layer_tb" [list $tb/hud_layer_tb.sv $src/hud_layer.sv $src/sevenseg.sv]
 # The Match on clk_juego alone: match_fsm, score_unit and position_logic, as wired in game_top.
 start_bench match_tb match_tb "PASS match_tb" [concat [list $tb/match_tb.sv $src/match_fsm.sv $src/score_unit.sv] $movement]
 # P2's input over UART (ADR 0013): the receiver behind sync_2ff, the byte decoder, and the
@@ -239,6 +243,8 @@ foreach {key want} {Memory_Type Single_Port_ROM Write_Depth_A 512 Write_Width_A 
 read_verilog -sv $design
 # drawcon's $readmemh("sun_rows.mem"): the striped sun's rows, one 21-bit word each.
 read_mem $here/sprites/sun_rows.mem
+# hud_layer's $readmemh("hud_icons.mem"): 16 x 16 icons, one 16-bit word per row.
+read_mem $here/sprites/hud_icons.mem
 set_property top game_top [current_fileset]
 # Lo que se sintetiza: exactamente los .sv de src/, ni testbenches, ni modelos de
 # sim_clocks/ o sim_models/, ni prototipos. Las IP (clk_wiz_0, bike_rom, reward_rom) van aparte, como .xci.
@@ -307,15 +313,14 @@ if {[llength $pend_cells] == 0} {
 if {[llength $tgl_cells] != 2} {
     error "game_top_timing.xdc: el set_max_delay del toggle de pos_link deberia encontrar pos_tgl_reg y meta_reg, no [llength $tgl_cells] celdas"
 }
-# Los dos set_max_delay del cruce del marcador (seg7_link): cada lado debe existir, para que un
-# cambio de nombres no deje el cruce sin restriccion. Los numeros quedan en seg7_link_cells.txt.
+# Los dos set_max_delay de seg7_link cubren sus 26 bits. Los numeros quedan en seg7_link_cells.txt.
 set link_report {}
-foreach {what pattern} {toggle u_seg7_link/tick_toggle_reg sync u_seg7_link/u_sync_toggle/meta_reg
-        values_juego {u_seg7_link/values_juego_reg[*]} values_pix {u_seg7_link/values_pix_reg[*]}} {
+foreach {what pattern want} {toggle u_seg7_link/tick_toggle_reg 1 sync u_seg7_link/u_sync_toggle/meta_reg 1
+        values_juego {u_seg7_link/values_juego_reg[*]} 26 values_pix {u_seg7_link/values_pix_reg[*]} 26} {
     set cells [get_cells -quiet $pattern]
-    lappend link_report "$what: [llength $cells]"
-    if {[llength $cells] == 0} {
-        error "game_top_timing.xdc: el set_max_delay de seg7_link no encuentra $pattern"
+    lappend link_report "$what: [llength $cells] of $want"
+    if {[llength $cells] != $want} {
+        error "game_top_timing.xdc: el set_max_delay de seg7_link encuentra [llength $cells] celdas en $pattern, se esperaban $want"
     }
 }
 emit $out/seg7_link_cells.txt [join $link_report \n]
