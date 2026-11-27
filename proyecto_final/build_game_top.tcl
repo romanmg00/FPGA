@@ -335,6 +335,12 @@ foreach {what pattern} {heads_tgl u_arena_link/heads_tgl_ff_reg
         error "game_top_timing.xdc: el set_max_delay de la arena no encuentra $pattern"
     }
 }
+# collected debe tener sus 3 bits (uno por espacio de premio), no solo alguno: un bit quitado
+# en la sintesis quedaria sin restriccion, como en uart_link abajo.
+set collected_cells [get_cells -quiet {u_arena_link/collected_reg[*]}]
+if {[llength $collected_cells] != 3} {
+    error "game_top_timing.xdc: el set_max_delay de la arena encuentra [llength $collected_cells] celdas en u_arena_link/collected_reg\[*\], se esperaban 3"
+}
 emit $out/arena_link_cells.txt [join $arena_report \n]
 # Los tres set_max_delay de uart_link: cada patron debe encontrar todos sus bits, no solo
 # alguno (un registro absorbido por otro dejaria bits sin restriccion, como en el issue #54).
