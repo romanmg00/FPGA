@@ -11,6 +11,7 @@ module match_fsm (
     input  logic pause,           // SW0
     input  logic codes_valid,     // the Prepare is answered
     output logic waiting,
+    output logic waiting_start,   // s_idle or s_ready
     output logic new_match,
     output logic restart,
     output logic round_start
@@ -54,9 +55,10 @@ module match_fsm (
     end
 
     // The 1-tick actions wait during Pause.
-    assign waiting     = (state == s_idle || state == s_match);   // seg7_view adds the Goal view
-    assign new_match   = (state == s_new) && !pause;              // score_unit: 0 Points, 3 Lives
-    assign restart     = (state == s_new) && !pause;              // position_logic: Bikes to their starts
-    assign round_start = (state == s_start) && !pause && codes_valid;   // Start for round
+    assign waiting       = (state == s_idle || state == s_match);   // seg7_view adds the Goal view
+    assign waiting_start = (state == s_idle || state == s_ready);   // the HUD's play icon
+    assign new_match     = (state == s_new) && !pause;              // score_unit: 0 Points, 3 Lives
+    assign restart       = (state == s_new) && !pause;              // position_logic: Bikes to their starts
+    assign round_start   = (state == s_start) && !pause && codes_valid;   // Start for round
 
 endmodule

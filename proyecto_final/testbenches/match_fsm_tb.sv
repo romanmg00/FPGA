@@ -7,12 +7,12 @@ module match_fsm_tb;
     logic clk = 1'b0, rst = 1'b1;
     logic start_btn = 1'b0, start_p2 = 1'b0, crash = 1'b0, crash_done = 1'b0, match_over = 1'b0, pause = 1'b0;
     logic codes_valid = 1'b1;
-    logic waiting, new_match, restart, round_start;
+    logic waiting, waiting_start, new_match, restart, round_start;
     int   new_count = 0, round_start_count = 0;     // ticks with new_match / round_start high at the edge
 
     match_fsm dut (
         .clk, .rst, .start_btn, .start_p2, .crash, .crash_done, .match_over, .pause, .codes_valid,
-        .waiting, .new_match, .restart, .round_start
+        .waiting, .waiting_start, .new_match, .restart, .round_start
     );
 
     always #5 clk = ~clk;
@@ -24,13 +24,14 @@ module match_fsm_tb;
 
     // Outputs the plan gives each state (section 4.1), written here from that table.
     task automatic check_outputs(string when);
-        logic w, n, g;
+        logic w, s, n, g;
         w = (dut.state == 3'd0 || dut.state == 3'd4);
+        s = (dut.state == 3'd0 || dut.state == 3'd3);
         n = (dut.state == 3'd5) && !pause;
         g = (dut.state == 3'd7) && !pause && codes_valid;
-        if (waiting !== w || new_match !== n || restart !== n || round_start !== g)
-            fail($sformatf("%s: state %0d pause=%b gives waiting=%b new_match=%b restart=%b round_start=%b",
-                           when, dut.state, pause, waiting, new_match, restart, round_start));
+        if (waiting !== w || waiting_start !== s || new_match !== n || restart !== n || round_start !== g)
+            fail($sformatf("%s: state %0d pause=%b gives waiting=%b waiting_start=%b new_match=%b restart=%b round_start=%b",
+                           when, dut.state, pause, waiting, waiting_start, new_match, restart, round_start));
     endtask
 
     // The state after every edge, as one digit per tick. Actions are counted at the edge.
